@@ -61,7 +61,93 @@ Include relevant information in events, such as Hilbert and genome coordinates, 
 
 ## Usage
 
-// Provide code samples and explanations for using the component.
+`react-hilbert-genome` provides a `<HilbertGenome>` component that allows you to customize the visualization by setting various properties such as order domain, zoom extent, and data layers.
+
+Here's a basic example of how to use the `<HilbertGenome>` component:
+
+```jsx
+import React from 'react';
+import { HilbertGenome, Treemap, Heatmap, Text } from 'react-hilbert-genome';
+
+const App = () => {
+  const orderDomain = [4, 14]; // The range of chromosome orders
+  const zoomExtent = [1, 10]; // The range of allowable zoom levels
+
+  const dataLayers = [
+    {
+      baseUrl: 'https://your-data-source.com/data',
+      name: 'layer1',
+      component: Treemap,
+    },
+    {
+      baseUrl: 'https://your-data-source.com/data2',
+      name: 'layer2',
+      component: Heatmap,
+    },
+    {
+      baseUrl: 'https://your-data-source.com/data3',
+      name: 'layer3',
+      component: Text,
+    },
+  ];
+
+  return (
+    <HilbertGenome
+      orderDomain={orderDomain}
+      zoomExtent={zoomExtent}
+      dataLayers={dataLayers}
+    />
+  );
+};
+
+export default App;
+```
+
+### Setting the Order Domain
+
+The `orderDomain` prop determines the range of chromosome orders to be displayed in the Hilbert curve. It accepts an array of two numbers representing the minimum and maximum order.
+The maximum order should be 14 or less since it provides space for every basepair in each chromosome. See [hilbertgenome-py](https://github.com/enjalot/hilbertgenome-py) for more information.
+
+```jsx
+const orderDomain = [4, 14];
+```
+
+### Setting the Zoom Extent
+
+The `zoomExtent` prop defines the range of allowable zoom levels for the visualization. It accepts an array of two numbers representing the minimum and maximum zoom levels.  
+The minimum can be set to a fraction like 0.85 to allow a little bit of zooming out. Choosing a higher number like 5000 for the max allows the zoom to take longer, allowing the user to spend more tim in each order.
+
+```jsx
+const zoomExtent = [0.85, 5000];
+```
+
+### Data Layers
+
+The `dataLayers` prop accepts an array of JSON specifications to define the data layers to be visualized. Each layer requires a `baseUrl`, a `name`, and a `component` to render the data.
+
+Available rendering components include `Treemap`, `Heatmap`, and `Text`. You can import these components from the `react-hilbert-genome` package.
+
+```jsx
+const dataLayers = [
+  {
+    baseUrl: 'https://your-data-source.com/data',
+    name: 'layer1',
+    component: Treemap,
+  },
+  {
+    baseUrl: 'https://your-data-source.com/data2',
+    name: 'layer2',
+    component: Heatmap,
+  },
+  {
+    baseUrl: 'https://your-data-source.com/data3',
+    name: 'layer3',
+    component: Text,
+  },
+];
+```
+
+Pass the `dataLayers` array as a prop to the `<HilbertGenome>` component to render the specified layers in the visualization.
 
 
 ## Contributing
