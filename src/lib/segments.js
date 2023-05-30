@@ -1,3 +1,5 @@
+import { min, max } from 'd3-array'
+
 export function createSegments(points) {
   // split an array of points into its continuous segments
   let segments = [[points[0]]]
@@ -43,8 +45,8 @@ export function joinSegments(segments, segmentThreshold = 100) {
   // now lets get the extent of each segment
   // instead of keeping track of individual points we are 
   return joined.map(s => {
-    let start = d3.min(s, d => d.i)
-    let stop = d3.max(s, d => d.i) + 1
+    let start = min(s, d => d.i)
+    let stop = max(s, d => d.i) + 1
     let length = stop - start
     return {
       length,

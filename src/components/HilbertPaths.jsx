@@ -20,7 +20,6 @@ export default function HilbertPaths({
       // return an array for each continuous segment of the chromosome's points
       return createSegments(d[1])
     })
-    console.log("cpoints", cpoints)
 
     let path = line()
       .x((d) => xScale(d.x))
