@@ -46,7 +46,7 @@ function App() {
         activeLayer="Bands"
         LayerConfig={layerConfig}
         SVGRenderers={[
-          DebugRects({ stroke: "gray", fill:"none" }),
+          // DebugRects({ stroke: "gray", fill:"none" }),
           HilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1}),
         ]}
         debug={true}

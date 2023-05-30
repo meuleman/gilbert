@@ -11,13 +11,11 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
       let {xScale ,yScale ,sizeScale, width, height} = scales
       
       // state
-      let {data, meta, transform, order, dataOrder} = state
+      let {data, points, meta, transform, order, dataOrder} = state
+      if(!points || !data) return;
 
       // rendering constants
       let t = {...transform}
-      let step = Math.pow(0.5, dataOrder)
-      let sw = step * (1 - strokeWidthMultiplier);
-      
 
       ctx.clearRect(0, 0, width, height);
       // if the data's order doesn't match the current order we render it more transparently
@@ -27,7 +25,26 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
       ctx.lineWidth = 0.5;
 
       let i,d,xx,yy; 
+      
+      // we render the stroke of the points regardless of if we have data loaded
+      // the points always get updated on zoom so we can show them instantly
+      let step = Math.pow(0.5, order)
+      let sw = step * (1 - strokeWidthMultiplier);
       let rw = sizeScale(sw) * t.k - 1
+      for(i = 0; i < points.length; i++) {
+        d = points[i];
+        // scale and transform the coordinates
+        xx = t.x + xScale(d.x) * t.k - 1
+        yy = t.y + yScale(d.y) * t.k - 1
+        ctx.strokeRect(xx - rw/2, yy - rw/2, rw, rw)
+      }
+      
+      // TODO render the hilber path?
+      
+      // make sure to render with the data's order
+      step = Math.pow(0.5, dataOrder)
+      sw = step * (1 - strokeWidthMultiplier);
+      rw = sizeScale(sw) * t.k - 1
       // console.log("rendering canvas", t, data)
       // ctx.fillRect(t.x + xScale(1.5), t.y + yScale(1.5), rw * 2, rw * 2)
       for(i = 0; i < data.length; i++) {
@@ -35,7 +52,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
         // scale and transform the coordinates
         xx = t.x + xScale(d.x) * t.k - 1
         yy = t.y + yScale(d.y) * t.k - 1
-        ctx.strokeRect(xx - rw/2, yy - rw/2, rw, rw)
+        // ctx.strokeRect(xx - rw/2, yy - rw/2, rw, rw)
         if(d.data) {
           const sample = fieldChoice(d.data, meta);
           if(sample) {

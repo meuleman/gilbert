@@ -129,16 +129,19 @@ const HilbertGenome = ({
   // this allows us to re-render whenever the transform changes (frequently on zoom)
   // with the latest data available (updated via state)
   const renderCanvas = useMemo(() => { 
-    return function(transform) {
-      return layer.renderer({ scales, state: { data: state.data, points: state.points, order: state.order, dataOrder: state.dataOrder, transform}, layer, canvasRef })
+    return function(transform, points) {
+      // notice that we are overriding transform and points in the state we pass in
+      // this is because we want to render immediately with those values
+      return layer.renderer({ scales, state: { data: state.data, points, order: state.order, dataOrder: state.dataOrder, transform}, layer, canvasRef })
     }
   }, [state, scales, layer, canvasRef])
 
   // Data fetching
   const dataClient = Data({ 
     baseURL: LayerConfig.baseURL, 
-    // debug // this outputs a lot to the console
+    // debug
   })
+  // this debounced function fetches the data and updates the state
   const fetchData = useMemo(() => {
     return debounce(() => {
       return dataClient.fetchData(layer.datasetName, state.order, layer.aggregateName, state.points)
@@ -169,10 +172,6 @@ const HilbertGenome = ({
     let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
     let points = hilbert.fromBbox(bbox)
 
-    // dispatch({ type: actions.SET_TRANSFORM, payload: transform });
-    // dispatch({ type: actions.SET_ORDER, payload: order });
-    // dispatch({ type: actions.SET_BBOX, payload: bbox });
-    // dispatch({ type: actions.SET_POINTS, payload: points });
     dispatch({ type: actions.ZOOM, payload: {
       transform,
       order,
@@ -181,27 +180,24 @@ const HilbertGenome = ({
     }})
 
     // we want to update our canvas renderer immediately with new transform
-    renderCanvas(transform)
-    // call our debounced fetch data function
-    fetchData()
-  }, [renderCanvas, fetchData]);
+    renderCanvas(transform, points)
+  }, [renderCanvas]);
 
   useEffect(() => {
     // we want to fetch after every time the points recalculate
-    // this will be redundant but the fetch is debounced
+    // this will be often but the fetch is debounced
     fetchData()
   }, [state.points])
 
   useEffect(() => {
     // we want to make sure and render again once the data loads
-    renderCanvas(state.transform)
-  }, [state.data, state.transform])
+    renderCanvas(state.transform, state.points)
+  }, [state.data, state.transform, state.points])
 
 
   // setup the event handlers for zoom and attach it to the DOM
   zoomBehavior
     .on("zoom", handleZoom)
-    .on("end", fetchData)
   select(svgRef.current).call(zoomBehavior)
 
   // run the zoom with the initial transform when the component mounts
