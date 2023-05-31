@@ -14,10 +14,13 @@ import SVGChromosomeNames from './components/SVGChromosomeNames'
 // import SVGBBox from './components/SVGBBox'
 // layer configurations
 import Bands from './layers/bands'
+import GCContent from './layers/gc_content'
 
 const layerConfig = {
   baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes",
-  "Bands": Bands,
+  layers: [
+    Bands, GCContent
+  ]
 }
 
 
@@ -46,7 +49,7 @@ function App() {
   }
 
   // If the layer changes due to zooming, we want to let our other components know
-  const [layer, setLayer] = useState(null)
+  const [layer, setLayer] = useState(Bands)
   function handleLayer(l) {
     console.log("layer", l)
     setLayer(l)
@@ -98,7 +101,7 @@ function App() {
             zoomExtent={zoomExtent} 
             width={width} 
             height={height}
-            activeLayer="Bands"
+            activeLayer={layer}
             LayerConfig={layerConfig}
             SVGRenderers={[
               SVGChromosomeNames({ }),
@@ -120,7 +123,7 @@ function App() {
           zoomExtent={zoomExtent} />
         <SelectedModal
           height={height} 
-          selected={selected}
+          selected={selected} // currently selected cell
           selectedOrder={selectedOrder} 
           layer={layer} 
           zoom={zoom} 
@@ -130,9 +133,10 @@ function App() {
       <div>
         <StatusBar 
           width={width} 
-          hover={hover} 
+          hover={hover} // the information about the cell the mouse is over
           layer={layer} 
           zoom={zoom} 
+          onLayer={handleLayer}
           LayerConfig={layerConfig} />
         <pre>
           {JSON.stringify({ order: zoom.order, transform: zoom.transform }, null, 2)}

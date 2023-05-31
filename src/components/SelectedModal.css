@@ -1,7 +1,7 @@
 
 .selected-modal {
   position: absolute;
-  right: 30px;
+  right: 5px;
   line-height: 30px;
   border: 1px solid gray;
   background-color: white;

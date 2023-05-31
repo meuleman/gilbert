@@ -1,15 +1,18 @@
 import { useReducer, useEffect, useRef, useMemo, useCallback } from 'react';
 
-import  debounce from 'lodash.debounce';
+// import  debounce from 'lodash.debounce';
 import { scaleLinear } from 'd3-scale';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { select } from 'd3-selection';
 import { quadtree } from 'd3-quadtree';
+import { range } from 'd3-array';
 
 import { HilbertChromosome } from '../lib/HilbertChromosome';
 import { getBboxDomain, untransform } from '../lib/bbox';
 import Data from '../lib/data';
+import debounce from '../lib/debounce'
 import scaleCanvas from '../lib/canvas';
+import CanvasBase from './CanvasBase';
 
 import './HilbertGenome.css';
 
@@ -22,14 +25,14 @@ const initialState = {
   order: 0,
   dataOrder: 0,
   data: [],
-  meta: {},
+  metas: new Map(),
 };
 
 // Define the actions
 const actions = {
   ZOOM: "ZOOM", // have all the zoom dependencies update the state at once
   SET_DATA: "SET_DATA",
-  SET_META: "SET_META",
+  SET_METAS: "SET_METAS",
 };
 
 // Define the reducer function
@@ -39,8 +42,8 @@ function reducer(state, action) {
       return { ...state, ...action.payload };
     case actions.SET_DATA:
       return { ...state, data: action.payload.data, dataOrder: action.payload.order };
-    case actions.SET_META:
-      return { ...state, meta: action.payload };
+    case actions.SET_METAS:
+      return { ...state, metas: action.payload };
     default:
       throw new Error();
   }
@@ -98,16 +101,43 @@ const HilbertGenome = ({
     if(activeLayer == "auto") {
       // TODO have some logic for automatically selecting the layer
     } else {
-      return LayerConfig[activeLayer]
+      return activeLayer
     }
-  }, [state.order])
+  }, [state.order, activeLayer])
+
+  // Data fetching
+  const dataClient = Data({ 
+    baseURL: LayerConfig.baseURL, 
+    debug
+  })
+  // this debounced function fetches the data and updates the state
+  const fetchData = useMemo(() => {
+    return () => {
+      let myPromise = dataClient.fetchData(layer.datasetName, state.order, layer.aggregateName, state.points)
+      let myCallback = (data) => {
+        if(data)
+          dispatch({ type: actions.SET_DATA, payload: { data, order: state.order } });
+      }
+      debounce(myPromise, myCallback, 150)
+    }
+  }, [state.order, state.points, layer]);
+
 
   useEffect(() => {
     if (layer) {
       onLayer(layer)
+      // fetch the meta for each order in this layer
+      const metas = Promise.all(range(layer.orders[0], layer.orders[1] + 1)
+        .map(async (order) => {
+          return dataClient.fetchMeta(layer.datasetName, order, "meta")
+        })
+      ).then(metas => {
+        console.log("METAS", metas)
+        const metaMap = new Map(metas.map(meta => [meta.order, meta]))
+        dispatch({ type: actions.SET_METAS, payload: metaMap})
+      })
     }
   }, [layer])
-  const LayerRenderer = layer.renderer;
 
 
   // setup the zoom behavior
@@ -132,25 +162,12 @@ const HilbertGenome = ({
     return function(transform, points) {
       // notice that we are overriding transform and points in the state we pass in
       // this is because we want to render immediately with those values
-      return layer.renderer({ scales, state: { data: state.data, points, order: state.order, dataOrder: state.dataOrder, transform}, layer, canvasRef })
+      CanvasBase({ scales, state: { data: state.data, points, order: state.order, dataOrder: state.dataOrder, transform}, layer, canvasRef })
+      layer.renderer({ scales, state: { data: state.data, meta: state.metas.get(state.dataOrder), points, order: state.order, dataOrder: state.dataOrder, transform}, layer, canvasRef })
     }
   }, [state, scales, layer, canvasRef])
 
-  // Data fetching
-  const dataClient = Data({ 
-    baseURL: LayerConfig.baseURL, 
-    debug
-  })
-  // this debounced function fetches the data and updates the state
-  const fetchData = useMemo(() => {
-    return debounce(() => {
-      return dataClient.fetchData(layer.datasetName, state.order, layer.aggregateName, state.points)
-        .then(data => {
-          dispatch({ type: actions.SET_DATA, payload: { data, order: state.order } 
-        });
-      })
-    }, 150)
-  }, [state.order, state.points, layer]);
+  
 
   // Zoom event handler
   // This is responsible for setting up most of the rendering dependencies
@@ -191,7 +208,7 @@ const HilbertGenome = ({
     // we want to fetch after every time the points recalculate
     // this will be often but the fetch is debounced
     fetchData()
-  }, [state.points])
+  }, [state.points, state.metas])
 
   useEffect(() => {
     // we want to make sure and render again once the data loads
@@ -216,6 +233,7 @@ const HilbertGenome = ({
     scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
   }, [canvasRef, width, height])
 
+  // MOUSE INTERACTIONS
   // we create a quadtree so we can find the closest point to the mouse
   const qt = useMemo(() => {
     if(!state.points) return null
@@ -322,8 +340,6 @@ const HilbertGenome = ({
         height={height + "px"}
         ref={canvasRef}
       />
-      {/* Render the active data layer */}
-      {/* <LayerRenderer state={state} scales={scales} canvasRef={canvasRef} layer={layer} /> */}
 
       <svg
         className="hilbert-genome-svg" 

@@ -1,5 +1,5 @@
 // A component to display some information below the map when hovering over hilbert cells
-
+import LayerDropdown from './LayerDropdown'
 import './StatusBar.css'
 
 const StatusBar = ({
@@ -7,7 +7,8 @@ const StatusBar = ({
   hover = null,
   layer,
   zoom,
-  LayerConfig
+  LayerConfig,
+  onLayer=()=>{}
 } = {}) => {
   let sample = null
   if(layer && hover && hover.data)
@@ -31,6 +32,9 @@ const StatusBar = ({
           )}
         </div>
      
+      <div className="status-bar-layer">
+        <LayerDropdown LayerConfig={LayerConfig} activeLayer={layer} onLayer={onLayer} />
+      </div>
       <div className="status-bar-order">
         {zoom && (
           <span>Order: {zoom.order}</span>

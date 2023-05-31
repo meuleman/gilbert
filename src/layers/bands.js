@@ -6,7 +6,7 @@ export default {
   name: "Bands",
   datasetName: "bands",
   aggregateName: "bands",
-  orders: [4,8],
+  orders: [4,7],
   renderer: CanvasSimpleValue,    
   fieldChoice: bandsValue,
   fieldColor: scaleOrdinal()

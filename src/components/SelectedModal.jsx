@@ -21,7 +21,7 @@ const SelectedModal = ({
     {selected && (
     <div className="selected-modal" style={{
       width: width - 2 + "px",
-      height: height + "px"
+      height: height - 2 + "px"
     }}>
       
       <div className="header">
