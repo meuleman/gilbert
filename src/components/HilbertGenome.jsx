@@ -202,6 +202,10 @@ const HilbertGenome = ({
   // setup the event handlers for zoom and attach it to the DOM
   zoomBehavior
     .on("zoom", handleZoom)
+    .filter((event) => {
+      if(event.type === 'dblclick') return false
+      return true
+    })
   select(svgRef.current).call(zoomBehavior)
 
   // run the zoom with the initial transform when the component mounts
@@ -225,6 +229,7 @@ const HilbertGenome = ({
 
   // Mouse move event handler
   const handleMouseMove = useCallback((event) => {
+    if(!qt) return
     let ex = event.nativeEvent.offsetX
     let ey = event.nativeEvent.offsetY
     // console.log("mouse y", event)
@@ -242,6 +247,7 @@ const HilbertGenome = ({
   }, [state.data, state.transform, state.order, qt, xScale, yScale])
     
   const handleClick = useCallback((event) => {
+    if(!qt) return
     let ex = event.nativeEvent.offsetX
     let ey = event.nativeEvent.offsetY
     // console.log("mouse y", event)
@@ -258,6 +264,39 @@ const HilbertGenome = ({
     onClick(clicked, state.order);
   }, [state.data, state.transform, state.order, qt, xScale, yScale]) 
 
+  const handleDoubleClick = useCallback((event) => {
+    if(!qt) return
+    event.preventDefault()
+    event.stopPropagation()
+    let ex = event.nativeEvent.offsetX
+    let ey = event.nativeEvent.offsetY
+
+    let ut = untransform(ex, ey, state.transform)
+    let step = Math.pow(0.5, state.order)
+    let hit = qt.find(xScale.invert(ut.x), yScale.invert(ut.y), step * 3)
+    
+    let clicked = hit;
+    if(hit) {
+      let datum = state.data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
+      if(datum)
+        clicked = datum
+    }
+    onClick(clicked, state.order);
+
+    // zoom into the hit
+    // first we get the x,y coordinates of the point in absolute position
+    let tx = xScale(hit.x) - sizeScale(step) * 2.5 
+    let ty = yScale(hit.y) - sizeScale(step) * 1.75
+    let tw = xScale(step) - xScale(0)
+    let xw = xScale(xScale.domain()[1] - xScale.domain()[0])
+    let scale = xw/tw/4
+    console.log("zoom!", tx, ty, tw, xw, scale, tx * scale)
+    let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
+    // zoomBehavior.transform(select(svgRef.current), transform) 
+    select(svgRef.current).transition().duration(1000).call(zoomBehavior.transform, transform)
+
+  }, [state.data, state.transform, state.order, qt, xScale, yScale]) 
+
   
 
   // Render the component
@@ -271,6 +310,7 @@ const HilbertGenome = ({
       }}
       onMouseMove={handleMouseMove}
       onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       >
       
       <canvas 

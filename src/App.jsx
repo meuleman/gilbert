@@ -120,9 +120,9 @@ function App() {
           layer={layer} 
           zoom={zoom} 
           LayerConfig={layerConfig} />
-        {/* <pre>
-          {JSON.stringify({ order: zoom.order, points: zoom.points?.length }, null, 2)}
-        </pre> */}
+        <pre>
+          {JSON.stringify({ order: zoom.order, transform: zoom.transform }, null, 2)}
+        </pre>
       </div>
     </>
   )
