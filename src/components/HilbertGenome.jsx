@@ -7,7 +7,7 @@ import { select } from 'd3-selection';
 import { quadtree } from 'd3-quadtree';
 
 import { HilbertChromosome } from '../lib/HilbertChromosome';
-import { getBboxDomain } from '../lib/bbox';
+import { getBboxDomain, untransform } from '../lib/bbox';
 import Data from '../lib/data';
 import scaleCanvas from '../lib/canvas';
 
@@ -27,10 +27,6 @@ const initialState = {
 // Define the actions
 const actions = {
   ZOOM: "ZOOM", // have all the zoom dependencies update the state at once
-  // SET_TRANSFORM: "SET_TRANSFORM",
-  // SET_BBOX: "SET_BBOX",
-  // SET_ORDER: "SET_ORDER",
-  // SET_POINTS: "SET_POINTS",
   SET_DATA: "SET_DATA",
   SET_META: "SET_META",
 };
@@ -40,14 +36,6 @@ function reducer(state, action) {
   switch (action.type) {
     case actions.ZOOM:
       return { ...state, ...action.payload };
-    // case actions.SET_TRANSFORM:
-    //   return { ...state, transform: action.payload };
-    // case actions.SET_BBOX:
-    //   return { ...state, bbox: action.payload };
-    // case actions.SET_ORDER:
-    //   return { ...state, order: action.payload };
-    // case actions.SET_POINTS:
-    //   return { ...state, points: action.payload };
     case actions.SET_DATA:
       return { ...state, data: action.payload.data, dataOrder: action.payload.order };
     case actions.SET_META:
@@ -69,6 +57,9 @@ const HilbertGenome = ({
     LayerConfig={},
     SVGRenderers=[],
     onZoom = () => {},
+    onHover = () => {},
+    onLayer= () => {},
+    onClick = () => {},
     debug = false,
   }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -109,6 +100,12 @@ const HilbertGenome = ({
       return LayerConfig[activeLayer]
     }
   }, [state.order])
+
+  useEffect(() => {
+    if (layer) {
+      onLayer(layer)
+    }
+  }, [layer])
   const LayerRenderer = layer.renderer;
 
 
@@ -215,12 +212,34 @@ const HilbertGenome = ({
     scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
   }, [canvasRef, width, height])
 
+  const qt = useMemo(() => {
+    if(!state.points) return null
+    let qt = quadtree()
+        .extent([[-1, -1], [5 + 1, 5 + 1]])
+        .x(d => d.x)
+        .y(d => d.y)
+        .addAll(state.points)
+    return qt
+  }, [state.points])
 
-  // let qt = quadtree()
-  //     .extent([[-1, -1], [5 + 1, 5 + 1]])
-  //     .x(d => d.x)
-  //     .y(d => d.y)
-  //     .addAll(points)
+  // Mouse move event handler
+  const handleMouseMove = useCallback((event) => {
+    let ex = event.nativeEvent.offsetX
+    let ey = event.nativeEvent.offsetY
+    // console.log("mouse y", event)
+    let ut = untransform(ex, ey, state.transform)
+    let step = Math.pow(0.5, state.order)
+    let hit = qt.find(xScale.invert(ut.x), yScale.invert(ut.y), step * 3)
+    
+    let hover = hit;
+    if(hit) {
+      let datum = state.data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
+      if(datum)
+        hover = datum
+    }
+    onHover(hover);
+  }, [state.data, state.transform, state.order, qt, xScale, yScale])
+    
 
   
 
@@ -233,6 +252,7 @@ const HilbertGenome = ({
         width: width + "px",
         height: height + "px"
       }}
+      onMouseMove={handleMouseMove}
       >
       
       <canvas 

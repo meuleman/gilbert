@@ -7,6 +7,7 @@ import HilbertGenome from './components/HilbertGenome'
 // rendering components
 import SVGHilbertPaths from './components/SVGHilbertPaths'
 import ZoomLegend from './components/ZoomLegend'
+import HoverBar from './components/HoverBar'
 // import SVGBBox from './components/SVGBBox'
 // layer configurations
 import Bands from './layers/bands'
@@ -39,10 +40,24 @@ function App() {
     return size;
   }
 
-  // 
+  // If the layer changes due to zooming, we want to let our other components know
+  const [layer, setLayer] = useState(null)
+  function handleLayer(l) {
+    console.log("layer", l)
+    setLayer(l)
+  }
+
+  // We want to keep track of the zoom state
   const [zoom, setZoom] = useState({order: 4, points: [], bbox: {}, transform: {}})
   function handleZoom(zoom) {
     setZoom(zoom)
+  } 
+  
+  // the hover can be null or the data in a hilbert cell
+  const [hover, setHover] = useState(null)
+  function handleHover(hit) {
+    // console.log("hover", hit)
+    setHover(hit)
   }
 
   const orderDomain = [4, 14]
@@ -67,6 +82,8 @@ function App() {
               SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1}),
             ]}
             onZoom={handleZoom}
+            onHover={handleHover}
+            onLayer={handleLayer}
             debug={false}
           />
         </div>
@@ -77,7 +94,7 @@ function App() {
           zoomExtent={zoomExtent} />
       </div>
       <div>
-        
+        <HoverBar hover={hover} layer={layer} width={width} />
         <pre>
           {JSON.stringify({ order: zoom.order, points: zoom.points?.length }, null, 2)}
         </pre>
