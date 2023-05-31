@@ -2,6 +2,20 @@
 #root {
   padding: 12px;
 }
+
+/* APP styles */
+.panels {
+  display: flex;
+  flex-direction: row;
+  /* align-items: center; */
+  justify-content: center;
+  width: 100%;
+}
+
+.hilbert-container {
+  width: 100%;
+}
+
 /*
 HILBERT GENOME TEMPORARY STYLES
 */
@@ -27,4 +41,9 @@ HILBERT GENOME TEMPORARY STYLES
     stroke: gray;
     stroke-width: 2px;
   }
+}
+
+
+.zoom-legend svg {
+  max-width: fit-content;
 }

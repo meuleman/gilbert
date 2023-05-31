@@ -19,7 +19,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
 
       ctx.clearRect(0, 0, width, height);
       // if the data's order doesn't match the current order we render it more transparently
-      ctx.globalAlpha = order == dataOrder ? 1 : 0.5
+      ctx.globalAlpha = 1 //order == dataOrder ? 1 : 0.85
       ctx.strokeStyle = stroke
       ctx.fillStyle = fill
       ctx.lineWidth = 0.5;

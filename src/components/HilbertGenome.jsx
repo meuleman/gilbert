@@ -68,6 +68,7 @@ const HilbertGenome = ({
     activeLayer = "bands",
     LayerConfig={},
     SVGRenderers=[],
+    onZoom = () => {},
     debug = false,
   }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -140,7 +141,7 @@ const HilbertGenome = ({
   // Data fetching
   const dataClient = Data({ 
     baseURL: LayerConfig.baseURL, 
-    // debug
+    debug
   })
   // this debounced function fetches the data and updates the state
   const fetchData = useMemo(() => {
@@ -173,12 +174,17 @@ const HilbertGenome = ({
     let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
     let points = hilbert.fromBbox(bbox)
 
-    dispatch({ type: actions.ZOOM, payload: {
+    const payload = {
       transform,
       order,
       bbox,
       points,
-    }})
+    }
+    // update the state
+    dispatch({ type: actions.ZOOM, payload })
+    
+    // update the parent component
+    onZoom(payload)
 
     // we want to update our canvas renderer immediately with new transform
     renderCanvas(transform, points)
@@ -204,7 +210,7 @@ const HilbertGenome = ({
   // run the zoom with the initial transform when the component mounts
   useEffect(() => {
     zoomBehavior.transform(select(svgRef.current), state.transform)
-  }, []);
+  }, [width, height]);
   useEffect(() => {
     scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
   }, [canvasRef, width, height])
@@ -262,16 +268,6 @@ const HilbertGenome = ({
         </g>
         
       </svg>
-
-      { debug && 
-        <pre style={{
-          position: "relative",
-          top: height + 10 + "px",
-        }}>
-          {JSON.stringify({ order: state.order, points: state.points?.length }, null, 2)}
-        </pre>
-      }
-      
     </div>
     
     
