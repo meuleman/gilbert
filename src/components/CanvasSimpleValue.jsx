@@ -34,8 +34,8 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
       for(i = 0; i < points.length; i++) {
         d = points[i];
         // scale and transform the coordinates
-        xx = t.x + xScale(d.x) * t.k - 1
-        yy = t.y + yScale(d.y) * t.k - 1
+        xx = t.x + xScale(d.x) * t.k
+        yy = t.y + yScale(d.y) * t.k
         ctx.strokeRect(xx - rw/2, yy - rw/2, rw, rw)
       }
       
@@ -50,8 +50,8 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
       for(i = 0; i < data.length; i++) {
         d = data[i];
         // scale and transform the coordinates
-        xx = t.x + xScale(d.x) * t.k - 1
-        yy = t.y + yScale(d.y) * t.k - 1
+        xx = t.x + xScale(d.x) * t.k
+        yy = t.y + yScale(d.y) * t.k
         // ctx.strokeRect(xx - rw/2, yy - rw/2, rw, rw)
         if(d.data) {
           const sample = fieldChoice(d.data, meta);

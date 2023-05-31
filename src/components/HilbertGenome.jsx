@@ -8,7 +8,8 @@ import { quadtree } from 'd3-quadtree';
 
 import { HilbertChromosome } from '../lib/HilbertChromosome';
 import { getBboxDomain } from '../lib/bbox';
-import Data from '../lib/Data';
+import Data from '../lib/data';
+import scaleCanvas from '../lib/canvas';
 
 
 
@@ -204,6 +205,9 @@ const HilbertGenome = ({
   useEffect(() => {
     zoomBehavior.transform(select(svgRef.current), state.transform)
   }, []);
+  useEffect(() => {
+    scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
+  }, [canvasRef, width, height])
 
 
   // let qt = quadtree()

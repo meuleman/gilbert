@@ -34,6 +34,8 @@ export default function HilbertPaths({
               key={i}
               stroke={stroke} 
               strokeWidth={strokeWidth} 
+              strokeLinejoin="round"
+              strokeLinecap="round"
               fill="none" 
               />
           )})}
