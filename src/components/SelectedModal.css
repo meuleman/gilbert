@@ -1,0 +1,41 @@
+
+.selected-modal {
+  position: absolute;
+  right: 30px;
+  line-height: 30px;
+  border: 1px solid gray;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  /* justify-content: space-between; */
+  box-shadow: -2px 2px 2px 0px rgba(0,0,0,0.25);
+}
+.selected-modal .header {
+
+}
+.selected-modal .close {
+  position: relative;
+  right: 0;
+  cursor: pointer;
+  border: 1px solid gray;
+  margin: 2px;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  font-family: 'Courier New', Courier, monospace;
+}
+.selected-modal .selected-modal-selected-point {
+  margin-left: 5px;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+}
+.selected-modal .selected-modal-selected-data {
+  margin-left: 5px;
+  padding: 4px;
+  border: 1px solid gray;
+}
+
+.selected-modal .selected-modal-order {
+  padding: 0px 4px;
+}

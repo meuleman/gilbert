@@ -8,6 +8,7 @@ import HilbertGenome from './components/HilbertGenome'
 import SVGHilbertPaths from './components/SVGHilbertPaths'
 import ZoomLegend from './components/ZoomLegend'
 import StatusBar from './components/StatusBar'
+import SelectedModal from './components/SelectedModal'
 import SVGSelected from './components/SVGSelected'
 import SVGChromosomeNames from './components/SVGChromosomeNames'
 // import SVGBBox from './components/SVGBBox'
@@ -77,6 +78,11 @@ function App() {
     }
   }
 
+  function handleModalClose() {
+    setSelected(null)
+    setSelectedOrder(null)
+  }
+
   const orderDomain = [4, 14]
   const zoomExtent = [0.85, 4000]
 
@@ -98,7 +104,7 @@ function App() {
               SVGChromosomeNames({ }),
               SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1}),
               SVGSelected({ hit: hover, order: zoom.order, stroke: "black", strokeWidthMultiplier: 0.1 }),
-              SVGSelected({ hit: selected, order: selectedOrder, stroke: "orange", strokeWidthMultiplier: 0.1 })
+              SVGSelected({ hit: selected, order: selectedOrder, stroke: "orange" })
             ]}
             onZoom={handleZoom}
             onHover={handleHover}
@@ -112,6 +118,14 @@ function App() {
           height={height} 
           orderDomain={orderDomain} 
           zoomExtent={zoomExtent} />
+        <SelectedModal
+          height={height} 
+          selected={selected}
+          selectedOrder={selectedOrder} 
+          layer={layer} 
+          zoom={zoom} 
+          LayerConfig={layerConfig}
+          onClose={handleModalClose} />
       </div>
       <div>
         <StatusBar 

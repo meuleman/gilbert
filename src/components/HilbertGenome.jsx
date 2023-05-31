@@ -285,14 +285,17 @@ const HilbertGenome = ({
 
     // zoom into the hit
     // first we get the x,y coordinates of the point in absolute position
+    // TODO: the multipliers should be based on aspect ratio
     let tx = xScale(hit.x) - sizeScale(step) * 2.5 
     let ty = yScale(hit.y) - sizeScale(step) * 1.75
     let tw = xScale(step) - xScale(0)
     let xw = xScale(xScale.domain()[1] - xScale.domain()[0])
+    // we zoom to 1/4 the scale of the hit
     let scale = xw/tw/4
-    console.log("zoom!", tx, ty, tw, xw, scale, tx * scale)
     let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
+
     // zoomBehavior.transform(select(svgRef.current), transform) 
+    // transition the zoom to the new transform
     select(svgRef.current).transition().duration(1000).call(zoomBehavior.transform, transform)
 
   }, [state.data, state.transform, state.order, qt, xScale, yScale]) 

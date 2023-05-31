@@ -2,7 +2,7 @@
 export default function SVGBBox({ 
   stroke = "gray",
   fill = "none",
-  strokeWidthMultiplier = 0.05,
+  strokeWidthMultiplier = 0.2,
   hit = null,
   order = 4
 } = {}) {
@@ -13,6 +13,7 @@ export default function SVGBBox({
     let step = Math.pow(0.5, order)
 
     let rw = sizeScale(step)
+    let sw = sizeScale(Math.pow(0.5, state.order))*strokeWidthMultiplier
     
     return (
       <g>
@@ -23,7 +24,7 @@ export default function SVGBBox({
             height={rw}
             fill={fill}
             stroke={stroke}
-            strokeWidth={sizeScale(step)*strokeWidthMultiplier}
+            strokeWidth={sw}
           ></rect>
     </g>
     )
