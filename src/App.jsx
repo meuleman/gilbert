@@ -7,7 +7,9 @@ import HilbertGenome from './components/HilbertGenome'
 // rendering components
 import SVGHilbertPaths from './components/SVGHilbertPaths'
 import ZoomLegend from './components/ZoomLegend'
-import HoverBar from './components/HoverBar'
+import StatusBar from './components/StatusBar'
+import SVGSelected from './components/SVGSelected'
+import SVGChromosomeNames from './components/SVGChromosomeNames'
 // import SVGBBox from './components/SVGBBox'
 // layer configurations
 import Bands from './layers/bands'
@@ -29,9 +31,11 @@ function App() {
     useEffect(() => {
       function updateSize() {
         if(!containerRef.current) return
-        let { width, height } = containerRef.current.getBoundingClientRect()
-        // setSize([window.innerWidth, window.innerHeight]);
-        setSize([width, height]);
+        let { height } = containerRef.current.getBoundingClientRect()
+        // account for the zoom legend (30) and padding (48)
+        let w = window.innerWidth - 30 - 24
+        // console.log("sup", window.innerWidth, w, width)
+        setSize([w, height]);
       }
       window.addEventListener('resize', updateSize);
       updateSize();
@@ -60,6 +64,19 @@ function App() {
     setHover(hit)
   }
 
+  const [selected, setSelected] = useState(null)
+  const [selectedOrder, setSelectedOrder] = useState(null)
+  function handleClick(hit, order) {
+    console.log("click", hit)
+    if(hit === selected) {
+      setSelected(null) 
+      setSelectedOrder(null)
+    } else {
+      setSelected(hit)
+      setSelectedOrder(order)
+    }
+  }
+
   const orderDomain = [4, 14]
   const zoomExtent = [0.85, 4000]
 
@@ -78,11 +95,14 @@ function App() {
             activeLayer="Bands"
             LayerConfig={layerConfig}
             SVGRenderers={[
-              // SVGBBox({ stroke: "red", fill:"none" }),
+              SVGChromosomeNames({ }),
               SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1}),
+              SVGSelected({ hit: hover, order: zoom.order, stroke: "black", strokeWidthMultiplier: 0.1 }),
+              SVGSelected({ hit: selected, order: selectedOrder, stroke: "orange", strokeWidthMultiplier: 0.1 })
             ]}
             onZoom={handleZoom}
             onHover={handleHover}
+            onClick={handleClick}
             onLayer={handleLayer}
             debug={false}
           />
@@ -94,10 +114,15 @@ function App() {
           zoomExtent={zoomExtent} />
       </div>
       <div>
-        <HoverBar hover={hover} layer={layer} width={width} />
-        <pre>
+        <StatusBar 
+          width={width} 
+          hover={hover} 
+          layer={layer} 
+          zoom={zoom} 
+          LayerConfig={layerConfig} />
+        {/* <pre>
           {JSON.stringify({ order: zoom.order, points: zoom.points?.length }, null, 2)}
-        </pre>
+        </pre> */}
       </div>
     </>
   )

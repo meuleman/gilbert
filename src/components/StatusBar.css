@@ -1,0 +1,23 @@
+
+.status-bar {
+  height: 30px;
+  line-height: 30px;
+  border: 1px solid gray;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.status-bar .status-bar-hover-point {
+  margin-left: 5px;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+}
+.status-bar .status-bar-hover-data {
+  margin-left: 5px;
+  padding: 4px;
+  border: 1px solid gray;
+}
+
+.status-bar .status-bar-order {
+  padding: 0px 4px;
+}

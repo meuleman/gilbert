@@ -1,0 +1,23 @@
+
+.hilbert-genome {
+  /* border: 1px solid black; */
+  display: block;
+}
+
+.hilbert-genome-canvas {
+  position: absolute;
+  /* border: 2px solid orange; */
+
+}
+.hilbert-genome-svg {
+  position:absolute;
+  /* border: 1px solid blue; */
+}
+
+.hilbert-genome-svg {
+  .hg-background-rect {
+    fill: none;
+    stroke: gray;
+    stroke-width: 2px;
+  }
+}

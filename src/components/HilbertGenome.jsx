@@ -11,6 +11,7 @@ import { getBboxDomain, untransform } from '../lib/bbox';
 import Data from '../lib/data';
 import scaleCanvas from '../lib/canvas';
 
+import './HilbertGenome.css';
 
 
 // TODO: seperate out state and actions into seperate files
@@ -167,7 +168,6 @@ const HilbertGenome = ({
     if(order > orderDomain[1]) order = orderDomain[1]
 
     let hilbert = HilbertChromosome(order, { padding: 2 })
-
     let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
     let points = hilbert.fromBbox(bbox)
 
@@ -212,6 +212,7 @@ const HilbertGenome = ({
     scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
   }, [canvasRef, width, height])
 
+  // we create a quadtree so we can find the closest point to the mouse
   const qt = useMemo(() => {
     if(!state.points) return null
     let qt = quadtree()
@@ -240,6 +241,22 @@ const HilbertGenome = ({
     onHover(hover);
   }, [state.data, state.transform, state.order, qt, xScale, yScale])
     
+  const handleClick = useCallback((event) => {
+    let ex = event.nativeEvent.offsetX
+    let ey = event.nativeEvent.offsetY
+    // console.log("mouse y", event)
+    let ut = untransform(ex, ey, state.transform)
+    let step = Math.pow(0.5, state.order)
+    let hit = qt.find(xScale.invert(ut.x), yScale.invert(ut.y), step * 3)
+    
+    let clicked = hit;
+    if(hit) {
+      let datum = state.data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
+      if(datum)
+        clicked = datum
+    }
+    onClick(clicked, state.order);
+  }, [state.data, state.transform, state.order, qt, xScale, yScale]) 
 
   
 
@@ -253,6 +270,7 @@ const HilbertGenome = ({
         height: height + "px"
       }}
       onMouseMove={handleMouseMove}
+      onClick={handleClick}
       >
       
       <canvas 

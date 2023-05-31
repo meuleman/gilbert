@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { scaleLinear } from 'd3-scale';
 import * as Plot from "@observablehq/plot"
 
+import './ZoomLegend.css';
+
 const ZoomLegend = ({
   width = 30,
   height = 640,
