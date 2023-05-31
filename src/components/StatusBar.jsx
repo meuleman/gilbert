@@ -33,7 +33,12 @@ const StatusBar = ({
         </div>
      
       <div className="status-bar-layer">
-        <LayerDropdown LayerConfig={LayerConfig} activeLayer={layer} onLayer={onLayer} />
+        <LayerDropdown 
+          LayerConfig={LayerConfig} 
+          activeLayer={layer} 
+          onLayer={onLayer} 
+          order={zoom.order}
+          />
       </div>
       <div className="status-bar-order">
         {zoom && (

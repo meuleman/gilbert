@@ -19,7 +19,8 @@ import GCContent from './layers/gc_content'
 const layerConfig = {
   baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes",
   layers: [
-    Bands, GCContent
+    Bands, 
+    GCContent
   ]
 }
 
@@ -51,7 +52,6 @@ function App() {
   // If the layer changes due to zooming, we want to let our other components know
   const [layer, setLayer] = useState(Bands)
   function handleLayer(l) {
-    console.log("layer", l)
     setLayer(l)
   }
 

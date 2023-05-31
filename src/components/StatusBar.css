@@ -8,8 +8,8 @@
   justify-content: space-between;
 }
 .status-bar .status-bar-hover {
-  width: 300px;
-  max-width: 300px;
+  width: 650px;
+  max-width: 650px;
 }
 .status-bar .status-bar-hover-point {
   margin-left: 5px;

@@ -26,6 +26,8 @@ const initialState = {
   dataOrder: 0,
   data: [],
   metas: new Map(),
+  selected: null,
+  hovered: null
 };
 
 // Define the actions
@@ -33,6 +35,8 @@ const actions = {
   ZOOM: "ZOOM", // have all the zoom dependencies update the state at once
   SET_DATA: "SET_DATA",
   SET_METAS: "SET_METAS",
+  SET_SELECTED: "SET_SELECTED",
+  SET_HOVERED: "SET_HOVERED",
 };
 
 // Define the reducer function
@@ -44,6 +48,10 @@ function reducer(state, action) {
       return { ...state, data: action.payload.data, dataOrder: action.payload.order };
     case actions.SET_METAS:
       return { ...state, metas: action.payload };
+    case actions.SET_SELECTED:
+      return { ...state, selected: action.payload };
+    case actions.SET_HOVERED:
+      return { ...state, hovered: action.payload };
     default:
       throw new Error();
   }
@@ -279,7 +287,8 @@ const HilbertGenome = ({
       if(datum)
         clicked = datum
     }
-    onClick(clicked, state.order);
+    // onClick(clicked, state.order);
+    dispatch({ type: actions.SET_SELECTED, payload: clicked })
   }, [state.data, state.transform, state.order, qt, xScale, yScale]) 
 
   const handleDoubleClick = useCallback((event) => {
@@ -299,7 +308,8 @@ const HilbertGenome = ({
       if(datum)
         clicked = datum
     }
-    onClick(clicked, state.order);
+    // onClick(clicked, state.order);
+    dispatch({ type: actions.SET_SELECTED, payload: clicked })
 
     // zoom into the hit
     // first we get the x,y coordinates of the point in absolute position
@@ -318,6 +328,17 @@ const HilbertGenome = ({
 
   }, [state.data, state.transform, state.order, qt, xScale, yScale]) 
 
+  // fire callbacks when our selected change
+  // partly this is so we can update the selected in the parent when layer changes with new data
+  // TODO: this doesn't quite work if we've changed orders because we wont have the old data for new layer
+  useEffect(() => {
+    let selected = state.selected
+    if(selected) {
+      let datum = state.data.find(x => x.i == selected.i && x.chromosome == selected.chromosome && x.order == selected.order )
+      if(datum)
+        onClick(datum, datum.order)
+    }
+  }, [state.data, state.selected]) 
   
 
   // Render the component
