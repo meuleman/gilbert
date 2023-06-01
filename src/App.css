@@ -2,7 +2,11 @@
 #root {
   padding: 12px;
 }
-
+.title {
+  font-size: 3.2em;
+  line-height: 1.1em;
+  margin: 5px;
+}
 /* APP styles */
 .panels {
   display: flex;

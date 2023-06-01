@@ -116,7 +116,7 @@ function App() {
   return (
     <>
 
-      <h1>Hilbert Genome</h1>
+      <div className="title">Hilbert Genome</div>
 
       <div className="panels">
         <div ref={containerRef} className="hilbert-container">
@@ -130,9 +130,9 @@ function App() {
             SVGRenderers={[
               SVGChromosomeNames({ }),
               showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
-              SVGSelected({ hit: hover, order: zoom.order, stroke: "black", strokeWidthMultiplier: 0.1 }),
-              SVGSelected({ hit: selected, order: selectedOrder, stroke: "orange" }),
-              showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
+              SVGSelected({ hit: hover, order: zoom.order, stroke: "black", strokeWidthMultiplier: 0.1, showGenes }),
+              SVGSelected({ hit: selected, order: selectedOrder, stroke: "orange", showGenes }),
+              showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
             ]}
             onZoom={handleZoom}
             onHover={handleHover}

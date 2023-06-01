@@ -1,8 +1,6 @@
 import { line } from "d3-shape"
-import { groups, rollups, extent } from "d3-array"
+import { rollups, extent } from "d3-array"
 import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
-import { createSegments } from "../lib/segments"
-
 // https://observablehq.com/@enjalot/genetic-datasets
 import gencode from "../data/gencode.json"
 
@@ -36,10 +34,6 @@ export default function GenePaths({
     let threshold = hilbertPosToOrder(1, {from: order, to: 14 })
     // let inside = filteredGencode.filter(d => d.length < threshold)
     let outside = filteredGencode.filter(d => d.length > threshold)
-
-    // console.log("outside", outside)
-
-    // render the genes that are bigger than one cell as paths
     let ranges = outside.map(o => {
       let range = hilbert.fromRegion(o.chromosome, o.start, o.end)
       if(o.posneg == '-') range.reverse()
