@@ -1,13 +1,15 @@
 
 import { scaleOrdinal } from "d3-scale";
 import CanvasOpacityValue from "../components/CanvasOpacityValue";
+import CanvasScaledValue from "../components/CanvasScaledValue";
 
 export default {
   name: "DHS OE Chi",
   datasetName: "dhs_oe_chi",
   aggregateName: "sum",
   orders: [4,9],
-  renderer: CanvasOpacityValue,
+  // renderer: CanvasOpacityValue,
+  renderer: CanvasScaledValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
     .domain(["Placental / trophoblast","Lymphoid","Myeloid / erythroid","Cardiac","Musculoskeletal","Vascular / endothelial","Primitive / embryonic","Neural","Digestive","Stromal A","Stromal B","Renal / cancer","Cancer / epithelial","Pulmonary devel.","Organ devel. / renal","Tissue invariant"])

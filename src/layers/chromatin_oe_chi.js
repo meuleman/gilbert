@@ -1,13 +1,13 @@
 
 import { scaleOrdinal } from "d3-scale";
-import CanvasOpacityValue from "../components/CanvasOpacityValue";
+import CanvasScaledValue from "../components/CanvasScaledValue";
 
 export default {
   name: "Chromatin OE Chi",
   datasetName: "chromatin_oe_chi",
   aggregateName: "sum",
   orders: [4,9],
-  renderer: CanvasOpacityValue,
+  renderer: CanvasScaledValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
     .domain(["Active TSS","Flanking TSS","Flanking TSS Upstream","Flanking TSS Downstream","Strong transcription","Weak transcription","Genic Enhancer 1","Genic Enhancer 2","Active Enhancer 1","Active Enhancer 2","Weak Enhancer","ZNF genes + repeats","Heterochromatin","Bivalent/Poised TSS","Bivalent Enhancer","Repressed PolyComb","Weak Repressed PolyComb","Quiescent/Low"])
