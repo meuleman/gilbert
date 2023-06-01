@@ -6,6 +6,7 @@ import {useEffect, useState, useRef} from 'react'
 import HilbertGenome from './components/HilbertGenome'
 // rendering components
 import SVGHilbertPaths from './components/SVGHilbertPaths'
+import SVGGenePaths from './components/SVGGenePaths'
 import ZoomLegend from './components/ZoomLegend'
 import StatusBar from './components/StatusBar'
 import SelectedModal from './components/SelectedModal'
@@ -105,6 +106,11 @@ function App() {
   const handleChangeShowHilbert = (e) => {
     setShowHilbert(!showHilbert)
   }
+  
+  const [showGenes, setShowGenes] = useState(true)
+  const handleChangeShowGenes = (e) => {
+    setShowGenes(!showGenes)
+  }
 
 
   return (
@@ -125,7 +131,8 @@ function App() {
               SVGChromosomeNames({ }),
               showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
               SVGSelected({ hit: hover, order: zoom.order, stroke: "black", strokeWidthMultiplier: 0.1 }),
-              SVGSelected({ hit: selected, order: selectedOrder, stroke: "orange" })
+              SVGSelected({ hit: selected, order: selectedOrder, stroke: "orange" }),
+              showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
             ]}
             onZoom={handleZoom}
             onHover={handleHover}
@@ -160,6 +167,10 @@ function App() {
           <label>
             <input type="checkbox" checked={showHilbert} onChange={handleChangeShowHilbert} />
             Show Hilbert Curve
+          </label>
+          <label>
+            <input type="checkbox" checked={showGenes} onChange={handleChangeShowGenes} />
+            Show Gene Overlays
           </label>
         </div>
         <pre>

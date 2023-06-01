@@ -1,6 +1,5 @@
 
 import { scaleOrdinal } from "d3-scale";
-import CanvasOpacityValue from "../components/CanvasOpacityValue";
 import CanvasScaledValue from "../components/CanvasScaledValue";
 
 export default {
@@ -8,7 +7,6 @@ export default {
   datasetName: "dhs_oe_chi",
   aggregateName: "sum",
   orders: [4,9],
-  // renderer: CanvasOpacityValue,
   renderer: CanvasScaledValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()

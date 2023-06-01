@@ -6,7 +6,7 @@ import { rollups } from 'd3-array';
 // Custom offsets place the chromosomes in a more pleasing arrangement
 // This is a JSON file that is copied from the following Observable notebook:
 // https://observablehq.com/@enjalot/hilbert-chromosome-initial-layout
-import customOffsetsJSON from './customOffsets.json'
+import customOffsetsJSON from '../data/customOffsets.json'
 export const customOffsets = customOffsetsJSON.map(d => ({...d, width: d.xMax, height: d.yMax}))
 export const customOffsetsMap = new Map(customOffsets.map(c => [c.name, c]))
 
