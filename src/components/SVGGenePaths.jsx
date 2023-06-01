@@ -22,15 +22,17 @@ export default function GenePaths({
     let step = Math.pow(0.5, order)
     let strokeWidth = sizeScale(step)*strokeWidthMultiplier;
 
-    // render gene summaries
+    // Calculate the extents of the points in view
     let pointConstraints = rollups(points, v => extent(v, d => d.start), d => d.chromosome)
     let pointConstraintsChrs = pointConstraints.map(d => d[0])
     let pointConstraintsExtents = pointConstraints.map(d => d[1])
+    // filter the genes to only those that can be in view
     let filteredGencode = gencode.filter(d => {
       let pi = pointConstraintsChrs.indexOf(d.chromosome)
       if(pi < 0) return false;
       return d.start > pointConstraintsExtents[pi][0] && d.start < pointConstraintsExtents[pi][1]
     })
+    // filter the genes that are bigger than a single hilbert cell
     let threshold = hilbertPosToOrder(1, {from: order, to: 14 })
     // let inside = filteredGencode.filter(d => d.length < threshold)
     let outside = filteredGencode.filter(d => d.length > threshold)
