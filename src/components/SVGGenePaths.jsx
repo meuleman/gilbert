@@ -1,8 +1,7 @@
 import { line } from "d3-shape"
 import { rollups, extent } from "d3-array"
 import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
-// https://observablehq.com/@enjalot/genetic-datasets
-import gencode from "../data/gencode.json"
+import { gencode } from "../lib/Genes"
 
 // A simple component to render the hilbert curve
 export default function GenePaths({ 
