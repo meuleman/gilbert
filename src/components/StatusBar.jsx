@@ -2,6 +2,8 @@
 import LayerDropdown from './LayerDropdown'
 import './StatusBar.css'
 
+import { format } from "d3-format"
+
 const StatusBar = ({
   width = 800,
   hover = null,
@@ -12,8 +14,17 @@ const StatusBar = ({
 } = {}) => {
   let sample = null
   if(layer && hover && hover.data)
-    sample = layer.fieldChoice(hover.data)
+    sample = layer.fieldChoice(hover)
 
+  let numformat = (x) => x
+  if(sample) {
+    let value = sample.value
+    numformat = format(",d")
+    if(value && value !== Math.floor(value)) {
+      numformat = format(".4f")
+    }
+  }
+  
   return (
     <div className="status-bar" style={{
       width: width - 2 + "px",
@@ -26,7 +37,7 @@ const StatusBar = ({
               {hover.chromosome}:{hover.start} (hilbert index: {hover.i})
             </span>
             <span className="status-bar-hover-data">
-              {sample && sample.field}: {sample && sample.value}
+              {sample && sample.field}: {sample && numformat(sample.value)}
             </span>
           </>
           )}

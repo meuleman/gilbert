@@ -6,6 +6,7 @@ import { createSegments } from "../lib/segments"
 export default function HilbertPaths({ 
   stroke = "gray",
   strokeWidthMultiplier = 0.05,
+  opacity = 1
 } = {}) {
   return function HilbertPathsComponent({ state, scales }) {
     if(!state.points) return null
@@ -36,7 +37,8 @@ export default function HilbertPaths({
               strokeWidth={strokeWidth} 
               strokeLinejoin="round"
               strokeLinecap="round"
-              fill="none" 
+              fill="none"
+              opacity={opacity}
               />
           )})}
       </g>

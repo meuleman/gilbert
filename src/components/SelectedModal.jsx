@@ -14,14 +14,14 @@ const SelectedModal = ({
 } = {}) => {
   let sample = null
   if(layer && selected && selected.data)
-    sample = layer.fieldChoice(selected.data)
+    sample = layer.fieldChoice(selected)
 
   return (
     <>
     {selected && (
     <div className="selected-modal" style={{
       width: width - 2 + "px",
-      height: height - 2 + "px"
+      height: height - 12 + "px"
     }}>
       
       <div className="header">

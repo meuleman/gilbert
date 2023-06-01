@@ -13,12 +13,15 @@ export default {
     .domain(["gpos25", "gpos50", "gpos75", "gpos100", "gneg", "acen"])
     .range(["#ccc", "#aaa", "#999", "#666", "white", "pink"])
     .unknown("white"),
+  // used for the base canvas rendering
+  strokeWidthMultiplier: 0.05,
   stroke: "gray",
-  fill: "white",
-  strokeWidthMultiplier: 0.05
+  fill: "white"
 }
 
-function bandsValue(data) {
+function bandsValue(d) {
+  let data = d.data
+  if(!data) return { field: "", value: 0 }
   // the order in which we check matters a lot here.
   if(data.acen) return { field: "acen", value: data.acen }
   if(data.gpos100) return { field: "gpos100", value: data.gpos100 }

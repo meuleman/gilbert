@@ -18,7 +18,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
       let t = {...transform}
 
       let i,d,xx,yy; 
-      
+
       // make sure to render with the data's order
       const step = Math.pow(0.5, dataOrder)
       const sw = step * (1 - strokeWidthMultiplier);
@@ -29,7 +29,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
         xx = t.x + xScale(d.x) * t.k
         yy = t.y + yScale(d.y) * t.k
         if(d.data) {
-          const sample = fieldChoice(d.data, meta);
+          const sample = fieldChoice(d);
           if(sample) {
             ctx.fillStyle = fieldColor(sample.field)
             ctx.fillRect(xx - rw/2, yy - rw/2, rw, rw)

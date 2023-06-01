@@ -15,18 +15,31 @@ import SVGChromosomeNames from './components/SVGChromosomeNames'
 // layer configurations
 import Bands from './layers/bands'
 import GCContent from './layers/gc_content'
+import GeneCounts from './layers/gene_counts'
+import Nucleotides from './layers/nucleotides'
+import DHS_OE_Chi from './layers/dhs_oe_chi'
+import Chromatin_OE_Chi from './layers/chromatin_oe_chi'
+import TF_Motifs_OE_Chi from './layers/tf_motifs_oe_chi'
 
 const layerConfig = {
   baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes",
   layers: [
     Bands, 
-    GCContent
+    GeneCounts,
+    GCContent,
+    Nucleotides,
+    DHS_OE_Chi,
+    Chromatin_OE_Chi,
+    TF_Motifs_OE_Chi
   ]
 }
 
 
 
 function App() {
+  const orderDomain = [4, 14]
+  const zoomExtent = [0.85, 4000]
+
   const containerRef = useRef()
 
   // let's fill the container and update the width and height if window resizes
@@ -53,6 +66,8 @@ function App() {
   const [layer, setLayer] = useState(Bands)
   function handleLayer(l) {
     setLayer(l)
+    setSelected(null)
+    setSelectedOrder(null)
   }
 
   // We want to keep track of the zoom state
@@ -86,8 +101,11 @@ function App() {
     setSelectedOrder(null)
   }
 
-  const orderDomain = [4, 14]
-  const zoomExtent = [0.85, 4000]
+  const [showHilbert, setShowHilbert] = useState(false)
+  const handleChangeShowHilbert = (e) => {
+    setShowHilbert(!showHilbert)
+  }
+
 
   return (
     <>
@@ -105,7 +123,7 @@ function App() {
             LayerConfig={layerConfig}
             SVGRenderers={[
               SVGChromosomeNames({ }),
-              SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1}),
+              showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
               SVGSelected({ hit: hover, order: zoom.order, stroke: "black", strokeWidthMultiplier: 0.1 }),
               SVGSelected({ hit: selected, order: selectedOrder, stroke: "orange" })
             ]}
@@ -138,6 +156,12 @@ function App() {
           zoom={zoom} 
           onLayer={handleLayer}
           LayerConfig={layerConfig} />
+        <div className="vis-controls">
+          <label>
+            <input type="checkbox" checked={showHilbert} onChange={handleChangeShowHilbert} />
+            Show Hilbert Curve
+          </label>
+        </div>
         <pre>
           {JSON.stringify({ order: zoom.order, transform: zoom.transform }, null, 2)}
         </pre>

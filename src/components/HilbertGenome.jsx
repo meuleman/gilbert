@@ -133,7 +133,7 @@ const HilbertGenome = ({
 
   useEffect(() => {
     if (layer) {
-      onLayer(layer)
+      console.log("layer", layer)
       // fetch the meta for each order in this layer
       const metas = Promise.all(range(layer.orders[0], layer.orders[1] + 1)
         .map(async (order) => {
@@ -144,6 +144,7 @@ const HilbertGenome = ({
         const metaMap = new Map(metas.map(meta => [meta.order, meta]))
         dispatch({ type: actions.SET_METAS, payload: metaMap})
       })
+      onLayer(layer)
     }
   }, [layer])
 
@@ -287,8 +288,8 @@ const HilbertGenome = ({
       if(datum)
         clicked = datum
     }
-    // onClick(clicked, state.order);
-    dispatch({ type: actions.SET_SELECTED, payload: clicked })
+    onClick(clicked, state.order);
+    // dispatch({ type: actions.SET_SELECTED, payload: clicked })
   }, [state.data, state.transform, state.order, qt, xScale, yScale]) 
 
   const handleDoubleClick = useCallback((event) => {
@@ -308,8 +309,8 @@ const HilbertGenome = ({
       if(datum)
         clicked = datum
     }
-    // onClick(clicked, state.order);
-    dispatch({ type: actions.SET_SELECTED, payload: clicked })
+    onClick(clicked, state.order);
+    // dispatch({ type: actions.SET_SELECTED, payload: clicked })
 
     // zoom into the hit
     // first we get the x,y coordinates of the point in absolute position
@@ -331,14 +332,14 @@ const HilbertGenome = ({
   // fire callbacks when our selected change
   // partly this is so we can update the selected in the parent when layer changes with new data
   // TODO: this doesn't quite work if we've changed orders because we wont have the old data for new layer
-  useEffect(() => {
-    let selected = state.selected
-    if(selected) {
-      let datum = state.data.find(x => x.i == selected.i && x.chromosome == selected.chromosome && x.order == selected.order )
-      if(datum)
-        onClick(datum, datum.order)
-    }
-  }, [state.data, state.selected]) 
+  // useEffect(() => {
+  //   let selected = state.selected
+  //   if(selected) {
+  //     let datum = state.data.find(x => x.i == selected.i && x.chromosome == selected.chromosome && x.order == selected.order )
+  //     if(datum)
+  //       onClick(datum, datum.order)
+  //   }
+  // }, [state.data, state.selected]) 
   
 
   // Render the component
@@ -379,7 +380,7 @@ const HilbertGenome = ({
 
           {/* This is what gets transformed and where most annotations will be rendered */}
           <g className="hg-scene" ref={sceneRef}>
-            {SVGRenderers.map((Renderer, index) => <Renderer key={index} state={state} scales={scales} />)}
+            {SVGRenderers.filter(d => d).map((Renderer, index) => <Renderer key={index} state={state} scales={scales} />)}
       
           </g>
 

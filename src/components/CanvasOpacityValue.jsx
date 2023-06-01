@@ -17,7 +17,6 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     let {data, points, meta, transform, order, dataOrder} = state
     if(!points || !data || !meta) return;
 
-    console.log("CanvasSimpleValueComponent", meta, aggregateName)
     // the min and max for scaling
     let fields_agg = meta["fields_" + aggregateName]
     let nonzero_min_agg = meta["nonzero_min_" + aggregateName]
@@ -45,7 +44,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
       yy = t.y + yScale(d.y) * t.k
       // ctx.strokeRect(xx - rw/2, yy - rw/2, rw, rw)
       if(d.data) {
-        const sample = fieldChoice(d.data, meta);
+        const sample = fieldChoice(d);
         if(sample) {
           if(min_agg.length) {
             let fi = fields_agg.indexOf(sample.field)
