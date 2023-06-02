@@ -121,7 +121,9 @@ const HilbertGenome = ({
   // this debounced function fetches the data and updates the state
   const fetchData = useMemo(() => {
     return () => {
-      let myPromise = dataClient.fetchData(layer.datasetName, state.order, layer.aggregateName, state.points)
+      // we dont want to fetch data if the order is not within the layer order range
+      if (state.order < layer.orders[0] || state.order > layer.orders[1]) return;
+      let myPromise = dataClient.fetchData(layer.datasetName, state.order, state.points)
       let myCallback = (data) => {
         if(data)
           dispatch({ type: actions.SET_DATA, payload: { data, order: state.order } });

@@ -23,7 +23,7 @@ import Chromatin_OE_Chi from './layers/chromatin_oe_chi'
 import TF_Motifs_OE_Chi from './layers/tf_motifs_oe_chi'
 
 const layerConfig = {
-  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes",
+  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   layers: [
     Bands, 
     GeneCounts,

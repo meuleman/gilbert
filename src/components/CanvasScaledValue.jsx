@@ -18,10 +18,10 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     if(!points || !data || !meta) return;
 
     // the min and max for scaling
-    let fields_agg = meta["fields_" + aggregateName]
-    let nonzero_min_agg = meta["nonzero_min_" + aggregateName]
-    let min_agg = nonzero_min_agg ? nonzero_min_agg : meta["min_" + aggregateName]
-    let max_agg = meta["max_" + aggregateName]
+    let fields = meta["fields"]
+    let nonzero_min = meta["nonzero_min"]
+    let min = nonzero_min ? nonzero_min : meta["min"]
+    let max = meta["max"]
 
     // rendering constants
     let t = {...transform}
@@ -32,7 +32,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     const sw = step * (1 - strokeWidthMultiplier);
     const rw = sizeScale(sw) * t.k - 1
 
-    let domain = [min_agg, max_agg]
+    let domain = [min, max]
     let alphaScale = scaleLinear()
       .domain(domain)
       .range([0.2, 1]) 
@@ -49,9 +49,9 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
       if(d.data) {
         const sample = fieldChoice(d);
         if(sample) {
-          if(min_agg.length) {
-            let fi = fields_agg.indexOf(sample.field)
-            domain = [min_agg[fi], max_agg[fi]]
+          if(min.length) {
+            let fi = fields.indexOf(sample.field)
+            domain = [min[fi], max[fi]]
             alphaScale.domain(domain)
             shrinkScale.domain(domain)
           }

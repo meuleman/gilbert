@@ -24,6 +24,9 @@ const StatusBar = ({
     if(value && value !== Math.floor(value)) {
       numformat = format(".4f")
     }
+    if(typeof value === "string") {
+      numformat = (x) => x
+    }
   }
 
   let inside,outside;

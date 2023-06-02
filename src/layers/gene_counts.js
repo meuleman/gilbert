@@ -7,7 +7,6 @@ import CanvasOpacityValue from "../components/CanvasOpacityValue";
 export default {
   name: "Gene Counts",
   datasetName: "gencode",
-  aggregateName: "type",
   orders: [4,9],
   renderer: CanvasOpacityValue,    
   fieldChoice: d => ({ field: "protein_coding", value: d.data?.protein_coding}),

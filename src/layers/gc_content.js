@@ -6,7 +6,6 @@ import CanvasOpacityValue from "../components/CanvasOpacityValue";
 export default {
   name: "GC Content",
   datasetName: "gc_content",
-  aggregateName: "sum",
   orders: [4,13],
   renderer: CanvasOpacityValue,    
   fieldChoice: d => ({ field: "gc_content", value: d.data?.gc_content}),

@@ -5,7 +5,6 @@ import CanvasScaledValue from "../components/CanvasScaledValue";
 export default {
   name: "DHS OE Chi",
   datasetName: "dhs_oe_chi",
-  aggregateName: "sum",
   orders: [4,9],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,

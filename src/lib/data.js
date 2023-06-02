@@ -14,7 +14,7 @@ export default function Data({
     return json(url)
   }
 
-  async function fetchData(dataset, order, aggregate, points, cachebust = 0) {
+  async function fetchData(dataset, order, points, cachebust = 0) {
     if(!points) return []
     let chromosomes = groups(points, d => d.chromosome)
     let data = await Promise.all(chromosomes.map(async c => {
@@ -33,13 +33,13 @@ export default function Data({
       if(debug) {
         console.log("meta", meta)
       }
-      let fields = meta[aggregate].fields
+      let fields = meta.fields
       
       let fetches = joinedSegments.map(async d => {
-        return fetchOrder(dataset, order, chromosome, aggregate, meta, d.start, d.stop, cachebust)
+        return fetchOrder(dataset, order, chromosome, meta, d.start, d.stop, cachebust)
       })
   
-      let stride = meta[aggregate].shape[1] || 1
+      let stride = meta.shape[1] || 1
   
       let data = (await Promise.all(fetches)).flatMap((data,si) => {
         let jseg = joinedSegments[si]
@@ -71,17 +71,17 @@ export default function Data({
   }
   
 
-  function fetchOrder(dataset, order, chromosome, aggregate, meta, from, to, cachebust = 0) {
-    let url = `${baseURL}/${dataset}/${order}/${chromosome}.${aggregate}?cachebust=${cachebust}`
+  function fetchOrder(dataset, order, chromosome, meta, from, to, cachebust = 0) {
+    let url = `${baseURL}/${dataset}/${order}/${chromosome}.bytes?cachebust=${cachebust}`
 
-    let dtype = meta[aggregate].dtype
+    let dtype = meta.dtype
     let arrayType = numpyDtypeToTypedArray(dtype);
     
-    let stride = meta[aggregate].shape[1] || 1
-    let bpv = meta[aggregate].bytes_per_value
+    let stride = meta.shape[1] || 1
+    let bpv = meta.bytes_per_value
 
     if(debug) {
-      console.log("fetch", dataset, order, chromosome, aggregate, meta, from, to)
+      console.log("fetch", dataset, order, chromosome, meta, from, to)
       console.log("byte range", from*bpv*stride, to*bpv*stride - 1)
     }
     

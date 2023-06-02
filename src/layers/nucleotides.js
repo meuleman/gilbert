@@ -6,7 +6,6 @@ const decoder = new TextDecoder('ascii');
 export default {
   name: "Nucleotides",
   datasetName: "grc",
-  aggregateName: "seq",
   orders: [14,14],
   renderer: CanvasTextValue,    
   fieldChoice: d => ({ field: "basepair", value: decoder.decode(d.bytes)[0] }),

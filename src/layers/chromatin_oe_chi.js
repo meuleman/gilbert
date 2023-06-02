@@ -5,7 +5,6 @@ import CanvasScaledValue from "../components/CanvasScaledValue";
 export default {
   name: "Chromatin OE Chi",
   datasetName: "chromatin_oe_chi",
-  aggregateName: "sum",
   orders: [4,9],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,

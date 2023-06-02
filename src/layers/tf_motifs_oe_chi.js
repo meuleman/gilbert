@@ -8,7 +8,6 @@ const tfColors = ["#23171b","#362357","#433087","#433087","#493dac","#493dac","#
 export default {
   name: "TF Motifs OE Chi",
   datasetName: "tf_motifs_oe_chi",
-  aggregateName: "sum",
   orders: [4,9],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,
