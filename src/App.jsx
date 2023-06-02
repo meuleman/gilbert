@@ -130,8 +130,8 @@ function App() {
             SVGRenderers={[
               SVGChromosomeNames({ }),
               showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
-              SVGSelected({ hit: hover, order: zoom.order, stroke: "black", strokeWidthMultiplier: 0.1, showGenes }),
-              SVGSelected({ hit: selected, order: selectedOrder, stroke: "orange", showGenes }),
+              SVGSelected({ hit: hover, stroke: "black", strokeWidthMultiplier: 0.1, showGenes }),
+              SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.4, showGenes }),
               showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
             ]}
             onZoom={handleZoom}

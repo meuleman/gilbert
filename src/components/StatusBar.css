@@ -1,8 +1,14 @@
 
 .status-bar {
-  height: 30px;
-  line-height: 30px;
+  height: 60px;
+  line-height: 25px;
   border: 1px solid gray;
+  display: flex;
+  flex-direction: column;
+
+}
+.status-bar .status-bar-row {
+  padding: 1px 5px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -12,7 +18,6 @@
   max-width: 650px;
 }
 .status-bar .status-bar-hover-point {
-  margin-left: 5px;
   font-family: 'Courier New', Courier, monospace;
   font-weight: bold;
 }

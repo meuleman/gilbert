@@ -42,7 +42,7 @@ export function getGenesOverCell(hit, order) {
   })
   return filteredGencode 
 }
-export function getRangesOverCell(hit, order, limit = 1500) {
+export function getRangesOverCell(hit, order, limit = 2500) {
   const genes = getGenesOverCell(hit, order)
   let hilbert = new HilbertChromosome(order)
   let threshold = hilbertPosToOrder(1, {from: order, to: 14 })
@@ -62,7 +62,7 @@ export function getRangesOverCell(hit, order, limit = 1500) {
 
 // given a set of points, get all the genes that are within view and that are larger than a single hilbert cell
 // but smaller than the threshold limit
-export function getGenesInView(points, order, limit = 1500) {
+export function getGenesInView(points, order, limit = 2500) {
   // Calculate the extents of the points in view
   let pointConstraints = rollups(points, v => extent(v, d => d.start), d => d.chromosome)
   let pointConstraintsChrs = pointConstraints.map(d => d[0])
@@ -74,7 +74,8 @@ export function getGenesInView(points, order, limit = 1500) {
     if(d.length > limit * threshold) return false;
     let pi = pointConstraintsChrs.indexOf(d.chromosome)
     if(pi < 0) return false;
-    return d.start > pointConstraintsExtents[pi][0] && d.start < pointConstraintsExtents[pi][1]
+    return (d.start > pointConstraintsExtents[pi][0] && d.start < pointConstraintsExtents[pi][1])
+      || (d.end > pointConstraintsExtents[pi][0] && d.end < pointConstraintsExtents[pi][1])
   })
   let hilbert = new HilbertChromosome(order)
   // filter the genes that are bigger than a single hilbert cell

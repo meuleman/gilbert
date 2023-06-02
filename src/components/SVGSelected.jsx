@@ -8,16 +8,16 @@ export default function SVGBBox({
   fill = "none",
   strokeWidthMultiplier = 0.2,
   hit = null,
-  order = 4,
+  // order = 4,
   showGenes = false,
 } = {}) {
   return function SVGBBoxComponent({ state, scales }) {
     if(!hit) return null
 
-    const { points, bbox } = state
+    const { points, bbox, order } = state
     const { xScale, yScale, sizeScale } = scales
-    let step = Math.pow(0.5, order)
 
+    let step = Math.pow(0.5, hit.order)
     let rw = sizeScale(step)
     let sw = sizeScale(Math.pow(0.5, order))*strokeWidthMultiplier
 
