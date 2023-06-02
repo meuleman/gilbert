@@ -1,7 +1,5 @@
 import { line } from "d3-shape"
-import { rollups, extent } from "d3-array"
-import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
-import { gencode } from "../lib/Genes"
+import { getGenesInView } from "../lib/Genes"
 
 // A simple component to render the hilbert curve
 export default function GenePaths({ 
@@ -16,31 +14,12 @@ export default function GenePaths({
 
     if(!points) return;
 
-    let hilbert = new HilbertChromosome(order)
-
     let step = Math.pow(0.5, order)
     let strokeWidth = sizeScale(step)*strokeWidthMultiplier;
 
-    // Calculate the extents of the points in view
-    let pointConstraints = rollups(points, v => extent(v, d => d.start), d => d.chromosome)
-    let pointConstraintsChrs = pointConstraints.map(d => d[0])
-    let pointConstraintsExtents = pointConstraints.map(d => d[1])
-    // filter the genes to only those that can be in view
-    let filteredGencode = gencode.filter(d => {
-      let pi = pointConstraintsChrs.indexOf(d.chromosome)
-      if(pi < 0) return false;
-      return d.start > pointConstraintsExtents[pi][0] && d.start < pointConstraintsExtents[pi][1]
-    })
-    // filter the genes that are bigger than a single hilbert cell
-    let threshold = hilbertPosToOrder(1, {from: order, to: 14 })
-    // let inside = filteredGencode.filter(d => d.length < threshold)
-    let outside = filteredGencode.filter(d => d.length > threshold)
-    let ranges = outside.map(o => {
-      let range = hilbert.fromRegion(o.chromosome, o.start, o.end)
-      if(o.posneg == '-') range.reverse()
-      return range
-    })
-
+    // We only render genes that are longer than a single hilbert cell
+    // and that are not too long (1500 cells by default)
+    let ranges = getGenesInView(points, order)
     let path = line()
       .x((d) => xScale(d.x))
       .y((d) => yScale(d.y))

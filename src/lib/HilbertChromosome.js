@@ -1,4 +1,6 @@
-
+/*
+The class for calculating 
+*/
 import { default as Hilbert } from 'd3-hilbert'
 import { rollups } from 'd3-array';
 
@@ -54,29 +56,7 @@ export function HilbertChromosome(order, {
     sidescale
   }
 
-  // we use this function to get the in-view bounding box of a chromosome
-  // Thanks ChatGPT!
-  function getOverlappingRectangle(rect1, rect2) {
-    const xOverlap = Math.max(
-      0,
-      Math.min(rect1.x + rect1.width, rect2.x + rect2.width) -
-        Math.max(rect1.x, rect2.x)
-    );
-    const yOverlap = Math.max(
-      0,
-      Math.min(rect1.y + rect1.height, rect2.y + rect2.height) -
-        Math.max(rect1.y, rect2.y)
-    );
-    if (xOverlap > 0 && yOverlap > 0) {
-      return {
-        x: Math.max(rect1.x, rect2.x),
-        y: Math.max(rect1.y, rect2.y),
-        width: xOverlap,
-        height: yOverlap,
-      };
-    }
-    return null;
-  }
+ 
 
   function fromBbox(bbox) {
     // we want to see which chromosomes are overlapping with the bounding box
@@ -141,21 +121,25 @@ export function HilbertChromosome(order, {
   hilbert.fromBbox = fromBbox
   hilbert.fromBboxChromosome = fromBboxChromosome
 
-  hilbert.fromRegion = function(chr, start, end) {
+  hilbert.fromRegion = function(chr, start, end, bbox = null) {
     let chromosome = customOffsetsMap.get(chr)
     let hstart = hilbertPosToOrder(start, { from: 14, to: order})
     let hend = hilbertPosToOrder(end, { from: 14, to: order})
     let points = []
     for(let i = hstart; i <= hend; i++) {
       let h = get2D(i)
+      let x = h.hx + chromosome.x
+      let y = h.hy + chromosome.y
+      // if the user supplied a bbox, lets filter the points to only those in the bbox
+      if(bbox && !(x > bbox.x && x < bbox.x + bbox.width && y > bbox.y && y < bbox.y + bbox.height)) continue;
       points.push({
         i,
         chromosome: chromosome.name,
         start: hilbertPosToOrder(i, { from: order, to: maxOrder }), // the local start position
         ...h,
         // add the chromosome's offset back to get our global x, y coordinate
-        x: h.hx + chromosome.x,
-        y: h.hy + chromosome.y,
+        x,
+        y,
         order
       })
     }
@@ -196,3 +180,26 @@ export function HilbertChromosome(order, {
   return hilbert
 }
 
+ // we use this function to get the in-view bounding box of a chromosome
+  // Thanks ChatGPT!
+  function getOverlappingRectangle(rect1, rect2) {
+    const xOverlap = Math.max(
+      0,
+      Math.min(rect1.x + rect1.width, rect2.x + rect2.width) -
+        Math.max(rect1.x, rect2.x)
+    );
+    const yOverlap = Math.max(
+      0,
+      Math.min(rect1.y + rect1.height, rect2.y + rect2.height) -
+        Math.max(rect1.y, rect2.y)
+    );
+    if (xOverlap > 0 && yOverlap > 0) {
+      return {
+        x: Math.max(rect1.x, rect2.x),
+        y: Math.max(rect1.y, rect2.y),
+        width: xOverlap,
+        height: yOverlap,
+      };
+    }
+    return null;
+  }

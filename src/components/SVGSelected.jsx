@@ -1,8 +1,5 @@
 import { line } from "d3-shape"
-import { rollups, extent } from "d3-array"
-import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
-// https://observablehq.com/@enjalot/genetic-datasets
-import { gencode } from "../lib/Genes"
+import { getRangesOverCell } from "../lib/Genes"
 
 // Render a square around the selected hilbert cell (either hover or selected)
 // Optionally render genes that are overlapping with this cell
@@ -17,7 +14,7 @@ export default function SVGBBox({
   return function SVGBBoxComponent({ state, scales }) {
     if(!hit) return null
 
-    const { points } = state
+    const { points, bbox } = state
     const { xScale, yScale, sizeScale } = scales
     let step = Math.pow(0.5, order)
 
@@ -25,27 +22,33 @@ export default function SVGBBox({
     let sw = sizeScale(Math.pow(0.5, order))*strokeWidthMultiplier
 
 
-    let ranges, path;
+    let genePaths;
     // we can filter to the genes are overlap with our selection
     if(showGenes) {
-      let hilbert = new HilbertChromosome(order)
-      let threshold = hilbertPosToOrder(1, {from: order, to: 14 })
-      // filter the genes to where the hilbert cell is overlaping with the gene
-      let filteredGencode = gencode.filter(d => {
-        return (hit.start > d.start && hit.start < d.end) || (hit.start + threshold > d.start && hit.start + threshold < d.end)
-      })
-      // let inside = filteredGencode.filter(d => d.length < threshold)
-      // further filter to only those that are bigger than a single hilbert cell
-      let outside = filteredGencode.filter(d => d.length > threshold)
-      ranges = outside.map(o => {
-        let range = hilbert.fromRegion(o.chromosome, o.start, o.end)
-        if(o.posneg == '-') range.reverse()
-        return range
-      })
-
-      path = line()
+      // TODO this gets calculated every mousemove
+      // could think of a clever way to cache since the genes likely wont change
+      // especially when zoomed in since there will probably only be one gene
+      const ranges = getRangesOverCell(hit, order)
+      
+      const path = line()
         .x((d) => xScale(d.x))
         .y((d) => yScale(d.y))
+      
+      genePaths = ranges.map((range,i) => {
+        return (
+          <path 
+            d={path(range)} 
+            key={i}
+            stroke={stroke} 
+            strokeWidth={sw} 
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            fill="none"
+            opacity="1"
+            markerStart={"url(#gene-circle-selected-" + stroke + ")"}
+            markerEnd={"url(#gene-triangle-selected-" + stroke + ")"}
+            />
+        )})
     }
 
     
@@ -86,21 +89,7 @@ export default function SVGBBox({
             stroke={stroke}
             strokeWidth={sw}
           ></rect>
-          {showGenes && ranges.map((range,i) => {
-          return (
-            <path 
-              d={path(range)} 
-              key={i}
-              stroke={stroke} 
-              strokeWidth={sw} 
-              strokeLinejoin="round"
-              strokeLinecap="round"
-              fill="none"
-              opacity="1"
-              markerStart={"url(#gene-circle-selected-" + stroke + ")"}
-              markerEnd={"url(#gene-triangle-selected-" + stroke + ")"}
-              />
-          )})}
+          {showGenes && genePaths}
     </g>
     )
   }
