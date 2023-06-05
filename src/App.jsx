@@ -19,6 +19,7 @@ import GCContent from './layers/gc_content'
 import GeneCounts from './layers/gene_counts'
 import Nucleotides from './layers/nucleotides'
 import DHS_OE_Chi from './layers/dhs_oe_chi'
+import DHS_Components_Sfc from './layers/dhs_components_sfc'
 import Chromatin_OE_Chi from './layers/chromatin_oe_chi'
 import TF_Motifs_OE_Chi from './layers/tf_motifs_oe_chi'
 
@@ -30,6 +31,7 @@ const layerConfig = {
     GCContent,
     Nucleotides,
     DHS_OE_Chi,
+    DHS_Components_Sfc,
     Chromatin_OE_Chi,
     TF_Motifs_OE_Chi
   ]
