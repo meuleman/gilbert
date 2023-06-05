@@ -35,7 +35,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     let domain = [min, max]
     let alphaScale = scaleLinear()
       .domain(domain)
-      .range([0.2, 1]) 
+      .range([0, 1]) 
     let shrinkScale = scaleLinear()
       .domain(domain)
       .range([0.3, 1]) 

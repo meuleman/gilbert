@@ -57,9 +57,9 @@ const StatusBar = ({
               <span className="status-bar-hover-point">
                 {hover.chromosome}:{hover.start} (region: {hover.i})
               </span>
-              <span className="status-bar-hover-data">
-                {sample && sample.field}: {sample && numformat(sample.value)}
-              </span>
+              {sample && sample.field && (<span className="status-bar-hover-data">
+                {sample.field}: {numformat(sample.value)}
+              </span>)}
             </>
             )}
         </div>
