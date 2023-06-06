@@ -13,22 +13,22 @@ A powerful, interactive, and customizable React component for visualizing genomi
 ## Development Checklist
 
 ### Base Component
-- [ ] HilbertGenome component 
+- [x] HilbertGenome component 
   - https://observablehq.com/@enjalot/zoomable-hilbert-canvas
-- [ ] Basic annotation (chromosome layout, names, hilbert curve) 
+- [x] Basic annotation (chromosome layout, names, hilbert curve) 
   - https://observablehq.com/@enjalot/hilbert-chromosome-bands
 
 ### Configuration
-- [ ] Create layer definition using JSON configuration and data grammar
-- [ ] Define data configuration, including URLs for files and layer names
+- [x] Create layer definition using JSON configuration and data grammar
+- [x] Define data configuration, including URLs for files and layer names
   - https://observablehq.com/@enjalot/hilbert-chromosome-data-fetch
 
 ### Data Rendering Components
-- [ ] Treemap subcomponent
+- [x] canvas subcomponents
   - https://observablehq.com/@enjalot/hilbert-chromosome-dhs-oe-scores
-- [ ] Text subcomponent 
+- [x] Text subcomponent 
   - https://observablehq.com/@enjalot/hilbert-chromosome-grc-nucleotides
-- [ ] SVG overlay subcomponent (for highlighting regions)
+- [x] SVG overlay subcomponent (for highlighting regions)
   - https://observablehq.com/@enjalot/hilbert-chromosome-gencode
 
 ### Event Handling
@@ -63,45 +63,7 @@ Include relevant information in events, such as Hilbert and genome coordinates, 
 
 `react-hilbert-genome` provides a `<HilbertGenome>` component that allows you to customize the visualization by setting various properties such as order domain, zoom extent, and data layers.
 
-Here's a basic example of how to use the `<HilbertGenome>` component:
-
-```jsx
-import React from 'react';
-import { HilbertGenome, Treemap, Heatmap, Text } from 'react-hilbert-genome';
-
-const App = () => {
-  const orderDomain = [4, 14]; // The range of chromosome orders
-  const zoomExtent = [1, 10]; // The range of allowable zoom levels
-
-  const dataLayers = [
-    {
-      baseUrl: 'https://your-data-source.com/data',
-      name: 'layer1',
-      component: Treemap,
-    },
-    {
-      baseUrl: 'https://your-data-source.com/data2',
-      name: 'layer2',
-      component: Heatmap,
-    },
-    {
-      baseUrl: 'https://your-data-source.com/data3',
-      name: 'layer3',
-      component: Text,
-    },
-  ];
-
-  return (
-    <HilbertGenome
-      orderDomain={orderDomain}
-      zoomExtent={zoomExtent}
-      dataLayers={dataLayers}
-    />
-  );
-};
-
-export default App;
-```
+See [src/App.jsx](App.jsx) for example of using and coordinating the various components.
 
 ### Setting the Order Domain
 
