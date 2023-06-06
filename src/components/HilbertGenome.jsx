@@ -16,17 +16,25 @@ import CanvasBase from './CanvasBase';
 
 import './HilbertGenome.css';
 
-
-// TODO: seperate out state and actions into seperate files
 // Define the initial state
 const initialState = {
+  // The transform drives pretty much everything. It is set by the d3-zoom behavior (scrolling and panning)
   transform: zoomIdentity,
+  // The bbox is calculated from the transform and is used to determine which data points are visible
   bbox: null,
+  // The hilbert order determined by the zoom level (the k component of the transform)
   order: 0,
-  dataOrder: 0,
+  // The hilbert points in view for the current order
+  points: [],
+  // The data fetched from the layer for each point in points
   data: [],
+  // The hilbert order when the data is fetched (this could be different than the current order if the user zooms in before the data is fetched)
+  dataOrder: 0,
+  // The meta data for each available order of the layer
   metas: new Map(),
+  // The data point selected by clicking
   selected: null,
+  // The data point selected by hovering
   hovered: null
 };
 
@@ -42,10 +50,14 @@ const actions = {
 // Define the reducer function
 function reducer(state, action) {
   switch (action.type) {
-    case actions.ZOOM:
-      return { ...state, ...action.payload };
-    case actions.SET_DATA:
-      return { ...state, data: action.payload.data, dataOrder: action.payload.order };
+    case actions.ZOOM: {
+      const { transform, bbox, order, points } = action.payload;
+      return { ...state, transform, bbox, order, points };
+    }
+    case actions.SET_DATA: {
+      const { data, order } = action.payload;
+      return { ...state, data, dataOrder: order }
+    }
     case actions.SET_METAS:
       return { ...state, metas: action.payload };
     case actions.SET_SELECTED:
@@ -172,9 +184,25 @@ const HilbertGenome = ({
   const renderCanvas = useMemo(() => { 
     return function(transform, points) {
       // notice that we are overriding transform and points in the state we pass in
-      // this is because we want to render immediately with those values
-      CanvasBase({ scales, state: { data: state.data, points, order: state.order, dataOrder: state.dataOrder, transform}, layer, canvasRef })
-      layer.renderer({ scales, state: { data: state.data, meta: state.metas.get(state.dataOrder), points, order: state.order, dataOrder: state.dataOrder, transform}, layer, canvasRef })
+      // this is because we want to render immediately with the values in the zoom handler
+      // the data in the state may be stale but we still want to render it
+      // this will all be run again when the data is updated to draw fresh data
+      CanvasBase({ scales, state: { 
+        data: state.data, 
+        points, 
+        order: state.order, 
+        dataOrder: state.dataOrder, 
+        transform
+      }, layer, canvasRef })
+      
+      layer.renderer({ scales, state: { 
+        data: state.data, 
+        points, 
+        meta: state.metas.get(state.dataOrder), 
+        order: state.order, 
+        dataOrder: state.dataOrder, 
+        transform
+      }, layer, canvasRef })
     }
   }, [state, scales, layer, canvasRef])
 
@@ -224,7 +252,7 @@ const HilbertGenome = ({
   useEffect(() => {
     // we want to make sure and render again once the data loads
     renderCanvas(state.transform, state.points)
-  }, [state.data, state.transform, state.points])
+  }, [state.data, state.points])
 
 
   // setup the event handlers for zoom and attach it to the DOM
