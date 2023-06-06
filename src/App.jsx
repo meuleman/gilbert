@@ -37,6 +37,19 @@ const layerConfig = {
   ]
 }
 
+const layerOrder = {
+  4: Bands,
+  5: DHS_Components_Sfc,
+  6: DHS_Components_Sfc,
+  7: Chromatin_OE_Chi,
+  8: Chromatin_OE_Chi,
+  9: TF_Motifs_OE_Chi,
+  10: TF_Motifs_OE_Chi,
+  11: GCContent,
+  12: GCContent,
+  13: GCContent,
+  14: Nucleotides,
+}
 
 
 function App() {
@@ -54,7 +67,7 @@ function App() {
         if(!containerRef.current) return
         let { height } = containerRef.current.getBoundingClientRect()
         // account for the zoom legend (30) and padding (48)
-        let w = window.innerWidth - 30 - 24
+        let w = window.innerWidth - 30 - 24 - 500
         // console.log("sup", window.innerWidth, w, width)
         setSize([w, height]);
       }
@@ -77,6 +90,7 @@ function App() {
   const [zoom, setZoom] = useState({order: 4, points: [], bbox: {}, transform: {}})
   function handleZoom(zoom) {
     setZoom(zoom)
+    setLayer(layerOrder[zoom.order])
   } 
   
   // the hover can be null or the data in a hilbert cell
@@ -114,11 +128,30 @@ function App() {
     setShowGenes(!showGenes)
   }
 
+  const [region, setRegion] = useState(null)
+
+
 
   return (
     <>
 
       <div className="title">Hilbert Genome</div>
+      <div className="zoomto">
+            <label>
+              Zoom to Region
+              <form onSubmit={(e) => {
+                e.preventDefault()
+                let { chr, start, end } = e.target.elements
+                if(chr.value && start.value && end.value)
+                setRegion({ chromosome: chr.value, start: parseInt(start.value), end: parseInt(end.value) })
+              }}>
+                <input type="text" name="chr" placeholder="chr1" />
+                <input type="text" name="start" placeholder="1000000" />
+                <input type="text" name="end" placeholder="2000000" />
+                <button type="submit">Go</button>
+              </form>
+            </label>
+          </div>
 
       <div className="panels">
         <div ref={containerRef} className="hilbert-container">
@@ -127,6 +160,8 @@ function App() {
             zoomExtent={zoomExtent} 
             width={width} 
             height={height}
+            zoomToRegion={region}
+            zoomDuration={1000}
             activeLayer={layer}
             LayerConfig={layerConfig}
             SVGRenderers={[
@@ -139,7 +174,7 @@ function App() {
             onZoom={handleZoom}
             onHover={handleHover}
             onClick={handleClick}
-            onLayer={handleLayer}
+            // onLayer={handleLayer}
             debug={false}
           />
         </div>
@@ -149,6 +184,7 @@ function App() {
           orderDomain={orderDomain} 
           zoomExtent={zoomExtent} />
         <SelectedModal
+          width={480}
           height={height} 
           selected={selected} // currently selected cell
           selectedOrder={selectedOrder} 
@@ -174,6 +210,7 @@ function App() {
             <input type="checkbox" checked={showGenes} onChange={handleChangeShowGenes} />
             Show Gene Overlays
           </label>
+          
         </div>
         <pre>
           {JSON.stringify({ order: zoom.order, transform: zoom.transform }, null, 2)}

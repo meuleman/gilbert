@@ -5,7 +5,7 @@ import CanvasSimpleValue from "../components/CanvasSimpleValue";
 export default {
   name: "Bands",
   datasetName: "bands",
-  orders: [4,7],
+  orders: [4,8],
   renderer: CanvasSimpleValue,    
   fieldChoice: bandsValue,
   fieldColor: scaleOrdinal()

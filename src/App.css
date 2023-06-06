@@ -16,6 +16,16 @@
   width: 100%;
 }
 
+.zoom-legend {
+  margin-right: 490px;
+}
+
+.zoomto {
+  position: absolute;
+  right: 490px;
+  top: 10px;
+}
+
 .hilbert-container {
   width: 100%;
 }

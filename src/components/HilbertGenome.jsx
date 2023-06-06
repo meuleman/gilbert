@@ -7,7 +7,7 @@ import { select } from 'd3-selection';
 import { quadtree } from 'd3-quadtree';
 import { range } from 'd3-array';
 
-import { HilbertChromosome } from '../lib/HilbertChromosome';
+import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome';
 import { getBboxDomain, untransform } from '../lib/bbox';
 import Data from '../lib/data';
 import debounce from '../lib/debounce'
@@ -15,6 +15,7 @@ import scaleCanvas from '../lib/canvas';
 import CanvasBase from './CanvasBase';
 
 import './HilbertGenome.css';
+
 
 // Define the initial state
 const initialState = {
@@ -69,12 +70,17 @@ function reducer(state, action) {
   }
 }
 
+
+// TODO: broadcast channel for pubsub events (zoom, hover, click, etc)
+
 const HilbertGenome = ({
     orderDomain,
     zoomExtent,
     xDomain = [0, 5],
     yDomain = [0, 5],
     sizeDomain = [0, 5],
+    zoomToRegion = null,
+    zoomDuration = 1000,
     width,
     height,
     activeLayer = "bands",
@@ -158,7 +164,7 @@ const HilbertGenome = ({
         const metaMap = new Map(metas.map(meta => [meta.order, meta]))
         dispatch({ type: actions.SET_METAS, payload: metaMap})
       })
-      onLayer(layer)
+      // onLayer(layer)
     }
   }, [layer])
 
@@ -194,7 +200,7 @@ const HilbertGenome = ({
         dataOrder: state.dataOrder, 
         transform
       }, layer, canvasRef })
-      
+
       layer.renderer({ scales, state: { 
         data: state.data, 
         points, 
@@ -272,6 +278,53 @@ const HilbertGenome = ({
     scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
   }, [canvasRef, width, height])
 
+  const zoomToBox = useMemo(() => {
+    return (x0,y0,x1,y1) => {
+
+      // TODO the multipliers should be based on aspect ratio
+      const xOffset = 2.5
+      const yOffset = 1.75
+      let tx = xScale(x0) - sizeScale(x1 - x0) * xOffset
+      let ty = yScale(y0) - sizeScale(y1 - y0) * yOffset
+      let tw = xScale(x1 - x0) - xScale(0) // the width of the box
+      let xw = xScale(xScale.domain()[1] - xScale.domain()[0])
+      // we zoom to 1/4 the scale of the hit
+      let scale = xw/tw/4
+      let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
+
+      // transitionStarted()
+      select(svgRef.current)
+        .transition()
+        .duration(zoomDuration)
+        .call(zoomBehavior.transform, transform)
+      // transitionFinished()
+    }
+  }, [state.order, xScale, yScale, sizeScale, svgRef, zoomDuration, zoomBehavior])
+
+  useEffect(() => {
+    if(zoomToRegion) {
+      const length = zoomToRegion.end - zoomToRegion.start
+      // figure out the appropriate order to zoom to
+      let order = orderDomain[1];
+
+      // console.log("length", length)
+      
+      while(length > hilbertPosToOrder(1, { from: order, to: orderDomain[1] })) {
+        // console.log("order", order, hilbertPosToOrder(1, { from: order, to: orderDomain[1] }))
+        order--;
+        if(order == orderDomain[0]) break;
+      }
+      // console.log("zoom to region", zoomToRegion, order)
+      let pos = hilbertPosToOrder(zoomToRegion.start, { from: orderDomain[1], to: order })
+      let hilbert = HilbertChromosome(order, { padding: 2 })
+      let hit = hilbert.get2DPoint(pos, zoomToRegion.chromosome)
+      // console.log("hit!", hit)
+      zoomToBox(hit.x, hit.y, hit.x + hilbert.step, hit.y + hilbert.step)
+    }
+  }, [zoomToRegion])
+
+
+
   // MOUSE INTERACTIONS
   // we create a quadtree so we can find the closest point to the mouse
   const qt = useMemo(() => {
@@ -319,13 +372,16 @@ const HilbertGenome = ({
         clicked = datum
     }
     onClick(clicked, state.order);
+    // zoomToBox(hit.x, hit.y, hit.x + step, hit.y + step)
     // dispatch({ type: actions.SET_SELECTED, payload: clicked })
   }, [state.data, state.transform, state.order, qt, xScale, yScale]) 
 
+
+
   const handleDoubleClick = useCallback((event) => {
     if(!qt) return
-    event.preventDefault()
-    event.stopPropagation()
+    // event.preventDefault()
+    // event.stopPropagation()
     let ex = event.nativeEvent.offsetX
     let ey = event.nativeEvent.offsetY
 
@@ -345,21 +401,25 @@ const HilbertGenome = ({
     // zoom into the hit
     // first we get the x,y coordinates of the point in absolute position
     // TODO: the multipliers should be based on aspect ratio
-    let tx = xScale(hit.x) - sizeScale(step) * 2.5 
-    let ty = yScale(hit.y) - sizeScale(step) * 1.75
-    let tw = xScale(step) - xScale(0)
-    let xw = xScale(xScale.domain()[1] - xScale.domain()[0])
-    // we zoom to 1/4 the scale of the hit
-    let scale = xw/tw/4
-    let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
+    // let tx = xScale(hit.x) - sizeScale(step) * 2.5 
+    // let ty = yScale(hit.y) - sizeScale(step) * 1.75
+    // let tw = xScale(step) - xScale(0)
+    // let xw = xScale(xScale.domain()[1] - xScale.domain()[0])
+    // // we zoom to 1/4 the scale of the hit
+    // let scale = xw/tw/4
+    // let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
 
-    // zoomBehavior.transform(select(svgRef.current), transform) 
-    // transition the zoom to the new transform
-    select(svgRef.current).transition().duration(1000).call(zoomBehavior.transform, transform)
+    // // zoomBehavior.transform(select(svgRef.current), transform) 
+    // // transition the zoom to the new transform
 
-  }, [state.data, state.transform, state.order, qt, xScale, yScale]) 
+    // // transitionStarted()
+    // select(svgRef.current).transition().duration(1000).call(zoomBehavior.transform, transform)
+    // // transitionFinished()
+    zoomToBox(hit.x, hit.y, hit.x + step, hit.y + step)
 
-  // fire callbacks when our selected change
+  }, [state.data, state.transform, state.order, qt, xScale, yScale, zoomToBox]) 
+
+    // fire callbacks when our selected change
   // partly this is so we can update the selected in the parent when layer changes with new data
   // TODO: this doesn't quite work if we've changed orders because we wont have the old data for new layer
   // useEffect(() => {
