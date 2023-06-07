@@ -1,0 +1,76 @@
+.autocomplete-input {
+  display: flex;
+  border-radius: 3px;
+  border: none;
+  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.08);
+  margin: 0 auto;
+  height: 24px !important;
+  width: 200px !important;
+  /* font-size: 0.7em; */
+  font-size: 0.85rem;
+  position: relative;
+  top: 3px;
+  /* background-image: url(./components/Autocomplete/search.dddddd.png); */
+  background-image: url(./search.png);
+  background-repeat: no-repeat;
+  background-size: 10px 10px;
+  background-position: 8px 7px;
+  background-origin: border-box;
+  /* background-color: #525252; */
+  background-color: rgb(230, 230, 230);
+  /* color: white; */
+  color: black;
+  padding-left: 26px;
+  letter-spacing: 0.01em;
+}
+
+.suggestions {
+  z-index: 10000;
+  position: absolute;
+  width: 200px;
+  max-height: 400px;
+  border: 1px solid #222;
+  border-top-width: 1px;
+  border-radius: 3px;
+  list-style: none;
+  overflow-y: auto;
+  padding-left: 0;
+  margin-top: 7px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: white;
+  font-size: 0.8em;
+}
+
+.suggestions li {
+  text-align: left;
+  padding: 0.75rem;
+  line-height: 1.35em;
+  color: rgb(20,20,20);
+}
+
+.suggestion-active,
+.suggestions li:hover {
+  background-color: #6d6ca5;
+  color: #ffffff !important;
+  cursor: pointer;
+  text-align: left;
+}
+
+.suggestions li:not(:last-of-type) {
+  border-bottom: 1px solid #999;
+}
+
+.suggestion-name {
+  font-weight: 600;
+  font-size: 1.2em;
+}
+
+.suggestion-description {
+  font-weight: 400;
+  font-size: 0.9em;
+}
+
+.suggestion-location, .suggestion-strand {
+  font-weight: 400;
+}
