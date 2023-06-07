@@ -145,9 +145,9 @@ function App() {
                 if(chr.value && start.value && end.value)
                 setRegion({ chromosome: chr.value, start: parseInt(start.value), end: parseInt(end.value) })
               }}>
-                <input type="text" name="chr" placeholder="chr1" />
-                <input type="text" name="start" placeholder="1000000" />
-                <input type="text" name="end" placeholder="2000000" />
+                <input type="text" name="chr" placeholder="chromosome" />
+                <input type="text" name="start" placeholder="start" />
+                <input type="text" name="end" placeholder="end" />
                 <button type="submit">Go</button>
               </form>
             </label>

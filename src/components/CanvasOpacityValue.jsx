@@ -8,7 +8,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     if(!ctx) return;
 
     // layer options
-    let { fieldChoice, fieldColor, strokeWidthMultiplier, aggregateName} = layer
+    let { fieldChoice, fieldColor, strokeWidthMultiplier } = layer
 
     // scales
     let {xScale ,yScale ,sizeScale} = scales
@@ -35,7 +35,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     let domain = [min, max]
     let alphaScale = scaleLinear()
       .domain(domain)
-      .range([0, 1]) 
+      .range([0.2, 1]) 
     
     for(i = 0; i < data.length; i++) {
       d = data[i];
