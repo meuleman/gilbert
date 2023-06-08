@@ -17,7 +17,7 @@ export const isValidChromosome = (assembly, chromosomeName) => {
 }
 
 export const getRangeFromString = (str, applyPadding, applyApplicationBinShift, assembly) => {
-  console.log(`Helpers.getRangeFromString ${str} ${applyPadding} ${applyApplicationBinShift} ${assembly}`);
+  // console.log(`Helpers.getRangeFromString ${str} ${applyPadding} ${applyApplicationBinShift} ${assembly}`);
   if (!applyApplicationBinShift) applyApplicationBinShift = false;
   /*
     Test if the new location passes as a chrN:X-Y pattern, 
@@ -31,7 +31,7 @@ export const getRangeFromString = (str, applyPadding, applyApplicationBinShift, 
   let chrom = "";
   let start = -1;
   let stop = -1;
-  console.log("matches", matches);
+  // console.log("matches", matches);
   if (matches.length === 3) {
     chrom = matches[0];
     if (!isValidChromosome(assembly, chrom)) {

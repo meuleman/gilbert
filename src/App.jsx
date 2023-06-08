@@ -24,8 +24,6 @@ import Chromatin_OE_Chi from './layers/chromatin_oe_chi'
 import TF_Motifs_OE_Chi from './layers/tf_motifs_oe_chi'
 // autocomplete
 import Autocomplete from './components/Autocomplete/Autocomplete'
-import * as Constants from './lib/Constants'
-import * as Helpers from './lib/Helpers'
 
 const layerConfig = {
   baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
@@ -134,21 +132,14 @@ function App() {
 
   const [region, setRegion] = useState(null)
 
-  const [autocompleteInputLocationBeingChanged, setAutocompleteInputLocationBeingChanged] = useState(false);
-  function handleChangeAutocompleteInputLocation(location, applyPadding, userInput) {
-    const range = Helpers.getRangeFromString(location, applyPadding, false, Constants.appDefaultAssembly);
-    if (range && !autocompleteInputLocationBeingChanged) {
-      setAutocompleteInputLocationBeingChanged(true);
-      setRegion({
-        chromosome: range.chrom, 
-        start: range.start, 
-        end: range.stop 
-      });
-      setAutocompleteInputLocationBeingChanged(false);
-    }
-  }
-  function handleChangeAutocompleteInput(value) {
-    // console.log("onChangeSearchInput", value);
+  function handleChangeLocationViaAutocomplete(autocompleteRegion) {
+    if (!autocompleteRegion) return
+    // console.log(`autocompleteRegion ${JSON.stringify(autocompleteRegion)}`);
+    setRegion({
+      chromosome: autocompleteRegion.chrom, 
+      start: autocompleteRegion.start, 
+      end: autocompleteRegion.stop 
+    })
   }
 
   return (
@@ -156,48 +147,8 @@ function App() {
 
       <div className="title">Hilbert Genome</div>
 
-      {/* 
-        <div className="zoomto">
-          <label>
-            Zoom to Region
-            <form onSubmit={(e) => {
-              e.preventDefault()
-              let { chr, start, end } = e.target.elements
-              if(chr.value && start.value && end.value)
-              setRegion({ chromosome: chr.value, start: parseInt(start.value), end: parseInt(end.value) })
-            }}>
-              <input type="text" name="chr" placeholder="chromosome" />
-              <input type="text" name="start" placeholder="start" />
-              <input type="text" name="end" placeholder="end" />
-              <button type="submit">Go</button>
-            </form>
-          </label>
-        </div>
-      */}
-
       <div className="zoomto">
-        <Autocomplete
-          className={'autocomplete-input'}
-          placeholder={Constants.appDefaultAutocompleteInputPlaceholder}
-          annotationScheme={Constants.annotationScheme}
-          annotationHost={Constants.annotationHost}
-          annotationPort={Constants.annotationPort}
-          annotationAssemblyRaw={Constants.appDefaultAssembly}
-          annotationAssembly={`${Constants.appDefaultAssembly}_GENCODE_v38`}
-          mapIndexDHSScheme={Constants.mapIndexDHSScheme}
-          mapIndexDHSHost={Constants.mapIndexDHSHost}
-          mapIndexDHSPort={Constants.mapIndexDHSPort}
-          mapIndexDHSSetName={Constants.mapIndexDHSSetName}
-          onChangeLocation={handleChangeAutocompleteInputLocation}
-          onChangeInput={handleChangeAutocompleteInput}
-          onClick={(e) => e.currentTarget.blur()}
-          onFocus={null}
-          onPostFocus={null}
-          title={"Search for a gene of interest or jump to a genomic interval"}
-          suggestionsClassName={"suggestions"}
-          isMobile={false}
-          isDisabled={false}
-        />
+        <Autocomplete onChangeLocation={handleChangeLocationViaAutocomplete} />
       </div>
 
       <div className="panels">

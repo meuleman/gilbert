@@ -12,6 +12,7 @@ export const appDefaultRegionUpstreamPadding = 5000;
 export const appDefaultRegionDownstreamPadding = 5000;
 
 export const appDefaultAutocompleteInputPlaceholder = "Specify an interval or gene";
+export const appDefaultAutocompleteInputLabel = "Search for a gene of interest or jump to a genomic interval";
 
 export const appDefaultAssembly = 'hg38';
 

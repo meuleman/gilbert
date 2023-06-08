@@ -3,8 +3,8 @@ import { DebounceInput } from "react-debounce-input";
 import PropTypes from 'prop-types';
 import axios from "axios";
 
-import * as Helpers from "../../lib/Helpers.js";
-import * as Constants from "../../lib/Constants.js";
+import * as Helpers from "./Helpers.js";
+import * as Constants from "./Constants.js";
 
 import './Autocomplete.css';
 
@@ -59,9 +59,7 @@ class Autocomplete extends Component {
     this.applyBlurTimeoutMs = 250;
   }
   
-  componentDidMount() {
-    // setTimeout(() => { document.getElementById("autocomplete-input").focus() }, 500);
-  }
+  componentDidMount() {}
   
   clearUserInput = () => {
     this.setState({
@@ -69,51 +67,18 @@ class Autocomplete extends Component {
       activeSuggestion: -1,
     }, () => {
       this.inputRef.value = '';
-      this.props.onChangeInput(this.state.userInput);
+      this.props.onChangeInput && this.props.onChangeInput(this.state.userInput);
     });
   }
 
-  isValidChromosome = (chr) => {
-    // console.log(`chr ${chr}`);
-    switch (chr) {
-      case 'chr1':
-      case 'chr2':
-      case 'chr3':
-      case 'chr4':
-      case 'chr5':
-      case 'chr6':
-      case 'chr7':
-      case 'chr8':
-      case 'chr9':
-      case 'chr10':
-      case 'chr11':
-      case 'chr12':
-      case 'chr13':
-      case 'chr14':
-      case 'chr15':
-      case 'chr16':
-      case 'chr17':
-      case 'chr18':
-      case 'chr19':
-      case 'chr20':
-      case 'chr21':
-      case 'chr22':
-      case 'chrX':
-      case 'chrY':
-        return true;
-      default:
-        return false;
-    }
-  }
+  isValidChromosome = (assembly, chr) => Constants.assemblyChromosomes[assembly].includes(chr) !== -1;
 
   applyFocus = () => {
-    // console.log(`Autocomplete - applyFocus() - start - ${this.inputRef.value}`);
     let newUserInput = this.inputRef.value.replace(/\//g, '');
     this.setState({
       userInput: newUserInput,
       isInFocus: true,
     }, () => {
-      // console.log(`Autocomplete - applyFocus() - post setstate - ${this.state.userInput} - ${this.state.isInFocus}`);
       this.inputRef.value = newUserInput;
       setTimeout(() => { 
         this.inputRef.focus();
@@ -136,7 +101,6 @@ class Autocomplete extends Component {
   // eslint-disable-next-line no-unused-vars
   onBlur = (e) => {
     if (!this.inputRef) return;
-    // console.log(`Autocomplete - onBlur() - start - ${this.inputRef.value} - ${this.state.userInput}`);
     setTimeout(() => {
       this.setState({
         userInput: '',
@@ -151,7 +115,18 @@ class Autocomplete extends Component {
   onPaste = (e) => {
     setTimeout(() => {
       try {
-        this.props.onChangeInput(this.inputRef.value);
+        this.props.onChangeInput && this.props.onChangeInput(this.inputRef.value);
+        const pastedRegion = Helpers.getRangeFromString(this.state.selectedSuggestionLocation, 
+          true, 
+          null,
+          this.props.annotationAssemblyRaw || Constants.appDefaultAssembly
+        );
+        if (pastedRegion) {
+          this.props.onChangeLocation && this.props.onChangeLocation({
+            ...pastedRegion, 
+            type: 'interval',
+          });
+        }
       }
       catch(err) {
         console.log(`${this.inputRef} | ${err}`);
@@ -162,38 +137,33 @@ class Autocomplete extends Component {
   onChange = (e) => {    
     if (!e.target) return;
 
-    // console.log("onChange", e.target.value);
-    // console.log("test", (Helpers.isValidChromosome(this.props.annotationAssemblyRaw, e.target.value)));
-
     if (e.target.value.length === 0) {
       this.setState({
         showSuggestions: false
       });
     }
 
-    if ((Helpers.isValidChromosome(this.props.annotationAssemblyRaw, e.target.value)) || ((e.target.value.startsWith("chr")) && ((e.target.value.indexOf(":") !== -1) || (e.target.value.indexOf('\t') !== -1) || (e.target.value.indexOf(" ") !== -1)))) {  
-      // console.log("onChange B", e.target.value);
+    if ((Helpers.isValidChromosome((this.props.annotationAssemblyRaw || Constants.appDefaultAssembly), e.target.value)) || ((e.target.value.startsWith("chr")) && ((e.target.value.indexOf(":") !== -1) || (e.target.value.indexOf('\t') !== -1) || (e.target.value.indexOf(" ") !== -1)))) {
       this.setState({
         showSuggestions: false,
         userInput: e.target.value
-      }, () => {
-        // const range = Helpers.getRangeFromString(this.state.userInput, false, false, this.props.annotationAssemblyRaw);
-        // if (range) {
-          // console.log(`range ${range} | this.state.showSuggestions ${this.state.showSuggestions}`);
-          // this.props.onChangeInput(this.state.userInput);
-        // }
-        this.props.onChangeInput(this.state.userInput);
-      });
+      }, () => {});
       return;
     }
 
     const queryAnnotationHost = () => {
-      let annotationUrl = this.props.annotationScheme + "://" + this.props.annotationHost + ":" + this.props.annotationPort + "/sets?q=" + this.state.userInput.trim() + "&assembly=" + this.props.annotationAssembly;
-      // console.log("annotationUrl", annotationUrl);
+      const annotationUrl = (this.props.annotationScheme || Constants.annotationScheme) 
+        + "://" 
+        + (this.props.annotationHost || Constants.annotationHost)
+        + ":" 
+        + (this.props.annotationPort || Constants.annotationPort)
+        + "/sets?q=" 
+        + this.state.userInput.trim() 
+        + "&assembly=" 
+        + (this.props.annotationAssembly || `${Constants.appDefaultAssembly}_GENCODE_v38`);
       axios.get(annotationUrl)
         .then((res) => {
           if (res.data.hits) {
-            // console.log("(autocomplete) res.data.hits", res.data.hits);
             let hitNames = Object.keys(res.data.hits);
             let hitObjects = [];
             hitNames.forEach((hitName) => {
@@ -203,11 +173,9 @@ class Autocomplete extends Component {
                 hitObjects.push(withinHitObj);
               });
             });
-            // console.log("hitObjects", hitObjects);
             const filteredSuggestions = hitObjects;
             this.setState({
               activeSuggestion: -1,
-              // activeSuggestion: 0,
               filteredSuggestions,
               showSuggestions: true
             });
@@ -216,8 +184,8 @@ class Autocomplete extends Component {
         // eslint-disable-next-line no-unused-vars
         .catch((err) => {
           // this could be the name of a valid chromosome
-          if (this.isValidChromosome(this.state.userInput.trim())) {
-            this.props.onChangeInput(this.state.userInput);
+          if (this.isValidChromosome((this.props.annotationAssemblyRaw || Constants.appDefaultAssembly), this.state.userInput.trim())) {
+            this.props.onChangeInput && this.props.onChangeInput(this.state.userInput);
           }
         });
     }
@@ -231,7 +199,7 @@ class Autocomplete extends Component {
             queryAnnotationHost();
           }
         }
-        this.props.onChangeInput(this.state.userInput);
+        this.props.onChangeInput && this.props.onChangeInput(this.state.userInput);
       });
     }
     else {
@@ -242,13 +210,11 @@ class Autocomplete extends Component {
         this.inputRef.value = newUserInput;
       });
     }
-  };
+  }
 
   onClick = (e) => {
-    // document.activeElement.blur();
-    let selectedSuggestionName = e.currentTarget.getElementsByClassName("suggestion-name")[0].innerText;
-    let selectedSuggestionLocation = e.currentTarget.getElementsByClassName("suggestion-location")[0].innerText;
-    // console.log(`selectedSuggestionName ${selectedSuggestionName} selectedSuggestionLocation ${selectedSuggestionLocation}`);
+    const selectedSuggestionName = e.currentTarget.getElementsByClassName("suggestion-name")[0].innerText;
+    const selectedSuggestionLocation = e.currentTarget.getElementsByClassName("suggestion-location")[0].innerText;
     this.setState({
       activeSuggestion: -1,
       filteredSuggestions: [],
@@ -256,8 +222,20 @@ class Autocomplete extends Component {
       userInput: selectedSuggestionName,
       selectedSuggestionLocation: selectedSuggestionLocation
     }, 
-    () => { 
-      this.props.onChangeLocation(this.state.selectedSuggestionLocation, true);
+    () => {
+      const clickedSuggestionRegion = Helpers.getRangeFromString(this.state.selectedSuggestionLocation, 
+        true, 
+        null,
+        this.props.annotationAssemblyRaw || Constants.appDefaultAssembly
+      );
+      if (clickedSuggestionRegion) {
+        this.props.onChangeLocation && this.props.onChangeLocation({
+          ...clickedSuggestionRegion, 
+          type: 'gene', 
+          name: selectedSuggestionName, 
+          location: selectedSuggestionLocation
+        });
+      }
       this.clearUserInput();
     });
   };
@@ -282,9 +260,6 @@ class Autocomplete extends Component {
         // console.log(`Autocomplete - onKeyDown() - DELETE_KEY - this.state.userInput - ${this.state.userInput}`);
         if (this.state.userInput.length === 1) {
           this.clearUserInput();
-          // setTimeout(() => {
-          //   this.inputRef.blur();
-          // }, this.applyBlurTimeoutMs);
         }
         break;
       }
@@ -314,21 +289,27 @@ class Autocomplete extends Component {
           // console.log(`this.state.userInput ${this.state.userInput}`);
           let colonDashTest = this.state.userInput.startsWith("chr") && (this.state.userInput.indexOf(":") !== -1);
           let whitespaceOnlyTest = this.state.userInput.startsWith("chr") && (/^[\S]+(\s+[\S]+)+$/.test(this.state.userInput));
-          let chromosomeOnlyTest = (/^chr([a-zA-Z0-9]+)$/.test(this.state.userInput)) && this.isValidChromosome(this.state.userInput);
+          let chromosomeOnlyTest = (/^chr([a-zA-Z0-9]+)$/.test(this.state.userInput)) && this.isValidChromosome((this.props.annotationAssemblyRaw || Constants.appDefaultAssembly), this.state.userInput);
           let indexDHSIdentifierTest = /^([XY0-9]{1,2}.[0-9]{1,})$/.test(this.state.userInput);
           // console.log(`colonDashTest ${colonDashTest}`);
           // console.log(`whitespaceOnlyTest ${whitespaceOnlyTest}`);
           // console.log(`chromosomeOnlyTest ${chromosomeOnlyTest}`);
+          // console.log(`indexDHSIdentifierTest ${indexDHSIdentifierTest}`);
           if (indexDHSIdentifierTest) {
-            console.log(`A`);
-            const mapUrl = this.props.mapIndexDHSScheme + "://" + this.props.mapIndexDHSHost + ":" + this.props.mapIndexDHSPort + "/annotation?set=" + this.props.mapIndexDHSSetName + "&identifier=" + this.state.userInput.trim();
+            const mapUrl = (this.props.mapIndexDHSScheme || Constants.mapIndexDHSScheme) 
+              + "://" 
+              + (this.props.mapIndexDHSHost || Constants.mapIndexDHSHost) 
+              + ":" 
+              + (this.props.mapIndexDHSPort || Constants.mapIndexDHSPort) 
+              + "/annotation?set=" 
+              + (this.props.mapIndexDHSSetName || Constants.mapIndexDHSSetName)
+              + "&identifier=" 
+              + this.state.userInput.trim();
             axios.get(mapUrl)
               .then((res) => {
                 if (res.data.data) {
-                  // console.log("(autocomplete) res.data.hits", res.data.hits);
                   const hit = res.data.data;
-                  const indexDHSLocation = `${hit.seqname}:${hit.start - Constants.appDefaultIndexDHSPadding}-${hit.end + Constants.appDefaultIndexDHSPadding}`;
-                  // console.log(`(autocomplete) ${indexDHSLocation}`);
+                  const indexDHSLocation = `${hit.seqname}:${parseInt(hit.start) - Constants.appDefaultIndexDHSPadding}-${parseInt(hit.end) + Constants.appDefaultIndexDHSPadding}`;
                   this.setState({
                     activeSuggestion: -1,
                     filteredSuggestions: [],
@@ -336,8 +317,20 @@ class Autocomplete extends Component {
                     selectedSuggestionLocation: indexDHSLocation
                   }, 
                   () => { 
-                    this.props.onChangeLocation(this.state.selectedSuggestionLocation, false);
-                    // this.clearUserInput();
+                    const indexDHSRegion = Helpers.getRangeFromString(this.state.selectedSuggestionLocation, 
+                      false, 
+                      null,
+                      this.props.annotationAssemblyRaw || Constants.appDefaultAssembly
+                    );
+                    if (indexDHSRegion) {
+                      this.props.onChangeLocation && this.props.onChangeLocation({
+                        ...indexDHSRegion, 
+                        type: 'Index_DHS', 
+                        name: this.state.userInput.trim(), 
+                        location: indexDHSLocation
+                      });
+                    }
+                    this.clearUserInput();
                   });
                 }
               })
@@ -356,48 +349,45 @@ class Autocomplete extends Component {
               });
             return;
           }
-          else if (Helpers.isValidChromosome(this.props.annotationAssemblyRaw, this.state.userInput)) {
-            // console.log(`B`);
-            const chromosomeRange = Helpers.getRangeFromString(this.state.userInput, false, false, this.props.annotationAssemblyRaw);
+          else if (Helpers.isValidChromosome((this.props.annotationAssemblyRaw || Constants.appDefaultAssembly), this.state.userInput)) {
+            const chromosomeRange = Helpers.getRangeFromString(this.state.userInput, false, false, (this.props.annotationAssemblyRaw || Constants.appDefaultAssembly));
             if (chromosomeRange) {
-              // console.log(`chromosomeRange ${JSON.stringify(chromosomeRange)} | this.state.activeSuggestion ${this.state.activeSuggestion}`);
               const chromosomeRangeLocation = `${chromosomeRange.chrom}:${chromosomeRange.start}-${chromosomeRange.stop}`;
               this.setState({
                 activeSuggestion: -1,
                 filteredSuggestions: [],
                 showSuggestions: false,
-                selectedSuggestionLocation: chromosomeRangeLocation
-              }, () => {
-                // console.log(`chromosomeRangeLocation ${chromosomeRangeLocation}`);
-                // console.log(`this.state.selectedSuggestionLocation ${this.state.selectedSuggestionLocation}`);
-                this.props.onChangeLocation(this.state.selectedSuggestionLocation, false);
-                // this.props.onChangeLocation(chromosomeRangeLocation, false);
-                // this.clearUserInput();
+                selectedSuggestionLocation: chromosomeRangeLocation,
               });
             }
           }
           else if ((colonDashTest || whitespaceOnlyTest || chromosomeOnlyTest) && (this.state.activeSuggestion === -1)) {
-            // console.log(`C`);
             let newUserInput = "";
             let newLocation = this.state.userInput;
             this.setState({
               activeSuggestion: 0,
               showSuggestions: false,
               userInput: newUserInput,
-              selectedSuggestionLocation: newLocation
+              selectedSuggestionLocation: newLocation,
             }, () => { 
-              // console.log(`Autocomplete > this.state.userInput ${this.state.userInput}`);
-              // console.log(`Autocomplete > this.state.selectedSuggestionLocation ${this.state.selectedSuggestionLocation}`);
-              this.props.onChangeLocation(this.state.selectedSuggestionLocation, false, this.state.userInput);
+              const arbitraryRegion = Helpers.getRangeFromString(this.state.selectedSuggestionLocation, 
+                false, 
+                null,
+                this.props.annotationAssemblyRaw || Constants.appDefaultAssembly
+              );
+              if (arbitraryRegion) {
+                this.props.onChangeLocation && this.props.onChangeLocation({
+                  ...arbitraryRegion,
+                  type: 'interval',
+                });
+              }
               this.clearUserInput();
             });
             return;
           }
           else {
-            // console.log(`D`);
-            const interval = Helpers.getRangeFromString(this.state.userInput, false, false, this.props.annotationAssemblyRaw);
+            const interval = Helpers.getRangeFromString(this.state.userInput, false, false, (this.props.annotationAssemblyRaw || Constants.appDefaultAssembly));
             if (interval) {
-              // console.log(`interval ${interval}`);
               const intervalRangeLocation = `${interval.chrom}:${interval.start}-${interval.stop}`;
               this.setState({
                 activeSuggestion: -1,
@@ -405,13 +395,22 @@ class Autocomplete extends Component {
                 showSuggestions: false,
                 selectedSuggestionLocation: intervalRangeLocation
               }, () => {
-                this.props.onChangeLocation(this.state.selectedSuggestionLocation, false);
-                // this.clearUserInput();
+                const arbitraryGenomicRegion = Helpers.getRangeFromString(this.state.selectedSuggestionLocation, 
+                  false, 
+                  null,
+                  this.props.annotationAssemblyRaw || Constants.appDefaultAssembly
+                );
+                if (arbitraryGenomicRegion) {
+                  this.props.onChangeLocation && this.props.onChangeLocation({
+                    ...arbitraryGenomicRegion,
+                    type: 'interval',
+                  });
+                }
+                this.clearUserInput();
               });
               return;
             }
           }
-          // console.log("filteredSuggestions[activeSuggestion]", JSON.stringify(this.state.filteredSuggestions[this.state.activeSuggestion]));
           let newUserInput = "";
           let newLocation = "";
           if (typeof this.state.filteredSuggestions[this.state.activeSuggestion] !== "undefined") {
@@ -422,14 +421,24 @@ class Autocomplete extends Component {
             newUserInput = this.state.userInput;
             newLocation = this.state.userInput;
           }
-          // console.log("newLocation", newLocation);
           this.setState({
             activeSuggestion: 0,
             showSuggestions: false,
             userInput: newUserInput,
             selectedSuggestionLocation: newLocation
           }, () => { 
-            this.props.onChangeLocation(this.state.selectedSuggestionLocation, true, this.state.userInput);
+            const queriedAnnotationRegion = Helpers.getRangeFromString(this.state.selectedSuggestionLocation, 
+              true, 
+              null,
+              this.props.annotationAssemblyRaw || Constants.appDefaultAssembly
+            );
+            if (queriedAnnotationRegion) {
+              this.props.onChangeLocation && this.props.onChangeLocation({
+                ...queriedAnnotationRegion,
+                type: 'annotation',
+                name: newUserInput,
+              });
+            }
             this.clearUserInput();
             this.inputRef.blur();
           });
@@ -500,7 +509,7 @@ class Autocomplete extends Component {
     if (showSuggestions && this.state.userInput) {
       if (filteredSuggestions.length) {
         suggestionsListComponent = (
-          <ul className={this.props.suggestionsClassName} style={(this.props.maxSuggestionHeight)?{maxHeight:`${this.props.maxSuggestionHeight}px`}:{}}>
+          <ul className={(this.props.suggestionsClassName || 'suggestions')} style={(this.props.maxSuggestionHeight)?{maxHeight:`${this.props.maxSuggestionHeight}px`}:{}}>
             {filteredSuggestions.map((suggestion, index) => {
               let className;
 
@@ -509,7 +518,7 @@ class Autocomplete extends Component {
                 className = "suggestion-active";
               }
 
-              return (!this.props.isMobile) ? (
+              return (!(this.props.isMobile || false)) ? (
                 <li className={className} onMouseEnter={(e) => this.onMouseEnter(e)} onMouseLeave={(e) => this.onMouseLeave(e)} onClick={(e) => this.onClick(e) } key={index} id={"suggestion-" + index}>
                   <div>
                     <span className="suggestion-name">{suggestion.name}</span><br />
@@ -540,22 +549,22 @@ class Autocomplete extends Component {
         <DebounceInput
           id="autocomplete-input"
           key={this.state.inputKey}
+          type="text"
           inputRef={(ref) => { this.inputRef = ref; }}
           minLength={this.state.minimumLength}
           debounceTimeout={this.state.debounceTimeout}
-          className={ `${ this.props.className }` }
-          type="text"
+          className={this.props.className || 'autocomplete-input'}
           onChange={e => this.onChange(e)}
           onPaste={e => this.onPaste(e)}
           onKeyDown={onKeyDown}
           onFocus={e => this.onFocus(e)}
           onBlur={e => this.onBlur(e)}
           value={this.state.userInput.replace('/', '')}
-          placeholder={ `${ this.props.placeholder }` }
+          placeholder={(this.props.placeholder) && this.props.placeholder || Constants.appDefaultAutocompleteInputPlaceholder}
           autoComplete="off"
-          title={this.props.title}
+          title={this.props.title || Constants.appDefaultAutocompleteInputLabel}
           style={(this.state.isInFocus) ? this.inFocusStyle : this.inBlurStyle}
-          disabled={this.props.isDisabled}
+          disabled={(this.props.isDisabled) ? this.props.isDisabled : false}
         />
         {suggestionsListComponent}
       </Fragment>
