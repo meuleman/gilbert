@@ -5,6 +5,7 @@ import CanvasScaledValue from "../components/CanvasScaledValue";
 export default {
   name: "DHS Components SFC",
   datasetName: "dhs_components_sfc",
+  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   orders: [4,9],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,
