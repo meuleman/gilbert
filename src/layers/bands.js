@@ -5,6 +5,7 @@ import CanvasSimpleValue from "../components/CanvasSimpleValue";
 export default {
   name: "Bands",
   datasetName: "bands",
+  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   orders: [4,8],
   renderer: CanvasSimpleValue,    
   fieldChoice: bandsValue,

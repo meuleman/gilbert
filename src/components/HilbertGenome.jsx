@@ -132,15 +132,16 @@ const HilbertGenome = ({
   }, [state.order, activeLayer])
 
   // Data fetching
-  const dataClient = Data({ 
-    baseURL: LayerConfig.baseURL, 
-    debug
-  })
+  
   // this debounced function fetches the data and updates the state
   const fetchData = useMemo(() => {
     return () => {
       // we dont want to fetch data if the order is not within the layer order range
       if (state.order < layer.orders[0] || state.order > layer.orders[1]) return;
+      const dataClient = Data({ 
+        baseURL: layer.baseURL || LayerConfig.baseURL, 
+        debug
+      })
       let myPromise = dataClient.fetchData(layer.datasetName, state.order, state.points)
       let myCallback = (data) => {
         if(data)
@@ -155,6 +156,10 @@ const HilbertGenome = ({
     if (layer) {
       console.log("layer", layer)
       // fetch the meta for each order in this layer
+      const dataClient = Data({ 
+        baseURL: layer.baseURL || LayerConfig.baseURL, 
+        debug
+      })
       const metas = Promise.all(range(layer.orders[0], layer.orders[1] + 1)
         .map(async (order) => {
           return dataClient.fetchMeta(layer.datasetName, order, "meta")

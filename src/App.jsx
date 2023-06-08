@@ -86,6 +86,9 @@ function App() {
     setSelectedOrder(null)
   }
 
+  // TODO: handleData, and pass data to the subcomponents
+  // TODO: they can do their own data lookup based on layer and the hilbert point
+
   // We want to keep track of the zoom state
   const [zoom, setZoom] = useState({order: 4, points: [], bbox: {}, transform: {}})
   function handleZoom(zoom) {
