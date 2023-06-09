@@ -134,7 +134,7 @@ function App() {
 
   function handleChangeLocationViaAutocomplete(autocompleteRegion) {
     if (!autocompleteRegion) return
-    // console.log(`autocompleteRegion ${JSON.stringify(autocompleteRegion)}`);
+    console.log(`autocompleteRegion ${JSON.stringify(autocompleteRegion)}`);
     setRegion({
       chromosome: autocompleteRegion.chrom, 
       start: autocompleteRegion.start, 

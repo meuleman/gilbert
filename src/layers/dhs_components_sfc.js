@@ -2,13 +2,14 @@
 import { scaleOrdinal } from "d3-scale";
 import CanvasScaledValue from "../components/CanvasScaledValue";
 
+let url = "https://resources.altius.org/~jquon/hilbert_curve_sfc_react_20230608/dhs_components/"
+let proxyUrl = `https://meuleman-proxy.altius.org:9001/${encodeURIComponent(url)}`
+
 export default {
   name: "DHS Components SFC",
   datasetName: "dhs_components_sfc",
-  // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: "https://resources.altius.org/~jquon/hilbert_curve_sfc_react_20230608/dhs_components/",
-  username: "encode",
-  password: "collabor8",
+  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
+  // baseURL: proxyUrl,
   orders: [4,9],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,
