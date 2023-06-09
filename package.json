@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@observablehq/plot": "^0.6.7",
+    "axios": "^1.4.0",
     "d3-array": "^3.2.3",
     "d3-fetch": "^3.0.1",
     "d3-format": "^3.1.0",
@@ -23,6 +24,7 @@
     "d3-zoom": "^3.0.0",
     "lodash.debounce": "^4.0.8",
     "react": "^18.2.0",
+    "react-debounce-input": "^3.3.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {

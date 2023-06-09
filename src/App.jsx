@@ -22,6 +22,8 @@ import DHS_OE_Chi from './layers/dhs_oe_chi'
 import DHS_Components_Sfc from './layers/dhs_components_sfc'
 import Chromatin_OE_Chi from './layers/chromatin_oe_chi'
 import TF_Motifs_OE_Chi from './layers/tf_motifs_oe_chi'
+// autocomplete
+import Autocomplete from './components/Autocomplete/Autocomplete'
 
 const layerConfig = {
   baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
@@ -133,28 +135,24 @@ function App() {
 
   const [region, setRegion] = useState(null)
 
-
+  function handleChangeLocationViaAutocomplete(autocompleteRegion) {
+    if (!autocompleteRegion) return
+    // console.log(`autocompleteRegion ${JSON.stringify(autocompleteRegion)}`);
+    setRegion({
+      chromosome: autocompleteRegion.chrom, 
+      start: autocompleteRegion.start, 
+      end: autocompleteRegion.stop 
+    })
+  }
 
   return (
     <>
 
       <div className="title">Hilbert Genome</div>
+
       <div className="zoomto">
-            <label>
-              Zoom to Region
-              <form onSubmit={(e) => {
-                e.preventDefault()
-                let { chr, start, end } = e.target.elements
-                if(chr.value && start.value && end.value)
-                setRegion({ chromosome: chr.value, start: parseInt(start.value), end: parseInt(end.value) })
-              }}>
-                <input type="text" name="chr" placeholder="chromosome" />
-                <input type="text" name="start" placeholder="start" />
-                <input type="text" name="end" placeholder="end" />
-                <button type="submit">Go</button>
-              </form>
-            </label>
-          </div>
+        <Autocomplete onChangeLocation={handleChangeLocationViaAutocomplete} />
+      </div>
 
       <div className="panels">
         <div ref={containerRef} className="hilbert-container">
