@@ -5,6 +5,7 @@ import CanvasScaledValue from "../components/CanvasScaledValue";
 export default {
   name: "DHS OE Chi",
   datasetName: "dhs_oe_chi",
+  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   orders: [4,9],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,

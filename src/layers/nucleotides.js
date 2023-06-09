@@ -6,6 +6,7 @@ const decoder = new TextDecoder('ascii');
 export default {
   name: "Nucleotides",
   datasetName: "grc",
+  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   orders: [14,14],
   renderer: CanvasTextValue,    
   fieldChoice: d => ({ field: "basepair", value: decoder.decode(d.bytes)[0] }),

@@ -8,6 +8,7 @@ const tfColors = ["#23171b","#362357","#433087","#433087","#493dac","#493dac","#
 export default {
   name: "TF Motifs OE Chi",
   datasetName: "tf_motifs_oe_chi",
+  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   orders: [4,10],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,

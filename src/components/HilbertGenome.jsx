@@ -84,8 +84,8 @@ const HilbertGenome = ({
     width,
     height,
     activeLayer = "bands",
-    LayerConfig={},
-    SVGRenderers=[],
+    layers = [],
+    SVGRenderers = [],
     onZoom = () => {},
     onHover = () => {},
     onLayer= () => {},
@@ -132,17 +132,17 @@ const HilbertGenome = ({
   }, [state.order, activeLayer])
 
   // Data fetching
-  
+  const dataClient = Data({ 
+    debug
+  })
+
   // this debounced function fetches the data and updates the state
   const fetchData = useMemo(() => {
     return () => {
       // we dont want to fetch data if the order is not within the layer order range
       if (state.order < layer.orders[0] || state.order > layer.orders[1]) return;
-      const dataClient = Data({ 
-        baseURL: layer.baseURL || LayerConfig.baseURL, 
-        debug
-      })
-      let myPromise = dataClient.fetchData(layer.datasetName, state.order, state.points)
+      
+      let myPromise = dataClient.fetchData(layer, state.order, state.points)
       let myCallback = (data) => {
         if(data)
           dispatch({ type: actions.SET_DATA, payload: { data, order: state.order } });
@@ -156,16 +156,11 @@ const HilbertGenome = ({
     if (layer) {
       console.log("layer", layer)
       // fetch the meta for each order in this layer
-      const dataClient = Data({ 
-        baseURL: layer.baseURL || LayerConfig.baseURL, 
-        debug
-      })
-      const metas = Promise.all(range(layer.orders[0], layer.orders[1] + 1)
+      Promise.all(range(layer.orders[0], layer.orders[1] + 1)
         .map(async (order) => {
-          return dataClient.fetchMeta(layer.datasetName, order, "meta")
+          return dataClient.fetchMeta(layer, order, "meta")
         })
       ).then(metas => {
-        console.log("METAS", metas)
         const metaMap = new Map(metas.map(meta => [meta.order, meta]))
         dispatch({ type: actions.SET_METAS, payload: metaMap})
       })

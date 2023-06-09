@@ -10,7 +10,7 @@ const StatusBar = ({
   hover = null,
   layer,
   zoom,
-  LayerConfig,
+  layers = [],
   onLayer=()=>{}
 } = {}) => {
   let sample = null
@@ -66,7 +66,7 @@ const StatusBar = ({
      
         <div className="status-bar-layer">
           <LayerDropdown 
-            LayerConfig={LayerConfig} 
+            layers={layers} 
             activeLayer={layer} 
             onLayer={onLayer} 
             order={zoom.order}

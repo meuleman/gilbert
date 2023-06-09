@@ -1,18 +1,17 @@
 const LayerDropdown = ({
   activeLayer,
-  LayerConfig,
+  layers = [],
   order,
   onLayer = () => {},
 } = {}) => {
-  if(!LayerConfig || !activeLayer) return null;
+  if(!layers || !activeLayer) return null;
 
-  const disabledKeys = LayerConfig.layers
+  const disabledKeys = layers
     .filter(d => order < d.orders[0] || order > d.orders[1])
     .map(d => d.name);
 
   const handleChange = (event) => {
-    console.log("EVENT", event, event.target.value)
-    const layer = LayerConfig.layers.find((layer) => layer.name === event.target.value)
+    const layer = layers.find((layer) => layer.name === event.target.value)
     onLayer(layer)
   }
 
@@ -28,7 +27,7 @@ const LayerDropdown = ({
   return (
     <>
     <select value={tlayer.name} onChange={handleChange}>
-      {LayerConfig.layers.map((layer) => (
+      {layers.map((layer) => (
         <option 
           key={layer.name} 
           value={layer.name}

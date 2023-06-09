@@ -9,7 +9,7 @@ const SelectedModal = ({
   selectedOrder = null,
   layer,
   zoom,
-  LayerConfig,
+  layers,
   onClose=()=>{}
 } = {}) => {
   let sample = null

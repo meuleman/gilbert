@@ -5,7 +5,10 @@ import CanvasScaledValue from "../components/CanvasScaledValue";
 export default {
   name: "DHS Components SFC",
   datasetName: "dhs_components_sfc",
-  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
+  // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
+  baseURL: "https://resources.altius.org/~jquon/hilbert_curve_sfc_react_20230608/dhs_components/",
+  username: "encode",
+  password: "collabor8",
   orders: [4,9],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,

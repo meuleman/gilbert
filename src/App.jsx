@@ -25,19 +25,16 @@ import TF_Motifs_OE_Chi from './layers/tf_motifs_oe_chi'
 // autocomplete
 import Autocomplete from './components/Autocomplete/Autocomplete'
 
-const layerConfig = {
-  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  layers: [
-    Bands, 
-    GeneCounts,
-    GCContent,
-    Nucleotides,
-    DHS_OE_Chi,
-    DHS_Components_Sfc,
-    Chromatin_OE_Chi,
-    TF_Motifs_OE_Chi
-  ]
-}
+const layers = [
+  Bands, 
+  GeneCounts,
+  GCContent,
+  Nucleotides,
+  DHS_OE_Chi,
+  DHS_Components_Sfc,
+  Chromatin_OE_Chi,
+  TF_Motifs_OE_Chi
+]
 
 const layerOrder = {
   4: Bands,
@@ -164,7 +161,7 @@ function App() {
             zoomToRegion={region}
             zoomDuration={1000}
             activeLayer={layer}
-            LayerConfig={layerConfig}
+            layers={layers}
             SVGRenderers={[
               SVGChromosomeNames({ }),
               showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
@@ -191,7 +188,7 @@ function App() {
           selectedOrder={selectedOrder} 
           layer={layer} 
           zoom={zoom} 
-          LayerConfig={layerConfig}
+          layers={layers}
           onClose={handleModalClose} />
       </div>
       <div>
@@ -201,7 +198,7 @@ function App() {
           layer={layer} 
           zoom={zoom} 
           onLayer={handleLayer}
-          LayerConfig={layerConfig} />
+          layers={layers} />
         <div className="vis-controls">
           <label>
             <input type="checkbox" checked={showHilbert} onChange={handleChangeShowHilbert} />

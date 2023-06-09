@@ -6,6 +6,7 @@ import CanvasOpacityValue from "../components/CanvasOpacityValue";
 export default {
   name: "GC Content",
   datasetName: "gc_content",
+  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   orders: [4,13],
   renderer: CanvasOpacityValue,    
   fieldChoice: d => ({ field: "gc_content", value: d.data?.gc_content}),
