@@ -21,7 +21,9 @@ import Nucleotides from './layers/nucleotides'
 import DHS_OE_Chi from './layers/dhs_oe_chi'
 import DHS_Components_Sfc from './layers/dhs_components_sfc'
 import Chromatin_OE_Chi from './layers/chromatin_oe_chi'
+import Chromatin_States_Sfc from './layers/chromatin_states_sfc'
 import TF_Motifs_OE_Chi from './layers/tf_motifs_oe_chi'
+import TF_Motifs_Sfc from './layers/tf_motifs_sfc'
 // autocomplete
 import Autocomplete from './components/Autocomplete/Autocomplete'
 
@@ -33,15 +35,17 @@ const layers = [
   DHS_OE_Chi,
   DHS_Components_Sfc,
   Chromatin_OE_Chi,
-  TF_Motifs_OE_Chi
+  Chromatin_States_Sfc,
+  TF_Motifs_OE_Chi,
+  TF_Motifs_Sfc
 ]
 
 const layerOrder = {
   4: Bands,
   5: DHS_Components_Sfc,
   6: DHS_Components_Sfc,
-  7: Chromatin_OE_Chi,
-  8: Chromatin_OE_Chi,
+  7: Chromatin_States_Sfc,
+  8: Chromatin_States_Sfc,
   9: TF_Motifs_OE_Chi,
   10: TF_Motifs_OE_Chi,
   11: GCContent,
