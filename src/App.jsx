@@ -1,6 +1,6 @@
 import './App.css'
 
-import {useEffect, useState, useRef} from 'react'
+import {useEffect, useState, useRef, useCallback} from 'react'
 
 // base component
 import HilbertGenome from './components/HilbertGenome'
@@ -94,10 +94,16 @@ function App() {
 
   // We want to keep track of the zoom state
   const [zoom, setZoom] = useState({order: 4, points: [], bbox: {}, transform: {}})
-  function handleZoom(zoom) {
-    setZoom(zoom)
-    setLayer(layerOrder[zoom.order])
-  } 
+  const handleZoom = useCallback((newZoom) => {
+    if(zoom.order !== newZoom.order) {
+      setLayer(layerOrder[newZoom.order])
+    }  
+    setZoom(newZoom)
+  }, [zoom])
+  // function handleZoom(zoom) {
+  //   setZoom(zoom)
+  //   setLayer(layerOrder[zoom.order])
+  // } 
   
   // the hover can be null or the data in a hilbert cell
   const [hover, setHover] = useState(null)
