@@ -81,13 +81,19 @@ function App() {
     return size;
   }
 
-  // If the layer changes due to zooming, we want to let our other components know
+  const [layerLock, setLayerLock] = useState(false)
+  const handleChangeLayerLock = (e) => {
+    setLayerLock(!layerLock)
+  }
+
   const [layer, setLayer] = useState(Bands)
   function handleLayer(l) {
     setLayer(l)
+    setLayerLock(true)
     setSelected(null)
     setSelectedOrder(null)
   }
+
 
   // TODO: handleData, and pass data to the subcomponents
   // TODO: they can do their own data lookup based on layer and the hilbert point
@@ -95,11 +101,11 @@ function App() {
   // We want to keep track of the zoom state
   const [zoom, setZoom] = useState({order: 4, points: [], bbox: {}, transform: {}})
   const handleZoom = useCallback((newZoom) => {
-    if(zoom.order !== newZoom.order) {
+    if(zoom.order !== newZoom.order && !layerLock) {
       setLayer(layerOrder[newZoom.order])
     }  
     setZoom(newZoom)
-  }, [zoom])
+  }, [zoom, layerLock])
   // function handleZoom(zoom) {
   //   setZoom(zoom)
   //   setLayer(layerOrder[zoom.order])
@@ -203,7 +209,7 @@ function App() {
       </div>
       <div>
         <StatusBar 
-          width={width} 
+          width={width + 500} 
           hover={hover} // the information about the cell the mouse is over
           layer={layer} 
           zoom={zoom} 
@@ -218,7 +224,10 @@ function App() {
             <input type="checkbox" checked={showGenes} onChange={handleChangeShowGenes} />
             Show Gene Overlays
           </label>
-          
+          <label>
+            <input type="checkbox" checked={layerLock} onChange={handleChangeLayerLock} />
+            Layer lock
+          </label>
         </div>
         <pre>
           {JSON.stringify({ order: zoom.order, transform: zoom.transform }, null, 2)}
