@@ -10,7 +10,7 @@ export default {
   datasetName: "tf_motifs_sfc",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230608`,
-  orders: [4,6],
+  orders: [4,9],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
@@ -28,9 +28,11 @@ export default {
 function topValue(d) {
   let data = d.data
   if(!data) return { field: "", value: null }
-  return Object.keys(data).map((f) => ({
+  let top = Object.keys(data).map((f) => ({
     field: f,
     value: data[f]
   }))
   .sort((a,b) => b.value - a.value)[0]
+  if(top.value <= 0) return { field: "", value: null }
+  return top
 }

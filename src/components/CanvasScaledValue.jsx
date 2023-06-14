@@ -21,6 +21,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     let fields = meta["fields"]
     let nonzero_min = meta["nonzero_min"]
     let min = nonzero_min ? nonzero_min : meta["min"]
+    if(!min.length && min < 0) min = 0;
     let max = meta["max"]
 
     // rendering constants
@@ -51,7 +52,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
         if(sample) {
           if(min.length) {
             let fi = fields.indexOf(sample.field)
-            domain = [min[fi], max[fi]]
+            domain = [min[fi] < 0 ? 0 : min[fi], max[fi]]
             alphaScale.domain(domain)
             shrinkScale.domain(domain)
           }
