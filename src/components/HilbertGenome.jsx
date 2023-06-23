@@ -163,6 +163,8 @@ const HilbertGenome = ({
       ).then(metas => {
         const metaMap = new Map(metas.map(meta => [meta.order, meta]))
         dispatch({ type: actions.SET_METAS, payload: metaMap})
+      }).catch(err => {
+        console.log("caught", err)
       })
       // onLayer(layer)
     }

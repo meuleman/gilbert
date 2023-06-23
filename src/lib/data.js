@@ -23,7 +23,12 @@ export default function Data({
       }
   
       // this seems inefficient but will be cached
-      let meta = await fetchMeta(layer, order, chromosome, cachebust);
+      let meta
+      try {
+         meta = await fetchMeta(layer, order, chromosome, cachebust);
+      } catch(e) {
+        return;
+      }
       if(debug) {
         console.log("meta", meta)
       }
@@ -35,29 +40,36 @@ export default function Data({
   
       let stride = meta.shape[1] || 1
   
-      let data = (await Promise.all(fetches)).flatMap((data,si) => {
-        let jseg = joinedSegments[si]
-        if(debug) {
-          console.log("jseg", jseg, si)
-          console.log("fetched data", data)
-          console.log("stride", stride)
-        }
-        return jseg.segments.map(p => {
-          let idx = (p.i - jseg.start) * stride
-          let ret = {
-            ...p,
-            bytes: data.slice(idx, idx + stride),
-            data: {}
+      
+      try { // TODO is this try in the right place?
+        let data = (await Promise.all(fetches)).flatMap((data,si) => {
+          let jseg = joinedSegments[si]
+          if(debug) {
+            console.log("jseg", jseg, si)
+            console.log("fetched data", data)
+            console.log("stride", stride)
           }
-          if(fields) {
-            fields.forEach((f,i) => ret.data[f] = data[idx + i])
-          }
-          return ret
+          return jseg.segments.map(p => {
+            let idx = (p.i - jseg.start) * stride
+            let ret = {
+              ...p,
+              bytes: data.slice(idx, idx + stride),
+              data: {}
+            }
+            if(fields) {
+              fields.forEach((f,i) => ret.data[f] = data[idx + i])
+            }
+            return ret
+          })
         })
-      })
-      return { data, meta };
+        return { data, meta };
+      } catch(e) {
+        console.log("E", e)
+      }
       
     }))
+
+    data = data.filter(d => !!d)
     let ret = data.flatMap(d => d.data)
     ret.order = order
     ret.metas = data.map(d => d.meta)

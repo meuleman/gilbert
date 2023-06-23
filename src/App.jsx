@@ -24,6 +24,8 @@ import Chromatin_OE_Chi from './layers/chromatin_oe_chi'
 import Chromatin_States_Sfc from './layers/chromatin_states_sfc'
 import TF_Motifs_OE_Chi from './layers/tf_motifs_oe_chi'
 import TF_Motifs_Sfc from './layers/tf_motifs_sfc'
+import UKBB from './layers/ukbb'
+import UKBB_Counts from './layers/ukbb_counts'
 // autocomplete
 import Autocomplete from './components/Autocomplete/Autocomplete'
 
@@ -37,7 +39,9 @@ const layers = [
   Chromatin_OE_Chi,
   Chromatin_States_Sfc,
   TF_Motifs_OE_Chi,
-  TF_Motifs_Sfc
+  TF_Motifs_Sfc,
+  UKBB,
+  UKBB_Counts
 ]
 
 const layerOrder = {
