@@ -2,8 +2,10 @@
 import { scaleSequential, scaleOrdinal } from "d3-scale";
 import { range } from "d3-array";
 import { interpolateViridis } from "d3-scale-chromatic";
+import { csv } from "d3-fetch";
 import CanvasScaledValue from "../components/CanvasScaledValue";
 
+let phenotypes = (await csv("src/data/phenotypes.csv")).map(d => d.phenotype)
 
 export default {
   name: "UKBB GWAS",
@@ -12,6 +14,7 @@ export default {
   orders: [12,13],
   renderer: CanvasScaledValue,    
   fieldChoice,
+  fieldSummary,
   fieldColor: scaleOrdinal()
     .domain(["pval"])
     .range(["steelblue"])
@@ -44,4 +47,11 @@ function fieldChoice(d) {
     phenotype: data.phenotype_index, 
     snp: decodeSnp(data.snp1) + decodeSnp(data.snp2) + decodeSnp(data.snp3)
   }
+}
+
+function fieldSummary(d) {
+  let sample = fieldChoice(d);
+  let pval = Math.pow(10, -1*sample.value/100000)
+  let summary = `${phenotypes[sample.phenotype]}:\n(SNP: ${sample.snp})\n${sample.field}: ${pval}`
+  return summary;
 }

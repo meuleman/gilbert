@@ -13,8 +13,16 @@ const SelectedModal = ({
   onClose=()=>{}
 } = {}) => {
   let sample = null
-  if(layer && selected && selected.data)
+  let sampleSummary = ""
+  if(layer && selected && selected.data) {
     sample = layer.fieldChoice(selected)
+    if(sample) {
+      sampleSummary = `${sample.field}: ${sample.value}`
+      if(layer.fieldSummary) {
+        sampleSummary = layer.fieldSummary(selected)
+      }
+    }
+  }
 
   return (
     <>
@@ -38,7 +46,7 @@ const SelectedModal = ({
           </span>
           <br/>
           <span className="selected-modal-selected-data">
-            {sample && sample.field}: {sample && sample.value}
+            {sampleSummary}
           </span>
       </div>
      

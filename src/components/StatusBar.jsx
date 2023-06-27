@@ -14,8 +14,10 @@ const StatusBar = ({
   onLayer=()=>{}
 } = {}) => {
   let sample = null
-  if(layer && hover && hover.data)
+  let sampleSummary = ""
+  if(layer && hover && hover.data) {
     sample = layer.fieldChoice(hover)
+  }
 
   let numformat = (x) => x
   if(sample) {
@@ -26,6 +28,13 @@ const StatusBar = ({
     }
     if(typeof value === "string") {
       numformat = (x) => x
+    }
+  }
+
+  if(sample) {
+    sampleSummary = `${sample.field}: ${numformat(sample.value)}`
+    if(layer.fieldSummary) {
+      sampleSummary = layer.fieldSummary(hover)
     }
   }
 
@@ -58,7 +67,7 @@ const StatusBar = ({
                 {hover.chromosome}:{hover.start} (region: {hover.i})
               </span>
               {sample && sample.field && (<span className="status-bar-hover-data">
-                {sample.field}: {numformat(sample.value)}
+                {sampleSummary}
               </span>)}
             </>
             )}
