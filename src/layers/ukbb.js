@@ -30,10 +30,10 @@ export default {
 
 function decodeSnp(uint32) {
   return String.fromCharCode(
-    (uint32 >> 24) & 0xFF,
-    (uint32 >> 16) & 0xFF,
+    (uint32) & 0xFF,
     (uint32 >> 8) & 0xFF,
-    uint32 & 0xFF
+    (uint32 >> 16) & 0xFF,
+    (uint32 >> 24) & 0xFF
 );
 }
 

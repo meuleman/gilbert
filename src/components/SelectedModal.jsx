@@ -22,6 +22,7 @@ const SelectedModal = ({
         sampleSummary = layer.fieldSummary(selected)
       }
     }
+    console.log("sample", sample, sampleSummary)
   }
 
   return (
