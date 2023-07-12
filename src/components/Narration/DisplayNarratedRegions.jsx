@@ -4,6 +4,7 @@ import { HilbertChromosome } from '../../lib/HilbertChromosome'
 
 export default function DisplayedNarratedRegions(narrations=null, detailLevel, order, color="green", width=0.4, showGenes=true) {
   if (narrations !== null) {
+    showGenes=false
     let hilbert = new HilbertChromosome(order)
 
     const dlNarration = narrations[detailLevel]

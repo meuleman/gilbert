@@ -33,7 +33,7 @@ import UKBB_Counts from './layers/ukbb_counts'
 import Autocomplete from './components/Autocomplete/Autocomplete'
 // region narration
 import NarrateRegion from './components/Narration/NarrateRegion'
-import DisplayedNarratedRegions from './components/Narration/DisplayNarratedRegions'
+import DisplayNarratedRegions from './components/Narration/DisplayNarratedRegions'
 
 const layers = [
   Bands, 
@@ -139,6 +139,7 @@ function App() {
     if(hit === selected) {
       setSelected(null) 
       setSelectedOrder(null)
+      setSelectedNarration(null)
     } else {
       setSelected(hit)
       setSelectedOrder(order)
@@ -202,7 +203,7 @@ function App() {
               showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
               SVGSelected({ hit: hover, stroke: "black", strokeWidthMultiplier: 0.1, showGenes }),
               SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.4, showGenes }),
-              ...DisplayedNarratedRegions(selectedNarration, 0, selectedOrder, "green", 0.4, showGenes),
+              ...DisplayNarratedRegions(selectedNarration, 0, selectedOrder, "green", 0.4, showGenes),
               showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
             ]}
             onZoom={handleZoom}
@@ -222,6 +223,8 @@ function App() {
           height={height} 
           selected={selected} // currently selected cell
           selectedOrder={selectedOrder} 
+          selectedNarration={selectedNarration}
+          narrationDetailLevel={0}
           layer={layer} 
           zoom={zoom} 
           layers={layers}
