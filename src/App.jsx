@@ -20,14 +20,20 @@ import GeneCounts from './layers/gene_counts'
 import Nucleotides from './layers/nucleotides'
 import DHS_OE_Chi from './layers/dhs_oe_chi'
 import DHS_Components_Sfc from './layers/dhs_components_sfc'
+// import NEW_DHS_Components_Sfc from './layers/dhs_components_sfc_20230622'
 import Chromatin_OE_Chi from './layers/chromatin_oe_chi'
 import Chromatin_States_Sfc from './layers/chromatin_states_sfc'
 import TF_Motifs_OE_Chi from './layers/tf_motifs_oe_chi'
 import TF_Motifs_Sfc from './layers/tf_motifs_sfc'
+// import NEW_TF_Motifs_Sfc from './layers/tf_motifs_sfc_20230622'
+// import DHS_mapped_TF_motifs_sfc from './layers/dhs_mapped_tf_motifs_sfc'
 import UKBB from './layers/ukbb'
 import UKBB_Counts from './layers/ukbb_counts'
 // autocomplete
 import Autocomplete from './components/Autocomplete/Autocomplete'
+// region narration
+import NarrateRegion from './components/Narration/NarrateRegion'
+import DisplayNarratedRegions from './components/Narration/DisplayNarratedRegions'
 
 const layers = [
   Bands, 
@@ -36,10 +42,13 @@ const layers = [
   Nucleotides,
   DHS_OE_Chi,
   DHS_Components_Sfc,
+  // NEW_DHS_Components_Sfc,
   Chromatin_OE_Chi,
   Chromatin_States_Sfc,
   TF_Motifs_OE_Chi,
   TF_Motifs_Sfc,
+  // NEW_TF_Motifs_Sfc,
+  // DHS_mapped_TF_motifs_sfc,
   UKBB,
   UKBB_Counts
 ]
@@ -124,20 +133,27 @@ function App() {
 
   const [selected, setSelected] = useState(null)
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [selectedNarration, setSelectedNarration] = useState(null)
   function handleClick(hit, order) {
     console.log("click", hit)
     if(hit === selected) {
       setSelected(null) 
       setSelectedOrder(null)
+      setSelectedNarration(null)
     } else {
       setSelected(hit)
       setSelectedOrder(order)
+      // Region Narration
+      NarrateRegion(hit, order).then((result) => {
+        setSelectedNarration(result)
+      })
     }
   }
 
   function handleModalClose() {
     setSelected(null)
     setSelectedOrder(null)
+    setSelectedNarration(null)
   }
 
   const [showHilbert, setShowHilbert] = useState(false)
@@ -187,6 +203,7 @@ function App() {
               showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
               SVGSelected({ hit: hover, stroke: "black", strokeWidthMultiplier: 0.1, showGenes }),
               SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.4, showGenes }),
+              ...DisplayNarratedRegions(selectedNarration, 0, selectedOrder, "green", 0.4, showGenes),
               showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
             ]}
             onZoom={handleZoom}
@@ -206,6 +223,8 @@ function App() {
           height={height} 
           selected={selected} // currently selected cell
           selectedOrder={selectedOrder} 
+          selectedNarration={selectedNarration}
+          narrationDetailLevel={0}
           layer={layer} 
           zoom={zoom} 
           layers={layers}
