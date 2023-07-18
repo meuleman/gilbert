@@ -4,10 +4,10 @@ import CanvasScaledValue from "../components/CanvasScaledValue";
 
 export default {
   name: "Chromatin States SFC",
-  datasetName: "chromatin_states_sfc",
+  datasetName: "cs_sfc",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230608`,
-  orders: [4,9],
+  baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230622`,
+  orders: [4,11],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()

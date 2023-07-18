@@ -2,14 +2,12 @@
 import { scaleOrdinal } from "d3-scale";
 import CanvasScaledValue from "../components/CanvasScaledValue";
 
-let url = "https://resources.altius.org/~jquon/hilbert_curve_sfc_react_20230608/dhs_components/"
-
 export default {
   name: "DHS Components SFC",
-  datasetName: "dhs_components_sfc",
+  datasetName: "dhs_sfc",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230608`,
-  orders: [4,9],
+  baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230622`,
+  orders: [4,12],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
