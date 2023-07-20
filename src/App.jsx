@@ -101,6 +101,7 @@ function App() {
     setLayerLock(true)
     setSelected(null)
     setSelectedOrder(null)
+    setSelectedNarration(null)
   }
 
 
