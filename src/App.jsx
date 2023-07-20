@@ -221,6 +221,7 @@ function App() {
           selectedOrder={selectedOrder} 
           selectedNarration={selectedNarration}
           narrationDetailLevel={0}
+          setRegion={setRegion}
           layer={layer} 
           zoom={zoom} 
           layers={layers}

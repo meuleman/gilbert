@@ -9,6 +9,7 @@ const SelectedModal = ({
   selectedOrder = null,
   selectedNarration=null,
   narrationDetailLevel=0,
+  setRegion,
   layer,
   zoom,
   layers,
@@ -29,7 +30,14 @@ const SelectedModal = ({
 
   let narrationDisplayCoords = null
   if(selectedNarration) {
-    /////////add onclick and pass the setRegion function from app as props
+    const handleClick = function (chrom, start, stop) {
+      setRegion({
+        chromosome: chrom, 
+        start: start, 
+        end: stop 
+      })
+    }
+    
     // clear list
     var narrationList = document.getElementById('narration-list');
     if(narrationList) {
@@ -53,6 +61,7 @@ const SelectedModal = ({
         var similarRegionElement = document.createElement('li');
         similarRegionElement.classList.add('narration-item');
         similarRegionElement.textContent = simRegionTxt + chrom + ':' + start
+        similarRegionElement.addEventListener("click", () => handleClick(chrom, start, stop));
 
         narrationList.appendChild(similarRegionElement)
       }
