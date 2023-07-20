@@ -198,7 +198,7 @@ function App() {
               SVGChromosomeNames({ }),
               showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
               SVGSelected({ hit: hover, stroke: "black", strokeWidthMultiplier: 0.1, showGenes }),
-              SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.4, showGenes }),
+              SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.4, showGenes: false }),
               ...DisplayNarratedRegions(selectedNarration, 0, selectedOrder, "green", 0.4, showGenes),
               showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
             ]}

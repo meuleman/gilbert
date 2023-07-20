@@ -40,3 +40,11 @@
 .selected-modal .selected-modal-order {
   padding: 0px 4px;
 }
+
+.narration-list {
+  list-style-type: none;
+}
+
+.narration-item {
+  margin: 0px;
+}

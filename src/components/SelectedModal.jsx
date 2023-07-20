@@ -7,6 +7,8 @@ const SelectedModal = ({
   height = 800,
   selected = null,
   selectedOrder = null,
+  selectedNarration=null,
+  narrationDetailLevel=0,
   layer,
   zoom,
   layers,
@@ -23,6 +25,39 @@ const SelectedModal = ({
       }
     }
     console.log("sample", sample, sampleSummary)
+  }
+
+  let narrationDisplayCoords = null
+  if(selectedNarration) {
+    /////////add onclick and pass the setRegion function from app as props
+    // clear list
+    var narrationList = document.getElementById('narration-list');
+    if(narrationList) {
+      narrationList.innerHTML = ''
+    }
+    // get narrations for specified order
+    const dlNarration = selectedNarration[narrationDetailLevel]
+    narrationDisplayCoords = dlNarration.map((d, i) => {
+      const chrom = d.coordinates.split(':')[0]
+      const start = d.coordinates.split(':')[1].split('-')[0]
+      const stop = d.coordinates.split(':')[1].split('-')[1]
+      let simRegionTxt = ''
+      if(i===0) {
+        simRegionTxt = 'Selected Region: '
+      } else {
+        simRegionTxt = 'Similar Region ' + i + ': '
+      }
+
+      // assign each segment coordinate to list
+      if(narrationList) {
+        var similarRegionElement = document.createElement('li');
+        similarRegionElement.classList.add('narration-item');
+        similarRegionElement.textContent = simRegionTxt + chrom + ':' + start
+
+        narrationList.appendChild(similarRegionElement)
+      }
+      return chrom + ':' + start
+    })
   }
 
   return (
@@ -49,6 +84,8 @@ const SelectedModal = ({
           <span className="selected-modal-selected-data">
             {sampleSummary}
           </span>
+          <br/>
+          <ul id='narration-list' className='narration-list'/>
       </div>
      
       {/* <div className="selected-modal-order">
