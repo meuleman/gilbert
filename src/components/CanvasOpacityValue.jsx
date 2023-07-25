@@ -73,7 +73,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
       return scale
     }
 
-    let domain = [min, max]
+    // let domain = [min, max]
     // console.log(domain)
     let alphaScale = scaleLinearAboveThresh(0)
       // .domain(domain)
@@ -85,6 +85,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     //   .domain(domain)
     //   .range([0.2, 1])
     
+    // scale by data in viewer
     let localMax = 0
     let localMin = 0
     for(i = 0; i < data.length; i++) {
@@ -95,6 +96,8 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
       }
     }
     alphaScale.domain([[localMin], [localMax]])
+
+    // assign alpha value to each datapoint
     for(i = 0; i < data.length; i++) {
       d = data[i];
       // scale and transform the coordinates
@@ -108,7 +111,6 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
             // let fi = fields.indexOf(sample.field)
             // domain = [min[fi] < 0 ? 0 : min[fi], max[fi]]
             // alphaScale.domain(domain)
-            // alphaScale.domain([[localMin], [localMax]])
           // }
           let a = alphaScale(sample.value)
           ctx.globalAlpha = a < 0 ? 0 : a
