@@ -20,6 +20,8 @@ import GeneCounts from './layers/gene_counts'
 import Nucleotides from './layers/nucleotides'
 import DHS_OE_Chi from './layers/dhs_oe_chi'
 import DHS_Components_Sfc from './layers/dhs_components_sfc'
+import DHS_Mean_Signal from './layers/dhs_meansignal'
+import DHS_Density from './layers/dhs_density'
 import Chromatin_OE_Chi from './layers/chromatin_oe_chi'
 import Chromatin_States_Sfc from './layers/chromatin_states_sfc'
 import TF_Motifs_OE_Chi from './layers/tf_motifs_oe_chi'
@@ -27,6 +29,8 @@ import TF_Motifs_Sfc from './layers/tf_motifs_sfc'
 import DHS_mapped_TF_motifs_sfc from './layers/dhs_mapped_tf_motifs_sfc'
 import UKBB from './layers/ukbb'
 import UKBB_Counts from './layers/ukbb_counts'
+import Repeats_Sfc from './layers/repeats_sfc'
+import CpG_Island_Density from './layers/cpg_islands_density'
 // autocomplete
 import Autocomplete from './components/Autocomplete/Autocomplete'
 // region narration
@@ -40,13 +44,17 @@ const layers = [
   Nucleotides,
   DHS_OE_Chi,
   DHS_Components_Sfc,
+  DHS_Mean_Signal,
+  DHS_Density,
   Chromatin_OE_Chi,
   Chromatin_States_Sfc,
   TF_Motifs_OE_Chi,
   TF_Motifs_Sfc,
   DHS_mapped_TF_motifs_sfc,
+  Repeats_Sfc,
   UKBB,
-  UKBB_Counts
+  UKBB_Counts,
+  CpG_Island_Density
 ]
 
 const layerOrder = {

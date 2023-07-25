@@ -1,0 +1,38 @@
+import { scaleOrdinal } from "d3-scale";
+import CanvasScaledValue from "../components/CanvasScaledValue";
+
+const repeatsFields = ["DNA", "DNA?", "LINE",  "LTR", "LTR?", "Low_complexity", "RC", "RC?", "RNA", "Retroposon", "SINE", "SINE?", "Satellite", "Simple_repeat", "Unknown", "rRNA", "scRNA", "snRNA", "srpRNA", "tRNA"];
+const repeatsColors = [ "#FF0000",  "#FF0000",  "#00FF00",  "#0000FF",  "#0000FF",  "#FFA500", "#FF00FF",  "#FF00FF",  "#E8E802",  "#0000FF",  "#00FFFF", "#00FFFF", "#800080", "#008000", "#FFC0CB", "#E8E802", "#E8E802", "#E8E802", "#E8E802", "#E8E802"]
+
+
+export default {
+  name: "Repeats SFC",
+  datasetName: "repeats_sfc",
+  baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230720`,
+  orders: [4,11],
+  renderer: CanvasScaledValue,
+  fieldChoice: topValue,
+  fieldColor: scaleOrdinal()
+    .domain(repeatsFields)
+    .range(repeatsColors)
+    .unknown("#eee"),
+  // used for the base canvas rendering
+  strokeWidthMultiplier: 0.05,
+  stroke: "gray",
+  fill: "white"
+}
+
+
+// this function chooses the top value for a data point
+function topValue(d) {
+  let data = d.data
+  delete data.Count
+  if(!data) return { field: "", value: null }
+  let top = Object.keys(data).map((f) => ({
+    field: f,
+    value: data[f]
+  }))
+  .sort((a,b) => b.value - a.value)[0]
+  if(top.value <= 0) return { field: "", value: null }
+  return top
+}
