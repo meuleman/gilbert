@@ -76,8 +76,8 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     let domain = [min, max]
     // console.log(domain)
     let alphaScale = scaleLinearAboveThresh(0)
-      .domain(domain)
-      .range([0.2, 1]);
+      // .domain(domain)
+      // .range([0.2, 1]);
 
     // console.log(alphaScale.domain())
 
