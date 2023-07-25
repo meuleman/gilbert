@@ -37,7 +37,7 @@ const SelectedModal = ({
         end: stop 
       })
     }
-    
+
     // clear list
     var narrationList = document.getElementById('narration-list');
     if(narrationList) {
@@ -53,7 +53,7 @@ const SelectedModal = ({
       if(i===0) {
         simRegionTxt = 'Selected Region: '
       } else {
-        simRegionTxt = 'Similar Region ' + i + ': '
+        simRegionTxt = i + ': '
       }
 
       // assign each segment coordinate to list
