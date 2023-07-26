@@ -1,4 +1,4 @@
-import { scaleLinear } from "d3-scale";
+// import { scaleLinear } from "d3-scale";
 
 // A canvas rendering function that renders a single colored rectangle for each data point
 // with opacity scaled to the max of the order
@@ -23,11 +23,6 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     let min = nonzero_min ? nonzero_min : meta["min"]
     if(!min.length && min < 0) min = 0;
     let max = meta["max"]
-
-    // console.log(...data.map((d) => {
-    //   return d.data['mean']
-    // }))
-    
 
     // rendering constants
     let t = {...transform}
@@ -79,39 +74,33 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
       // .domain(domain)
       // .range([0.2, 1]);
 
-    // console.log(alphaScale.domain())
-
-    let alphaScale = scaleLinear()
-    //   .domain(domain)
-    //   .range([0.2, 1])
+    // assign threshold we scale above
+    let scaleMinThreshold = 0
+    let alphaScale = scaleLinearAboveThresh(scaleMinThreshold)
+      .range([0.2, 1])
     
-    // scale by data in viewer
-    let localMax = 0
-    let localMin = 0
-    // for(i = 0; i < data.length; i++) {
-    //   d = data[i];
-    //   if(d.data) {
-    //     const sample = fieldChoice(d);
-    //     localMax = Math.max(localMax, sample.value)
-    //     if (sample.value > 0) {
-    //       // localMin = Math.min(localMin, sample.value)
-    //     }
-        
-    //   }
-    // }
-
+    // find data in viewer
     const sampleValues = data.map((d) => {
       if(d.data) {
         return fieldChoice(d).value;
       }
     })
-    const filteredSampleValues = sampleValues.filter((d) => d > 0)
-    if(filteredSampleValues.length) {
+    // limit to values above threshold
+    const filteredSampleValues = sampleValues.filter((d) => d > scaleMinThreshold)
+    // set domain by local (>threshold) data
+    let localMax = 0
+    let localMin = 0
+    if(filteredSampleValues.length) {  // if there are any values >threshold
       localMax = Math.max(...filteredSampleValues)
       localMin = Math.min(...filteredSampleValues)
-    } else {
-      localMax = 1
+      if(localMin === localMax) {  // ensure proper domain
+        localMin = scaleMinThreshold
+      }
+    } else { // if no values >threshold
+      localMax = scaleMinThreshold + 1
+      localMin = scaleMinThreshold
     }
+    // set domain
     alphaScale.domain([[localMin], [localMax]])
 
     // assign alpha value to each datapoint
