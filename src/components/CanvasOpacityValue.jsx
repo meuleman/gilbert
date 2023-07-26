@@ -43,7 +43,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     // thanks ChatGPT!!
     function scaleLinearAboveThresh(threshold) {
       let domain = [min, max]
-      let range = [0.6, 1]
+      let range = [0.2, 1]
 
       function scale(d) {
         if (d > threshold) {
