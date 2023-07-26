@@ -1,4 +1,4 @@
-// import { scaleLinear } from "d3-scale";
+import { scaleLinear } from "d3-scale";
 
 // A canvas rendering function that renders a single colored rectangle for each data point
 // with opacity scaled to the max of the order
@@ -43,7 +43,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     // thanks ChatGPT!!
     function scaleLinearAboveThresh(threshold) {
       let domain = [min, max]
-      let range = [0.2, 1]
+      let range = [0.6, 1]
 
       function scale(d) {
         if (d > threshold) {
@@ -75,25 +75,42 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
 
     // let domain = [min, max]
     // console.log(domain)
-    let alphaScale = scaleLinearAboveThresh(0)
+    // let alphaScale = scaleLinearAboveThresh(0)
       // .domain(domain)
       // .range([0.2, 1]);
 
     // console.log(alphaScale.domain())
 
-    // let alphaScale = scaleLinear()
+    let alphaScale = scaleLinear()
     //   .domain(domain)
     //   .range([0.2, 1])
     
     // scale by data in viewer
     let localMax = 0
     let localMin = 0
-    for(i = 0; i < data.length; i++) {
-      d = data[i];
+    // for(i = 0; i < data.length; i++) {
+    //   d = data[i];
+    //   if(d.data) {
+    //     const sample = fieldChoice(d);
+    //     localMax = Math.max(localMax, sample.value)
+    //     if (sample.value > 0) {
+    //       // localMin = Math.min(localMin, sample.value)
+    //     }
+        
+    //   }
+    // }
+
+    const sampleValues = data.map((d) => {
       if(d.data) {
-        const sample = fieldChoice(d);
-        localMax = Math.max(localMax, sample.value)
+        return fieldChoice(d).value;
       }
+    })
+    const filteredSampleValues = sampleValues.filter((d) => d > 0)
+    if(filteredSampleValues.length) {
+      localMax = Math.max(...filteredSampleValues)
+      localMin = Math.min(...filteredSampleValues)
+    } else {
+      localMax = 1
     }
     alphaScale.domain([[localMin], [localMax]])
 
