@@ -7,8 +7,8 @@ import CanvasOpacityValue from "../components/CanvasOpacityValue";
 export default {
   name: "CpG Islands",
   datasetName: "cpg_islands_density",
-  baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230724`,
-  // baseURL: `https://resources.altius.org/~ctrader/public/hilbert/20230724`,
+  // baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230724`,
+  baseURL: `https://resources.altius.org/~ctrader/public/hilbert/20230724`,
   orders: [4,13],
   renderer: CanvasOpacityValue,
   fieldChoice: d => ({ field: "count", value: d.data?.count}),
