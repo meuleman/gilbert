@@ -1,5 +1,6 @@
 // A component to display some information below the map when hovering over hilbert cells
 
+import DetailLevelSlider from './Narration/DetailLevelSlider'
 import './SelectedModal.css'
 
 const SelectedModal = ({
@@ -7,8 +8,9 @@ const SelectedModal = ({
   height = 800,
   selected = null,
   selectedOrder = null,
-  selectedNarration=null,
-  narrationDetailLevel=0,
+  selectedNarration = null,
+  narrationDetailLevel,
+  setNarrationDetailLevel,
   setRegion,
   layer,
   zoom,
@@ -28,8 +30,11 @@ const SelectedModal = ({
     console.log("sample", sample, sampleSummary)
   }
 
+  // narrations
   let narrationDisplayCoords = null
+  let maxDetailLevel = null
   if(selectedNarration) {
+    maxDetailLevel = selectedNarration.length
     const handleClick = function (chrom, start, stop) {
       setRegion({
         chromosome: chrom, 
@@ -39,31 +44,32 @@ const SelectedModal = ({
     }
 
     // clear list
-    var narrationList = document.getElementById('narration-list');
+    var narrationList = document.getElementById('similar-regions-list');
+    var selectedList = document.getElementById('selected-list');
     if(narrationList) {
       narrationList.innerHTML = ''
     }
+    if(selectedList) {
+      selectedList.innerHTML = ''
+    }
     // get narrations for specified order
-    const dlNarration = selectedNarration[narrationDetailLevel]
-    narrationDisplayCoords = dlNarration.map((d, i) => {
+    narrationDisplayCoords = selectedNarration[narrationDetailLevel - 1].map((d, i) => {
       const chrom = d.coordinates.split(':')[0]
       const start = d.coordinates.split(':')[1].split('-')[0]
       const stop = d.coordinates.split(':')[1].split('-')[1]
-      let simRegionTxt = ''
-      if(i===0) {
-        simRegionTxt = 'Selected Region: '
-      } else {
-        simRegionTxt = i + ': '
-      }
 
       // assign each segment coordinate to list
-      if(narrationList) {
-        var similarRegionElement = document.createElement('li');
-        similarRegionElement.classList.add('narration-item');
-        similarRegionElement.textContent = simRegionTxt + chrom + ':' + start
-        similarRegionElement.addEventListener("click", () => handleClick(chrom, start, stop));
-
-        narrationList.appendChild(similarRegionElement)
+      if(narrationList && selectedList) {
+        var regionElement = document.createElement('li');
+        regionElement.classList.add('selected-modal-narration-item');
+        regionElement.addEventListener("click", () => handleClick(chrom, start, stop));
+        if(i===0) {
+          regionElement.textContent = chrom + ':' + start
+          selectedList.appendChild(regionElement)
+        } else {
+          regionElement.textContent = i + ': ' + chrom + ':' + start
+          narrationList.appendChild(regionElement)
+        }
       }
       return chrom + ':' + start
     })
@@ -94,7 +100,15 @@ const SelectedModal = ({
             {sampleSummary}
           </span>
           <br/>
-          <ul id='narration-list' className='narration-list'/>
+          <span className='selected-modal-narration-label'>Selected Region:</span>
+          <ul id='selected-list' className='selected-modal-narration-list'/>
+          <DetailLevelSlider
+            detailLevel={narrationDetailLevel}
+            maxDetailLevel={maxDetailLevel}
+            setDetailLevel={setNarrationDetailLevel}
+          />
+          <span className='selected-modal-narration-label'>Similar Regions:</span>
+          <ul id='similar-regions-list' className='selected-modal-narration-list'/>
       </div>
      
       {/* <div className="selected-modal-order">

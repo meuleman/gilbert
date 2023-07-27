@@ -2,14 +2,19 @@ import SVGSelected from '../SVGSelected'
 import { HilbertChromosome } from '../../lib/HilbertChromosome'
 
 
-export default function DisplayedNarratedRegions(narrations=null, detailLevel, order, color="green", width=0.4, showGenes=true) {
-  if (narrations !== null) {
-    showGenes=false
+const DisplayedNarratedRegions = ({
+  narrations,
+  detailLevel,
+  order,
+  color = "green",
+  width = 0.4,
+  showGenes = false
+} = {}) => {
+  if(narrations) {
+    // showGenes=false
     let hilbert = new HilbertChromosome(order)
 
-    const dlNarration = narrations[detailLevel]
-    const similarRegions = dlNarration.slice(1)
-    
+    const similarRegions = narrations[detailLevel - 1].slice(1)
     const similarRanges = similarRegions.map((d) => {
       const coords = d.coordinates
       const chrm = coords.split(':')[0]
@@ -27,6 +32,6 @@ export default function DisplayedNarratedRegions(narrations=null, detailLevel, o
   } else {
     return ([null])
   }
-  
-  
 }
+
+export default DisplayedNarratedRegions

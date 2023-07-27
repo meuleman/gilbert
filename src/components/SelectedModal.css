@@ -41,11 +41,15 @@
   padding: 0px 4px;
 }
 
-.narration-list {
+.selected-modal-narration-list {
   list-style-type: none;
+  margin: 0px;
 }
 
-.narration-item {
+.selected-modal-narration-item {
   margin: -5px;
   cursor: pointer;
+}
+
+.selected-modal-narration-label {
 }

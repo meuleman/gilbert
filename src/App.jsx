@@ -107,9 +107,9 @@ function App() {
   function handleLayer(l) {
     setLayer(l)
     setLayerLock(true)
-    setSelected(null)
-    setSelectedOrder(null)
-    setSelectedNarration(null)
+    setSelected(selected)
+    setSelectedOrder(selectedOrder)
+    setSelectedNarration(selectedNarration)
   }
 
 
@@ -139,6 +139,7 @@ function App() {
   const [selected, setSelected] = useState(null)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [selectedNarration, setSelectedNarration] = useState(null)
+  const [narrationDetailLevel, setNarrationDetailLevel] = useState(1)
   function handleClick(hit, order) {
     console.log("click", hit)
     if(hit === selected) {
@@ -151,6 +152,7 @@ function App() {
       // Region Narration
       NarrateRegion(hit, order).then((result) => {
         setSelectedNarration(result)
+        setNarrationDetailLevel(1)
       })
     }
   }
@@ -208,7 +210,14 @@ function App() {
               showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
               SVGSelected({ hit: hover, stroke: "black", strokeWidthMultiplier: 0.1, showGenes }),
               SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.4, showGenes: false }),
-              ...DisplayNarratedRegions(selectedNarration, 0, selectedOrder, "green", 0.4, showGenes),
+              ...DisplayNarratedRegions({ 
+                narrations: selectedNarration, 
+                detailLevel: narrationDetailLevel, 
+                order: selectedOrder, 
+                color: "green", 
+                width: 0.4, 
+                showGenes: false 
+              }),
               showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
             ]}
             onZoom={handleZoom}
@@ -229,7 +238,8 @@ function App() {
           selected={selected} // currently selected cell
           selectedOrder={selectedOrder} 
           selectedNarration={selectedNarration}
-          narrationDetailLevel={0}
+          narrationDetailLevel={narrationDetailLevel}
+          setNarrationDetailLevel={setNarrationDetailLevel}
           setRegion={setRegion}
           layer={layer} 
           zoom={zoom} 
