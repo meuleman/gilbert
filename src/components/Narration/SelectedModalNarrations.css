@@ -1,0 +1,12 @@
+.selected-modal-narration-list {
+  list-style-type: none;
+  margin: 0px;
+}
+
+.selected-modal-narration-item {
+  margin: -5px;
+  cursor: pointer;
+}
+
+/* .selected-modal-narration-label {
+} */
