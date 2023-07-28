@@ -8,5 +8,12 @@
   cursor: pointer;
 }
 
-/* .selected-modal-narration-label {
-} */
+.selected-modal-narration-list-container {
+  position: relative;
+  max-height: 650px;
+  z-index: 0;
+}
+
+.conv-svg {
+  position: absolute;
+}
