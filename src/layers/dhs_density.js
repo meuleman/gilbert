@@ -6,7 +6,7 @@ export default {
   name: "DHS Density",
   datasetName: "dhs_density",
   baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230724`,
-  orders: [4,13],
+  orders: [4,14],
   renderer: CanvasOpacityValue,
   fieldChoice: d => ({ 
     field: "count", 

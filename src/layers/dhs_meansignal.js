@@ -6,7 +6,7 @@ export default {
   name: "DHS Mean Signal",
   datasetName: "dhs_meansignal",
   baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230724`,
-  orders: [4,13],
+  orders: [4,14],
   renderer: CanvasOpacityValue,
   fieldChoice: d => ({ 
     field: "mean", 
