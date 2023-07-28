@@ -31,6 +31,7 @@ import UKBB from './layers/ukbb'
 import UKBB_Counts from './layers/ukbb_counts'
 import Repeats_Sfc from './layers/repeats_sfc'
 import CpG_Island_Density from './layers/cpg_islands_density'
+import ENCSR000EOT from './layers/encode_ENCSR000EOT_max'
 // autocomplete
 import Autocomplete from './components/Autocomplete/Autocomplete'
 // region narration
@@ -54,7 +55,8 @@ const layers = [
   Repeats_Sfc,
   UKBB,
   UKBB_Counts,
-  CpG_Island_Density
+  CpG_Island_Density,
+  ENCSR000EOT
 ]
 
 const layerOrder = {
