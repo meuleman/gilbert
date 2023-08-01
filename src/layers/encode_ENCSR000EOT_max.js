@@ -7,7 +7,7 @@ export default {
   name: "ENCODE (ENCSR000EOT) Max",
   datasetName: "encode_ENCSR000EOT_max",
   baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230727`,
-  orders: [4,13],
+  orders: [4,14],
   renderer: CanvasOpacityValue,
   fieldChoice: d => ({ field: "max", value: d.data?.max}),
   fieldColor: scaleOrdinal()
