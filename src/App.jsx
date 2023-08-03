@@ -32,6 +32,10 @@ import UKBB_Counts from './layers/ukbb_counts'
 import Repeats_Sfc from './layers/repeats_sfc'
 import CpG_Island_Density from './layers/cpg_islands_density'
 import ENCSR000EOT from './layers/encode_ENCSR000EOT_max'
+import DHS_Coreg_2500 from './layers/dhs_coreg_2500'
+import DHS_Coreg_Multiscale from './layers/dhs_coregMultiscale'
+import DHS_Coreg_Best_Scale_max from './layers/dhs_coregBestScale_max'
+import DHS_Coreg_Best_Scale_density from './layers/dhs_coregBestScale_density'
 // autocomplete
 import Autocomplete from './components/Autocomplete/Autocomplete'
 // region narration
@@ -47,6 +51,10 @@ const layers = [
   DHS_Components_Sfc,
   DHS_Mean_Signal,
   DHS_Density,
+  DHS_Coreg_2500,
+  DHS_Coreg_Multiscale,
+  DHS_Coreg_Best_Scale_max,
+  DHS_Coreg_Best_Scale_density,
   Chromatin_OE_Chi,
   Chromatin_States_Sfc,
   TF_Motifs_OE_Chi,
