@@ -1,11 +1,12 @@
 import { scaleOrdinal } from "d3-scale";
 import { schemeTableau10 } from "d3-scale-chromatic";
 import CanvasOpacityValue from "../components/CanvasOpacityValue";
+import * as constants from "../lib/constants";
 
 export default {
   name: "DHS Density",
   datasetName: "dhs_density",
-  baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230724`,
+  baseURL: `${constants.baseURLPrefix}/20230724`,
   orders: [4,14],
   renderer: CanvasOpacityValue,
   fieldChoice: d => ({ 

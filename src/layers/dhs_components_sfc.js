@@ -1,12 +1,13 @@
 
 import { scaleOrdinal } from "d3-scale";
 import CanvasScaledValue from "../components/CanvasScaledValue";
+import * as constants from "../lib/constants";
 
 export default {
   name: "DHS Components SFC",
   datasetName: "dhs_sfc",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230622`,
+  baseURL: `${constants.baseURLPrefix}/20230622`,
   orders: [4,12],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,

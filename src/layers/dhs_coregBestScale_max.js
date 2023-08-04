@@ -1,11 +1,12 @@
 import { scaleOrdinal } from "d3-scale";
 import { schemeTableau10 } from "d3-scale-chromatic";
 import CanvasOpacityValue from "../components/CanvasOpacityValue";
+import * as constants from "../lib/constants";
 
 export default {
   name: "DHS Coregulation (Best Scale, Max)",
   datasetName: "dhs_coreg_best_scale_max",
-  baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230803`,
+  baseURL: `${constants.baseURLPrefix}/20230803`,
   orders: [4,9],
   renderer: CanvasOpacityValue,
   fieldChoice: d => ({ 

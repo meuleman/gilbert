@@ -2,11 +2,12 @@ import { scaleOrdinal } from "d3-scale";
 // import { d3Interpolate } from 'd3-interpolate';
 import { schemeTableau10 } from "d3-scale-chromatic";
 import CanvasOpacityValue from "../components/CanvasOpacityValue";
+import * as constants from "../lib/constants";
 
 export default {
   name: "ENCODE (ENCSR000EOT) Max",
   datasetName: "encode_ENCSR000EOT_max",
-  baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230727`,
+  baseURL: `${constants.baseURLPrefix}/20230727`,
   orders: [4,14],
   renderer: CanvasOpacityValue,
   fieldChoice: d => ({ field: "max", value: d.data?.max}),

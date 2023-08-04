@@ -1,0 +1,1 @@
+export const baseURLPrefix = "https://d2ppfzsmmsvu7l.cloudfront.net";

@@ -1,5 +1,6 @@
 import { scaleOrdinal } from "d3-scale";
 import CanvasScaledValue from "../components/CanvasScaledValue";
+import * as constants from "../lib/constants";
 
 const repeatsFields = ["DNA", "DNA?", "LINE",  "LTR", "LTR?", "Low_complexity", "RC", "RC?", "RNA", "Retroposon", "SINE", "SINE?", "Satellite", "Simple_repeat", "Unknown", "rRNA", "scRNA", "snRNA", "srpRNA", "tRNA"];
 const repeatsColors = [ "#FF0000",  "#FF0000",  "#00FF00",  "#0000FF",  "#0000FF",  "#FFA500", "#FF00FF",  "#FF00FF",  "#E8E802",  "#0000FF",  "#00FFFF", "#00FFFF", "#800080", "#008000", "#FFC0CB", "#E8E802", "#E8E802", "#E8E802", "#E8E802", "#E8E802"]
@@ -8,7 +9,7 @@ const repeatsColors = [ "#FF0000",  "#FF0000",  "#00FF00",  "#0000FF",  "#0000FF
 export default {
   name: "Repeats SFC",
   datasetName: "repeats_sfc",
-  baseURL: `https://altius-gilbert.s3.us-west-2.amazonaws.com/20230720`,
+  baseURL: `${constants.baseURLPrefix}/20230720`,
   orders: [4,11],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,
