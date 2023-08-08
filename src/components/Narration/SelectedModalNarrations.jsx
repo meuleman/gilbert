@@ -55,8 +55,8 @@ const SelectedModalNarrations = ({
 
       const ranks = d.percentiles
       let factorOrder = [null]
-      if(d.query_factor_order) {
-        factorOrder = d.query_factor_order
+      if(d.factor_order) {
+        factorOrder = d.factor_order
       }
 
       let regionElementY = null
