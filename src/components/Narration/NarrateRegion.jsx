@@ -24,6 +24,20 @@ export default function NarrateRegion(selected, order) {
       numSimilarRegions: numSimilarRegions,
       regionMethod: regionMethod,
     };
+    const determineInitialDetailLevel = (data) => {
+      const prodRanks = data.map((d) => {
+        return d[0].prod_rank
+      })
+      let initialDetailLevel = 1
+      let maxProdRank = prodRanks[0]
+      prodRanks.map((d, i) => {
+        if(Math.max(d, maxProdRank) !== maxProdRank) {
+          maxProdRank = d
+          initialDetailLevel = i + 1
+        }
+      })
+      return initialDetailLevel
+    }
 
     const narration = axios({
       method: 'POST',
@@ -31,7 +45,8 @@ export default function NarrateRegion(selected, order) {
       data: postBody
     }).then((response) => {
       const fullData = response.data;
-      return fullData
+      const initialDetailLevel = determineInitialDetailLevel(fullData)
+      return {narration: fullData, detailLevel: initialDetailLevel}
     })
     .catch((err) => {
       console.error(`error:     ${JSON.stringify(err)}`);
