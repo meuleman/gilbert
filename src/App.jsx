@@ -10,6 +10,7 @@ import SVGGenePaths from './components/SVGGenePaths'
 import ZoomLegend from './components/ZoomLegend'
 import StatusBar from './components/StatusBar'
 import SelectedModal from './components/SelectedModal'
+import LensModal from './components/LensModal'
 import SVGSelected from './components/SVGSelected'
 import SVGChromosomeNames from './components/SVGChromosomeNames'
 // import SVGBBox from './components/SVGBBox'
@@ -65,7 +66,7 @@ const layers = [
   ENCSR000EOT
 ]
 
-const layerOrder = {
+const initialLayerOrder = {
   4: Bands,
   5: DHS_Components_Sfc,
   6: DHS_Components_Sfc,
@@ -85,6 +86,11 @@ function App() {
   const zoomExtent = [0.85, 4000]
 
   const containerRef = useRef()
+
+  const [layerOrder, setLayerOrder] = useState(initialLayerOrder)
+  // useEffect(() => {
+  //   console.log('Layer Order changed:', layerOrder);
+  // }, [layerOrder]);
 
   // let's fill the container and update the width and height if window resizes
   const [width, height] = useWindowSize();
@@ -149,7 +155,7 @@ function App() {
   const [selectedNarration, setSelectedNarration] = useState(null)
   const [narrationDetailLevel, setNarrationDetailLevel] = useState(1)
   function handleClick(hit, order) {
-    console.log("click", hit)
+    // console.log("click", hit)
     if(hit === selected) {
       setSelected(null) 
       setSelectedOrder(null)
@@ -159,8 +165,8 @@ function App() {
       setSelectedOrder(order)
       // Region Narration
       NarrateRegion(hit, order).then((result) => {
-        setSelectedNarration(result)
-        setNarrationDetailLevel(1)
+        setSelectedNarration(result.narration)
+        setNarrationDetailLevel(result.detailLevel)
       })
     }
   }
@@ -240,7 +246,7 @@ function App() {
           height={height} 
           orderDomain={orderDomain} 
           zoomExtent={zoomExtent} />
-        <SelectedModal
+        {selected ? <SelectedModal
           width={480}
           height={height} 
           selected={selected} // currently selected cell
@@ -253,6 +259,16 @@ function App() {
           zoom={zoom} 
           layers={layers}
           onClose={handleModalClose} />
+          :
+          <LensModal
+          layers={layers}
+          setLayerOrder={setLayerOrder}
+          setLayer={setLayer}
+          setLayerLock={setLayerLock}
+          layerLock={layerLock}
+          order={zoom.order}
+          />
+        }
       </div>
       <div>
         <StatusBar 
