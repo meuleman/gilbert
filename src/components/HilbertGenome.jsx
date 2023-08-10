@@ -36,12 +36,14 @@ const initialState = {
   // The data point selected by clicking
   selected: null,
   // The data point selected by hovering
-  hovered: null
+  hovered: null,
+  zooming: false,
 };
 
 // Define the actions
 const actions = {
   ZOOM: "ZOOM", // have all the zoom dependencies update the state at once
+  ZOOMING: "ZOOMING", // if we are actively zooming
   SET_DATA: "SET_DATA",
   SET_METAS: "SET_METAS",
   SET_SELECTED: "SET_SELECTED",
@@ -54,6 +56,10 @@ function reducer(state, action) {
     case actions.ZOOM: {
       const { transform, bbox, order, points } = action.payload;
       return { ...state, transform, bbox, order, points };
+    }
+    case actions.ZOOMING: {
+      const { zooming } = action.payload;
+      return { ...state, zooming };
     }
     case actions.SET_DATA: {
       const { data, order } = action.payload;
@@ -74,16 +80,24 @@ function reducer(state, action) {
 // TODO: broadcast channel for pubsub events (zoom, hover, click, etc)
 
 const HilbertGenome = ({
-    orderDomain,
-    zoomExtent,
-    xDomain = [0, 5],
-    yDomain = [0, 5],
-    sizeDomain = [0, 5],
+    orderMin = 4,
+    orderMax = 14,
+    zoomMin = 0,
+    zoomMax = 5,
+    xMin = 0,
+    xMax = 5,
+    yMin = 0,
+    yMax = 5,
+    sizeMin = 0,
+    sizeMax = 5,
     zoomToRegion = null,
     zoomDuration = 1000,
     width,
     height,
     activeLayer = "bands",
+    lockOrderToZoom = true,
+    pinOrder = 0,
+    pinZoom = 0,
     layers = [],
     SVGRenderers = [],
     onZoom = () => {},
@@ -97,51 +111,48 @@ const HilbertGenome = ({
   const canvasRef = useRef();
   const svgRef = useRef();
   const sceneRef = useRef();
-
-  let diff = height - width;
-  let xRange = [0, width]
-  let yRange = [diff / 2, height - diff / 2] 
-  let sizeRange = [0, width]
-  if (width > height) {
-    yRange = [0, height]
-    sizeRange = [0, height]
-    diff = width - height;
-    xRange = [diff / 2, width - diff / 2]
-  }
-
+  
+  let zoomExtent = useMemo(() => [zoomMin, zoomMax], [zoomMin, zoomMax])
+  let orderDomain = useMemo(() => [orderMin, orderMax], [orderMin, orderMax])
+  let diff = useMemo(() => (width > height) ? width - height : height - width, [height, width]);
+  let xRange = useMemo(() => (width > height) ? [diff / 2, width - diff / 2] : [0, width], [height, width, diff])
+  let yRange = useMemo(() => (width > height) ? [0, height] : [diff / 2, height - diff / 2], [height, width, diff])
+  let sizeRange = useMemo(() => (width > height) ? [0, height] : [0, width], [height, width])
   
   // setup the scales
-  const xScale = useMemo(() => scaleLinear().domain(xDomain).range(xRange), [xDomain, xRange]);
-  const yScale = useMemo(() => scaleLinear().domain(yDomain).range(yRange), [yDomain, yRange]);
-  const sizeScale = useMemo(() => scaleLinear().domain(sizeDomain).range(sizeRange), [sizeDomain, sizeRange]);
+  const xScale = useMemo(() => scaleLinear().domain([xMin, xMax]).range(xRange), [xMin, xMax, xRange]);
+  const yScale = useMemo(() => scaleLinear().domain([yMin, yMax]).range(yRange), [yMin, yMax, yRange]);
+  const sizeScale = useMemo(() => scaleLinear().domain([sizeMin, sizeMax]).range(sizeRange), [sizeMin, sizeMax, sizeRange]);
   const orderZoomScale = useMemo(() =>  scaleLinear().domain(zoomExtent).range([1, Math.pow(2, orderDomain[1] - orderDomain[0] + 0.999)]), [orderDomain, zoomExtent])
-  // const xScale = scaleLinear().domain(xDomain).range(xRange)
-  // const yScale = scaleLinear().domain(yDomain).range(yRange)
-  // const sizeScale = scaleLinear().domain(sizeDomain).range(sizeRange)
-  // const orderZoomScale =  scaleLinear().domain(zoomExtent).range([1, Math.pow(2, orderDomain[1] - orderDomain[0] + 0.999)])
 
-  const scales = { xScale, yScale, sizeScale, orderZoomScale, width, height }
-
+  const scales = useMemo(() => ({ xScale, yScale, sizeScale, orderZoomScale, width, height }), [xScale, yScale, sizeScale, orderZoomScale, width, height])
+  
   // the layer can change when the order changes once we implement some logic for it
   const layer = useMemo(() => {
+    console.log("layer choice")
     if(activeLayer == "auto") {
       // TODO have some logic for automatically selecting the layer
     } else {
       return activeLayer
     }
-  }, [state.order, activeLayer])
+  }, [activeLayer])
 
   // Data fetching
-  const dataClient = Data({ 
-    debug
-  })
+  // const dataClient = Data({ 
+  //   debug
+  // })
 
   // this debounced function fetches the data and updates the state
   const fetchData = useMemo(() => {
     return () => {
+      if(state.zooming) return 
+      // console.log("fetching data")
       // we dont want to fetch data if the order is not within the layer order range
       if (state.order < layer.orders[0] || state.order > layer.orders[1]) return;
       
+      const dataClient = Data({ 
+        debug
+      })
       let myPromise = dataClient.fetchData(layer, state.order, state.points)
       let myCallback = (data) => {
         if(data)
@@ -149,12 +160,16 @@ const HilbertGenome = ({
       }
       debounce(myPromise, myCallback, 150)
     }
-  }, [state.order, state.points, layer]);
+  }, [state.zooming, state.order, state.points, layer, debug ]);
 
 
   useEffect(() => {
     if (layer) {
       console.log("layer", layer)
+
+      const dataClient = Data({ 
+        debug
+      })
       // fetch the meta for each order in this layer
       Promise.all(range(layer.orders[0], layer.orders[1] + 1)
         .map(async (order) => {
@@ -168,11 +183,12 @@ const HilbertGenome = ({
       })
       // onLayer(layer)
     }
-  }, [layer])
+  }, [layer, debug ])
 
 
   // setup the zoom behavior
   const zoomBehavior = useMemo(() => {
+    console.log("zoombehavior init")
     return zoom()
       .extent([
         [0, 0],
@@ -183,7 +199,7 @@ const HilbertGenome = ({
         [width, height]
       ])
       .scaleExtent(zoomExtent)
-    }, [svgRef, zoomExtent, width, height])
+    }, [zoomExtent, width, height])
 
 
   // we setup a function we can call to re-render our layer
@@ -212,9 +228,24 @@ const HilbertGenome = ({
         transform
       }, layer, canvasRef })
     }
-  }, [state, scales, layer, canvasRef])
+  }, [state.data, state.order, state.dataOrder, state.metas, scales, layer, canvasRef])
 
-  
+  // useEffect(() => {
+  //   console.log("================ ONLY HAPPEN ONCE ================")
+
+  // }, [state.data, state.order, state.dataOrder, state.metas, scales, layer, canvasRef])
+  //   // renderCanvas, 
+  //   // onZoom, 
+ 
+  // TODO: want to pin the zoom level, but change the order
+  const effectiveOrder = useMemo(() => {
+    // pinZoom has the order the user wants to see
+    // allow the user to go up or down 2 orders while staying at zoom
+    // we determine the boundary based on the order calculated from the zoom
+    // if the user zooms while pinZoom has a non-zero value
+    // TODO: the logic limiting this
+    return pinZoom
+  }, [pinZoom, state.transform])
 
   // Zoom event handler
   // This is responsible for setting up most of the rendering dependencies
@@ -222,66 +253,100 @@ const HilbertGenome = ({
     // console.log("zoom event", event)
     let transform = event.transform;
     // update the svg transform
+
+    let order
+    if(pinOrder) {
+      // we want to stay at this order, but enable zooming in and out around it
+      order = pinOrder
+      // TODO logic for restricting zoom (see zoomToRegion)
+      // TODO would need to modify the transform that gets set
+    } else if(pinZoom) {
+      // TODO: logic here?
+      console.log("pinZoom", pinZoom)
+      order = effectiveOrder
+    } else {
+      let orderRaw = orderDomain[0] + Math.log2(orderZoomScale(transform.k))
+      order = Math.floor(orderRaw)
+      if(order < orderDomain[0]) order = orderDomain[0]
+      if(order > orderDomain[1]) order = orderDomain[1]
+    }
+    console.log("currentOrder", order)
+
     select(sceneRef.current)
       .attr("transform", transform)
 
-    // calculate the hilbert order
-    let orderRaw = orderDomain[0] + Math.log2(orderZoomScale(transform.k))
-    let order = Math.floor(orderRaw)
-    if(order < orderDomain[0]) order = orderDomain[0]
-    if(order > orderDomain[1]) order = orderDomain[1]
+    // potentially don't want to update certain things if we are zooming programmatically
+    // if(state.zooming) return
+    // if(!state.zooming) {
+      let hilbert = HilbertChromosome(order, { padding: 2 })
+      let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
+      let points = hilbert.fromBbox(bbox)
 
-    let hilbert = HilbertChromosome(order, { padding: 2 })
-    let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
-    let points = hilbert.fromBbox(bbox)
-
-    const payload = {
-      transform,
-      order,
-      bbox,
-      points,
-    }
-    // update the state
-    dispatch({ type: actions.ZOOM, payload })
-    
-    // update the parent component
-    onZoom(payload)
-
+      const payload = {
+        transform,
+        order,
+        bbox,
+        points,
+      }
+      // update the state
+      dispatch({ type: actions.ZOOM, payload })
+      
+      // TODO: can these be triggered immediately but without state
+      // update the parent component
+      onZoom(payload)
+    // }
     // we want to update our canvas renderer immediately with new transform
+    // renderCanvas(transform, state.points)
     renderCanvas(transform, points)
-  }, [renderCanvas]);
+  }, [
+    xScale, yScale, 
+    width, height, 
+    orderDomain, orderZoomScale, 
+    renderCanvas,
+    onZoom,
+    pinOrder,
+    pinZoom,
+    effectiveOrder
+    // lockOrderToZoom, 
+    // state.zooming
+  ]);
+
+
 
   useEffect(() => {
     // we want to fetch after every time the points recalculate
     // this will be often but the fetch is debounced
     fetchData()
-  }, [state.points, state.metas])
+  }, [state.points, state.metas, fetchData])
 
   useEffect(() => {
     // we want to make sure and render again once the data loads
     renderCanvas(state.transform, state.points)
-  }, [state.data, state.points])
+  }, [state.data, state.points, state.transform, renderCanvas ])
 
 
   // setup the event handlers for zoom and attach it to the DOM
-  zoomBehavior
-    .on("zoom", handleZoom)
-    .filter((event) => {
-      if(event.type === 'dblclick') return false
-      return true
-    })
-  select(svgRef.current).call(zoomBehavior)
+  useEffect(() => {
+    zoomBehavior
+      .on("zoom", handleZoom)
+      .filter((event) => {
+        if(event.type === 'dblclick') return false
+        return true
+      })
+    select(svgRef.current).call(zoomBehavior)
+  }, [zoomBehavior, handleZoom])
 
   // run the zoom with the initial transform when the component mounts
   useEffect(() => {
     zoomBehavior.transform(select(svgRef.current), state.transform)
   }, [width, height]);
+
   useEffect(() => {
     scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
   }, [canvasRef, width, height])
 
   const zoomToBox = useMemo(() => {
-    return (x0,y0,x1,y1) => {
+    return (x0,y0,x1,y1,pinnedOrder) => {
 
       // TODO the multipliers should be based on aspect ratio
       const xOffset = 2.5
@@ -292,38 +357,57 @@ const HilbertGenome = ({
       let xw = xScale(xScale.domain()[1] - xScale.domain()[0])
       // we zoom to 1/4 the scale of the hit
       let scale = xw/tw/4
-      let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
 
+      let orderRaw = orderDomain[0] + Math.log2(orderZoomScale(scale))
+      let diff = Math.floor(orderRaw) - pinnedOrder
+      let zoomToOrder = orderRaw
+      let cappedZoomToOrder = zoomToOrder
+      // console.log("DIFF", diff, pinnedOrder)
+      if(Math.abs(diff) > 1) cappedZoomToOrder = pinnedOrder + Math.sign(diff) * 1
+      let newScale = orderZoomScale.invert(Math.pow(2,(cappedZoomToOrder - orderDomain[0])))
+
+      // console.log("ZOOMING TO ", scale, newScale, orderRaw, zoomToOrder, cappedZoomToOrder)
+      let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
+      if(cappedZoomToOrder !== zoomToOrder) {
+        // TODO: magic numbers in the scale / 3
+        transform = zoomIdentity.translate(-tx * newScale + xw/3, -ty * newScale + xw/3).scale(newScale)
+      }
+
+
+      // we may want to control what happens while programming the zoom
+      dispatch({ type: actions.ZOOMING, payload: { zooming: true } })
       // transitionStarted()
       select(svgRef.current)
         .transition()
         .duration(zoomDuration)
         .call(zoomBehavior.transform, transform)
+        .on("end", () => {
+            // console.log("zoom finished")
+            dispatch({ type: actions.ZOOMING, payload: { zooming: false} })
+        })
       // transitionFinished()
     }
-  }, [state.order, xScale, yScale, sizeScale, svgRef, zoomDuration, zoomBehavior])
+  }, [xScale, yScale, sizeScale, svgRef, zoomDuration, zoomBehavior, orderZoomScale, orderDomain])
 
   useEffect(() => {
     if(zoomToRegion) {
       const length = zoomToRegion.end - zoomToRegion.start
       // figure out the appropriate order to zoom to
       let order = orderDomain[1];
-
-      // console.log("length", length)
-      
       while(length > hilbertPosToOrder(1, { from: order, to: orderDomain[1] })) {
-        // console.log("order", order, hilbertPosToOrder(1, { from: order, to: orderDomain[1] }))
         order--;
         if(order == orderDomain[0]) break;
       }
-      // console.log("zoom to region", zoomToRegion, order)
+      // console.log("want to zoom to ordeR", order)
+      // console.log("current scale", state.transform.k)
+      
+      // figure out the 2D x,y coordinate for the hilbert position at the zoomed order
       let pos = hilbertPosToOrder(zoomToRegion.start, { from: orderDomain[1], to: order })
       let hilbert = HilbertChromosome(order, { padding: 2 })
       let hit = hilbert.get2DPoint(pos, zoomToRegion.chromosome)
-      // console.log("hit!", hit)
-      zoomToBox(hit.x, hit.y, hit.x + hilbert.step, hit.y + hilbert.step)
+      zoomToBox(hit.x, hit.y, hit.x + hilbert.step, hit.y + hilbert.step, zoomToRegion.order || state.order)
     }
-  }, [zoomToRegion])
+  }, [zoomToRegion, orderDomain, zoomToBox])
 
 
 

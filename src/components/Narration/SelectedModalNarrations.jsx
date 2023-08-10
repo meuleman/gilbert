@@ -11,6 +11,7 @@ const SelectedModalNarrations = ({
   selectedNarration = null,
   narrationDetailLevel,
   setNarrationDetailLevel,
+  selectedOrder,
   setRegion,
 } = {}) => {
   // set quiescent factor color to non-white value
@@ -33,7 +34,8 @@ const SelectedModalNarrations = ({
       setRegion({
         chromosome: chrom, 
         start: start, 
-        end: stop 
+        end: stop,
+        order: selectedOrder
       })
     }
 

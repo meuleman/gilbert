@@ -199,6 +199,30 @@ function App() {
     })
   }
 
+  const [orderLock, setOrderLock] = useState(true)
+  const handleChangeOrderLock = () => {
+    setOrderLock(!orderLock)
+  }
+  // listen for shift key to toggle lockOrderToZoom
+  // useEffect(() => {
+  //   function handleKeyDown(e) {
+  //     if(e.key === "Shift") {
+  //       setOrderLock(false)
+  //     }
+  //   }
+  //   function handleKeyUp(e) {
+  //     if(e.key === "Shift") {
+  //       setOrderLock(true)
+  //     }
+  //   }
+  //   window.addEventListener('keydown', handleKeyDown);
+  //   window.addEventListener('keyup', handleKeyUp);
+  //   return () => {
+  //     window.removeEventListener('keydown', handleKeyDown);
+  //     window.removeEventListener('keyup', handleKeyUp);
+  //   }
+  // }, [])
+
   return (
     <>
 
@@ -211,22 +235,28 @@ function App() {
       <div className="panels">
         <div ref={containerRef} className="hilbert-container">
           <HilbertGenome 
-            orderDomain={orderDomain} 
-            zoomExtent={zoomExtent} 
+            orderMin={orderDomain[0]}
+            orderMax={orderDomain[1]}
+            zoomMin={zoomExtent[0]}
+            zoomMax={zoomExtent[1]}
             width={width} 
             height={height}
             zoomToRegion={region}
             zoomDuration={1000}
             activeLayer={layer}
+            lockOrderToZoom={orderLock}
             layers={layers}
             SVGRenderers={[
               SVGChromosomeNames({ }),
               showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
               SVGSelected({ hit: hover, stroke: "black", strokeWidthMultiplier: 0.1, showGenes }),
               SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.4, showGenes: false }),
+              // TODO: highlight search region (from autocomplete)
+              // SVGSelected({ hit: region, stroke: "gray", strokeWidthMultiplier: 0.4, showGenes: false }),
               ...DisplayNarratedRegions({ 
                 narrations: selectedNarration, 
                 detailLevel: narrationDetailLevel, 
+                selectedRegion: region,
                 order: selectedOrder, 
                 color: "green", 
                 width: 0.4, 
@@ -290,6 +320,10 @@ function App() {
           <label>
             <input type="checkbox" checked={layerLock} onChange={handleChangeLayerLock} />
             Layer lock
+          </label>
+          <label>
+            <input type="checkbox" checked={orderLock} onChange={handleChangeOrderLock} />
+            Order lock
           </label>
         </div>
         <pre>

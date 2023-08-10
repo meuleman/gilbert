@@ -27,7 +27,7 @@ const SelectedModal = ({
         sampleSummary = layer.fieldSummary(selected)
       }
     }
-    console.log("sample", sample, sampleSummary)
+    // console.log("sample", sample, sampleSummary)
   }
 
   return (
@@ -59,6 +59,7 @@ const SelectedModal = ({
             selectedNarration={selectedNarration}
             narrationDetailLevel={narrationDetailLevel}
             setNarrationDetailLevel={setNarrationDetailLevel}
+            selectedOrder={selectedOrder}
             setRegion={setRegion}
           />
       </div>
