@@ -99,7 +99,8 @@ function App() {
     useEffect(() => {
       function updateSize() {
         if(!containerRef.current) return
-        let { height } = containerRef.current.getBoundingClientRect()
+        //let { height } = containerRef.current.getBoundingClientRect()
+        let height = window.innerHeight - 180;
         // account for the zoom legend (30) and padding (48)
         let w = window.innerWidth - 30 - 24 - 500
         // console.log("sup", window.innerWidth, w, width)
@@ -302,7 +303,7 @@ function App() {
       </div>
       <div>
         <StatusBar 
-          width={width + 500} 
+          width={width + 500 + 12 + 30} 
           hover={hover} // the information about the cell the mouse is over
           layer={layer} 
           zoom={zoom} 
@@ -326,9 +327,6 @@ function App() {
             Order lock
           </label>
         </div>
-        <pre>
-          {JSON.stringify({ order: zoom.order, transform: zoom.transform }, null, 2)}
-        </pre>
       </div>
     </>
   )

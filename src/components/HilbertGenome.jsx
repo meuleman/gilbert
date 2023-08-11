@@ -347,10 +347,10 @@ const HilbertGenome = ({
 
   const zoomToBox = useMemo(() => {
     return (x0,y0,x1,y1,pinnedOrder) => {
-
       // TODO the multipliers should be based on aspect ratio
-      const xOffset = 2.5
-      const yOffset = 1.75
+      const xOffset =  (width/height)*2
+      const yOffset = -(width/height)*2
+      console.log(width, height, width/height, height/width)
       let tx = xScale(x0) - sizeScale(x1 - x0) * xOffset
       let ty = yScale(y0) - sizeScale(y1 - y0) * yOffset
       let tw = xScale(x1 - x0) - xScale(0) // the width of the box
@@ -370,7 +370,7 @@ const HilbertGenome = ({
       let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
       if(cappedZoomToOrder !== zoomToOrder) {
         // TODO: magic numbers in the scale / 3
-        transform = zoomIdentity.translate(-tx * newScale + xw/3, -ty * newScale + xw/3).scale(newScale)
+        transform = zoomIdentity.translate(-tx * newScale + xw/2, -ty * newScale + xw/2).scale(newScale)
       }
 
 
@@ -557,7 +557,6 @@ const HilbertGenome = ({
           {/* This is what gets transformed and where most annotations will be rendered */}
           <g className="hg-scene" ref={sceneRef}>
             {SVGRenderers.filter(d => d).map((Renderer, index) => <Renderer key={index} state={state} scales={scales} />)}
-      
           </g>
 
         </g>

@@ -38,7 +38,7 @@ const LayerDropdown = ({
       ))}
     </select>
     <span className="warning" style={{color: "red"}}>
-    {disabledKeys.includes(tlayer.name) && "⚠️ Layer out bounds"}
+    {disabledKeys.includes(tlayer.name) && "⚠️ Layer out of bounds"}
     </span>
     </>
   );
