@@ -1,15 +1,11 @@
 
 .lens-modal {
   position: absolute;
-  right: 0px;
+  left: 0px;
   line-height: 30px;
-  border: 1px solid gray;
-  background-color: white;
   display: flex;
   flex-direction: column;
-  /* justify-content: space-between; */
-  box-shadow: -2px 2px 2px 0px rgba(0,0,0,0.25);
-  padding: 5px;
+  margin: 5px 5px 5px 10px;
 }
 
 .lens-modal-lenses {
@@ -19,7 +15,8 @@
 }
 .lens-button {
   width: 100%;
-  margin-top: 5px;
+  margin: 5px;
+  padding: 5px;
   background-color: lightgrey;
   border: 2px solid;
 }

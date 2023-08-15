@@ -4,8 +4,8 @@ import lenses from './Lenses/lenses.json'
 import { useEffect } from 'react'
 
 const LensModal = ({
-  width = 500,
-  height = 800,
+  width = 150,
+  height = 220,
   layers,
   setLayerOrder,
   setLayer,
@@ -55,13 +55,9 @@ const LensModal = ({
     <>
     {(
     <div className="lens-modal" style={{
-      width: width - 20 + "px",
-      height: height - 12 + "px"
+      width: width + "px",
+      height: height + "px"
     }}>
-      
-      <div className="header">
-        Lenses
-      </div>
       <div className="lens-modal-lenses">
         {lensNames.map((l) => {
           const lensLayers = lenses[l]

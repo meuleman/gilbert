@@ -272,12 +272,20 @@ function App() {
             debug={false}
           />
         </div>
+        <LensModal
+          layers={layers}
+          setLayerOrder={setLayerOrder}
+          setLayer={setLayer}
+          setLayerLock={setLayerLock}
+          layerLock={layerLock}
+          order={zoom.order}
+        />
         <ZoomLegend 
           k={zoom.transform.k} 
           height={height} 
           orderDomain={orderDomain} 
           zoomExtent={zoomExtent} />
-        {selected ? <SelectedModal
+        <SelectedModal
           width={480}
           height={height} 
           selected={selected} // currently selected cell
@@ -290,16 +298,6 @@ function App() {
           zoom={zoom} 
           layers={layers}
           onClose={handleModalClose} />
-          :
-          <LensModal
-          layers={layers}
-          setLayerOrder={setLayerOrder}
-          setLayer={setLayer}
-          setLayerLock={setLayerLock}
-          layerLock={layerLock}
-          order={zoom.order}
-          />
-        }
       </div>
       <div>
         <StatusBar 
