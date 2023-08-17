@@ -5,7 +5,7 @@ import * as Plot from "@observablehq/plot"
 import './ZoomLegend.css';
 
 const ZoomLegend = ({
-  width = 30,
+  width = 50,
   height = 640,
   margin = 10,
   zoomExtent = [0, 100],
@@ -68,11 +68,13 @@ const ZoomLegend = ({
         }),
         Plot.text(orders, {
           y: "z",
-          dy: 7,
+          dy: 12,
+          fontSize: 20,
           text: "order",
           fill: "white",
           stroke: "black",
-          paintOrder: "stroke"
+          paintOrder: "stroke",
+          fontFamily: "Gilbert",
         })
       ],
       y: { type: "log", axis: false, reverse: true, domain: zoomExtent },

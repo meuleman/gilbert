@@ -23,7 +23,6 @@ const LayerDropdown = ({
   //   setTimeout(() => onLayer(nextActiveLayer), 1)
   // }
 
-
   return (
     <>
     <select value={tlayer.name} onChange={handleChange}>

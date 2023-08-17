@@ -1,5 +1,41 @@
 {
-  "Generic Annotations": {"4": "Bands", "5": "Bands", "6": "Gene Counts", "7": "Gene Counts", "8": "Gene Counts", "9": "GC Content", "10": "GC Content", "11": "GC Content", "12": "GC Content", "13": "GC Content", "14": "Nucleotides"},
-  "Integrative Annotations" : {"4": "DHS Components SFC", "5": "DHS Components SFC", "6": "DHS Components SFC", "7": "DHS Components SFC", "8": "DHS Coregulation (2500bp)", "9": "DHS Coregulation (2500bp)", "10": "DHS Mean Signal", "11": "DHS Mean Signal", "12": "DHS Density", "13": "DHS Density", "14": "DHS Density"},
-  "ENCSR000EOT Annotations": {"4": "ENCODE (ENCSR000EOT) Max", "5": "ENCODE (ENCSR000EOT) Max", "6": "ENCODE (ENCSR000EOT) Max", "7": "ENCODE (ENCSR000EOT) Max", "8": "ENCODE (ENCSR000EOT) Max", "9": "ENCODE (ENCSR000EOT) Max", "10": "ENCODE (ENCSR000EOT) Max", "11": "ENCODE (ENCSR000EOT) Max", "12": "ENCODE (ENCSR000EOT) Max", "13": "ENCODE (ENCSR000EOT) Max", "14": "ENCODE (ENCSR000EOT) Max"}
+  "Basic annotations": {
+    "4": "Bands", 
+    "5": "Bands", 
+    "6": "Gene Counts", 
+    "7": "Gene Counts", 
+    "8": "Gene Counts", 
+    "9": "TF Motifs SFC", 
+    "10": "TF Motifs SFC", 
+    "11": "GC Content", 
+    "12": "GC Content", 
+    "13": "GC Content", 
+    "14": "Nucleotides"
+  },
+  "Integrative annotations" : {
+    "4": "DHS Components SFC", 
+    "5": "DHS Components SFC", 
+    "6": "DHS Components SFC", 
+    "7": "DHS Components SFC", 
+    "8": "Chromatin States SFC", 
+    "9": "Chromatin States SFC", 
+    "10": "TF Motifs SFC", 
+    "11": "GC Content", 
+    "12": "GC Content", 
+    "13": "GC Content", 
+    "14": "Nucleotides"
+  },
+  "K562 lymphoblasts": {
+    "4": "ENCODE (ENCSR000EOT) Max", 
+    "5": "ENCODE (ENCSR000EOT) Max", 
+    "6": "ENCODE (ENCSR000EOT) Max", 
+    "7": "ENCODE (ENCSR000EOT) Max", 
+    "8": "ENCODE (ENCSR000EOT) Max", 
+    "9": "ENCODE (ENCSR000EOT) Max", 
+    "10": "ENCODE (ENCSR000EOT) Max", 
+    "11": "ENCODE (ENCSR000EOT) Max", 
+    "12": "ENCODE (ENCSR000EOT) Max", 
+    "13": "ENCODE (ENCSR000EOT) Max", 
+    "14": "ENCODE (ENCSR000EOT) Max"
+  }
 } 
