@@ -288,6 +288,7 @@ function App() {
         </div>
         <LensModal
           layers={layers}
+          currentLayer={layer}
           setLayerOrder={setLayerOrder}
           setLayer={setLayer}
           setLayerLock={setLayerLock}

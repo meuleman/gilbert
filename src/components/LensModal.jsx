@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 
 const LensModal = ({
   layers,
+  currentLayer,
   setLayerOrder,
   setLayer,
   setLayerLock,
@@ -13,6 +14,8 @@ const LensModal = ({
   orders=[4,5,6,7,8,9,10,11,12,13,14]
 } = {}) => {
   const lensNames = Object.keys(lenses)
+
+  // sets the styles for all lens buttons to unselected state
   const resetButtonFormats = () => {
     const allButtons = document.querySelectorAll('.lens-button');
     allButtons.forEach((button) => {
@@ -20,14 +23,11 @@ const LensModal = ({
       button.style.border = '2px solid'
     })
   }
-  useEffect(() => {
-    if(layerLock) {
-      resetButtonFormats()
-    }
-  }, [layerLock])
 
   const [permanentLayer, setPermanentLayer] = useState(null)
+  const [layerLockLayer, setLayerLockLayer] = useState(null)
 
+  // finds the layer order for desired lens
   const getNewLens = (lens) => {
     let newLayerOrder = {}
     orders.forEach((order) => {
@@ -43,13 +43,12 @@ const LensModal = ({
     return newLayerOrder
   }
 
+  // change layerOrder to desired lens
   const changeLensPermanent = (lens, id) => {
     const newLayerOrder = getNewLens(lens)
     if(Object.keys(newLayerOrder).length === orders.length) {
-      // TODO: what to do when layer lock is already set, especially with onMouseLeave
       setLayerOrder(newLayerOrder)
       setLayer(newLayerOrder[order])
-      setLayerLock(false)
       resetButtonFormats()
       const clicked = document.getElementById(id)
       clicked.style.fontWeight = 'bold';
@@ -61,16 +60,45 @@ const LensModal = ({
     }
   }
 
-  const changeLensTemp = (lens, id) => {
+  // setLayer to what desired lens defines at current order
+  const onMouseOver = (lens, id) => {
     const newLayerOrder = getNewLens(lens, id)
     if(Object.keys(newLayerOrder).length === orders.length) {
       setLayer(newLayerOrder[order])
     }
   }
 
+  // override layerLock and set lens
+  const onClick = (lens, id) => {
+    setLayerLock(false)
+    changeLensPermanent(lens, id)
+  }
+
+  // set the layer or lens depending on layerLock
+  const onMouseLeave = (lens, id) => {
+    if(layerLock) {
+      setLayer(layerLockLayer)
+    } else {
+      changeLensPermanent(lens, id)
+    }
+  }
+
+  // on render, set the permanent layer to Basic
   useEffect(() => {
     changeLensPermanent(lenses[lensNames[0]], lensNames[0])
   }, [setLayerOrder])
+
+  // handle when layerLock is toggled
+  useEffect(() => {
+    if(layerLock) {  // save the current layer (for MouseLeave)
+      setLayerLockLayer(currentLayer)
+    } else { // load the permanent layer
+      setLayerLockLayer(null)
+      if(permanentLayer) {
+        changeLensPermanent(permanentLayer.lens, permanentLayer.id)
+      }
+    }
+  }, [layerLock])
 
   return (
     <>
@@ -85,9 +113,9 @@ const LensModal = ({
             className='lens-button' 
             id={l} 
             key={l} 
-            onClick={() => changeLensPermanent(lensLayers, l)}
-            onMouseOver={() => changeLensTemp(lensLayers, l)}
-            onMouseLeave={() => changeLensPermanent(permanentLayer.lens, permanentLayer.id)}
+            onClick={() => onClick(lensLayers, l)}
+            onMouseOver={() => onMouseOver(lensLayers, l)}
+            onMouseLeave={() => onMouseLeave(permanentLayer.lens, permanentLayer.id)}
             >{l}</button>
           )
         })}
