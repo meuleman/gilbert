@@ -14,6 +14,25 @@ const SelectedModalNarrations = ({
   selectedOrder,
   setRegion,
 } = {}) => {
+  const removeConvBars = () => {
+    if (document.getElementById('selected-modal-narration-list-container')) {
+      d3.selectAll('svg#convSvg').remove()
+      d3.selectAll("div#tooltip").remove()
+    }
+  }
+
+  const clearNarrationList = () => {
+    // clear list
+    var narrationList = document.getElementById('similar-regions-list');
+    var selectedList = document.getElementById('selected-list');
+    if(narrationList) {
+      narrationList.innerHTML = ''
+    }
+    if(selectedList) {
+      selectedList.innerHTML = ''
+    }
+  }
+  console.log(selectedNarration)
   // set quiescent factor color to non-white value
   let quiescentFactorInd = null
   factors.map((f, i) => {
@@ -39,6 +58,15 @@ const SelectedModalNarrations = ({
       })
     }
 
+    // set labels
+    var selectedLabel = document.getElementById('selected-modal-narration-label-selected')
+    var similarLabel = document.getElementById('selected-modal-narration-label-similar')
+    if(selectedLabel) {
+      selectedLabel.textContent = "Selected Region:"
+    }
+    if(similarLabel) {
+      similarLabel.textContent = "Similar Regions:"
+    }
     // clear list
     var narrationList = document.getElementById('similar-regions-list');
     var selectedList = document.getElementById('selected-list');
@@ -81,10 +109,7 @@ const SelectedModalNarrations = ({
       return { y: regionElementY, height: regionElementHeight, ranks: ranks, factorOrder: factorOrder }
     })
 
-    if (document.getElementById('selected-modal-narration-list-container')) {
-      d3.selectAll('svg#convSvg').remove()
-      d3.selectAll("div#tooltip").remove()
-    }
+    removeConvBars()
     const narrationElementsYPos = narrationElementsPos.map((d) => {
       return d.y
     })
@@ -193,6 +218,25 @@ const SelectedModalNarrations = ({
         }
       })
     })
+  } else {
+    removeConvBars()
+    // clear list
+    var narrationList = document.getElementById('similar-regions-list');
+    var selectedList = document.getElementById('selected-list');
+    if(narrationList) {
+      narrationList.innerHTML = ''
+    }
+    if(selectedList) {
+      selectedList.innerHTML = ''
+    }
+    var selectedLabel = document.getElementById('selected-modal-narration-label-selected')
+    var similarLabel = document.getElementById('selected-modal-narration-label-similar')
+    if(selectedLabel) {
+      selectedLabel.textContent = ''
+    }
+    if(similarLabel) {
+      similarLabel.textContent = ''
+    }
   }
 
   return (
@@ -202,9 +246,9 @@ const SelectedModalNarrations = ({
         maxDetailLevel={maxDetailLevel}
         setDetailLevel={setNarrationDetailLevel}
       />
-      <span className='selected-modal-narration-label'>Selected Region:</span>
+      <span className='selected-modal-narration-label' id='selected-modal-narration-label-selected'></span>
       <ul id='selected-list' className='selected-modal-narration-list'/>
-      <span className='selected-modal-narration-label'>Similar Regions:</span>
+      <span className='selected-modal-narration-label' id='selected-modal-narration-label-similar'></span>
       <ul id='similar-regions-list' className='selected-modal-narration-list'/>
     </div>
   )
