@@ -76,7 +76,7 @@ const LensModal = ({
     <>
     {(
     <div className="lens-modal">
-      <div className='lens-header'>Lenses</div>
+      <div className='lens-header'>Data Lenses</div>
       <div className="lens-modal-lenses">
         {lensNames.map((l) => {
           const lensLayers = lenses[l]
