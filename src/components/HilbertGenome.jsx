@@ -95,9 +95,8 @@ const HilbertGenome = ({
     width,
     height,
     activeLayer = "bands",
-    lockOrderToZoom = true,
     pinOrder = 0,
-    pinZoom = 0,
+    orderOffset = 0,
     layers = [],
     SVGRenderers = [],
     onZoom = () => {},
@@ -230,73 +229,63 @@ const HilbertGenome = ({
     }
   }, [state.data, state.order, state.dataOrder, state.metas, scales, layer, canvasRef])
 
-  // useEffect(() => {
-  //   console.log("================ ONLY HAPPEN ONCE ================")
-
-  // }, [state.data, state.order, state.dataOrder, state.metas, scales, layer, canvasRef])
-  //   // renderCanvas, 
-  //   // onZoom, 
  
-  // TODO: want to pin the zoom level, but change the order
-  const effectiveOrder = useMemo(() => {
-    // pinZoom has the order the user wants to see
-    // allow the user to go up or down 2 orders while staying at zoom
-    // we determine the boundary based on the order calculated from the zoom
-    // if the user zooms while pinZoom has a non-zero value
-    // TODO: the logic limiting this
-    return pinZoom
-  }, [pinZoom, state.transform])
+  // we want to re-render (by calling handleZoom) when the order offset changes, but not everytime the transform changes
+  // so we don't add state.transform to the dependencies
+  useEffect(() => {
+    handleZoom({ transform: state.transform })
+  }, [orderOffset, pinOrder])
+
 
   // Zoom event handler
   // This is responsible for setting up most of the rendering dependencies
   const handleZoom = useCallback((event) => {
-    // console.log("zoom event", event)
     let transform = event.transform;
-    // update the svg transform
-
     let order
-    if(pinOrder) {
-      // we want to stay at this order, but enable zooming in and out around it
-      order = pinOrder
-      // TODO logic for restricting zoom (see zoomToRegion)
-      // TODO would need to modify the transform that gets set
-    } else if(pinZoom) {
-      // TODO: logic here?
-      console.log("pinZoom", pinZoom)
-      order = effectiveOrder
-    } else {
-      let orderRaw = orderDomain[0] + Math.log2(orderZoomScale(transform.k))
-      order = Math.floor(orderRaw)
-      if(order < orderDomain[0]) order = orderDomain[0]
-      if(order > orderDomain[1]) order = orderDomain[1]
-    }
-    console.log("currentOrder", order)
+    let orderRaw = orderDomain[0] + Math.log2(orderZoomScale(transform.k))
 
+    // logic for calculating the order
+    if(pinOrder) {
+      // we want to stay at this order
+      order = pinOrder
+      // if the zoom out is more than 1.5 orders away from the pinned order, we lower the order
+      // this way we never load too much data
+      if(order - orderRaw >= 1.5) {
+        order -= Math.floor(order - orderRaw)
+      } 
+    } else {
+      // this is the default behavior, calculating the order from the zoom
+      order = Math.floor(orderRaw)
+    }
+    // we always offset if asked
+    if(orderOffset) {
+      order += orderOffset
+    }
+    // make sure our order never goes out of bounds
+    if(order < orderDomain[0]) order = orderDomain[0]
+    if(order > orderDomain[1]) order = orderDomain[1]
+
+    // update the svg transform (zooms the svg)
     select(sceneRef.current)
       .attr("transform", transform)
 
-    // potentially don't want to update certain things if we are zooming programmatically
-    // if(state.zooming) return
-    // if(!state.zooming) {
-      let hilbert = HilbertChromosome(order, { padding: 2 })
-      let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
-      let points = hilbert.fromBbox(bbox)
+    // calculate new state dependencies based on order and zoom 
+    let hilbert = HilbertChromosome(order, { padding: 2 })
+    let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
+    let points = hilbert.fromBbox(bbox)
 
-      const payload = {
-        transform,
-        order,
-        bbox,
-        points,
-      }
-      // update the state
-      dispatch({ type: actions.ZOOM, payload })
-      
-      // TODO: can these be triggered immediately but without state
-      // update the parent component
-      onZoom(payload)
-    // }
+    const payload = {
+      transform,
+      order,
+      bbox,
+      points,
+    }
+    // update the state
+    dispatch({ type: actions.ZOOM, payload })
+    
+    // update the parent component
+    onZoom(payload)
     // we want to update our canvas renderer immediately with new transform
-    // renderCanvas(transform, state.points)
     renderCanvas(transform, points)
   }, [
     xScale, yScale, 
@@ -305,13 +294,9 @@ const HilbertGenome = ({
     renderCanvas,
     onZoom,
     pinOrder,
-    pinZoom,
-    effectiveOrder
-    // lockOrderToZoom, 
-    // state.zooming
+    orderOffset,
+    zoomToRegion
   ]);
-
-
 
   useEffect(() => {
     // we want to fetch after every time the points recalculate
@@ -358,6 +343,7 @@ const HilbertGenome = ({
       // we zoom to 1/4 the scale of the hit
       let scale = xw/tw/4
 
+      // we calculate a zoom scale where we don't zoom so far in (offset by the zoom region's pinned order)
       let orderRaw = orderDomain[0] + Math.log2(orderZoomScale(scale))
       let diff = Math.floor(orderRaw) - pinnedOrder
       let zoomToOrder = orderRaw
@@ -398,16 +384,16 @@ const HilbertGenome = ({
         order--;
         if(order == orderDomain[0]) break;
       }
-      // console.log("want to zoom to ordeR", order)
+      console.log("want to zoom to order", order)
       // console.log("current scale", state.transform.k)
       
       // figure out the 2D x,y coordinate for the hilbert position at the zoomed order
       let pos = hilbertPosToOrder(zoomToRegion.start, { from: orderDomain[1], to: order })
       let hilbert = HilbertChromosome(order, { padding: 2 })
       let hit = hilbert.get2DPoint(pos, zoomToRegion.chromosome)
-      zoomToBox(hit.x, hit.y, hit.x + hilbert.step, hit.y + hilbert.step, zoomToRegion.order || state.order)
+      zoomToBox(hit.x, hit.y, hit.x + hilbert.step, hit.y + hilbert.step, pinOrder || state.order)
     }
-  }, [zoomToRegion, orderDomain, zoomToBox])
+  }, [zoomToRegion, orderDomain, zoomToBox, pinOrder])
 
 
 

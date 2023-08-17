@@ -171,6 +171,7 @@ function App() {
   }
 
   function handleModalClose() {
+    setRegion(null)
     setSelected(null)
     setSelectedOrder(null)
     setSelectedNarration(null)
@@ -202,6 +203,10 @@ function App() {
   const handleChangeOrderLock = () => {
     setOrderLock(!orderLock)
   }
+
+  // number state for orderOffset
+  const [orderOffset, setOrderOffset] = useState(0)
+
   // listen for shift key to toggle lockOrderToZoom
   // useEffect(() => {
   //   function handleKeyDown(e) {
@@ -243,7 +248,8 @@ function App() {
             zoomToRegion={region}
             zoomDuration={1000}
             activeLayer={layer}
-            lockOrderToZoom={orderLock}
+            orderOffset={orderOffset}
+            pinOrder={region?.order}
             layers={layers}
             SVGRenderers={[
               SVGChromosomeNames({ }),
@@ -284,6 +290,7 @@ function App() {
         <ZoomLegend 
           k={zoom.transform.k} 
           height={height} 
+          effectiveOrder={zoom.order}
           orderDomain={orderDomain} 
           zoomExtent={zoomExtent} />
         <SelectedModal
@@ -321,9 +328,10 @@ function App() {
             <input type="checkbox" checked={layerLock} onChange={handleChangeLayerLock} />
             Layer lock
           </label>
+          {/* this is an input that adds or subtracts to the calculated order */}
           <label>
-            <input type="checkbox" checked={orderLock} onChange={handleChangeOrderLock} />
-            Order lock
+            Order Offset ({orderOffset}, effective order {zoom.order})
+            <input type="range" min={-2} max={2} value={orderOffset} onChange={(e) => setOrderOffset(+e.target.value)} />
           </label>
         </div>
       </div>

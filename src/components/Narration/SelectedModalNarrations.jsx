@@ -32,7 +32,7 @@ const SelectedModalNarrations = ({
       selectedList.innerHTML = ''
     }
   }
-  console.log(selectedNarration)
+  // console.log(selectedNarration)
   // set quiescent factor color to non-white value
   let quiescentFactorInd = null
   factors.map((f, i) => {

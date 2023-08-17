@@ -8,6 +8,7 @@ const ZoomLegend = ({
   width = 50,
   height = 640,
   margin = 10,
+  effectiveOrder = 4,
   zoomExtent = [0, 100],
   orderDomain = [4, 16],
   k = 1
@@ -72,7 +73,7 @@ const ZoomLegend = ({
           fontSize: 20,
           text: "order",
           fill: "white",
-          stroke: "black",
+          stroke: d => d.order == effectiveOrder ? "red" : "none",
           paintOrder: "stroke",
           fontFamily: "Gilbert",
         })
