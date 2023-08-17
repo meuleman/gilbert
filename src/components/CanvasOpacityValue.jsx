@@ -1,5 +1,40 @@
 // import { scaleLinear } from "d3-scale";
 
+// function that scales input to alpha values linearly, but 
+// input values equal to 0 are set to 0
+// thanks ChatGPT!!
+function scaleLinearAboveThresh(threshold, min, max) {
+  let domain = [min, max]
+  let range = [0.2, 1]
+
+  function scale(d) {
+    if (d > threshold) {
+      const dScaled = (d - domain[0]) / (domain[1] - domain[0])
+      const dInRange = (range[1] - range[0]) * dScaled + range[0]
+      return dInRange
+    } else {
+      return 0
+    }
+  }
+  scale.domain = function (newDomain=null) {
+    if (newDomain) {
+      domain = [...newDomain]
+      return scale
+    } else {
+      return [...domain]
+    }
+  }
+  scale.range = function (newRange=null) {
+    if (newRange) {
+      range = [...newRange]
+      return scale
+    } else {
+      return [...range]
+    }
+  }
+  return scale
+}
+
 // A canvas rendering function that renders a single colored rectangle for each data point
 // with opacity scaled to the max of the order
 export default function CanvasSimpleValueComponent({ canvasRef, state, scales, layer }) {
@@ -18,7 +53,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     if(!points || !data || !meta) return;
 
     // the min and max for scaling
-    let fields = meta["fields"]
+    // let fields = meta["fields"]
     let nonzero_min = meta["nonzero_min"]
     let min = nonzero_min ? nonzero_min : meta["min"]
     if(!min.length && min < 0) min = 0;
@@ -33,41 +68,6 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     const sw = step * (1 - strokeWidthMultiplier);
     const rw = sizeScale(sw) * t.k - 1
 
-    // function that scales input to alpha values linearly, but 
-    // input values equal to 0 are set to 0
-    // thanks ChatGPT!!
-    function scaleLinearAboveThresh(threshold) {
-      let domain = [min, max]
-      let range = [0.2, 1]
-
-      function scale(d) {
-        if (d > threshold) {
-          const dScaled = (d - domain[0]) / (domain[1] - domain[0])
-          const dInRange = (range[1] - range[0]) * dScaled + range[0]
-          return dInRange
-        } else {
-          return 0
-        }
-      }
-      scale.domain = function (newDomain=null) {
-        if (newDomain) {
-          domain = [...newDomain]
-          return scale
-        } else {
-          return [...domain]
-        }
-      }
-      scale.range = function (newRange=null) {
-        if (newRange) {
-          range = [...newRange]
-          return scale
-        } else {
-          return [...range]
-        }
-      }
-      return scale
-    }
-
     // let domain = [min, max]
     // console.log(domain)
     // let alphaScale = scaleLinearAboveThresh(0)
@@ -76,7 +76,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
 
     // assign threshold we scale above
     let scaleMinThreshold = 0
-    let alphaScale = scaleLinearAboveThresh(scaleMinThreshold)
+    let alphaScale = scaleLinearAboveThresh(scaleMinThreshold, min, max)
       .range([0.2, 1])
     
     // find data in viewer

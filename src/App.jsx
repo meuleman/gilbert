@@ -8,6 +8,7 @@ import HilbertGenome from './components/HilbertGenome'
 import SVGHilbertPaths from './components/SVGHilbertPaths'
 import SVGGenePaths from './components/SVGGenePaths'
 import ZoomLegend from './components/ZoomLegend'
+import LinearTracks from './components/LinearTracks'
 import StatusBar from './components/StatusBar'
 import SelectedModal from './components/SelectedModal'
 import LensModal from './components/LensModal'
@@ -317,7 +318,7 @@ function App() {
           onClose={handleModalClose} />
       </div>
       <div>
-        {/* <LinearTracks data={data}><LinearTracks/> */}
+        <LinearTracks state={data} width={width} hovered={hover} selected={selected}></LinearTracks>
         <StatusBar 
           width={width + 500 + 12 + 30} 
           hover={hover} // the information about the cell the mouse is over

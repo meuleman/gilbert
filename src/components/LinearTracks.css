@@ -1,0 +1,8 @@
+
+.linear-tracks div {
+  max-width: fit-content;
+}
+
+.linear-genome-canvas {
+  border: 2px solid orange;
+}
