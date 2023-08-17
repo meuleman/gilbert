@@ -1,10 +1,9 @@
 .lens-modal {
   position: absolute;
   left: 15px;
-
-  line-height: 30px;
+  line-height: 20px;
   display: flex;
-  margin: 10px 5px 5px 5px;
+  margin: 10px 0px 0px 0px;
   height: 100px;
   text-align: center;
   flex-direction: column;
@@ -17,7 +16,7 @@
 }
 
 .lens-header {
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .lens-modal-lenses {
@@ -26,6 +25,7 @@
   font-weight: bold;
   display: flex;
   justify-content: center;
+  font-size: 14px;
 }
 .lens-button {
   position: relative;

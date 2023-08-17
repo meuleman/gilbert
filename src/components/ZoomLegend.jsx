@@ -73,6 +73,7 @@ const ZoomLegend = ({
           fontSize: 20,
           text: "order",
           fill: "white",
+          fill: d => d.order == effectiveOrder ? "black" : "white",
           stroke: d => d.order == effectiveOrder ? "red" : "none",
           paintOrder: "stroke",
           fontFamily: "Gilbert",
