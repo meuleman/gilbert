@@ -2,10 +2,19 @@
 #root {
   padding: 12px;
 }
+
+@font-face {
+  font-family: 'Gilbert';
+  src: url('fonts/Gilbert-Color Bold-Preview_1004.otf');
+  /* src: url('fonts/Gilbert-Bold Preview5.otf'); */
+}
+
 .title {
-  font-size: 3.2em;
+  font-size: 5em;
   line-height: 1.1em;
-  margin: 5px;
+  margin-bottom: 10px;
+  margin-top: -20px;
+  font-family: 'Gilbert';
 }
 /* APP styles */
 .panels {
