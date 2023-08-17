@@ -103,6 +103,7 @@ const HilbertGenome = ({
     onHover = () => {},
     onLayer= () => {},
     onClick = () => {},
+    onData = () => {},
     debug = false,
   }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -154,17 +155,29 @@ const HilbertGenome = ({
       })
       let myPromise = dataClient.fetchData(layer, state.order, state.points)
       let myCallback = (data) => {
-        if(data)
+        if(data) {
           dispatch({ type: actions.SET_DATA, payload: { data, order: state.order } });
+        }
       }
       debounce(myPromise, myCallback, 150)
     }
-  }, [state.zooming, state.order, state.points, layer, debug ]);
+  }, [state.zooming, state.order, state.points, layer, debug]);
 
+  // when the data changes, let the parent component know
+  useEffect(() => {
+    onData({
+      data: state.data, 
+      dataOrder: state.dataOrder,
+      meta: state.metas.get(state.dataOrder), 
+      points: state.points, 
+      order: state.order, 
+      layer
+    })
+  }, [state.data, state.dataOrder, state.order, layer])
 
   useEffect(() => {
     if (layer) {
-      console.log("layer", layer)
+      // console.log("layer", layer)
 
       const dataClient = Data({ 
         debug
@@ -187,7 +200,7 @@ const HilbertGenome = ({
 
   // setup the zoom behavior
   const zoomBehavior = useMemo(() => {
-    console.log("zoombehavior init")
+    // console.log("zoombehavior init")
     return zoom()
       .extent([
         [0, 0],

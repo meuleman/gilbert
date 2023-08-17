@@ -207,6 +207,12 @@ function App() {
   // number state for orderOffset
   const [orderOffset, setOrderOffset] = useState(0)
 
+  const [data, setData] = useState(null)
+  function onData(payload) {
+    console.log("got some data", payload)
+    setData(payload)
+  }
+
   // listen for shift key to toggle lockOrderToZoom
   // useEffect(() => {
   //   function handleKeyDown(e) {
@@ -226,6 +232,8 @@ function App() {
   //     window.removeEventListener('keyup', handleKeyUp);
   //   }
   // }, [])
+
+
 
   return (
     <>
@@ -272,6 +280,7 @@ function App() {
             onZoom={handleZoom}
             onHover={handleHover}
             onClick={handleClick}
+            onData={onData}
             // onLayer={handleLayer}
             debug={false}
           />
@@ -308,6 +317,7 @@ function App() {
           onClose={handleModalClose} />
       </div>
       <div>
+        {/* <LinearTracks data={data}><LinearTracks/> */}
         <StatusBar 
           width={width + 500 + 12 + 30} 
           hover={hover} // the information about the cell the mouse is over
