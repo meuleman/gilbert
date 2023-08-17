@@ -11,6 +11,7 @@ import ZoomLegend from './components/ZoomLegend'
 import StatusBar from './components/StatusBar'
 import SelectedModal from './components/SelectedModal'
 import LensModal from './components/LensModal'
+import LayerLegend from './components/LayerLegend'
 import SVGSelected from './components/SVGSelected'
 import SVGChromosomeNames from './components/SVGChromosomeNames'
 // import SVGBBox from './components/SVGBBox'
@@ -66,19 +67,19 @@ const layers = [
   ENCSR000EOT
 ]
 
-const initialLayerOrder = {
-  4: Bands,
-  5: DHS_Components_Sfc,
-  6: DHS_Components_Sfc,
-  7: Chromatin_States_Sfc,
-  8: Chromatin_States_Sfc,
-  9: TF_Motifs_OE_Chi,
-  10: TF_Motifs_OE_Chi,
-  11: GCContent,
-  12: GCContent,
-  13: GCContent,
-  14: Nucleotides,
-}
+// const initialLayerOrder = {
+//   4: Bands,
+//   5: DHS_Components_Sfc,
+//   6: DHS_Components_Sfc,
+//   7: Chromatin_States_Sfc,
+//   8: Chromatin_States_Sfc,
+//   9: TF_Motifs_OE_Chi,
+//   10: TF_Motifs_OE_Chi,
+//   11: GCContent,
+//   12: GCContent,
+//   13: GCContent,
+//   14: Nucleotides,
+// }
 
 
 function App() {
@@ -87,10 +88,7 @@ function App() {
 
   const containerRef = useRef()
 
-  const [layerOrder, setLayerOrder] = useState(initialLayerOrder)
-  // useEffect(() => {
-  //   console.log('Layer Order changed:', layerOrder);
-  // }, [layerOrder]);
+  const [layerOrder, setLayerOrder] = useState(null)
 
   // let's fill the container and update the width and height if window resizes
   const [width, height] = useWindowSize();
@@ -280,6 +278,9 @@ function App() {
           layerLock={layerLock}
           order={zoom.order}
         />
+        {/* <LayerLegend 
+          layer={layer}
+        /> */}
         <ZoomLegend 
           k={zoom.transform.k} 
           height={height} 
