@@ -46,7 +46,6 @@ const SelectedModalSimSearch = ({
 
   let maxDetailLevel = null
   if(selectedSimSearch && factors) {
-    console.log(selectedSimSearch, factors)
     // set quiescent factor color to non-white value
     let quiescentFactorInd = null
     factors.map((f, i) => {
