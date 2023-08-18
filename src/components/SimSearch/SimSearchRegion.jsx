@@ -61,8 +61,12 @@ export default function SimSearchRegion(selected, order, layer, setSimSearchMeth
         data: postBody
       }).then((response) => {
         const fullData = response.data;
-        const initialDetailLevel = determineInitialDetailLevel(fullData)
-        return {simSearch: fullData, detailLevel: initialDetailLevel}
+        if(fullData.length > 0) {
+          const initialDetailLevel = determineInitialDetailLevel(fullData)
+          return {simSearch: fullData, detailLevel: initialDetailLevel}
+        } else {
+          return {simSearch: null, detailLevel: null}
+        }
       })
       .catch((err) => {
         console.error(`error:     ${JSON.stringify(err)}`);
@@ -70,7 +74,6 @@ export default function SimSearchRegion(selected, order, layer, setSimSearchMeth
         // alert('Query Failed: Try another region.');
       });
 
-      console.log(simSearch)
       return simSearch
     } else {
       const simSearch = {simSearch: null, detailLevel: null}

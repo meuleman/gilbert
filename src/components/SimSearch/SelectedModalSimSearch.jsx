@@ -32,7 +32,7 @@ const SelectedModalSimSearch = ({
     factors = allFactors['Chromatin States']
   }
 
-  const clearSimSearchnList = () => {
+  const clearSimSearchList = () => {
     // clear list
     var simSearchList = document.getElementById('similar-regions-list');
     var selectedList = document.getElementById('selected-list');
