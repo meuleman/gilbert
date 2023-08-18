@@ -2,53 +2,63 @@
 
 import * as d3 from 'd3'
 import DetailLevelSlider from './DetailLevelSlider'
-import factors from './NarrationFactors.json'
-import './SelectedModalNarrations.css'
+import allFactors from './SimSearchFactors.json'
+import './SelectedModalSimSearch.css'
+import { useEffect } from 'react'
 // import { useEffect } from 'react'
 
 
-const SelectedModalNarrations = ({
-  selectedNarration = null,
-  narrationDetailLevel,
-  setNarrationDetailLevel,
+const SelectedModalSimSearch = ({
+  selectedSimSearch = null,
+  simSearchDetailLevel,
+  setSimSearchDetailLevel,
+  simSearchMethod,
   selectedOrder,
   setRegion,
+  layer,
 } = {}) => {
   const removeConvBars = () => {
-    if (document.getElementById('selected-modal-narration-list-container')) {
+    if (document.getElementById('selected-modal-simsearch-list-container')) {
       d3.selectAll('svg#convSvg').remove()
       d3.selectAll("div#tooltip").remove()
     }
   }
 
-  const clearNarrationList = () => {
+  let factors
+  if (simSearchMethod === 'DHS Components SFC') {
+    factors = allFactors['DHS']
+  }
+  else if(simSearchMethod === 'Chromatin States SFC') {
+    factors = allFactors['Chromatin States']
+  }
+
+  const clearSimSearchnList = () => {
     // clear list
-    var narrationList = document.getElementById('similar-regions-list');
+    var simSearchList = document.getElementById('similar-regions-list');
     var selectedList = document.getElementById('selected-list');
-    if(narrationList) {
-      narrationList.innerHTML = ''
+    if(simSearchList) {
+      simSearchList.innerHTML = ''
     }
     if(selectedList) {
       selectedList.innerHTML = ''
     }
   }
-  // console.log(selectedNarration)
-  // set quiescent factor color to non-white value
-  let quiescentFactorInd = null
-  factors.map((f, i) => {
-    if(f.color === "#ffffff") {
-      quiescentFactorInd = i
-    }
-  })
-  if(quiescentFactorInd) {
-    factors[quiescentFactorInd].color = "#ECECEC"
-  }
-  
 
-  let narrationElementsPos = null
   let maxDetailLevel = null
-  if(selectedNarration) {
-    maxDetailLevel = selectedNarration.length
+  if(selectedSimSearch && factors) {
+    console.log(selectedSimSearch, factors)
+    // set quiescent factor color to non-white value
+    let quiescentFactorInd = null
+    factors.map((f, i) => {
+      if(f.color === "#ffffff") {
+        quiescentFactorInd = i
+      }
+    })
+    if(quiescentFactorInd) {
+      factors[quiescentFactorInd].color = "#ECECEC"
+    }
+    
+    maxDetailLevel = selectedSimSearch.length
     const handleClick = function (chrom, start, stop) {
       setRegion({
         chromosome: chrom, 
@@ -59,8 +69,8 @@ const SelectedModalNarrations = ({
     }
 
     // set labels
-    var selectedLabel = document.getElementById('selected-modal-narration-label-selected')
-    var similarLabel = document.getElementById('selected-modal-narration-label-similar')
+    var selectedLabel = document.getElementById('selected-modal-simsearch-label-selected')
+    var similarLabel = document.getElementById('selected-modal-simsearch-label-similar')
     if(selectedLabel) {
       selectedLabel.textContent = "Selected Region:"
     }
@@ -68,17 +78,18 @@ const SelectedModalNarrations = ({
       similarLabel.textContent = "Similar Regions:"
     }
     // clear list
-    var narrationList = document.getElementById('similar-regions-list');
+    var simSearchList = document.getElementById('similar-regions-list');
     var selectedList = document.getElementById('selected-list');
-    if(narrationList) {
-      narrationList.innerHTML = ''
+    if(simSearchList) {
+      simSearchList.innerHTML = ''
     }
     if(selectedList) {
       selectedList.innerHTML = ''
     }
-    // get narrations for specified order
-    const dlNarrations = selectedNarration[narrationDetailLevel - 1]
-    narrationElementsPos = dlNarrations.map((d, i) => {
+    // get simSearch for specified order
+    const dlSimSearch = selectedSimSearch[simSearchDetailLevel - 1]
+    let simSearchElementsPos = null
+    simSearchElementsPos = dlSimSearch.map((d, i) => {
       const chrom = d.coordinates.split(':')[0]
       const start = d.coordinates.split(':')[1].split('-')[0]
       const stop = d.coordinates.split(':')[1].split('-')[1]
@@ -92,16 +103,16 @@ const SelectedModalNarrations = ({
       let regionElementY = null
       let regionElementHeight = null
       // assign each segment coordinate to list
-      if(narrationList && selectedList) {
+      if(simSearchList && selectedList) {
         var regionElement = document.createElement('li');
-        regionElement.classList.add('selected-modal-narration-item');
+        regionElement.classList.add('selected-modal-simsearch-item');
         regionElement.addEventListener("click", () => handleClick(chrom, start, stop));
         if(i===0) {
           regionElement.textContent = chrom + ':' + start
           selectedList.appendChild(regionElement)
         } else {
           regionElement.textContent = i + ': ' + chrom + ':' + start
-          narrationList.appendChild(regionElement)
+          simSearchList.appendChild(regionElement)
         }
         regionElementY = regionElement.getBoundingClientRect().top
         regionElementHeight = regionElement.clientHeight
@@ -110,19 +121,19 @@ const SelectedModalNarrations = ({
     })
 
     removeConvBars()
-    const narrationElementsYPos = narrationElementsPos.map((d) => {
+    const simSearchElementsYPos = simSearchElementsPos.map((d) => {
       return d.y
     })
-    const narrationRanks = narrationElementsPos.map((d) => {
+    const simSearchRanks = simSearchElementsPos.map((d) => {
       return d.ranks
     })
-    const narrationElementsHeight = narrationElementsPos[0].height
-    const narrationFactorOrder = narrationElementsPos[0].factorOrder
+    const simSearchElementsHeight = simSearchElementsPos[0].height
+    const simSearchFactorOrder = simSearchElementsPos[0].factorOrder
   
     let convBarSvgWidth = 200;
-    let convBarSvgHeight = Math.max(...narrationElementsYPos) - Math.min(...narrationElementsYPos) + narrationElementsHeight
-    let narrationListContainer = d3.select("#selected-modal-narration-list-container")
-    let convSvg = narrationListContainer
+    let convBarSvgHeight = Math.max(...simSearchElementsYPos) - Math.min(...simSearchElementsYPos) + simSearchElementsHeight
+    let simSearchListContainer = d3.select("#selected-modal-simsearch-list-container")
+    let convSvg = simSearchListContainer
       .append("svg")
       .attr('id', 'convSvg')
       .attr('className', 'conv-svg')
@@ -131,7 +142,7 @@ const SelectedModalNarrations = ({
       .style("position", "absolute")
       .attr("transform", "translate(" + convBarSvgWidth + ", -" + convBarSvgHeight + ")");
 
-    const tooltip = narrationListContainer
+    const tooltip = simSearchListContainer
       .append('div')
       .style('opacity', 0)
       .attr('id', 'tooltip')
@@ -166,7 +177,7 @@ const SelectedModalNarrations = ({
 
     const findOffset = function () {
       // offset of parent element
-      const parentElement = document.getElementById('selected-modal-narration-list-container');
+      const parentElement = document.getElementById('selected-modal-simsearch-list-container');
       const parentOffset = parentElement.getBoundingClientRect()
       return parentOffset
     }
@@ -192,22 +203,22 @@ const SelectedModalNarrations = ({
     let gapW = 1
     let gapH = 7
     let yOffset = 8
-    const queryRanks = narrationRanks[0]
+    const queryRanks = simSearchRanks[0]
 
-    narrationElementsYPos.map((y, i) => {
-      const yAdjusted = y - Math.min(...narrationElementsYPos) + yOffset
-      const ranks = narrationRanks[i]
+    simSearchElementsYPos.map((y, i) => {
+      const yAdjusted = y - Math.min(...simSearchElementsYPos) + yOffset
+      const ranks = simSearchRanks[i]
       let factorCount = 0
       ranks.map((r, j) => {
         if(r * queryRanks[j] > convThresh) {
-          const factorInd = narrationFactorOrder[j]
+          const factorInd = simSearchFactorOrder[j]
           const factor = factors[factorInd]
           convSvg
             .append("rect")
             .attr("x", factorCount * convBarWidth)
             .attr("y", yAdjusted)
             .attr("width", convBarWidth - gapW)
-            .attr("height", narrationElementsHeight - gapH)
+            .attr("height", simSearchElementsHeight - gapH)
             .style("fill", factor.color)
             .style("stroke", "black")
             .style("stroke-width", "0.1")
@@ -221,16 +232,16 @@ const SelectedModalNarrations = ({
   } else {
     removeConvBars()
     // clear list
-    var narrationList = document.getElementById('similar-regions-list');
+    var simSearchList = document.getElementById('similar-regions-list');
     var selectedList = document.getElementById('selected-list');
-    if(narrationList) {
-      narrationList.innerHTML = ''
+    if(simSearchList) {
+      simSearchList.innerHTML = ''
     }
     if(selectedList) {
       selectedList.innerHTML = ''
     }
-    var selectedLabel = document.getElementById('selected-modal-narration-label-selected')
-    var similarLabel = document.getElementById('selected-modal-narration-label-similar')
+    var selectedLabel = document.getElementById('selected-modal-simsearch-label-selected')
+    var similarLabel = document.getElementById('selected-modal-simsearch-label-similar')
     if(selectedLabel) {
       selectedLabel.textContent = ''
     }
@@ -240,17 +251,17 @@ const SelectedModalNarrations = ({
   }
 
   return (
-    <div id='selected-modal-narration-list-container' className='selected-modal-narration-list-container'>
+    <div id='selected-modal-simsearch-list-container' className='selected-modal-simsearch-list-container'>
       <DetailLevelSlider
-        detailLevel={narrationDetailLevel}
+        detailLevel={simSearchDetailLevel}
         maxDetailLevel={maxDetailLevel}
-        setDetailLevel={setNarrationDetailLevel}
+        setDetailLevel={setSimSearchDetailLevel}
       />
-      <span className='selected-modal-narration-label' id='selected-modal-narration-label-selected'></span>
-      <ul id='selected-list' className='selected-modal-narration-list'/>
-      <span className='selected-modal-narration-label' id='selected-modal-narration-label-similar'></span>
-      <ul id='similar-regions-list' className='selected-modal-narration-list'/>
+      <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-selected'></span>
+      <ul id='selected-list' className='selected-modal-simsearch-list'/>
+      <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-similar'></span>
+      <ul id='similar-regions-list' className='selected-modal-simsearch-list'/>
     </div>
   )
 }
-export default SelectedModalNarrations
+export default SelectedModalSimSearch

@@ -9,8 +9,8 @@ function checkRanges(a, b) {
   return false
 }
 
-const DisplayedNarratedRegions = ({
-  narrations,
+const DisplayedSimSearchRegions = ({
+  simSearch,
   detailLevel,
   selectedRegion,
   order,
@@ -18,11 +18,11 @@ const DisplayedNarratedRegions = ({
   width = 0.4,
   showGenes = false
 } = {}) => {
-  if(narrations) {
+  if(simSearch) {
     // showGenes=false
     let hilbert = new HilbertChromosome(order)
 
-    const similarRegions = narrations[detailLevel - 1].slice(1)
+    const similarRegions = simSearch[detailLevel - 1].slice(1)
     const similarRanges = similarRegions.map((d) => {
       const coords = d.coordinates
       const chrm = coords.split(':')[0]
@@ -46,4 +46,4 @@ const DisplayedNarratedRegions = ({
   }
 }
 
-export default DisplayedNarratedRegions
+export default DisplayedSimSearchRegions

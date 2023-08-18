@@ -40,9 +40,9 @@ import DHS_Coreg_Multiscale from './layers/dhs_coregMultiscale'
 import DHS_Coreg_Best_Scale_max from './layers/dhs_coregBestScale_max'
 // autocomplete
 import Autocomplete from './components/Autocomplete/Autocomplete'
-// region narration
-import NarrateRegion from './components/Narration/NarrateRegion'
-import DisplayNarratedRegions from './components/Narration/DisplayNarratedRegions'
+// region SimSearch
+import SimSearchRegion from './components/SimSearch/SimSearchRegion'
+import DisplaySimSearchRegions from './components/SimSearch/DisplaySimSearchRegions'
 
 const layers = [
   Bands, 
@@ -123,7 +123,7 @@ function App() {
     setLayerLock(true)
     setSelected(selected)
     setSelectedOrder(selectedOrder)
-    setSelectedNarration(selectedNarration)
+    setSelectedSimSearch(selectedSimSearch)
   }
 
 
@@ -152,21 +152,22 @@ function App() {
 
   const [selected, setSelected] = useState(null)
   const [selectedOrder, setSelectedOrder] = useState(null)
-  const [selectedNarration, setSelectedNarration] = useState(null)
-  const [narrationDetailLevel, setNarrationDetailLevel] = useState(1)
+  const [selectedSimSearch, setSelectedSimSearch] = useState(null)
+  const [simSearchMethod, setSimSearchMethod] = useState(null)
+  const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(1)
   function handleClick(hit, order) {
     // console.log("click", hit)
     if(hit === selected) {
       setSelected(null) 
       setSelectedOrder(null)
-      setSelectedNarration(null)
+      setSelectedSimSearch(null)
     } else {
       setSelected(hit)
       setSelectedOrder(order)
-      // Region Narration
-      NarrateRegion(hit, order).then((result) => {
-        setSelectedNarration(result.narration)
-        setNarrationDetailLevel(result.detailLevel)
+      // Region SimSearch
+      SimSearchRegion(hit, order, layer, setSimSearchMethod).then((result) => {
+        setSelectedSimSearch(result.simSearch)
+        setSimSearchDetailLevel(result.detailLevel)
       })
     }
   }
@@ -175,7 +176,8 @@ function App() {
     setRegion(null)
     setSelected(null)
     setSelectedOrder(null)
-    setSelectedNarration(null)
+    setSelectedSimSearch(null)
+    setSimSearchMethod(null)
   }
 
   const [showHilbert, setShowHilbert] = useState(false)
@@ -266,9 +268,9 @@ function App() {
               SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.4, showGenes: false }),
               // TODO: highlight search region (from autocomplete)
               // SVGSelected({ hit: region, stroke: "gray", strokeWidthMultiplier: 0.4, showGenes: false }),
-              ...DisplayNarratedRegions({ 
-                narrations: selectedNarration, 
-                detailLevel: narrationDetailLevel, 
+              ...DisplaySimSearchRegions({ 
+                simSearch: selectedSimSearch, 
+                detailLevel: simSearchDetailLevel, 
                 selectedRegion: region,
                 order: selectedOrder, 
                 color: "green", 
@@ -308,9 +310,10 @@ function App() {
           height={height} 
           selected={selected} // currently selected cell
           selectedOrder={selectedOrder} 
-          selectedNarration={selectedNarration}
-          narrationDetailLevel={narrationDetailLevel}
-          setNarrationDetailLevel={setNarrationDetailLevel}
+          selectedSimSearch={selectedSimSearch}
+          simSearchDetailLevel={simSearchDetailLevel}
+          setSimSearchDetailLevel={setSimSearchDetailLevel}
+          simSearchMethod={simSearchMethod}
           setRegion={setRegion}
           layer={layer} 
           zoom={zoom} 

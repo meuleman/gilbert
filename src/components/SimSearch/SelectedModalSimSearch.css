@@ -1,14 +1,14 @@
-.selected-modal-narration-list {
+.selected-modal-simsearch-list {
   list-style-type: none;
   margin: 0px;
 }
 
-.selected-modal-narration-item {
+.selected-modal-simsearch-item {
   margin: -5px;
   cursor: pointer;
 }
 
-.selected-modal-narration-list-container {
+.selected-modal-simsearch-list-container {
   position: relative;
   max-height: 650px;
   z-index: 0;

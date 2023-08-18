@@ -1,4 +1,4 @@
-// slider used to control the detail level of narrations
+// slider used to control the detail level of simSearch results
 
 const SelectDetailLevel = ({
   detailLevel = 1,
