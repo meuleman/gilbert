@@ -7,7 +7,7 @@ import './LinearTracks.css';
 const LinearTracks = ({
   width = 640,
   height = 50,
-  margin = 10,
+  margin = 5,
   state = null,
   hovered = null,
   selected = null,
@@ -23,7 +23,6 @@ const LinearTracks = ({
     let {data, points, meta, order, dataOrder} = state
     if(!points || !data || !meta) return;
 
-
     console.log("selected, hovered", selected, hovered)
     let hit
     if(selected) {
@@ -34,9 +33,8 @@ const LinearTracks = ({
       hit = hovered
     } else {
     // if neither, don't render anything
-      return null;
+      return;
     }
-
 
     let { fieldChoice, fieldColor} = state.layer
     let fields = meta["fields"]
@@ -47,7 +45,6 @@ const LinearTracks = ({
     let yExtent = [min,max]
 
 
-    ctx.clearRect(0, 0, width, height);
     // the 1D coordinates are d.i
     let track = data.filter(d => d.chromosome == hit.chromosome)
     let xExtent = extent(track, d => d.i)
@@ -61,6 +58,7 @@ const LinearTracks = ({
 
     // console.log("track", track)
 
+    ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = "black"
     ctx.fillRect(xScale(hit.i), margin, 1, height - margin*2)
 
@@ -79,7 +77,6 @@ const LinearTracks = ({
         ctx.fillRect(x, y, xScale.bandwidth(), h)
       }
     })
-
 
   }
 
