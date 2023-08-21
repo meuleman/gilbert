@@ -9,6 +9,7 @@ const LayerLegend = ({
   baseHeight = 41,
   heightPerFactor = 19,
   data,
+  hover,
 } = {}) => {
   const removeFactorBars = () => {
     if (document.getElementById('legend-box')) {
@@ -18,6 +19,7 @@ const LayerLegend = ({
   }
 
   let inViewData, singleSegmentData, factors, colors
+  let hoverHighlights = []
   if(data) {
     const layer = data.layer
     const fieldColor = layer.fieldColor
@@ -38,10 +40,14 @@ const LayerLegend = ({
   }
 
   if(factors) {
+    if(hover) {
+      let hoverData = hover.data
+      hoverHighlights = factors.filter((f) => {return hoverData[f] > 0})
+    }
+
     let factorPos
     factorPos = factors.map((f, i) => {
-      let c = colors[i]
-      c = 'black'
+      let c = 'black'
       let factortY = null
       let factorHeight = null
       if(factorList) {
@@ -49,6 +55,9 @@ const LayerLegend = ({
         factorElement.classList.add('factor-item');
         factorElement.textContent = f
         factorElement.style.color = c;
+        if(hoverHighlights.includes(f)) {
+          factorElement.style.fontWeight = 'bold';
+        }
         factorList.appendChild(factorElement)
 
         factortY = factorElement.getBoundingClientRect().top

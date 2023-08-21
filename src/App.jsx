@@ -303,6 +303,7 @@ function App() {
         />
         <LayerLegend 
           data={data}
+          hover={hover}
         />
         <ZoomLegend 
           k={zoom.transform.k} 
