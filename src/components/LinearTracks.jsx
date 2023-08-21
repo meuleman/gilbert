@@ -23,7 +23,7 @@ const LinearTracks = ({
     let {data, points, meta, order, dataOrder} = state
     if(!points || !data || !meta) return;
 
-    console.log("selected, hovered", selected, hovered)
+    // console.log("selected, hovered", selected, hovered)
     let hit
     if(selected) {
     // if selected, pick out the continuous data centered on the selected point

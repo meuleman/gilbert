@@ -16,6 +16,7 @@ const SelectedModalSimSearch = ({
   selectedOrder,
   setRegion,
   layer,
+  fontsize = "12px"
 } = {}) => {
   const removeConvBars = () => {
     if (document.getElementById('selected-modal-simsearch-list-container')) {
@@ -71,9 +72,11 @@ const SelectedModalSimSearch = ({
     var selectedLabel = document.getElementById('selected-modal-simsearch-label-selected')
     var similarLabel = document.getElementById('selected-modal-simsearch-label-similar')
     if(selectedLabel) {
+      selectedLabel.style.fontSize = fontsize;
       selectedLabel.textContent = "Selected Region:"
     }
     if(similarLabel) {
+      similarLabel.style.fontSize = fontsize;
       similarLabel.textContent = "Similar Regions:"
     }
     // clear list
@@ -106,6 +109,7 @@ const SelectedModalSimSearch = ({
         var regionElement = document.createElement('li');
         regionElement.classList.add('selected-modal-simsearch-item');
         regionElement.addEventListener("click", () => handleClick(chrom, start, stop));
+        regionElement.style.fontSize = fontsize;
         if(i===0) {
           regionElement.textContent = chrom + ':' + start
           selectedList.appendChild(regionElement)
