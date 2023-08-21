@@ -1,6 +1,7 @@
 // A component to display some information below the map when hovering over hilbert cells
 
 import SelectedModalSimSearch from './SimSearch/SelectedModalSimSearch'
+import SelectedModalNarration from './Narration/SelectedMOdalNarration'
 import './SelectedModal.css'
 
 const SelectedModal = ({
@@ -9,6 +10,7 @@ const SelectedModal = ({
   selected = null,
   selectedOrder = null,
   selectedSimSearch = null,
+  selectedNarration=null,
   simSearchDetailLevel,
   setSimSearchDetailLevel,
   simSearchMethod,
@@ -55,6 +57,10 @@ const SelectedModal = ({
           <span className="selected-modal-selected-data">
             {sampleSummary}
           </span>
+          <br/>
+          <SelectedModalNarration
+            selectedNarration={selectedNarration}
+          />
           <br/>
           <SelectedModalSimSearch
             selectedSimSearch={selectedSimSearch}

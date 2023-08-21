@@ -24,6 +24,8 @@
 }
 
 .factor-item {
+  font-size: 10px;
+  font-family: Helvetica, Inter, system-ui, Avenir, Arial, sans-serif;
   margin: -5px;
   /* cursor: pointer; */
 }
