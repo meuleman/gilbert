@@ -12,7 +12,7 @@ import LinearTracks from './components/LinearTracks'
 import StatusBar from './components/StatusBar'
 import SelectedModal from './components/SelectedModal'
 import LensModal from './components/LensModal'
-// import LayerLegend from './components/LayerLegend'
+import LayerLegend from './components/LayerLegend'
 import SVGSelected from './components/SVGSelected'
 import SVGChromosomeNames from './components/SVGChromosomeNames'
 // import SVGBBox from './components/SVGBBox'
@@ -43,6 +43,7 @@ import Autocomplete from './components/Autocomplete/Autocomplete'
 // region SimSearch
 import SimSearchRegion from './components/SimSearch/SimSearchRegion'
 import DisplaySimSearchRegions from './components/SimSearch/DisplaySimSearchRegions'
+import NarrateRegion from './components/Narration/NarrateRegion'
 
 const layers = [
   Bands, 
@@ -155,6 +156,7 @@ function App() {
   const [selectedSimSearch, setSelectedSimSearch] = useState(null)
   const [simSearchMethod, setSimSearchMethod] = useState(null)
   const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(1)
+  const [selectedNarration, setSelectedNarration] = useState(null)
   function handleClick(hit, order) {
     // console.log("click", hit)
     if(hit === selected) {
@@ -168,6 +170,9 @@ function App() {
       SimSearchRegion(hit, order, layer, setSimSearchMethod).then((result) => {
         setSelectedSimSearch(result.simSearch)
         setSimSearchDetailLevel(result.detailLevel)
+      })
+      NarrateRegion(hit, order).then((result) => {
+        setSelectedNarration(result.narrationRanks)
       })
     }
   }
@@ -296,9 +301,9 @@ function App() {
           layerLock={layerLock}
           order={zoom.order}
         />
-        {/* <LayerLegend 
-          layer={layer}
-        /> */}
+        <LayerLegend 
+          data={data}
+        />
         <ZoomLegend 
           k={zoom.transform.k} 
           height={height} 
@@ -311,6 +316,7 @@ function App() {
           selected={selected} // currently selected cell
           selectedOrder={selectedOrder} 
           selectedSimSearch={selectedSimSearch}
+          selectedNarration={selectedNarration}
           simSearchDetailLevel={simSearchDetailLevel}
           setSimSearchDetailLevel={setSimSearchDetailLevel}
           simSearchMethod={simSearchMethod}

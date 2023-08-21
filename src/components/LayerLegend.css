@@ -1,0 +1,29 @@
+
+.legend-box {
+  position: absolute;
+  
+  border: 2px solid black;
+  border-radius: 10px;
+  margin: 0px;
+  background-color: white;
+  
+  left: 15px;
+  width: 250px;
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.legend-label {
+  margin-left: 10px;
+}
+
+.factor-list {
+  margin-top: 5px;
+  list-style-type: none;
+}
+
+.factor-item {
+  margin: -5px;
+  /* cursor: pointer; */
+}
