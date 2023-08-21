@@ -1,22 +1,24 @@
 .lens-modal {
   position: absolute;
-  left: 15px;
-  line-height: 20px;
   display: flex;
-  margin: 10px 0px 0px 0px;
+  left: 10px;
+  margin: 10px;
   height: 100px;
   text-align: center;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   background-color: white;
-  /* opacity: 0.5; */
+  opacity: 0.9;
   border: 2px solid black;
   border-radius: 10px;
 }
 
 .lens-header {
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  margin-top: -10px;
 }
 
 .lens-modal-lenses {
@@ -25,15 +27,15 @@
   font-weight: bold;
   display: flex;
   justify-content: center;
-  font-size: 14px;
+  font-size: 12px;
 }
 .lens-button {
   position: relative;
   height: 100%;
-  max-width: 120px;
+  max-width: 100px;
   margin: 5px;
   padding: 5px;
   background-color: lightgrey;
   border: 2px solid;
-  /* opacity: 1; */
+  border-radius: 8px;
 }

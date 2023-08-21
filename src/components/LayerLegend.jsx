@@ -4,126 +4,50 @@ import * as d3 from 'd3'
 import { useEffect, useMemo } from 'react'
 
 const LayerLegend = ({
-  initialTop = 770,
-  height = 41,
-  baseHeight = 41,
-  heightPerFactor = 19,
   data,
   hover,
 } = {}) => {
-  const removeFactorBars = () => {
-    if (document.getElementById('legend-box')) {
-      d3.selectAll('svg#factorSvg').remove()
-      d3.selectAll("div#tooltip").remove()
-    }
-  }
+  var factorList = document.getElementById('factor-list');
+  if(factorList) factorList.innerHTML = '';
 
-  let inViewData, singleSegmentData, factors, colors
+  let inViewData, singleSegmentData, factors
   let hoverHighlights = []
   if(data) {
-    const layer = data.layer
-    const fieldColor = layer.fieldColor
-
     if(data.data.length > 0) {
       inViewData = data.data
       singleSegmentData = inViewData[0].data
       factors = Object.keys(singleSegmentData)
-      colors = factors.map((f) => {
-        return fieldColor(f)
-      })
-    }
-  }
 
-  var factorList = document.getElementById('factor-list');
-  if(factorList) {
-    factorList.innerHTML = ''
-  }
-
-  if(factors) {
-    if(hover) {
-      let hoverData = hover.data
-      hoverHighlights = factors.filter((f) => {return hoverData[f] > 0})
-    }
-
-    let factorPos
-    factorPos = factors.map((f, i) => {
-      let c = 'black'
-      let factortY = null
-      let factorHeight = null
-      if(factorList) {
-        var factorElement = document.createElement('li');
-        factorElement.classList.add('factor-item');
-        factorElement.textContent = f
-        factorElement.style.color = c;
-        if(hoverHighlights.includes(f)) {
-          factorElement.style.fontWeight = 'bold';
+      if(factors) {
+        if(hover) {
+          let hoverData = hover.data
+          if (hoverData) 
+            hoverHighlights = factors.filter((f) => {return hoverData[f] > 0})
         }
-        factorList.appendChild(factorElement)
 
-        factortY = factorElement.getBoundingClientRect().top
-        factorHeight = factorElement.clientHeight
+        let factorPos
+        factorPos = factors.map((f, i) => {
+          if(factorList) {
+            var factorElement = document.createElement('li');
+            factorElement.classList.add('factor-item');
+            factorElement.textContent = f
+            // Set the color of the square bullet using CSS variable
+            factorElement.style.setProperty('--bullet-color', data.layer.fieldColor(f));  
+            if(hoverHighlights.includes(f)) 
+              factorElement.style.textShadow = '1px 0px 0px black';
+            factorList.appendChild(factorElement)
+          }
+          return 
+        })
       }
-      return { y: factortY, height: factorHeight }
-    })
-
-    // add bar for each factor
-    removeFactorBars()
-    const factorYPos = factorPos.map((d) => {
-      return d.y
-    })
-    const factorHeight = factorPos[0].height
-
-    let factorSvgWidth = 10;
-    let factorSvgX = 20;
-    let factorSvgHeight = Math.max(...factorYPos) - Math.min(...factorYPos) + factorHeight
-    let yOffset = 8
-    let gapH = 7
-
-    let legendBox = d3.select("#legend-box")
-    let factorSvg = legendBox
-      .append("svg")
-      .attr('id', 'factorSvg')
-      .attr('className', 'factor-svg')
-      .attr("width", factorSvgWidth)
-      .attr("height", factorSvgHeight)
-      .style("position", "absolute")
-      .attr("transform", "translate(" + factorSvgX + ", -" + (yOffset + factorSvgHeight) + ")");
-    
-    factorYPos.map((y, i) => {
-      const yAdjusted = y - Math.min(...factorYPos)
-      let c = colors[i]
-      factorSvg
-        .append("rect")
-        .attr("x", 0)
-        .attr("y", yAdjusted)
-        .attr("width", factorSvgWidth)
-        .attr("height", factorHeight - gapH)
-        .style("fill", c)
-        .style("stroke", "black")
-        .style("stroke-width", "0.5")
-
-      // adjust height of box
-      let numFactors = factors.length
-      let calculatedHeight = heightPerFactor * numFactors + baseHeight
-      let maxHeight = parseInt(
-        window
-          .getComputedStyle(document.getElementById('legend-box'))
-          .getPropertyValue('max-height')
-          .split('px')[0]
-      )
-      height = Math.min(...[calculatedHeight, maxHeight])
-    })
+    }
   }
-
 
   return (
     <>
       {(
-        <div className="legend-box" id="legend-box" style={{
-          top: (initialTop - height) + "px",
-          height: height + "px"
-        }}>
-          <span className='legend-label'>Factors:</span>
+        <div className="legend-box" id="legend-box">
+          <span className='legend-label'>Factors</span>
           <ul id='factor-list' className='factor-list'/>
         </div>
       )}
