@@ -437,6 +437,8 @@ const HilbertGenome = ({
       let datum = state.data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
       if(datum)
         hover = datum
+    } else {
+      return
     }
     onHover(hover);
   }, [state.data, state.transform, state.order, qt, xScale, yScale])
@@ -455,6 +457,8 @@ const HilbertGenome = ({
       let datum = state.data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
       if(datum)
         clicked = datum
+    } else {
+      return
     }
     onClick(clicked, state.order);
     // zoomToBox(hit.x, hit.y, hit.x + step, hit.y + step)
@@ -479,6 +483,8 @@ const HilbertGenome = ({
       let datum = state.data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
       if(datum)
         clicked = datum
+    } else { 
+      return;
     }
     onClick(clicked, state.order);
     // dispatch({ type: actions.SET_SELECTED, payload: clicked })

@@ -163,7 +163,7 @@ function App() {
       setSelected(null) 
       setSelectedOrder(null)
       setSelectedSimSearch(null)
-    } else {
+    } else if(hit) {
       setSelected(hit)
       setSelectedOrder(order)
       // Region SimSearch
@@ -176,6 +176,19 @@ function App() {
       })
     }
   }
+
+  // keybinding that closes the modal on escape
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if(e.key === "Escape") {
+        handleModalClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [])
 
   function handleModalClose() {
     setRegion(null)
