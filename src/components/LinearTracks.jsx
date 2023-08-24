@@ -64,7 +64,7 @@ const LinearTracks = ({
     // if neither, don't render anything
       // return;
     }
-    if(data && hit && ctx) {
+    if(data && meta && hit && ctx) {
 
       let { fieldChoice, fieldColor} = state.layer
       let fields = meta["fields"]

@@ -1,4 +1,5 @@
 // import { scaleLinear } from "d3-scale";
+import { getOffsets } from "../lib/segments"
 
 // function that scales input to alpha values linearly, but 
 // input values equal to 0 are set to 0
@@ -62,11 +63,14 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     // rendering constants
     let t = {...transform}
 
-    let i,d,xx,yy; 
+    let i,d,dm1,dp1,xx,yy; 
     // make sure to render with the data's order
     const step = Math.pow(0.5, dataOrder)
-    const sw = step * (1 - strokeWidthMultiplier);
-    const rw = sizeScale(sw) * t.k - 1
+    const sw = step //* (1 - strokeWidthMultiplier);
+    const rw = sizeScale(sw) * t.k //- 1
+    const srw = rw * 0.7
+
+    ctx.lineWidth = 0.5
 
     // let domain = [min, max]
     // console.log(domain)
@@ -106,6 +110,8 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     // assign alpha value to each datapoint
     for(i = 0; i < data.length; i++) {
       d = data[i];
+      dm1 = data[i-1];
+      dp1 = data[i+1];
       // scale and transform the coordinates
       xx = t.x + xScale(d.x) * t.k
       yy = t.y + yScale(d.y) * t.k
@@ -121,7 +127,20 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
           let a = alphaScale(sample.value)
           ctx.globalAlpha = a < 0 ? 0 : a
           ctx.fillStyle = fieldColor(sample.field)
-          ctx.fillRect(xx - rw/2, yy - rw/2, rw, rw)
+          ctx.strokeStyle = fieldColor(sample.field)
+          ctx.fillRect(xx - srw/2, yy - srw/2, srw, srw)
+          // ctx.strokeRect(xx - srw/2, yy - srw/2, srw, srw)
+
+            if(dm1) {
+              let { xoff, yoff, w, h } = getOffsets(d, dm1, rw, srw)
+              ctx.fillRect(xx  + xoff, yy + yoff, w, h)
+              // ctx.strokeRect(xx  + xoff, yy + yoff, w, h)
+            }
+            if(dp1) {
+              let { xoff, yoff, w, h } = getOffsets(d, dp1, rw, srw)
+              ctx.fillRect(xx  + xoff, yy + yoff, w, h)
+              // ctx.strokeRect(xx  + xoff, yy + yoff, w, h)
+            }
         }
       }
     }

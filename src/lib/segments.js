@@ -55,6 +55,48 @@ export function joinSegments(segments, segmentThreshold = 100) {
       segments: s
     }
   })
-  return joined
-  
+}
+
+
+
+export function getOffsets(d, p, rw, srw) {
+  // figure out which of the 4 directions the previous point is from this one
+  // and draw a rectangle offset in that direction
+  let dx = d.x - p.x
+  let dy = d.y - p.y
+  let dir = 0
+  if(dx > 0 && dy == 0) dir = 1
+  if(dx < 0 && dy == 0) dir = 2
+  if(dx == 0 && dy > 0) dir = 3
+  if(dx == 0 && dy < 0) dir = 4
+  let xoff = 0
+  let yoff = 0
+  let w = 0
+  let h = 0
+  if(dir == 1) { // previous point to the left
+    xoff = -rw/2
+    yoff = -srw/2
+    w = (rw-srw)/2
+    h = srw
+  }
+  if(dir == 2) { // previous point to the right
+    xoff = srw/2
+    yoff = -srw/2
+    w = (rw-srw)/2
+    h = srw
+  }
+  if(dir == 3) { // previous point above
+    xoff = -srw/2
+    yoff = -rw/2
+    h = (rw-srw)/2
+    w = srw
+  }
+  if(dir == 4) { // previous point below
+    xoff = -srw/2
+    yoff = srw/2
+    h = (rw-srw)/2
+    w = srw
+  }
+  return { xoff, yoff, h, w }
+
 }

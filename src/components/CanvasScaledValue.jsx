@@ -1,4 +1,5 @@
 import { scaleLinear } from "d3-scale";
+import { getOffsets } from "../lib/segments"
 
 // A canvas rendering function that renders a single colored rectangle for each data point
 // with opacity scaled to the max of the order
@@ -27,11 +28,11 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     // rendering constants
     let t = {...transform}
 
-    let i,d,xx,yy; 
+    let i,d,dm1,dp1,xx,yy; 
     // make sure to render with the data's order
     const step = Math.pow(0.5, dataOrder)
-    const sw = step * (1 - strokeWidthMultiplier);
-    const rw = sizeScale(sw) * t.k - 1
+    const sw = step * 1//(1 - strokeWidthMultiplier);
+    const rw = sizeScale(sw) * t.k // - 1
 
     let domain = [min, max]
     let alphaScale = scaleLinear()
@@ -39,10 +40,12 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
       .range([0, 1]) 
     let shrinkScale = scaleLinear()
       .domain(domain)
-      .range([0.3, 1]) 
+      .range([0.1, 1]) 
     
     for(i = 0; i < data.length; i++) {
       d = data[i];
+      dm1 = data[i-1];
+      dp1 = data[i+1];
       // scale and transform the coordinates
       xx = t.x + xScale(d.x) * t.k
       yy = t.y + yScale(d.y) * t.k
@@ -56,11 +59,24 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
             alphaScale.domain(domain)
             shrinkScale.domain(domain)
           }
-          let a = alphaScale(sample.value)
+          // let a = alphaScale(sample.value)
           let srw = rw * shrinkScale(sample.value)
-          ctx.globalAlpha = a < 0 ? 0 : a
+          ctx.globalAlpha = //a < 0 ? 0 : a
           ctx.fillStyle = fieldColor(sample.field)
+          ctx.strokeStyle = fieldColor(sample.field)
           ctx.fillRect(xx - srw/2, yy - srw/2, srw, srw)
+          ctx.strokeRect(xx - srw/2, yy - srw/2, srw, srw)
+          
+          if(dm1) {
+            let { xoff, yoff, w, h } = getOffsets(d, dm1, rw, srw)
+            ctx.fillRect(xx  + xoff, yy + yoff, w, h)
+            ctx.strokeRect(xx  + xoff, yy + yoff, w, h)
+          }
+          if(dp1) {
+            let { xoff, yoff, w, h } = getOffsets(d, dp1, rw, srw)
+            ctx.fillRect(xx  + xoff, yy + yoff, w, h)
+            ctx.strokeRect(xx  + xoff, yy + yoff, w, h)
+          }
         }
       }
     }
