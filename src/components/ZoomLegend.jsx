@@ -62,7 +62,17 @@ const ZoomLegend = ({
           y2: "z",
           x1: 0,
           x2: 1,
-          dx: -width + margin,
+          dx: -width + margin*2,
+          marker: "arrow",
+          fill: "black",
+          stroke: "black"
+        }),
+        Plot.arrow([{ z: k, order }], {
+          y1: "z",
+          y2: "z",
+          x1: 1,
+          x2: 0,
+          dx: width - margin*2,
           marker: "arrow",
           fill: "black",
           stroke: "black"
@@ -72,7 +82,6 @@ const ZoomLegend = ({
           dy: 12,
           fontSize: 20,
           text: "order",
-          fill: "white",
           fill: d => d.order == effectiveOrder ? "black" : "white",
           stroke: d => d.order == effectiveOrder ? "red" : "none",
           paintOrder: "stroke",
@@ -88,6 +97,7 @@ const ZoomLegend = ({
       width,
       height,
       marginLeft: margin,
+      marginRight: margin,
       marginTop: 0,
       marginBottom: 0
     });

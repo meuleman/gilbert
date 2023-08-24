@@ -151,6 +151,7 @@ function App() {
     setHover(hit)
   }
 
+  // selected powers the sidebar modal and the 1D track
   const [selected, setSelected] = useState(null)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [selectedSimSearch, setSelectedSimSearch] = useState(null)
@@ -208,6 +209,7 @@ function App() {
     setShowGenes(!showGenes)
   }
 
+  // changing the region changes the zoom and will also highlight on the map
   const [region, setRegion] = useState(null)
 
   function handleChangeLocationViaAutocomplete(autocompleteRegion) {
@@ -217,12 +219,8 @@ function App() {
       chromosome: autocompleteRegion.chrom, 
       start: autocompleteRegion.start, 
       end: autocompleteRegion.stop 
+      // order: ...
     })
-  }
-
-  const [orderLock, setOrderLock] = useState(true)
-  const handleChangeOrderLock = () => {
-    setOrderLock(!orderLock)
   }
 
   // number state for orderOffset
@@ -230,31 +228,9 @@ function App() {
 
   const [data, setData] = useState(null)
   function onData(payload) {
-    console.log("got some data", payload)
+    // console.log("got some data", payload)
     setData(payload)
   }
-
-  // listen for shift key to toggle lockOrderToZoom
-  // useEffect(() => {
-  //   function handleKeyDown(e) {
-  //     if(e.key === "Shift") {
-  //       setOrderLock(false)
-  //     }
-  //   }
-  //   function handleKeyUp(e) {
-  //     if(e.key === "Shift") {
-  //       setOrderLock(true)
-  //     }
-  //   }
-  //   window.addEventListener('keydown', handleKeyDown);
-  //   window.addEventListener('keyup', handleKeyUp);
-  //   return () => {
-  //     window.removeEventListener('keydown', handleKeyDown);
-  //     window.removeEventListener('keyup', handleKeyUp);
-  //   }
-  // }, [])
-
-
 
   return (
     <>
@@ -344,7 +320,12 @@ function App() {
           onClose={handleModalClose} />
       </div>
       <div>
-        <LinearTracks state={data} width={width} hovered={hover} selected={selected} />
+        <LinearTracks 
+          state={data} 
+          width={width} 
+          hovered={hover} 
+          selected={selected} 
+          setHovered={handleHover} />
         <StatusBar 
           width={width + 500 + 12 + 30} 
           hover={hover} // the information about the cell the mouse is over
