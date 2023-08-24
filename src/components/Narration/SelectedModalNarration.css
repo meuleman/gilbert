@@ -1,2 +1,14 @@
 .selected-modal-narration-container {
+  line-height: 1.2;
+}
+
+.selected-modal-narration-sentence {
+  line-height: 1.2;
+  font-size: 12px;
+  margin: 5px;
+}
+
+.selected-modal-narration-header {
+  font-weight: 400;
+  margin-top: 10px;
 }

@@ -5,6 +5,7 @@ import DetailLevelSlider from './DetailLevelSlider'
 import allFactors from './SimSearchFactors.json'
 import './SelectedModalSimSearch.css'
 import { useEffect } from 'react'
+import { HilbertChromosome } from '../../lib/HilbertChromosome'
 // import { useEffect } from 'react'
 
 
@@ -15,9 +16,14 @@ const SelectedModalSimSearch = ({
   simSearchMethod,
   selectedOrder,
   setRegion,
+  setHover,
+  hover,
   layer,
+  order,
   fontsize = "12px"
 } = {}) => {
+  let hilbert = new HilbertChromosome(order)
+  let simSearchFactorOrder
   const removeConvBars = () => {
     if (document.getElementById('selected-modal-simsearch-list-container')) {
       d3.selectAll('svg#convSvg').remove()
@@ -67,6 +73,24 @@ const SelectedModalSimSearch = ({
         order: selectedOrder
       })
     }
+    const handleHover = function (chrom, start, stop, ranks) {
+      let range = hilbert.fromRegion(chrom, start, stop-1)[0]
+
+      if(simSearchFactorOrder){
+        let hoverData = {}
+        simSearchFactorOrder.map((index, i) => {
+          let factorName = factors[index].fullName
+          let factorRank = ranks[i]
+          hoverData[factorName] = factorRank
+        })
+        range.data = hoverData
+      }
+      setHover(range)
+    }
+
+    const handleHoverLeave = function () {
+      setHover(null)
+    }
 
     // set labels
     var selectedLabel = document.getElementById('selected-modal-simsearch-label-selected')
@@ -109,6 +133,8 @@ const SelectedModalSimSearch = ({
         var regionElement = document.createElement('li');
         regionElement.classList.add('selected-modal-simsearch-item');
         regionElement.addEventListener("click", () => handleClick(chrom, start, stop));
+        // regionElement.addEventListener("mouseover", () => handleHover(chrom, start, stop, ranks));
+        // regionElement.addEventListener("mouseleave", () => handleHoverLeave());
         regionElement.style.fontSize = fontsize;
         if(i===0) {
           regionElement.textContent = chrom + ':' + start
@@ -131,7 +157,7 @@ const SelectedModalSimSearch = ({
       return d.ranks
     })
     const simSearchElementsHeight = simSearchElementsPos[0].height
-    const simSearchFactorOrder = simSearchElementsPos[0].factorOrder
+    simSearchFactorOrder = simSearchElementsPos[0].factorOrder
   
     let convBarSvgWidth = 200;
     let convBarSvgHeight = Math.max(...simSearchElementsYPos) - Math.min(...simSearchElementsYPos) + simSearchElementsHeight
@@ -162,7 +188,7 @@ const SelectedModalSimSearch = ({
 
     const mouseover = function (factorInfo) {
       
-      let factor = factorInfo.name
+      let factor = factorInfo.fullName
       let metric = ""
       if(factorInfo.metric === "DHSs") {
         metric = "DHS Components SFC"

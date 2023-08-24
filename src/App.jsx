@@ -322,7 +322,10 @@ function App() {
           setSimSearchDetailLevel={setSimSearchDetailLevel}
           simSearchMethod={simSearchMethod}
           setRegion={setRegion}
+          setHover={handleHover}
+          hover={hover}
           layer={layer} 
+          order={zoom.order}
           zoom={zoom} 
           layers={layers}
           onClose={handleModalClose} />

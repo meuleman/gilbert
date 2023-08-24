@@ -15,9 +15,12 @@ const SelectedModal = ({
   setSimSearchDetailLevel,
   simSearchMethod,
   setRegion,
+  setHover,
+  hover,
   layer,
   zoom,
   layers,
+  order,
   onClose=()=>{}
 } = {}) => {
   let sample = null
@@ -61,7 +64,6 @@ const SelectedModal = ({
           <SelectedModalNarration
             selectedNarration={selectedNarration}
           />
-          <br/>
           <SelectedModalSimSearch
             selectedSimSearch={selectedSimSearch}
             simSearchDetailLevel={simSearchDetailLevel}
@@ -69,6 +71,9 @@ const SelectedModal = ({
             simSearchMethod={simSearchMethod}
             selectedOrder={selectedOrder}
             setRegion={setRegion}
+            setHover={setHover}
+            hover={hover}
+            order={order}
             layer={layer}
           />
       </div>
