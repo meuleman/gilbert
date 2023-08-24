@@ -132,12 +132,12 @@ const LinearTracks = ({
     if(canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect();
       const x = event.clientX - rect.left;
-      // const y = event.clientY - rect.top;
+      const y = event.clientY - rect.top;
       // console.log("x,y", x,y)
       let index = invertScaleBand(xScale, x)
       // console.log("i", index)
       if(index >= 0) {
-        let hit = track[index]
+        let hit = track.find(d => d.i == index)
         // console.log("hit", hit)
         if(hit) {
           setHovered(hit)
