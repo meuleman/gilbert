@@ -19,7 +19,6 @@ export default function SimSearchRegion(selected, order, layer, setSimSearchMeth
         const simSearch = {simSearch: null, detailLevel: null}
         return Promise.resolve(simSearch)
       }
-      console.log(layer)
       const roiURL = "False"
       const queryFactorThresh = 0.5
       const numSimilarRegions = 20
