@@ -5,8 +5,10 @@
 
 @font-face {
   font-family: 'Gilbert';
-  src: url('fonts/Gilbert-Color Bold-Preview_1004.otf');
+  /* src: url('fonts/Gilbert-Color Bold-Preview_1004.otf'); */
   /* src: url('fonts/Gilbert-Bold Preview5.otf'); */
+  src: url('fonts/pricedown bl.ttf');
+
 }
 
 .title {
