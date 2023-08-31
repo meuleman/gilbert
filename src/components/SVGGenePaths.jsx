@@ -63,8 +63,8 @@ export default function GenePaths({
               strokeLinecap="round"
               fill="none"
               opacity={opacity}
-              markerStart="url(#gene-circle)"
-              markerEnd="url(#gene-triangle)"
+              // markerStart="url(#gene-circle)"
+              // markerEnd="url(#gene-triangle)"
               />
           )})}
       </g>

@@ -43,8 +43,6 @@ const LinearTracks = ({
   // }, [])
 
 
-
-
   if(canvasRef.current) {
     const ctx = canvasRef.current.getContext('2d');
     // {data, meta} = state
@@ -53,7 +51,6 @@ const LinearTracks = ({
     // if(!points || !data || !meta) return;
 
     // console.log("selected, hovered", selected, hovered)
-    let hit
     if(selected) {
     // if selected, pick out the continuous data centered on the selected point
       hit = selected
@@ -78,9 +75,12 @@ const LinearTracks = ({
       // the 1D coordinates are d.i
       track = data.filter(d => d.chromosome == hit.chromosome)
       let xExtent = extent(track, d => d.i)
+      xExtent[1] += 1
       xScale = scaleBand()
         .domain(range(xExtent[0], xExtent[1]))
         .range([margin, width - margin])
+
+      let bw = xScale.bandwidth()
 
       yScale = scaleLinear()
         .domain(yExtent)
@@ -90,19 +90,20 @@ const LinearTracks = ({
 
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "black"
-      ctx.fillRect(xScale(hit.i), margin, 1, height - margin*2)
+      let tx = xScale(hit.i) + bw/2
+      ctx.fillRect(tx, margin, 1, height - margin*2)
       // draw a black triangle at the top of the selected point
       ctx.beginPath();
-      ctx.moveTo(xScale(hit.i), margin);
-      ctx.lineTo(xScale(hit.i) - 5, 0);
-      ctx.lineTo(xScale(hit.i) + 5, 0);
+      ctx.moveTo(tx, margin);
+      ctx.lineTo(tx - 5, 0);
+      ctx.lineTo(tx + 5, 0);
       ctx.closePath();
       ctx.fill();
       // draw a black triangle at the bottom of selected point
       ctx.beginPath();
-      ctx.moveTo(xScale(hit.i), height - margin);
-      ctx.lineTo(xScale(hit.i) - 5, height);
-      ctx.lineTo(xScale(hit.i) + 5, height);
+      ctx.moveTo(tx, height - margin);
+      ctx.lineTo(tx - 5, height);
+      ctx.lineTo(tx + 5, height);
       ctx.closePath();
       ctx.fill();
 
@@ -119,7 +120,7 @@ const LinearTracks = ({
           let x = xScale(d.i)
           let y = height-margin-h
           ctx.fillStyle = fieldColor(sample.field)
-          ctx.fillRect(x, y, xScale.bandwidth(), h)
+          ctx.fillRect(x, y, bw, h)
         }
       })
 
@@ -132,7 +133,7 @@ const LinearTracks = ({
     if(canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect();
       const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
+      // const y = event.clientY - rect.top;
       // console.log("x,y", x,y)
       let index = invertScaleBand(xScale, x)
       // console.log("i", index)
@@ -155,7 +156,7 @@ const LinearTracks = ({
         ref={canvasRef}
         onMouseMove={handleMouseMove}
       />
-      {hit &&  <div className="annotations">
+      {hit && coordExtent &&  <div className="annotations">
           <div className="start">{hit.chromosome}:{coordExtent[0]} </div>
           {/* TODO: add a 1 hilbert cell of coords to the end */}
           <div className="end">{hit.chromosome}:{coordExtent[1]}</div>

@@ -34,7 +34,9 @@ export default function CanvasBaseComponent({ canvasRef, state, scales, layer })
     // if the data's order doesn't match the current order we render it more transparently
     ctx.globalAlpha = 1 //order == dataOrder ? 1 : 0.85
     ctx.strokeStyle = "lightgray" 
+    // ctx.strokeStyle = "black" 
     ctx.fillStyle = "white"
+    // ctx.fillStyle = "lightgray"
     ctx.lineWidth = 0.5;
 
     let path = line()
@@ -48,10 +50,9 @@ export default function CanvasBaseComponent({ canvasRef, state, scales, layer })
       ctx.stroke()
     })
 
-    let i,d,xx,yy; 
-    
     // we render the stroke of the points regardless of if we have data loaded
     // the points always get updated on zoom so we can show them instantly
+    // let i,d,xx,yy; 
     // let step = Math.pow(0.5, order)
     // let sw = step * (1 - strokeWidthMultiplier);
     // let rw = sizeScale(sw) * t.k - 1
@@ -60,10 +61,12 @@ export default function CanvasBaseComponent({ canvasRef, state, scales, layer })
     //   // scale and transform the coordinates
     //   xx = t.x + xScale(d.x) * t.k
     //   yy = t.y + yScale(d.y) * t.k
-    //   ctx.globalAlpha = 0.7
+    //   ctx.globalAlpha = i/points.length // indicate the direction of the hilbert curve
+    //   // ctx.globalAlpha = 0.7
     //   ctx.fillRect(xx - rw/2, yy - rw/2, rw, rw)
-    //   ctx.globalAlpha = 1
-    //   ctx.strokeRect(xx - rw/2, yy - rw/2, rw, rw)
+    //   // ctx.globalAlpha = 1
+    //   // ctx.lineWidth = 0.5 + i/points.length
+    //   // ctx.strokeRect(xx - rw/2, yy - rw/2, rw, rw)
     // }
   }
 }

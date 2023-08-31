@@ -258,7 +258,7 @@ function App() {
             SVGRenderers={[
               SVGChromosomeNames({ }),
               showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
-              SVGSelected({ hit: hover, stroke: "black", strokeWidthMultiplier: 0.1, showGenes }),
+              SVGSelected({ hit: hover, stroke: "black", highlightPath: true, strokeWidthMultiplier: 0.1, showGenes }),
               SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.4, showGenes: false }),
               // TODO: highlight search region (from autocomplete)
               // SVGSelected({ hit: region, stroke: "gray", strokeWidthMultiplier: 0.4, showGenes: false }),
