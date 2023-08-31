@@ -100,7 +100,7 @@ function App() {
       function updateSize() {
         if(!containerRef.current) return
         //let { height } = containerRef.current.getBoundingClientRect()
-        let height = window.innerHeight - 250;
+        let height = window.innerHeight - 270;
         // account for the zoom legend (30) and padding (48)
         let w = window.innerWidth - 30 - 24 - 500
         // console.log("sup", window.innerWidth, w, width)

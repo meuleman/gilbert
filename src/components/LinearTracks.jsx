@@ -132,13 +132,13 @@ const LinearTracks = ({
       // track boundaries
       ctx.fillStyle = "gray"
       tracks.forEach(track => {
-
-        let tx = xScale(track[0].i)
-        ctx.fillRect(tx, margin, 1, height - margin*2)
-        tx = xScale(track[track.length - 1].i)
-        ctx.fillRect(tx, margin, 1, height - margin*2)
+        if (track[0]) { // added to prevent crash due to undefined track (Wouter)
+          let tx = xScale(track[0].i)
+          ctx.fillRect(tx, margin, 1, height - margin*2)
+          tx = xScale(track[track.length - 1].i)
+          ctx.fillRect(tx, margin, 1, height - margin*2)
+        }
       })
-
 
       track.forEach(d => {
         const sample = fieldChoice(d);
