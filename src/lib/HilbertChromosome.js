@@ -71,10 +71,12 @@ export function HilbertChromosome(order, {
       return [c, getOverlappingRectangle(c, mbbox)]
     })
     .filter(d => !!d[1])
-    return inview.flatMap(d => fromBboxChromosome(d[0], d[1]))
+    return inview.flatMap(d => fromBboxChromosome(d[0], d[1], bbox))
   }
 
-  function fromBboxChromosome(chromosome, bbox) {
+  function fromBboxChromosome(chromosome, pbbox, obbox) {
+    // pbbox: padded bbox
+    // obbox: original bbox
     let points = [] 
     // we need to offset the bbox by the chromosome offset
     let cx = chromosome.x
@@ -82,17 +84,17 @@ export function HilbertChromosome(order, {
 
     // now we get starting and ending points for x and y that we can loop over
     // these values are now in [0,1] space for interfacing with the hilbert curve
-    let lx = -cx + bbox.x
-    let rx = -cx + bbox.x + bbox.width
-    let ly = -cy + bbox.y
-    let ry = -cy + bbox.y + bbox.height
+    let lx = -cx + pbbox.x
+    let rx = -cx + pbbox.x + pbbox.width
+    let ly = -cy + pbbox.y
+    let ry = -cy + pbbox.y + pbbox.height
 
     let iMax = hilbertPosToOrder(chromosome.length, { from: maxOrder, to: order })
 
     // we loop over by double the amount of steps we actually need
     // this way we don't accidentally miss a row or column
     // we dedupe anyway and this will always be relatively cheap thanks to the viewbox
-    let i,h,x,y;
+    let i,h,x,y, px, py;
     for(x = lx; x <= rx; x += step/2 ) {
       for(y = ly; y <= ry; y += step/2 ) {
         // get the hilbert coordinate for our 2D coordinate
@@ -101,14 +103,17 @@ export function HilbertChromosome(order, {
         if(i < 0 || i > iMax) continue;
         // get the 2D point
         h = get2D(i)
+        px = h.hx + chromosome.x
+        py = h.hy + chromosome.y
         points.push({
           i,
           chromosome: chromosome.name,
           start: hilbertPosToOrder(i, { from: order, to: maxOrder }), // the local start position
           // ...h,
           // add the chromosome's offset back to get our global x, y coordinate
-          x: h.hx + chromosome.x,
-          y: h.hy + chromosome.y,
+          x: px,
+          y: py,
+          inview: (px > obbox.x && px < obbox.x + obbox.width && py > obbox.y && py < obbox.y + obbox.height),
           order
         })
       }

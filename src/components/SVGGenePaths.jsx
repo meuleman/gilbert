@@ -61,7 +61,7 @@ export default function GenePaths({
               strokeWidth={strokeWidth} 
               strokeLinejoin="round"
               strokeLinecap="round"
-              strokeDasharray="1 1"
+              strokeDasharray={strokeWidth*2 + " " + strokeWidth*2}
               fill="none"
               opacity={opacity}
               // markerStart="url(#gene-circle)"

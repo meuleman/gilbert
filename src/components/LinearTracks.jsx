@@ -71,11 +71,33 @@ const LinearTracks = ({
       let max = meta["max"]
       let yExtent = [min,max]
 
-
       // the 1D coordinates are d.i
-      track = data.filter(d => d.chromosome == hit.chromosome)
+      track = data.filter(d => d.chromosome == hit.chromosome && d.inview)
+      // console.log("track", track)
+
       let xExtent = extent(track, d => d.i)
       xExtent[1] += 1
+
+      let gapsize = Math.round((xExtent[1] - xExtent[0]) * .05)
+      let tracks = []
+      // split track into continuous segments based on d.i
+      let last = track[0]
+      let current = [last]
+      for(let i = 1; i < track.length; i++) {
+        let d = track[i]
+        // if(d.i == last.i + 1) {
+        if(d.i - last.i < gapsize) {
+          current.push(d)
+        } else {
+          tracks.push(current)
+          current = [d]
+        }
+        last = d
+      }
+      if(tracks[tracks.length -1] !== current) tracks.push(current)
+      // console.log("tracks", hit, tracks)
+
+
       xScale = scaleBand()
         .domain(range(xExtent[0], xExtent[1]))
         .range([margin, width - margin])
@@ -106,6 +128,16 @@ const LinearTracks = ({
       ctx.lineTo(tx + 5, height);
       ctx.closePath();
       ctx.fill();
+
+      // track boundaries
+      ctx.fillStyle = "gray"
+      tracks.forEach(track => {
+
+        let tx = xScale(track[0].i)
+        ctx.fillRect(tx, margin, 1, height - margin*2)
+        tx = xScale(track[track.length - 1].i)
+        ctx.fillRect(tx, margin, 1, height - margin*2)
+      })
 
 
       track.forEach(d => {
