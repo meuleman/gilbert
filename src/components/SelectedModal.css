@@ -10,6 +10,7 @@
   /* justify-content: space-between; */
   box-shadow: -2px 2px 2px 0px rgba(0,0,0,0.25);
   padding: 5px;
+  overflow: hidden;
 }
 .selected-modal .header {
 
@@ -39,4 +40,10 @@
 
 .selected-modal .selected-modal-order {
   padding: 0px 4px;
+}
+
+.selected-modal-selected {
+  position: absolute;
+  top: 30px;
+  bottom: 0px;
 }

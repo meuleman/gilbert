@@ -20,13 +20,14 @@ const SelectedModalSimSearch = ({
   hover,
   layer,
   order,
-  fontsize = "12px"
+  listFontSize=12,
+  listMargin=-17
 } = {}) => {
   let hilbert = new HilbertChromosome(order)
   let simSearchFactorOrder
   let dlSimSearch
 
-  const handleClick = function (chrom, start, stop) {
+  const handleRegionClick = function (chrom, start, stop) {
     setRegion({
       chromosome: chrom, 
       start: start, 
@@ -34,7 +35,7 @@ const SelectedModalSimSearch = ({
       order: selectedOrder
     })
   }
-  const handleHover = function (chrom, start, stop, ranks) {
+  const handleRegionMouseOver = function (chrom, start, stop, ranks) {
     let range = hilbert.fromRegion(chrom, start, stop-1)[0]
     if(simSearchFactorOrder){
       let hoverData = {}
@@ -48,10 +49,11 @@ const SelectedModalSimSearch = ({
     setHover(range)
   }
 
-  const handleHoverLeave = function () {
+  const handleRegionMouseLeave = function () {
     setHover(null)
   }
 
+  // function to clear the convolution svg
   const removeConvBars = () => {
     if (document.getElementById('selected-modal-simsearch-list-container')) {
       d3.selectAll('svg#convSvg').remove()
@@ -66,61 +68,58 @@ const SelectedModalSimSearch = ({
   else if(simSearchMethod === 'Chromatin States SFC') {
     factors = allFactors['Chromatin States']
   }
-
-  // const clearSimSearchList = () => {
-  //   // clear list
-  //   var simSearchList = document.getElementById('similar-regions-list');
-  //   var selectedList = document.getElementById('selected-list');
-  //   if(simSearchList) {
-  //     simSearchList.innerHTML = ''
-  //   }
-  //   if(selectedList) {
-  //     selectedList.innerHTML = ''
-  //   }
-  // }
-
-  let maxDetailLevel = null
-  if(selectedSimSearch && factors) {
-    // set quiescent factor color to non-white value
-    let quiescentFactorInd = null
+  // set quiescent factor color to non-white value
+  if (factors) {
     factors.map((f, i) => {
       if(f.color === "#ffffff") {
-        quiescentFactorInd = i
+        f.color = "#ECECEC"
       }
     })
-    if(quiescentFactorInd) {
-      factors[quiescentFactorInd].color = "#ECECEC"
-    }
+  }
 
+  // set max detail level and sim search results for current detail level
+  let maxDetailLevel
+  if(selectedSimSearch) {
     maxDetailLevel = selectedSimSearch.length
-    if (selectedSimSearch && simSearchDetailLevel) {
+    if (simSearchDetailLevel) {
       dlSimSearch = selectedSimSearch[simSearchDetailLevel - 1]
       simSearchFactorOrder = dlSimSearch[0].factor_order
     }
-
+  } else {
     removeConvBars()
+  }
     
+  useEffect(() => {
+    removeConvBars()
     let selectedList = document.getElementById('selected-list');
-    let selectedListItems = [...selectedList.querySelectorAll('li')]
+    let selectedListItem = [...selectedList.querySelectorAll('li')]
 
     let simSearchList = document.getElementById('similar-regions-list');
     let simSearchListItems = [...simSearchList.querySelectorAll('li')]
-
-    if((selectedListItems.length > 0) && (simSearchListItems.length > 0)) {
-      let selectedListItemYPos = selectedListItems.map((i) => i.getBoundingClientRect().top)
+    
+    if((selectedListItem.length > 0)) {
+      // get the y positions for each region
+      let selectedListItemYPos = selectedListItem.map((i) => i.getBoundingClientRect().top)
       let simSearchListItemsYPos = simSearchListItems.map((i) => i.getBoundingClientRect().top)
-
       let allRegionYPos = selectedListItemYPos.concat(simSearchListItemsYPos)
       
-      let selectedListItemHeight = selectedListItems.map((i) => i.clientHeight)
-      let regionHeight = Math.min(selectedListItemHeight[0], Math.min(...allRegionYPos.slice(1).map((y, i) => y - allRegionYPos[i])))
+      // define the height of convolution bars
+      let maxBarHeight = 20
+      let regionHeight = Math.min(maxBarHeight, Math.min(...allRegionYPos.slice(1).map((y, i) => y - allRegionYPos[i])))
+      // spacing between bars
+      let gapW = 1
+      let gapH = 1
 
+
+      
+      // define the size and position of convolution bar svg
       let convBarSvgHeight = Math.max(...allRegionYPos) - Math.min(...allRegionYPos) + regionHeight
       let convBarSvgWidth = 100;
-      let svgYAdjust = convBarSvgHeight - regionHeight / 4
+      let svgYAdjust = convBarSvgHeight - 10
+      
       let svgXAdjust = 200
       let simSearchListContainer = d3.select("#selected-modal-simsearch-list-container")
-      
+
       let convSvg = simSearchListContainer
         .append("svg")
         .attr('id', 'convSvg')
@@ -185,10 +184,10 @@ const SelectedModalSimSearch = ({
           .style("stroke-width", "0.1")
       }
 
+      // threshold to include convolution bars
       let convThresh = 0 // Math.sqrt(0.9)
-      let gapW = 1
-      let gapH = 1
-      
+
+      // add convolution bars
       allRegionYPos.map((y, i) => {
         const yAdjusted = y - Math.min(...allRegionYPos) //+ regionHeight
         const ranks = dlSimSearch[i].percentiles
@@ -215,7 +214,7 @@ const SelectedModalSimSearch = ({
         })
       })
     }
-  } 
+  }, [dlSimSearch])
 
   return (
     <div id='selected-modal-simsearch-list-container' className='selected-modal-simsearch-list-container'>
@@ -224,7 +223,11 @@ const SelectedModalSimSearch = ({
         maxDetailLevel={maxDetailLevel}
         setDetailLevel={setSimSearchDetailLevel}
       />
-      <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-selected'>Selected Region:</span>
+      <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-selected' style={{"fontSize": listFontSize + "px"}}>
+        {dlSimSearch ? (
+          "Selected Region:"
+        ) : null}
+      </span>
 
       <ul id='selected-list' className='selected-modal-simsearch-list'>
         {dlSimSearch ? (
@@ -237,16 +240,27 @@ const SelectedModalSimSearch = ({
             return <li 
               className='selected-modal-simsearch-item' 
               key={rank}
-              onClick={() => handleClick(chrom, start, stop)}
-              onMouseOver={() => handleHover(chrom, start, stop, factorRanks)}
-              onMouseLeave={() => handleHoverLeave()}
+              onClick={() => handleRegionClick(chrom, start, stop)}
+              onMouseOver={() => handleRegionMouseOver(chrom, start, stop, factorRanks)}
+              onMouseLeave={() => handleRegionMouseLeave()}
+              style={{
+                "fontSize": listFontSize + "px",
+                "margin": listMargin + "px"
+              }}
             >
               {chrom}:{start}
             </li>
           })
         ) : null}
       </ul>
-      <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-similar'>Similar Regions:</span>
+      <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-similar' style={{"fontSize": listFontSize + "px"}}> 
+        {dlSimSearch ?
+          (dlSimSearch.length > 1) ?
+            "Similar Regions:"
+          : null
+        : null}
+      </span>
+      
       <ul id='similar-regions-list' className='selected-modal-simsearch-list'>
         {dlSimSearch ? (
           dlSimSearch.slice(1).map((s) => {
@@ -258,9 +272,13 @@ const SelectedModalSimSearch = ({
             return <li 
               className='selected-modal-simsearch-item' 
               key={rank}
-              onClick={() => handleClick(chrom, start, stop)}
-              onMouseOver={() => handleHover(chrom, start, stop, factorRanks)}
-              onMouseLeave={() => handleHoverLeave()}
+              onClick={() => handleRegionClick(chrom, start, stop)}
+              onMouseOver={() => handleRegionMouseOver(chrom, start, stop, factorRanks)}
+              onMouseLeave={() => handleRegionMouseLeave()}
+              style={{
+                "fontSize": listFontSize + "px",
+                "margin": listMargin + "px"
+              }}
             >
               {rank}: {chrom}:{start}
             </li>

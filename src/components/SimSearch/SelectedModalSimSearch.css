@@ -1,16 +1,23 @@
 .selected-modal-simsearch-list {
   list-style-type: none;
   margin: 0px;
+  /* min-height: 50%; */
 }
 
 .selected-modal-simsearch-item {
   margin: -10px;
   cursor: pointer;
+  height: 5%;
 }
 
 .selected-modal-simsearch-list-container {
-  position: relative;
-  max-height: 650px;
+  position: absolute;
+  /* max-height: 650px; */
+  /* top: 20%; */
+  top: 150px;
+  bottom: 0px;
+  right: 0px;
+  left: 0px;
   z-index: 0;
 }
 
