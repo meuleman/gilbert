@@ -20,8 +20,11 @@ const SelectedModalSimSearch = ({
   hover,
   layer,
   order,
-  listFontSize=12,
-  listMargin=-17
+  regionHeight=12,
+  regionMargin=-17,
+  barGap=1,
+  convThresh=0,
+  svgXAdjust=200,
 } = {}) => {
   let hilbert = new HilbertChromosome(order)
   let simSearchFactorOrder
@@ -102,24 +105,16 @@ const SelectedModalSimSearch = ({
       let selectedListItemYPos = selectedListItem.map((i) => i.getBoundingClientRect().top)
       let simSearchListItemsYPos = simSearchListItems.map((i) => i.getBoundingClientRect().top)
       let allRegionYPos = selectedListItemYPos.concat(simSearchListItemsYPos)
-      
-      // define the height of convolution bars
-      let maxBarHeight = 20
-      let regionHeight = Math.min(maxBarHeight, Math.min(...allRegionYPos.slice(1).map((y, i) => y - allRegionYPos[i])))
-      // spacing between bars
-      let gapW = 1
-      let gapH = 1
 
-
-      
       // define the size and position of convolution bar svg
       let convBarSvgHeight = Math.max(...allRegionYPos) - Math.min(...allRegionYPos) + regionHeight
-      let convBarSvgWidth = 100;
-      let svgYAdjust = convBarSvgHeight - 10
+      let convBarSvgWidth = svgXAdjust / 2
       
-      let svgXAdjust = 200
+      let firstRegion = selectedListItem[0].getBoundingClientRect()
+      let firstRegionOverallSize = firstRegion.height
+      let svgYAdjust = convBarSvgHeight + regionMargin + (firstRegionOverallSize - regionHeight) / 2
+      
       let simSearchListContainer = d3.select("#selected-modal-simsearch-list-container")
-
       let convSvg = simSearchListContainer
         .append("svg")
         .attr('id', 'convSvg')
@@ -127,7 +122,8 @@ const SelectedModalSimSearch = ({
         .attr("width", convBarSvgWidth)
         .attr("height", convBarSvgHeight)
         .style("position", "absolute")
-        .attr("transform", "translate(" + svgXAdjust + ", -" + svgYAdjust + ")");
+        .attr("transform", "translate(" + (svgXAdjust + regionMargin) + ", -" + svgYAdjust + ")")
+        // .attr("y", "359")
 
       const tooltip = simSearchListContainer
         .append('div')
@@ -184,9 +180,6 @@ const SelectedModalSimSearch = ({
           .style("stroke-width", "0.1")
       }
 
-      // threshold to include convolution bars
-      let convThresh = 0 // Math.sqrt(0.9)
-
       // add convolution bars
       allRegionYPos.map((y, i) => {
         const yAdjusted = y - Math.min(...allRegionYPos) //+ regionHeight
@@ -199,10 +192,10 @@ const SelectedModalSimSearch = ({
             const factor = factors[factorInd]
             convSvg
               .append("rect")
-              .attr("x", factorCount * regionHeight / 2)
+              .attr("x", factorCount * (regionHeight / 2 + barGap))
               .attr("y", yAdjusted)
-              .attr("width", regionHeight / 2 - gapW)
-              .attr("height", regionHeight - gapH)
+              .attr("width", regionHeight / 2)
+              .attr("height", regionHeight)
               .style("fill", factor.color)
               .style("stroke", "black")
               .style("stroke-width", "0.1")
@@ -223,7 +216,7 @@ const SelectedModalSimSearch = ({
         maxDetailLevel={maxDetailLevel}
         setDetailLevel={setSimSearchDetailLevel}
       />
-      <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-selected' style={{"fontSize": listFontSize + "px"}}>
+      <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-selected' style={{"fontSize": regionHeight + "px"}}>
         {dlSimSearch ? (
           "Selected Region:"
         ) : null}
@@ -244,8 +237,8 @@ const SelectedModalSimSearch = ({
               onMouseOver={() => handleRegionMouseOver(chrom, start, stop, factorRanks)}
               onMouseLeave={() => handleRegionMouseLeave()}
               style={{
-                "fontSize": listFontSize + "px",
-                "margin": listMargin + "px"
+                "fontSize": regionHeight + "px",
+                "margin": regionMargin + "px"
               }}
             >
               {chrom}:{start}
@@ -253,7 +246,7 @@ const SelectedModalSimSearch = ({
           })
         ) : null}
       </ul>
-      <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-similar' style={{"fontSize": listFontSize + "px"}}> 
+      <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-similar' style={{"fontSize": regionHeight + "px"}}> 
         {dlSimSearch ?
           (dlSimSearch.length > 1) ?
             "Similar Regions:"
@@ -276,8 +269,8 @@ const SelectedModalSimSearch = ({
               onMouseOver={() => handleRegionMouseOver(chrom, start, stop, factorRanks)}
               onMouseLeave={() => handleRegionMouseLeave()}
               style={{
-                "fontSize": listFontSize + "px",
-                "margin": listMargin + "px"
+                "fontSize": regionHeight + "px",
+                "margin": regionMargin + "px"
               }}
             >
               {rank}: {chrom}:{start}
