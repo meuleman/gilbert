@@ -1,4 +1,5 @@
 
+import { all } from 'axios'
 import './LensModal.css'
 import lenses from './Lenses/lenses.json'
 import { useEffect, useState } from 'react'
@@ -14,15 +15,6 @@ const LensModal = ({
   orders=[4,5,6,7,8,9,10,11,12,13,14]
 } = {}) => {
   const lensNames = Object.keys(lenses)
-
-  // sets the styles for all lens buttons to unselected state
-  const resetButtonFormats = () => {
-    const allButtons = document.querySelectorAll('.lens-button');
-    allButtons.forEach((button) => {
-      button.style.fontWeight = 'normal';
-      button.style.border = '2px solid'
-    })
-  }
 
   const [permanentLayer, setPermanentLayer] = useState(null)
   const [layerLockLayer, setLayerLockLayer] = useState(null)
@@ -49,10 +41,6 @@ const LensModal = ({
     if(Object.keys(newLayerOrder).length === orders.length) {
       setLayerOrder(newLayerOrder)
       setLayer(newLayerOrder[order])
-      resetButtonFormats()
-      const clicked = document.getElementById(id)
-      clicked.style.fontWeight = 'bold';
-      clicked.style.border = '5px solid'
       setPermanentLayer({
         lens: lens,
         id: id
@@ -100,29 +88,103 @@ const LensModal = ({
     }
   }, [layerLock])
 
+  let isDropdown = new Array(lensNames.length).fill(false)
+  lensNames.map((l, i) => {
+    if (typeof Object.values(lenses[l])[0] === "object") {
+      isDropdown[i] = true
+    }
+  })
+
+  const [dropdownOpen, setDropdownOpen] = useState(new Array(lensNames.length).fill(false))
+
+  const handleDropdownOpen = (buttonName) => {
+    let openArr = [...dropdownOpen]
+    const lensIndex = lensNames.indexOf(buttonName)
+
+    // rotate dropdown arrow
+    const dropdownButtonElement = document.getElementById(buttonName)
+    if (dropdownOpen[lensIndex]) {
+      dropdownButtonElement.style.setProperty('--rotation', 'rotate(0deg)'); 
+    } else {
+      dropdownButtonElement.style.setProperty('--rotation', 'rotate(180deg)'); 
+    }
+
+    // set open
+    openArr[lensIndex] = !dropdownOpen[lensIndex]
+    setDropdownOpen(openArr)
+  }
+
   return (
     <>
-    {(
-    <div className="lens-modal">
-      <div className='lens-header'>Data Lenses</div>
-      <div className="lens-modal-lenses">
-        {lensNames.map((l) => {
-          const lensLayers = lenses[l]
-          return (
-            <button 
-            className='lens-button' 
-            id={l} 
-            key={l} 
-            onClick={() => onClick(lensLayers, l)}
-            onMouseOver={() => onMouseOver(lensLayers, l)}
-            onMouseLeave={() => onMouseLeave(permanentLayer.lens, permanentLayer.id)}
-            >{l}</button>
-          )
-        })}
-      </div>
-    </div>
-  )}
-</>
+      {(
+        <div className="lens-modal">
+          <div className='lens-header'>Data Lenses</div>
+          <div className="lens-modal-lenses">
+            {lensNames.map((l, i) => {
+              if (isDropdown[i]) {
+                const sublenses = lenses[l]
+                const sublensNames = Object.keys(sublenses)
+                const id = 'dropdown-button-container' + i
+                return (
+                  <div id={id} key={id}>
+                    <button
+                      className={
+                        (permanentLayer && (!layerLockLayer)) ? 
+                          sublensNames.includes(permanentLayer.id) ? 'dropdown-button-selected' : 'dropdown-button'
+                        : 'dropdown-button'
+                      }
+                      id={l}
+                      key={l}
+                      onClick={() => handleDropdownOpen(l)}
+                    >{l}</button>
+                    {dropdownOpen[i] ? (
+                      <div  className='dropdown-container'>
+                        {sublensNames.map((s, i) => {
+                          const sublensLayers = sublenses[s]
+                          return (
+                            <button
+                              className={
+                                (permanentLayer && (!layerLockLayer)) ? 
+                                  permanentLayer.id === s ? 'dropdown-lens-button-selected' : 'dropdown-lens-button'
+                                : 'dropdown-lens-button'
+                              }
+                              key={s}
+                              id={s}
+                              onClick={() => onClick(sublensLayers, s)}
+                              onMouseOver={() => onMouseOver(sublensLayers, s)}
+                              onMouseLeave={() => onMouseLeave(permanentLayer.lens, permanentLayer.id)}
+                            >
+                              {s}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    ): <div/>}
+                  </div>
+                )
+
+              } else {
+                const lensLayers = lenses[l]
+                return (
+                  <button 
+                    className={
+                      (permanentLayer && (!layerLockLayer)) ? 
+                        permanentLayer.id === l ? 'lens-button-selected' : 'lens-button'
+                      : 'lens-button'
+                    }
+                    id={l} 
+                    key={l} 
+                    onClick={() => onClick(lensLayers, l)}
+                    onMouseOver={() => onMouseOver(lensLayers, l)}
+                    onMouseLeave={() => onMouseLeave(permanentLayer.lens, permanentLayer.id)}
+                  >{l}</button>
+                )
+              }
+            })}
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 export default LensModal
