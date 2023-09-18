@@ -91,9 +91,11 @@ const LayerLegend = ({
             factorElement.style.setProperty('--bullet-color', data.layer.fieldColor(f));  
             if(hoverHighlights.includes(f)) 
               factorElement.style.textShadow = '1px 0px 0px black';
-            const SBFFactorInd = SBFFactorInds[SBFFactorNames.indexOf(f)]
-            if(searchByFactorIndices.includes(SBFFactorInd)) {
-              factorElement.style.setProperty('--checkmark', `'\\2713'`)
+            if(SBFFactorNames) {
+              const SBFFactorInd = SBFFactorInds[SBFFactorNames.indexOf(f)]
+              if(searchByFactorIndices.includes(SBFFactorInd)) {
+                factorElement.style.setProperty('--checkmark', `'\\2713'`)
+              }
             }
             factorList.appendChild(factorElement)
           }
