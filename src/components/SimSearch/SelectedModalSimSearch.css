@@ -10,10 +10,12 @@
 }
 
 .selected-modal-simsearch-list-container {
-  position: absolute;
+  /* position: absolute; */
+  position: relative;
   /* max-height: 650px; */
   /* top: 20%; */
-  top: 150px;
+  /* top: 175px; */
+  top: 0px;
   bottom: 0px;
   right: 0px;
   left: 0px;

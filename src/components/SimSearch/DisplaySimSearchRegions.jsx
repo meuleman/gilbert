@@ -10,7 +10,7 @@ function checkRanges(a, b) {
 }
 
 const DisplayedSimSearchRegions = ({
-  simSearch,
+  simSearch=null,
   detailLevel,
   selectedRegion,
   order,
@@ -22,25 +22,36 @@ const DisplayedSimSearchRegions = ({
     // showGenes=false
     let hilbert = new HilbertChromosome(order)
 
-    const similarRegions = simSearch[detailLevel - 1].slice(1)
-    const similarRanges = similarRegions.map((d) => {
-      const coords = d.coordinates
-      const chrm = coords.split(':')[0]
-      const start = coords.split(':')[1].split('-')[0]
-      const stop = coords.split(':')[1].split('-')[1]
-      let range = hilbert.fromRegion(chrm, start, stop-1)[0]
-      range.end = stop
-      return range
-    })
+    let similarRegions
+    if(detailLevel) {
+      similarRegions = simSearch.simSearch[detailLevel - 1].slice(1)
+    } else {
+      similarRegions = simSearch.simSearch
+    }
 
-    // const match = similarRanges.filter((range) => { return checkRanges(range, selectedRegion) })
-    // console.log("ranges", selectedRegion, similarRanges, match)
-
-    const SVGSelectedArr = similarRanges.map((range) => {
-      return SVGSelected({ hit: range, stroke: checkRanges(range, selectedRegion) ? "red" : color, strokeWidthMultiplier: width, showGenes })
-    })
-
-    return SVGSelectedArr
+    if(similarRegions) {
+      const similarRanges = similarRegions.map((d) => {
+        const coords = d.coordinates
+        const chrm = coords.split(':')[0]
+        const start = coords.split(':')[1].split('-')[0]
+        const stop = coords.split(':')[1].split('-')[1]
+        let range = hilbert.fromRegion(chrm, start, stop-1)[0]
+        range.end = stop
+        return range
+      })
+  
+      // const match = similarRanges.filter((range) => { return checkRanges(range, selectedRegion) })
+      // console.log("ranges", selectedRegion, similarRanges, match)
+  
+      const SVGSelectedArr = similarRanges.map((range) => {
+        return SVGSelected({ hit: range, stroke: checkRanges(range, selectedRegion) ? "red" : color, strokeWidthMultiplier: width, showGenes })
+      })
+  
+      return SVGSelectedArr
+    } else {
+      return ([null])
+    }
+    
   } else {
     return ([null])
   }

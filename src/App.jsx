@@ -42,6 +42,7 @@ import DHS_Coreg_Best_Scale_max from './layers/dhs_coregBestScale_max'
 import Autocomplete from './components/Autocomplete/Autocomplete'
 // region SimSearch
 import SimSearchRegion from './components/SimSearch/SimSearchRegion'
+import SimSearchByFactor from './components/SimSearch/SimSearchByFactor'
 import DisplaySimSearchRegions from './components/SimSearch/DisplaySimSearchRegions'
 import NarrateRegion from './components/Narration/NarrateRegion'
 
@@ -124,7 +125,8 @@ function App() {
     setLayerLock(true)
     setSelected(selected)
     setSelectedOrder(selectedOrder)
-    setSelectedSimSearch(selectedSimSearch)
+    setSimSearch(simSearch)
+    setSearchByFactorInds([])
   }
 
 
@@ -154,28 +156,40 @@ function App() {
   // selected powers the sidebar modal and the 1D track
   const [selected, setSelected] = useState(null)
   const [selectedOrder, setSelectedOrder] = useState(null)
-  const [selectedSimSearch, setSelectedSimSearch] = useState(null)
+  const [simSearch, setSimSearch] = useState(null)
   const [simSearchMethod, setSimSearchMethod] = useState(null)
-  const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(1)
+  const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(null)
   const [selectedNarration, setSelectedNarration] = useState(null)
   function handleClick(hit, order) {
+    setSearchByFactorInds([])
     // console.log("click", hit)
     if(hit === selected) {
       setSelected(null) 
       setSelectedOrder(null)
-      setSelectedSimSearch(null)
+      setSimSearch(null)
     } else if(hit) {
       setSelected(hit)
       setSelectedOrder(order)
       // Region SimSearch
       SimSearchRegion(hit, order, layer, setSimSearchMethod).then((result) => {
-        setSelectedSimSearch(result.simSearch)
-        setSimSearchDetailLevel(result.detailLevel)
+        setSimSearch(result)
+        setSimSearchDetailLevel(result.initialDetailLevel)
       })
       NarrateRegion(hit, order).then((result) => {
         setSelectedNarration(result.narrationRanks)
       })
     }
+  }
+
+  const [searchByFactorIndices, setSearchByFactorInds] = useState([])
+  function handleLegendFactorClick(newSearchByFactorIndices) {
+    setSearchByFactorInds(newSearchByFactorIndices)
+    SimSearchByFactor(newSearchByFactorIndices, zoom.order).then((result) => {
+      setSelected(null)
+      setSelectedOrder(zoom.order)
+      setSimSearch(result)
+      setSimSearchDetailLevel(result.initialDetailLevel)
+    })
   }
 
   // keybinding that closes the modal on escape
@@ -195,8 +209,9 @@ function App() {
     setRegion(null)
     setSelected(null)
     setSelectedOrder(null)
-    setSelectedSimSearch(null)
+    setSimSearch(null)
     setSimSearchMethod(null)
+    setSearchByFactorInds([])
   }
 
   const [showHilbert, setShowHilbert] = useState(false)
@@ -263,7 +278,7 @@ function App() {
               // TODO: highlight search region (from autocomplete)
               // SVGSelected({ hit: region, stroke: "gray", strokeWidthMultiplier: 0.4, showGenes: false }),
               ...DisplaySimSearchRegions({ 
-                simSearch: selectedSimSearch, 
+                simSearch: simSearch, 
                 detailLevel: simSearchDetailLevel, 
                 selectedRegion: region,
                 order: selectedOrder, 
@@ -293,6 +308,8 @@ function App() {
         <LayerLegend 
           data={data}
           hover={hover}
+          handleLegendFactorClick={handleLegendFactorClick}
+          searchByFactorIndices={searchByFactorIndices}
         />
         <ZoomLegend 
           k={zoom.transform.k} 
@@ -305,10 +322,11 @@ function App() {
           height={height} 
           selected={selected} // currently selected cell
           selectedOrder={selectedOrder} 
-          selectedSimSearch={selectedSimSearch}
+          simSearch={simSearch}
           selectedNarration={selectedNarration}
           simSearchDetailLevel={simSearchDetailLevel}
           setSimSearchDetailLevel={setSimSearchDetailLevel}
+          searchByFactorIndices={searchByFactorIndices}
           simSearchMethod={simSearchMethod}
           setRegion={setRegion}
           setHover={handleHover}

@@ -1,22 +1,23 @@
 // function to generate simsearch results for a provided region with Genomic Narration tool. 
 import axios from "axios";
+import allFactors from './SimSearchFactors.json'
 
 export default function SimSearchRegion(selected, order, layer, setSimSearchMethod) {
   const maxSimSearchOrder = 11
   if(selected) {
     if(order <= maxSimSearchOrder) {
-      const allFactors = [...Array(34).keys()]
-      let factors
+      // const allFactors = [...Array(34).keys()]
+      let simSearchFactors
       if (layer.name === "DHS Components SFC") {
-        factors = allFactors.slice(0, 16)
+        simSearchFactors = allFactors['DHS']
         setSimSearchMethod("DHS Components SFC")
       }
       else if(layer.name === "Chromatin States SFC") {
-        factors = allFactors.slice(16)
+        simSearchFactors = allFactors['Chromatin States']
         setSimSearchMethod("Chromatin States SFC")
       } else {
         setSimSearchMethod(null)
-        const simSearch = {simSearch: null, detailLevel: null}
+        const simSearch = {simSearch: null, initialDetailLevel: null, factors: null, method: null}
         return Promise.resolve(simSearch)
       }
       const roiURL = "False"
@@ -32,7 +33,7 @@ export default function SimSearchRegion(selected, order, layer, setSimSearchMeth
 
       const postBody = {
         location: `${chromosome}:${start}-${stop}`,
-        factors: JSON.stringify(factors),
+        factors: JSON.stringify(simSearchFactors.map(f => f.ind)),
         roiURL: roiURL,
         scale: order,
         queryFactorThresh: queryFactorThresh,
@@ -43,15 +44,15 @@ export default function SimSearchRegion(selected, order, layer, setSimSearchMeth
         const prodRanks = data.map((d) => {
           return d[0].prod_rank
         })
-        let initialDetailLevel = 1
+        let detailLevel = 1
         let maxProdRank = prodRanks[0]
         prodRanks.map((d, i) => {
           if(Math.max(d, maxProdRank) !== maxProdRank) {
             maxProdRank = d
-            initialDetailLevel = i + 1
+            detailLevel = i + 1
           }
         })
-        return initialDetailLevel
+        return detailLevel
       }
 
       const simSearch = axios({
@@ -61,10 +62,10 @@ export default function SimSearchRegion(selected, order, layer, setSimSearchMeth
       }).then((response) => {
         const fullData = response.data;
         if(fullData.length > 0) {
-          const initialDetailLevel = determineInitialDetailLevel(fullData)
-          return {simSearch: fullData, detailLevel: initialDetailLevel}
+          const detailLevel = determineInitialDetailLevel(fullData)
+          return {simSearch: fullData, initialDetailLevel: detailLevel, factors: simSearchFactors, method: "Region"}
         } else {
-          return {simSearch: null, detailLevel: null}
+          return {simSearch: null, initialDetailLevel: null, factors: null, method: null}
         }
       })
       .catch((err) => {
@@ -75,7 +76,7 @@ export default function SimSearchRegion(selected, order, layer, setSimSearchMeth
 
       return simSearch
     } else {
-      const simSearch = {simSearch: null, detailLevel: null}
+      const simSearch = {simSearch: null, initialDetailLevel: null, factors: null, method: null}
       return Promise.resolve(simSearch)
     }
   }

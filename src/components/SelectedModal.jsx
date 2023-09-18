@@ -9,10 +9,11 @@ const SelectedModal = ({
   height = 800,
   selected = null,
   selectedOrder = null,
-  selectedSimSearch = null,
+  simSearch = null,
   selectedNarration=null,
   simSearchDetailLevel,
   setSimSearchDetailLevel,
+  searchByFactorIndices,
   simSearchMethod,
   setRegion,
   setHover,
@@ -38,7 +39,7 @@ const SelectedModal = ({
 
   return (
     <>
-    {selected && (
+    {(selected || simSearch) && (
     <div className="selected-modal" style={{
       width: width - 2 + "px",
       height: height - 12 + "px"
@@ -47,6 +48,7 @@ const SelectedModal = ({
       <div className="header">
         <div className="close" onClick={onClose}>x</div>
       </div>
+      {selected ? (
       <div className="selected-modal-selected">
           <span className="selected-modal-selected-point">
             {selected.chromosome}:{selected.start}
@@ -65,7 +67,7 @@ const SelectedModal = ({
             selectedNarration={selectedNarration}
           />
           <SelectedModalSimSearch
-            selectedSimSearch={selectedSimSearch}
+            simSearch={simSearch}
             simSearchDetailLevel={simSearchDetailLevel}
             setSimSearchDetailLevel={setSimSearchDetailLevel}
             simSearchMethod={simSearchMethod}
@@ -77,6 +79,23 @@ const SelectedModal = ({
             layer={layer}
           />
       </div>
+      ): (
+        <div>
+          <SelectedModalSimSearch
+            simSearch={simSearch}
+            simSearchDetailLevel={simSearchDetailLevel}
+            setSimSearchDetailLevel={setSimSearchDetailLevel}
+            searchByFactorIndices={searchByFactorIndices}
+            simSearchMethod={simSearchMethod}
+            selectedOrder={selectedOrder}
+            setRegion={setRegion}
+            setHover={setHover}
+            hover={hover}
+            order={order}
+            layer={layer}
+          />
+        </div>
+      )}
      
       {/* <div className="selected-modal-order">
         {zoom && (

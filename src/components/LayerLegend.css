@@ -11,7 +11,8 @@
   border: 2px solid black;
   border-radius: 10px;
   padding-left: 10px;
-  padding-right: 10px;
+  padding-right: 15px;
+
 }
 
 .legend-label {
@@ -30,6 +31,7 @@ ul#factor-list {
 ul#factor-list li {
   position: relative;    /* Enables positioning of child pseudo-elements */
   padding-left: 1em;   /* Makes space for custom bullet */
+  cursor: pointer;
 }
 
 ul#factor-list li::before {
@@ -42,4 +44,13 @@ ul#factor-list li::before {
   height: 0.8em;
   background-color: var(--bullet-color, black);  /* Uses a CSS variable for the color, defaulting to black */
   border: 1px solid black;
+}
+
+ul#factor-list li::after {
+  content: var(--checkmark, "");
+  font-weight: bold;
+  font-family: Arial, Helvetica, sans-serif;
+  position: absolute;
+  display: inline-block;
+  margin-left: 2px;
 }
