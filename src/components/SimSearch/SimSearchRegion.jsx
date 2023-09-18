@@ -2,7 +2,7 @@
 import axios from "axios";
 import allFactors from './SimSearchFactors.json'
 
-export default function SimSearchRegion(selected, order, layer, setSimSearchMethod) {
+export default function SimSearchRegion(selected, order, layer) {
   const maxSimSearchOrder = 11
   if(selected) {
     if(order <= maxSimSearchOrder) {
@@ -10,13 +10,10 @@ export default function SimSearchRegion(selected, order, layer, setSimSearchMeth
       let simSearchFactors
       if (layer.name === "DHS Components SFC") {
         simSearchFactors = allFactors['DHS']
-        setSimSearchMethod("DHS Components SFC")
       }
       else if(layer.name === "Chromatin States SFC") {
         simSearchFactors = allFactors['Chromatin States']
-        setSimSearchMethod("Chromatin States SFC")
       } else {
-        setSimSearchMethod(null)
         const simSearch = {simSearch: null, initialDetailLevel: null, factors: null, method: null}
         return Promise.resolve(simSearch)
       }

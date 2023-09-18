@@ -11,6 +11,7 @@ const LensModal = ({
   setLayer,
   setLayerLock,
   layerLock,
+  setSearchByFactorInds,
   order,
   orders=[4,5,6,7,8,9,10,11,12,13,14]
 } = {}) => {
@@ -39,6 +40,9 @@ const LensModal = ({
   const changeLensPermanent = (lens, id) => {
     const newLayerOrder = getNewLens(lens)
     if(Object.keys(newLayerOrder).length === orders.length) {
+      if(permanentLayer && (permanentLayer.id !== id)) {
+        setSearchByFactorInds([])
+      }
       setLayerOrder(newLayerOrder)
       setLayer(newLayerOrder[order])
       setPermanentLayer({

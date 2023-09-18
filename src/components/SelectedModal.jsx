@@ -14,13 +14,10 @@ const SelectedModal = ({
   simSearchDetailLevel,
   setSimSearchDetailLevel,
   searchByFactorIndices,
-  simSearchMethod,
   setRegion,
   setHover,
-  hover,
   layer,
   zoom,
-  layers,
   order,
   onClose=()=>{}
 } = {}) => {
@@ -70,13 +67,10 @@ const SelectedModal = ({
             simSearch={simSearch}
             simSearchDetailLevel={simSearchDetailLevel}
             setSimSearchDetailLevel={setSimSearchDetailLevel}
-            simSearchMethod={simSearchMethod}
             selectedOrder={selectedOrder}
             setRegion={setRegion}
             setHover={setHover}
-            hover={hover}
             order={order}
-            layer={layer}
           />
       </div>
       ): (
@@ -86,13 +80,10 @@ const SelectedModal = ({
             simSearchDetailLevel={simSearchDetailLevel}
             setSimSearchDetailLevel={setSimSearchDetailLevel}
             searchByFactorIndices={searchByFactorIndices}
-            simSearchMethod={simSearchMethod}
             selectedOrder={selectedOrder}
             setRegion={setRegion}
             setHover={setHover}
-            hover={hover}
             order={order}
-            layer={layer}
           />
         </div>
       )}

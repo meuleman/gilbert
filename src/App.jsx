@@ -157,7 +157,6 @@ function App() {
   const [selected, setSelected] = useState(null)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [simSearch, setSimSearch] = useState(null)
-  const [simSearchMethod, setSimSearchMethod] = useState(null)
   const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(null)
   const [selectedNarration, setSelectedNarration] = useState(null)
   function handleClick(hit, order) {
@@ -171,7 +170,7 @@ function App() {
       setSelected(hit)
       setSelectedOrder(order)
       // Region SimSearch
-      SimSearchRegion(hit, order, layer, setSimSearchMethod).then((result) => {
+      SimSearchRegion(hit, order, layer).then((result) => {
         setSimSearch(result)
         setSimSearchDetailLevel(result.initialDetailLevel)
       })
@@ -210,7 +209,6 @@ function App() {
     setSelected(null)
     setSelectedOrder(null)
     setSimSearch(null)
-    setSimSearchMethod(null)
     setSearchByFactorInds([])
   }
 
@@ -303,6 +301,7 @@ function App() {
           setLayer={setLayer}
           setLayerLock={setLayerLock}
           layerLock={layerLock}
+          setSearchByFactorInds={setSearchByFactorInds}
           order={zoom.order}
         />
         <LayerLegend 
@@ -327,14 +326,11 @@ function App() {
           simSearchDetailLevel={simSearchDetailLevel}
           setSimSearchDetailLevel={setSimSearchDetailLevel}
           searchByFactorIndices={searchByFactorIndices}
-          simSearchMethod={simSearchMethod}
           setRegion={setRegion}
           setHover={handleHover}
-          hover={hover}
           layer={layer} 
           order={zoom.order}
           zoom={zoom} 
-          layers={layers}
           onClose={handleModalClose} />
       </div>
       <div>

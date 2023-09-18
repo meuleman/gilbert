@@ -13,12 +13,9 @@ const SelectedModalSimSearch = ({
   simSearchDetailLevel,
   setSimSearchDetailLevel,
   searchByFactorIndices,
-  simSearchMethod,
   selectedOrder,
   setRegion,
   setHover,
-  hover,
-  layer,
   order,
   regionHeight=15,
   regionMargin=-10,
@@ -62,23 +59,6 @@ const SelectedModalSimSearch = ({
       d3.selectAll("div#tooltip").remove()
     }
   }
-
-  // if (simSearchMethod === 'DHS Components SFC') {
-  //   factors = allFactors['DHS']
-  // }
-  // else if(simSearchMethod === 'Chromatin States SFC') {
-  //   factors = allFactors['Chromatin States']
-  // } else if(!simSearchDetailLevel) {
-  //   factors = allFactors['DHS'].concat(allFactors['Chromatin States'])
-  // }
-  // // set quiescent factor color to non-white value
-  // if (factors) {
-  //   factors.map((f, i) => {
-  //     if(f.color === "#ffffff") {
-  //       f.color = "#ECECEC"
-  //     }
-  //   })
-  // }
 
   // set max detail level and sim search results for current detail level
   let maxDetailLevel
