@@ -60,7 +60,7 @@ const LensModal = ({
     }
   }
 
-  const [selectedSublenses, setSelectedSublenses] = useState(new Array(lensNames.length).fill(null))
+  const [selectedSublenses, setSelectedSublenses] = useState(new Array(lensNames.length).fill(0))
   // override layerLock and set lens
   const onClick = (lens, id, lensIndex, sublensIndex) => {
     setLayerLock(false)
@@ -135,13 +135,8 @@ const LensModal = ({
                 const sublenses = lenses[l]
                 const sublensNames = Object.keys(sublenses)
                 const id = 'dropdown-button-container' + i
-                let sublensName, sublensLenses
-                let buttonName = l
-                if(selectedSublenses[i] !== null) {
-                  sublensName = sublensNames[selectedSublenses[i]]
-                  sublensLenses = sublenses[sublensName]
-                  buttonName = sublensName
-                }
+                const sublensName = sublensNames[selectedSublenses[i]]
+                const sublensLenses = sublenses[sublensName]
                 return (
                   <div id={id} key={id}>
                     <button
@@ -152,11 +147,14 @@ const LensModal = ({
                       }
                       id={l}
                       key={l}
-                      onDoubleClick={() => handleDropdownOpen(l)}
-                      onClick={(sublensName && sublensLenses) && (() => onClick(sublensLenses, sublensName))}
+                      onClick={
+                        (permanentLayer && (permanentLayer.id === sublensName)) ? 
+                          (() => handleDropdownOpen(l)) 
+                          :((sublensName && sublensLenses) && (() => onClick(sublensLenses, sublensName)))
+                      }
                       onMouseOver={(sublensName && sublensLenses) && (() => onMouseOver(sublensLenses, sublensName))}
                       onMouseLeave={() => onMouseLeave(permanentLayer.lens, permanentLayer.id)}
-                    >{buttonName}</button>
+                    >{sublensName}</button>
                     {dropdownOpen[i] ? (
                       <div  className='dropdown-container'>
                         {sublensNames.map((s, j) => {
