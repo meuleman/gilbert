@@ -28,8 +28,7 @@ const LinearTrack = ({
   state = null,
   track = null,
   hit = null,
-  // hovered = null,
-  // selected = null,
+  yExtent = [],
   setHovered = () => {},
 } = {}) => {
   const canvasRef = useRef(null);
@@ -38,17 +37,17 @@ const LinearTrack = ({
   if(canvasRef.current) {
     const ctx = canvasRef.current.getContext('2d');
     let data = state.data
-    let meta = state.meta
+    // let meta = state.meta
     
-    if(data && meta && hit && ctx) {
+    if(data && /*meta &&*/ hit && ctx) {
 
       let { fieldChoice, fieldColor} = state.layer
-      let fields = meta["fields"]
-      let nonzero_min = meta["nonzero_min"]
-      let min = nonzero_min ? nonzero_min : meta["min"]
-      if(!min.length && min < 0) min = 0;
-      let max = meta["max"]
-      let yExtent = [min,max]
+      // let fields = meta["fields"]
+      // let nonzero_min = meta["nonzero_min"]
+      // let min = nonzero_min ? nonzero_min : meta["min"]
+      // if(!min.length && min < 0) min = 0;
+      // let max = meta["max"]
+      // let yExtent = [min,max]
 
       let xExtent = extent(track, d => d.i)
       xExtent[1] += 1
@@ -88,11 +87,11 @@ const LinearTrack = ({
       track.forEach(d => {
         const sample = fieldChoice(d);
         if(sample) {
-          if(min.length) {
-            let fi = fields.indexOf(sample.field)
-            yExtent = [min[fi] < 0 ? 0 : min[fi], max[fi]]
-            yScale.domain(yExtent)
-          }
+          // if(min.length) {
+          //   let fi = fields.indexOf(sample.field)
+          //   // yExtent = [min[fi] < 0 ? 0 : min[fi], max[fi]]
+          //   // yScale.domain(yExtent)
+          // }
           let h = yScale(sample.value)
           let x = xScale(d.i)
           let y = height-margin-h
@@ -120,7 +119,7 @@ const LinearTrack = ({
   },[setHovered, track, xScale, canvasRef]);
  
   return (
-    <div className="linear-tracks">
+    <div className="linear-track">
       <canvas 
         className="linear-genome-canvas"
         width={width + "px"}

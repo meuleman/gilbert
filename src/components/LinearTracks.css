@@ -15,9 +15,12 @@
 .linear-tracks-canvases {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: space-around;
+  /* border: 1px solid lightgray; */
 }
 .linear-genome-canvas {
-  border: 2px solid orange;
+  border: 1px solid lightgray;
+  margin: 2px;
+  padding: 0;
 
 }

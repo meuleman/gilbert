@@ -10,7 +10,7 @@ import { range } from 'd3-array';
 import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome';
 import { getBboxDomain, untransform } from '../lib/bbox';
 import Data from '../lib/data';
-import debounce from '../lib/debounce'
+import { debounce } from '../lib/debounce'
 import scaleCanvas from '../lib/canvas';
 import CanvasBase from './CanvasBase';
 

@@ -1,6 +1,11 @@
 import './App.css'
 
-import {useEffect, useState, useRef, useCallback} from 'react'
+import {useEffect, useState, useRef, useCallback, useMemo} from 'react'
+
+import Data from './lib/data';
+import { HilbertChromosome } from './lib/HilbertChromosome'
+import { debounceNamed } from './lib/debounce'
+
 
 // base component
 import HilbertGenome from './components/HilbertGenome'
@@ -245,6 +250,47 @@ function App() {
     setData(payload)
   }
 
+  const [trackMinus1, setTrackMinus1] = useState(null)
+  const [trackPlus1, setTrackPlus1] = useState(null)
+
+  console.log("tracks?", trackMinus1, trackPlus1)
+
+  // this debounced function fetches the data and updates the state
+  const fetchData = useMemo(() => {
+    return (layer, order, setter) => {
+      // we dont want to fetch data if the order is not within the layer order range
+      if (order < layer.orders[0] || order > layer.orders[1]) return;
+
+      let hilbert = HilbertChromosome(order, { padding: 2 })
+      // let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
+      let points = hilbert.fromBbox(zoom.bbox)
+      
+      const dataClient = Data({ 
+        debug: false
+      })
+
+      // console.log("fetching layer", layer)
+      let myPromise = dataClient.fetchData(layer, order, points)
+      let myCallback = (data) => {
+        if(data) {
+          console.log("GOT DATA", data, layer, order)
+          setter({ data, layer, order})
+          // setLayerData(layer, data, zoom.order)
+          // dispatch({ type: actions.SET_DATA, payload: { data, order: zoom.order } });
+        }
+      }
+      // debounce a function call with a name
+      debounceNamed(myPromise, myCallback, 150, layer.name+order) // layer.name + order makes unique call 
+    }
+  }, [zoom.bbox]);
+
+  useEffect(() => {
+    if(zoom.order > 4){
+      fetchData(layer, zoom.order - 1, setTrackMinus1)
+    }
+    fetchData(layer, zoom.order + 1, setTrackPlus1)
+  }, [layer, zoom, selected])
+
   return (
     <>
       <div className="title">gilbert</div>
@@ -334,12 +380,26 @@ function App() {
           onClose={handleModalClose} />
       </div>
       <div>
+        { trackMinus1 && <LinearTracks 
+          state={trackMinus1} 
+          width={width} 
+          hovered={hover} 
+          selected={selected} 
+          />
+        }
         <LinearTracks 
           state={data} 
           width={width} 
           hovered={hover} 
           selected={selected} 
           setHovered={handleHover} />
+        { trackPlus1 && <LinearTracks 
+          state={trackPlus1} 
+          width={width} 
+          hovered={hover} 
+          selected={selected} 
+           />
+        }
         <StatusBar 
           width={width + 500 + 12 + 30} 
           hover={hover} // the information about the cell the mouse is over
