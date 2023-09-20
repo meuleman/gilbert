@@ -46,7 +46,7 @@ const LayerLegend = ({
   var factorList = document.getElementById('factor-list');
   if(factorList) factorList.innerHTML = '';
 
-  let inViewData, singleSegmentData, factors, hoverData
+  let inViewData, singleSegmentData, factors, hoverData, factorDataForList
   let hoverHighlights = []
   if(data) {
     if(data.data.length > 0) {
@@ -56,19 +56,21 @@ const LayerLegend = ({
       factors = fullFactorList
 
       if(factors) {
-        if(selected) {
-          hoverData = selected.data
-        } else if(hover) {
+        if(hover) {
           hoverData = hover.data
+          factorDataForList = hoverData
         }
         if (hoverData) {
           hoverHighlights = factors.filter((f) => {return hoverData[f] > 0})
         }
 
         if(factors.length > maxNumFactors) {  // if there are too many factors to show
-          if(hoverData && (Object.keys(hoverData).filter(f => fullFactorList.includes(f)).length === fullFactorList.length)) {
+          if(selected && (Object.keys(selected.data).filter(f => fullFactorList.includes(f)).length === fullFactorList.length)) {
+            factorDataForList = selected.data
+          }
+          if(factorDataForList && (Object.keys(factorDataForList).filter(f => fullFactorList.includes(f)).length === fullFactorList.length)) {
             // use hover data to get factor order
-            let factorValues = Object.values(hoverData).map((v, i) => {
+            let factorValues = Object.values(factorDataForList).map((v, i) => {
               return {value: v, index: i}
             })
             factorValues.sort((f1, f2) => {return f2.value - f1.value})
