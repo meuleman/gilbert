@@ -45,36 +45,42 @@ const LayerLegend = ({
   var factorList = document.getElementById('factor-list');
   if(factorList) factorList.innerHTML = '';
 
-  let inViewData, singleSegmentData, factors
+  let inViewData, singleSegmentData, factors, hoverData
   let hoverHighlights = []
   if(data) {
     if(data.data.length > 0) {
       inViewData = data.data
       singleSegmentData = inViewData[0].data
-      factors = Object.keys(singleSegmentData)
+      let fullFactorList = Object.keys(singleSegmentData)
+      factors = fullFactorList
 
       if(factors) {
         if(hover) {
-          let hoverData = hover.data
+          hoverData = hover.data
           if (hoverData) {
             hoverHighlights = factors.filter((f) => {return hoverData[f] > 0})
-            if(factors.length > maxNumFactors) {  // if there are too many factors to show
-              // use hover data to get factor order
-              let factorValues = Object.values(hoverData).map((v, i) => {
-                return {value: v, index: i}
-              })
-              factorValues.sort((f1, f2) => {return f2.value - f1.value})
-              // filter to relevant factors
-              const factorValuesFiltered = factorValues.filter((f, i) => {
-                if((f.value > 0) && (i < maxNumFactors)){
-                  return factors[f.index]
-                }
-              })
-              // reorder factors
-              factors = factorValuesFiltered.map((f) => {
+          }
+        }
+
+        if(factors.length > maxNumFactors) {  // if there are too many factors to show
+          if(hoverData && (Object.keys(hoverData).filter(f => fullFactorList.includes(f)).length === fullFactorList.length)) {
+            // use hover data to get factor order
+            let factorValues = Object.values(hoverData).map((v, i) => {
+              return {value: v, index: i}
+            })
+            factorValues.sort((f1, f2) => {return f2.value - f1.value})
+            // filter to relevant factors
+            const factorValuesFiltered = factorValues.filter((f, i) => {
+              if((f.value > 0) && (i < maxNumFactors)){
                 return factors[f.index]
-              })
-            }
+              }
+            })
+            // reorder factors
+            factors = factorValuesFiltered.map((f) => {
+              return factors[f.index]
+            })
+          } else {
+            factors = []
           }
         }
         
