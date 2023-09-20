@@ -1,6 +1,7 @@
 
 .linear-tracks {
   max-width: fit-content;
+  padding: 2px;
 
   
 }
@@ -11,6 +12,12 @@
 }
 
 
+.linear-tracks-canvases {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
 .linear-genome-canvas {
   border: 2px solid orange;
+
 }

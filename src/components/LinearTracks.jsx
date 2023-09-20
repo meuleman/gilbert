@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { scaleLinear, scaleBand } from 'd3-scale';
 import { extent, range } from 'd3-array';
+import LinearTrack from './LinearTrack';
 
 import './LinearTracks.css';
 
@@ -30,46 +31,23 @@ const LinearTracks = ({
   selected = null,
   setHovered = () => {},
 } = {}) => {
-  const canvasRef = useRef(null);
-
-  // if(!state) return null;
-
   let hit, coordExtent;
-  let xScale, yScale, track;
-   // when mouse over update the hovered point
-  //  let handleMouseMove = useCallback((event) => {
-  //   // const rect = canvasRef.current.getBoundingClientRect();
-  //   console.log("event", event.clientX, event.clientY)
-  // }, [])
+  let track, tracks, widths;
 
-
-  if(canvasRef.current) {
-    const ctx = canvasRef.current.getContext('2d');
-    // {data, meta} = state
+  if(state) {
     let data = state.data
     let meta = state.meta
-    // if(!points || !data || !meta) return;
 
-    // console.log("selected, hovered", selected, hovered)
     if(selected) {
-    // if selected, pick out the continuous data centered on the selected point
+      // if selected, pick out the continuous data centered on the selected point
       hit = selected
     } else if (hovered) {
-    // if not selected and hovered, center on hovered point
+      // if not selected and hovered, center on hovered point
       hit = hovered
     } else {
-    // if neither, don't render anything
-      // return;
+      // if neither, don't render anything
     }
-    if(data && meta && hit && ctx) {
-
-      let { fieldChoice, fieldColor} = state.layer
-      let fields = meta["fields"]
-      let nonzero_min = meta["nonzero_min"]
-      let min = nonzero_min ? nonzero_min : meta["min"]
-      if(!min.length && min < 0) min = 0;
-      let max = meta["max"]
-      let yExtent = [min,max]
+    if(data && meta && hit) {
 
       // the 1D coordinates are d.i
       track = data.filter(d => d.chromosome == hit.chromosome && d.inview)
@@ -78,8 +56,9 @@ const LinearTracks = ({
       let xExtent = extent(track, d => d.i)
       xExtent[1] += 1
 
-      let gapsize = Math.round((xExtent[1] - xExtent[0]) * .05)
-      let tracks = []
+      // gapsize determines how big a gap is allowed between points
+      let gapsize = Math.round((xExtent[1] - xExtent[0]) * .03)
+      tracks = []
       // split track into continuous segments based on d.i
       let last = track[0]
       let current = [last]
@@ -97,97 +76,118 @@ const LinearTracks = ({
       if(tracks[tracks.length -1] !== current) tracks.push(current)
       // console.log("tracks", hit, tracks)
 
+      // for each track in the tracks, calculate the xExtent
+      const xExtents = tracks.map(track => extent(track, d => d?.i))
+      // add up the lengths of the tracks
+      const totalLength = xExtents.reduce((a, b) => a + (b[1] - b[0]), 0)
+      widths = xExtents.map(xExtent => (xExtent[1] - xExtent[0]) / totalLength * (width - margin*2))
 
-      xScale = scaleBand()
-        .domain(range(xExtent[0], xExtent[1]))
-        .range([margin, width - margin])
 
-      let bw = xScale.bandwidth()
+      // xScale = scaleBand()
+      //   .domain(range(xExtent[0], xExtent[1]))
+      //   .range([margin, width - margin])
 
-      yScale = scaleLinear()
-        .domain(yExtent)
-        .range([0, height - margin*2])
+      // let bw = xScale.bandwidth()
+
+      // yScale = scaleLinear()
+      //   .domain(yExtent)
+      //   .range([0, height - margin*2])
 
       // console.log("track", track)
 
-      ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = "black"
-      let tx = xScale(hit.i) + bw/2
-      ctx.fillRect(tx, margin, 1, height - margin*2)
-      // draw a black triangle at the top of the selected point
-      ctx.beginPath();
-      ctx.moveTo(tx, margin);
-      ctx.lineTo(tx - 5, 0);
-      ctx.lineTo(tx + 5, 0);
-      ctx.closePath();
-      ctx.fill();
-      // draw a black triangle at the bottom of selected point
-      ctx.beginPath();
-      ctx.moveTo(tx, height - margin);
-      ctx.lineTo(tx - 5, height);
-      ctx.lineTo(tx + 5, height);
-      ctx.closePath();
-      ctx.fill();
+      // ctx.clearRect(0, 0, width, height);
+      // ctx.fillStyle = "black"
+      // let tx = xScale(hit.i) + bw/2
+      // ctx.fillRect(tx, margin, 1, height - margin*2)
+      // // draw a black triangle at the top of the selected point
+      // ctx.beginPath();
+      // ctx.moveTo(tx, margin);
+      // ctx.lineTo(tx - 5, 0);
+      // ctx.lineTo(tx + 5, 0);
+      // ctx.closePath();
+      // ctx.fill();
+      // // draw a black triangle at the bottom of selected point
+      // ctx.beginPath();
+      // ctx.moveTo(tx, height - margin);
+      // ctx.lineTo(tx - 5, height);
+      // ctx.lineTo(tx + 5, height);
+      // ctx.closePath();
+      // ctx.fill();
 
-      // track boundaries
-      ctx.fillStyle = "gray"
-      tracks.forEach(track => {
-        if (track[0]) { // added to prevent crash due to undefined track (Wouter)
-          let tx = xScale(track[0].i)
-          ctx.fillRect(tx, margin, 1, height - margin*2)
-          tx = xScale(track[track.length - 1].i)
-          ctx.fillRect(tx, margin, 1, height - margin*2)
-        }
-      })
+      // // track boundaries
+      // ctx.fillStyle = "gray"
+      // tracks.forEach(track => {
+      //   if (track[0]) { // added to prevent crash due to undefined track (Wouter)
+      //     let tx = xScale(track[0].i)
+      //     ctx.fillRect(tx, margin, 1, height - margin*2)
+      //     tx = xScale(track[track.length - 1].i)
+      //     ctx.fillRect(tx, margin, 1, height - margin*2)
+      //   }
+      // })
 
-      track.forEach(d => {
-        const sample = fieldChoice(d);
-        if(sample) {
-          if(min.length) {
-            let fi = fields.indexOf(sample.field)
-            yExtent = [min[fi] < 0 ? 0 : min[fi], max[fi]]
-            yScale.domain(yExtent)
-          }
-          let h = yScale(sample.value)
-          let x = xScale(d.i)
-          let y = height-margin-h
-          ctx.fillStyle = fieldColor(sample.field)
-          ctx.fillRect(x, y, bw, h)
-        }
-      })
+      // track.forEach(d => {
+      //   const sample = fieldChoice(d);
+      //   if(sample) {
+      //     if(min.length) {
+      //       let fi = fields.indexOf(sample.field)
+      //       yExtent = [min[fi] < 0 ? 0 : min[fi], max[fi]]
+      //       yScale.domain(yExtent)
+      //     }
+      //     let h = yScale(sample.value)
+      //     let x = xScale(d.i)
+      //     let y = height-margin-h
+      //     ctx.fillStyle = fieldColor(sample.field)
+      //     ctx.fillRect(x, y, bw, h)
+      //   }
+      // })
 
       coordExtent = extent(track, d => d.start)
     }
   }
 
   
-  let handleMouseMove = useCallback((event) => {
-    if(canvasRef.current) {
-      const rect = canvasRef.current.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      // const y = event.clientY - rect.top;
-      // console.log("x,y", x,y)
-      let index = invertScaleBand(xScale, x)
-      // console.log("i", index)
-      if(index >= 0) {
-        let hit = track.find(d => d.i == index)
-        // console.log("hit", hit)
-        if(hit) {
-          setHovered(hit)
-        }
-      }
-    }
-  },[setHovered, track, xScale, canvasRef]);
+  // let handleMouseMove = useCallback((event) => {
+  //   if(canvasRef.current) {
+  //     const rect = canvasRef.current.getBoundingClientRect();
+  //     const x = event.clientX - rect.left;
+  //     // const y = event.clientY - rect.top;
+  //     // console.log("x,y", x,y)
+  //     let index = invertScaleBand(xScale, x)
+  //     // console.log("i", index)
+  //     if(index >= 0) {
+  //       let hit = track.find(d => d.i == index)
+  //       // console.log("hit", hit)
+  //       if(hit) {
+  //         setHovered(hit)
+  //       }
+  //     }
+  //   }
+  // },[setHovered, track, xScale, canvasRef]);
+  // console.log("tracks", tracks)
  
   return (
     <div className="linear-tracks">
-      <canvas 
+      <div className="linear-tracks-canvases">
+      {tracks && tracks.map((track, i) => {
+        return <LinearTrack 
+          key={"linear-track-" + i} 
+          track={track} 
+          width={widths[i]}
+          state={state}
+          hit={hit}
+          setHovered={setHovered}
+          
+        ></LinearTrack>
+      })}
+      </div>
+
+      {/* <canvas 
         className="linear-genome-canvas"
         width={width + "px"}
         height={height + "px"}
         ref={canvasRef}
         onMouseMove={handleMouseMove}
-      />
+      /> */}
       {hit && coordExtent &&  <div className="annotations">
           <div className="start">{hit.chromosome}:{coordExtent[0]} </div>
           {/* TODO: add a 1 hilbert cell of coords to the end */}
