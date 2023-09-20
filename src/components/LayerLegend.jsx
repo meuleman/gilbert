@@ -7,6 +7,7 @@ import SimSearchFactors from './SimSearch/SimSearchFactors.json'
 const LayerLegend = ({
   data,
   hover,
+  selected,
   handleLegendFactorClick,
   searchByFactorIndices,
   maxNumFactors=30,
@@ -55,11 +56,13 @@ const LayerLegend = ({
       factors = fullFactorList
 
       if(factors) {
-        if(hover) {
+        if(selected) {
+          hoverData = selected.data
+        } else if(hover) {
           hoverData = hover.data
-          if (hoverData) {
-            hoverHighlights = factors.filter((f) => {return hoverData[f] > 0})
-          }
+        }
+        if (hoverData) {
+          hoverHighlights = factors.filter((f) => {return hoverData[f] > 0})
         }
 
         if(factors.length > maxNumFactors) {  // if there are too many factors to show

@@ -253,7 +253,7 @@ function App() {
   const [trackMinus1, setTrackMinus1] = useState(null)
   const [trackPlus1, setTrackPlus1] = useState(null)
 
-  console.log("tracks?", trackMinus1, trackPlus1)
+  // console.log("tracks?", trackMinus1, trackPlus1)
 
   // this debounced function fetches the data and updates the state
   const fetchData = useMemo(() => {
@@ -353,6 +353,7 @@ function App() {
         <LayerLegend 
           data={data}
           hover={hover}
+          selected={selected}
           handleLegendFactorClick={handleLegendFactorClick}
           searchByFactorIndices={searchByFactorIndices}
         />
