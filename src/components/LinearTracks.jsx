@@ -8,7 +8,7 @@ import './LinearTracks.css';
 const LinearTracks = ({
   width = 640,
   height = 50,
-  margin = 5,
+  margin = 0,
   state = null,
   hovered = null,
   selected = null,
@@ -97,12 +97,12 @@ const LinearTracks = ({
         ref={canvasRef}
         onMouseMove={handleMouseMove}
       /> */}
-      {hit && coordExtent &&  <div className="annotations">
+      {/* {hit && coordExtent &&  <div className="annotations">
           <div className="start">{hit.chromosome}:{coordExtent[0]} </div>
-          {/* TODO: add a 1 hilbert cell of coords to the end */}
           <div className="end">{hit.chromosome}:{coordExtent[1]}</div>
         </div>
-      }
+       */}
+          {/* TODO: add a 1 hilbert cell of coords to the end */}
     </div>
   )
 };

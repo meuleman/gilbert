@@ -24,7 +24,7 @@ function invertScaleBand(scale, value) {
 const LinearTrack = ({
   width = 640,
   height = 50,
-  margin = 0,
+  margin = 5,
   state = null,
   track = null,
   hit = null,
@@ -49,7 +49,7 @@ const LinearTrack = ({
       // let max = meta["max"]
       // let yExtent = [min,max]
 
-      let xExtent = extent(track, d => d.i)
+      let xExtent = extent(track, d => d?.i)
       xExtent[1] += 1
 
       xScale = scaleBand()
@@ -85,18 +85,23 @@ const LinearTrack = ({
 
 
       track.forEach(d => {
+        if(!d) return
         const sample = fieldChoice(d);
+        // bar chart version
+        // if(sample) {
+        //   let h = yScale(sample.value)
+        //   let x = xScale(d.i)
+        //   let y = height-margin-h
+        //   ctx.fillStyle = fieldColor(sample.field)
+        //   ctx.fillRect(x, y, bw, h)
+        // }
+        // Opacity heatmap version
         if(sample) {
-          // if(min.length) {
-          //   let fi = fields.indexOf(sample.field)
-          //   // yExtent = [min[fi] < 0 ? 0 : min[fi], max[fi]]
-          //   // yScale.domain(yExtent)
-          // }
-          let h = yScale(sample.value)
           let x = xScale(d.i)
-          let y = height-margin-h
+          let y = 0
+          ctx.globalAlpha = 0.2 + 0.8 * sample.value / yExtent[1]
           ctx.fillStyle = fieldColor(sample.field)
-          ctx.fillRect(x, y, bw, h)
+          ctx.fillRect(x, y, bw, height - margin)
         }
       })
 
