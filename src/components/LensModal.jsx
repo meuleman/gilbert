@@ -137,8 +137,12 @@ const LensModal = ({
                 const id = 'dropdown-button-container' + i
                 const sublensName = sublensNames[selectedSublenses[i]]
                 const sublensLenses = sublenses[sublensName]
+                const orderLayer = sublensLenses[order]
                 return (
-                  <div id={id} key={id}>
+                  <div className='lens-column' id={id} key={id}>
+                    <div className='lens-label'>
+                      {l}
+                    </div>
                     <button
                       className={
                         (permanentLayer && (!layerLockLayer)) ? 
@@ -154,7 +158,7 @@ const LensModal = ({
                       }
                       onMouseOver={(sublensName && sublensLenses) && (() => onMouseOver(sublensLenses, sublensName))}
                       onMouseLeave={() => onMouseLeave(permanentLayer.lens, permanentLayer.id)}
-                    >{sublensName}</button>
+                    >{orderLayer}</button>
                     {dropdownOpen[i] ? (
                       <div  className='dropdown-container'>
                         {sublensNames.map((s, j) => {
@@ -183,19 +187,26 @@ const LensModal = ({
 
               } else {
                 const lensLayers = lenses[l]
+                const orderLayer = lensLayers[order]
+                const id = 'button-container' + i
                 return (
-                  <button 
-                    className={
-                      (permanentLayer && (!layerLockLayer)) ? 
-                        permanentLayer.id === l ? 'lens-button-selected' : 'lens-button'
-                      : 'lens-button'
-                    }
-                    id={l} 
-                    key={l} 
-                    onClick={() => onClick(lensLayers, l)}
-                    onMouseOver={() => onMouseOver(lensLayers, l)}
-                    onMouseLeave={() => onMouseLeave(permanentLayer.lens, permanentLayer.id)}
-                  >{l}</button>
+                  <div className='lens-column' id={id} key={id}>
+                    <div className='lens-label'>
+                      {l}
+                    </div>
+                    <button 
+                      className={
+                        (permanentLayer && (!layerLockLayer)) ? 
+                          permanentLayer.id === l ? 'lens-button-selected' : 'lens-button'
+                        : 'lens-button'
+                      }
+                      id={l} 
+                      key={l} 
+                      onClick={() => onClick(lensLayers, l)}
+                      onMouseOver={() => onMouseOver(lensLayers, l)}
+                      onMouseLeave={() => onMouseLeave(permanentLayer.lens, permanentLayer.id)}
+                    >{orderLayer}</button>
+                  </div>
                 )
               }
             })}

@@ -3,10 +3,9 @@
   display: flex;
   left: 10px;
   margin: 10px;
-  height: 100px;
+  height: 150px;
   text-align: center;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
   background-color: white;
   opacity: 0.9;
@@ -18,7 +17,7 @@
   font-size: 16px;
   font-weight: bold;
   text-align: center;
-  margin-top: -10px;
+  margin: 5px 0px 5px 0px;
 }
 
 .lens-modal-lenses {
@@ -30,10 +29,20 @@
   font-size: 12px;
 }
 
+.lens-column {
+  display: flex;
+  flex-direction: column;
+  width: 120px;
+  margin: 0px 5px 0px 5px;
+  align-items: center;
+  align-self: flex-end;
+}
+
 .lens-button, .lens-button-selected, .dropdown-button, .dropdown-button-selected {
   position: relative;
   height: 100%;
-  max-width: 100px;
+  height: 70px;
+  width: 120px;
   margin: 5px;
   padding: 5px;
   background-color: lightgrey;
@@ -59,7 +68,7 @@
   /* border: 2px solid; */
   border-radius: 8px;
   width: 90%;
-  height: 40px;
+  height: 50px;
   padding: 1px;
   font-weight: normal;
   border: 2px solid;
@@ -72,12 +81,12 @@
 
 .dropdown-container {
   position: absolute;
+  top: 150px;
   margin-top: -5px;
-  margin-left: 5px;
 
   border: 1.5px solid black;
   border-radius: 5px;
-  max-width: 100px;
+  width: 120px;
 
   background-color: white;
   z-index: 1;
@@ -85,5 +94,9 @@
   overflow: auto;
   max-height: 200px;
 
-  padding: 2px 0px 0px 0px;
+  padding: 2px 0px 2px 0px;
+}
+
+.lens-label {
+  width: 100px;
 }
