@@ -124,10 +124,20 @@ const LensModal = ({
     setDropdownOpen(openArr)
   }
 
+  const handleLayerLock = () => {
+    setLayerLock(!layerLock)
+  }
+
   return (
     <>
       {(
         <div className="lens-modal">
+          <div className={
+            (layerLock) ? 
+              'layer-locked'
+            : 'layer-unlocked'
+          }
+          onClick={() => handleLayerLock()}/>
           <div className='lens-header'>Data Lenses</div>
           <div className="lens-modal-lenses">
             {lensNames.map((l, i) => {
