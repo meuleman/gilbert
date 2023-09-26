@@ -10,7 +10,7 @@ const LayerLegend = ({
   selected,
   handleLegendFactorClick,
   searchByFactorIndices,
-  maxNumFactors=30,
+  maxNumFactors=25,
 } = {}) => {
   let layerName, SBFFactors, SBFFactorNames, SBFFactorInds = null
 
