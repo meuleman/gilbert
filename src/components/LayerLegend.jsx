@@ -55,6 +55,11 @@ const LayerLegend = ({
       let fullFactorList = Object.keys(singleSegmentData)
       factors = fullFactorList
 
+      // reorder DHS factors
+      if(layerName && ((layerName === 'DHS Components SFC') || (layerName === 'DHS OE Chi'))) {
+        factors = SimSearchFactors['DHS'].map(f => f.fullName)
+      }
+
       if(factors) {
         if(hover) {
           hoverData = hover.data
