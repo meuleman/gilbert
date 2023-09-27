@@ -153,9 +153,13 @@ function App() {
   
   // the hover can be null or the data in a hilbert cell
   const [hover, setHover] = useState(null)
-  function handleHover(hit) {
-    // console.log("hover", hit)
+  // for when a region is hovered in the similar region list
+  const [similarRegionListHover, setSimilarRegionListHover] = useState(null)
+  function handleHover(hit, similarRegionList=false) {
     setHover(hit)
+    if(similarRegionList) {
+      setSimilarRegionListHover(hit)
+    }
   }
 
   // selected powers the sidebar modal and the 1D track
@@ -273,7 +277,7 @@ function App() {
       let myPromise = dataClient.fetchData(layer, order, points)
       let myCallback = (data) => {
         if(data) {
-          console.log("GOT DATA", data, layer, order)
+          // console.log("GOT DATA", data, layer, order)
           setter({ data, layer, order})
           // setLayerData(layer, data, zoom.order)
           // dispatch({ type: actions.SET_DATA, payload: { data, order: zoom.order } });
@@ -290,6 +294,15 @@ function App() {
     }
     fetchData(layer, zoom.order + 1, setTrackPlus1)
   }, [layer, zoom, selected])
+
+  // compares two hilbert segments to see if they are equal
+  function checkRanges(a, b) {
+    if(!a || !b) return false
+    if(a.i == b.i && a.chromosome == b.chromosome && a.order == b.order) {
+      return true
+    }
+    return false
+  }
 
   return (
     <>
@@ -318,7 +331,11 @@ function App() {
               SVGChromosomeNames({ }),
               showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
               SVGSelected({ hit: hover, stroke: "black", highlightPath: true, strokeWidthMultiplier: 0.1, showGenes }),
-              SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.4, showGenes: false }),
+              (
+                (checkRanges(selected, similarRegionListHover)) ? 
+                SVGSelected({ hit: selected, stroke: "darkorange", strokeWidthMultiplier: 0.4, showGenes: false })
+                : SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.4, showGenes: false })
+              ),
               // TODO: highlight search region (from autocomplete)
               // SVGSelected({ hit: region, stroke: "gray", strokeWidthMultiplier: 0.4, showGenes: false }),
               ...DisplaySimSearchRegions({ 
@@ -327,6 +344,9 @@ function App() {
                 selectedRegion: region,
                 order: selectedOrder, 
                 color: "green", 
+                clickedColor: "red",
+                checkRanges: checkRanges,
+                similarRegionListHover: similarRegionListHover,
                 width: 0.4, 
                 showGenes: false 
               }),
@@ -376,7 +396,6 @@ function App() {
           setRegion={setRegion}
           setHover={handleHover}
           layer={layer} 
-          order={zoom.order}
           zoom={zoom} 
           onClose={handleModalClose} />
       </div>

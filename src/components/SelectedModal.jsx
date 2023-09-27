@@ -18,7 +18,6 @@ const SelectedModal = ({
   setHover,
   layer,
   zoom,
-  order,
   onClose=()=>{}
 } = {}) => {
   let sample = null
@@ -70,7 +69,6 @@ const SelectedModal = ({
             selectedOrder={selectedOrder}
             setRegion={setRegion}
             setHover={setHover}
-            order={order}
           />
       </div>
       ): (
@@ -83,7 +81,6 @@ const SelectedModal = ({
             selectedOrder={selectedOrder}
             setRegion={setRegion}
             setHover={setHover}
-            order={order}
           />
         </div>
       )}

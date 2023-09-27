@@ -1,25 +1,27 @@
 import SVGSelected from '../SVGSelected'
 import { HilbertChromosome } from '../../lib/HilbertChromosome'
 
-function checkRanges(a, b) {
-  if(!a || !b) return false
-  if(a.start == b.start && a.end == b.end && a.chromosome == b.chromosome) {
-    return true
-  }
-  return false
-}
+// function checkRanges(a, b) {
+//   if(!a || !b) return false
+//   if(a.start == b.start && a.end == b.end && a.chromosome == b.chromosome) {
+//     return true
+//   }
+//   return false
+// }
 
 const DisplayedSimSearchRegions = ({
   simSearch=null,
   detailLevel,
   selectedRegion,
   order,
+  checkRanges,
+  similarRegionListHover,
   color = "green",
+  clickedColor  = "red",
   width = 0.4,
   showGenes = false
 } = {}) => {
   if(simSearch) {
-    // showGenes=false
     let hilbert = new HilbertChromosome(order)
 
     let similarRegions
@@ -40,11 +42,10 @@ const DisplayedSimSearchRegions = ({
         return range
       })
   
-      // const match = similarRanges.filter((range) => { return checkRanges(range, selectedRegion) })
-      // console.log("ranges", selectedRegion, similarRanges, match)
-  
       const SVGSelectedArr = similarRanges.map((range) => {
-        return SVGSelected({ hit: range, stroke: checkRanges(range, selectedRegion) ? "red" : color, strokeWidthMultiplier: width, showGenes })
+        // if the segment is hovered in the similar regions list, darken color
+        let hoverColorAdjust = checkRanges(range, similarRegionListHover) ? "dark" : ""
+        return SVGSelected({ hit: range, stroke: checkRanges(range, selectedRegion) ? hoverColorAdjust + clickedColor : hoverColorAdjust + color, strokeWidthMultiplier: width, showGenes })
       })
   
       return SVGSelectedArr

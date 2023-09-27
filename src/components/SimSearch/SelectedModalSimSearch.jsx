@@ -16,26 +16,23 @@ const SelectedModalSimSearch = ({
   selectedOrder,
   setRegion,
   setHover,
-  order,
   regionHeight=15,
   regionMargin=-10,
   barGap=1,
   convThresh=0,
   svgXAdjust=200,
 } = {}) => {
-  let hilbert = new HilbertChromosome(order)
+  let hilbert = new HilbertChromosome(selectedOrder)
   let simSearchFactorOrder, simSearchRegions, selectedRegion, similarRegions, factors
 
   const handleRegionClick = function (chrom, start, stop) {
-    setRegion({
-      chromosome: chrom, 
-      start: start, 
-      end: stop,
-      order: selectedOrder
-    })
+    let range = hilbert.fromRegion(chrom, start, stop-1)[0]
+    range.end = parseInt(stop)
+    setRegion(range)
   }
   const handleRegionMouseOver = function (chrom, start, stop, ranks) {
     let range = hilbert.fromRegion(chrom, start, stop-1)[0]
+    range.end = parseInt(stop)
     if(simSearchFactorOrder){
       let hoverData = {}
       simSearchFactorOrder.map((index, i) => {
@@ -45,11 +42,11 @@ const SelectedModalSimSearch = ({
       })
       range.data = hoverData
     }
-    setHover(range)
+    setHover(range, true)
   }
 
   const handleRegionMouseLeave = function () {
-    setHover(null)
+    setHover(null, true)
   }
 
   // function to clear the convolution svg
