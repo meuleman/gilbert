@@ -259,6 +259,10 @@ function App() {
   const handleChangeShowGenes = (e) => {
     setShowGenes(!showGenes)
   }
+  const [showPyramid, setShowPyramid] = useState(true)
+  const handleChangeShowPyramid = (e) => {
+    setShowPyramid(!showPyramid)
+  }
 
   // changing the region changes the zoom and will also highlight on the map
   const [region, setRegion] = useState(null)
@@ -455,10 +459,10 @@ function App() {
           onClose={handleModalClose} />
       </div>
       <div>
-        { tracks.filter(d => !!d).map((track, i) => {
+        { showPyramid && tracks.filter(d => !!d).map((track, i) => {
           return (
             <LinearTracks 
-              key={i + "-track"}
+              key={track.order + "-track"}
               state={track} 
               width={width} 
               hovered={hover} 
@@ -471,7 +475,7 @@ function App() {
         <LinearTracks 
           state={data} 
           width={width} 
-          segment={false}
+          segment={!showPyramid}
           hovered={hover} 
           selected={selected} 
           setHovered={handleHover} />
@@ -499,9 +503,13 @@ function App() {
             Show Gene Overlays
           </label>
           <label>
+            <input type="checkbox" checked={showPyramid} onChange={handleChangeShowPyramid} />
+            Show Pyramid
+          </label>
+          {/* <label>
             <input type="checkbox" checked={layerLock} onChange={handleChangeLayerLock} />
             Layer lock
-          </label>
+          </label> */}
           {/* this is an input that adds or subtracts to the calculated order */}
           <label>
             Order Offset ({orderOffset}, effective order {zoom.order})
