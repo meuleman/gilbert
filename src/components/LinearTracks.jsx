@@ -12,6 +12,9 @@ const LinearTracks = ({
   state = null,
   hovered = null,
   selected = null,
+  baseOrder=null,
+  baseData=null,
+  segment=true,
   setHovered = () => {},
 } = {}) => {
   let hit, coordExtent;
@@ -32,7 +35,8 @@ const LinearTracks = ({
     if(data && hit) {
 
       // the 1D coordinates are d.i
-      track = data.filter(d => d.chromosome == hit.chromosome && d.inview)
+      // track = data.filter(d => d.chromosome == hit.chromosome && d.inview)
+      track = data.filter(d => d.chromosome == hit.chromosome)
       // console.log("track", track)
       let { fieldChoice } = state.layer
       yMax = max(track, d => fieldChoice(d)?.value)
@@ -43,7 +47,17 @@ const LinearTracks = ({
       // gapsize determines how big a gap is allowed between points
       // TODO: figure out why 0.01 didn't work well at order 4 but worked great at higher orders
       let gapsize = Math.round((xExtent[1] - xExtent[0]) * .05)
+
+      // if(baseData && baseData.data) {
+      //   // determine the gapsize from the base data
+      //   let baseTrack = data.filter(d => d.chromosome == hit.chromosome && d.inview)
+      //   let baseXExtent = extent(baseTrack, d => d.i)
+      //   baseXExtent[1] += 1
+      //   gapsize = Math.round((baseXExtent[1] - baseXExtent[0]) * .05)
+      // }
+
       tracks = []
+      if(segment) {
       // split track into continuous segments based on d.i
       let last = track[0]
       let current = [last]
@@ -60,6 +74,9 @@ const LinearTracks = ({
       }
       if(tracks[tracks.length -1] !== current) tracks.push(current)
       // console.log("tracks", hit, tracks)
+      } else {
+        tracks = [track]
+      }
 
       // for each track in the tracks, calculate the xExtent
       const xExtents = tracks.map(track => extent(track, d => d?.i))

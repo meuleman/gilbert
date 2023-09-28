@@ -5,6 +5,7 @@ import {useEffect, useState, useRef, useCallback, useMemo} from 'react'
 import Data from './lib/data';
 import { HilbertChromosome } from './lib/HilbertChromosome'
 import { debounceNamed } from './lib/debounce'
+import { range } from 'd3-array'
 
 
 // base component
@@ -282,6 +283,10 @@ function App() {
     setData(payload)
   }
 
+  const [tracks, setTracks] = useState(range(14).map(d => null))
+  // setter for tracks array
+
+
   const [trackMinus1, setTrackMinus1] = useState(null)
   const [trackPlus1, setTrackPlus1] = useState(null)
 
@@ -318,9 +323,20 @@ function App() {
 
   useEffect(() => {
     if(zoom.order > 4){
-      fetchData(layer, zoom.order - 1, setTrackMinus1)
+      let order = zoom.order - 1
+      while(order >= 4) {
+        fetchData(layer, order, (response) => {
+          setTracks(prevArray => {
+            const newArray = [...prevArray];
+            newArray[response.order] = response;
+            return newArray
+          });
+        })
+        order -= 1
+      }
+      // fetchData(layer, zoom.order - 1, setTrackMinus1)
     }
-    fetchData(layer, zoom.order + 1, setTrackPlus1)
+    // fetchData(layer, zoom.order + 1, setTrackPlus1)
   }, [layer, zoom, selected])
 
   // compares two hilbert segments to see if they are equal
@@ -439,26 +455,33 @@ function App() {
           onClose={handleModalClose} />
       </div>
       <div>
-        { trackMinus1 && <LinearTracks 
-          state={trackMinus1} 
-          width={width} 
-          hovered={hover} 
-          selected={selected} 
-          />
-        }
+        { tracks.filter(d => !!d).map((track, i) => {
+          return (
+            <LinearTracks 
+              key={i + "-track"}
+              state={track} 
+              width={width} 
+              hovered={hover} 
+              selected={selected} 
+              segment={false}
+              baseOrder={zoom.order}
+              baseData={data}
+            />
+          )})}
         <LinearTracks 
           state={data} 
           width={width} 
+          segment={false}
           hovered={hover} 
           selected={selected} 
           setHovered={handleHover} />
-        { trackPlus1 && <LinearTracks 
+        {/* { trackPlus1 && <LinearTracks 
           state={trackPlus1} 
           width={width} 
           hovered={hover} 
           selected={selected} 
            />
-        }
+        } */}
         <StatusBar 
           width={width + 500 + 12 + 30} 
           hover={hover} // the information about the cell the mouse is over
