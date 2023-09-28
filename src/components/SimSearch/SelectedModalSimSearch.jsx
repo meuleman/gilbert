@@ -51,10 +51,12 @@ const SelectedModalSimSearch = ({
 
   // function to clear the convolution svg
   const removeConvBars = () => {
-    if (document.getElementById('selected-modal-simsearch-list-container')) {
-      d3.selectAll('svg#convSvg').remove()
-      d3.selectAll("div#tooltip").remove()
-    }
+    let convSvgElement = d3.selectAll('svg#convSvg')
+    let convSvgTooltip = d3.selectAll("div#tooltip")
+
+    // if an element has been created
+    if(convSvgElement._groups[0].length) convSvgElement.remove()
+    if(convSvgTooltip._groups[0].length) convSvgTooltip.remove()
   }
 
   // set max detail level and sim search results for current detail level
