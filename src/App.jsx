@@ -19,6 +19,7 @@ import SelectedModal from './components/SelectedModal'
 import LensModal from './components/LensModal'
 import LayerLegend from './components/LayerLegend'
 import SVGSelected from './components/SVGSelected'
+import RegionMask from './components/RegionMask'
 import SVGChromosomeNames from './components/SVGChromosomeNames'
 // import SVGBBox from './components/SVGBBox'
 // layer configurations
@@ -167,6 +168,7 @@ function App() {
   const [selected, setSelected] = useState(null)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [simSearch, setSimSearch] = useState(null)
+  const [similarRegions, setSimilarRegions] = useState([])
   const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(null)
   const [selectedNarration, setSelectedNarration] = useState(null)
   function handleClick(hit, order) {
@@ -183,10 +185,34 @@ function App() {
       SimSearchRegion(hit, order, layer).then((result) => {
         setSimSearch(result)
         setSimSearchDetailLevel(result.initialDetailLevel)
+        processSimSearchResults(result)
       })
       NarrateRegion(hit, order).then((result) => {
         setSelectedNarration(result.narrationRanks)
       })
+    }
+  }
+
+  function processSimSearchResults(result) {
+    let hilbert = HilbertChromosome(zoom.order)
+    let similarRegions;
+    if(result.initialDetailLevel) {
+      similarRegions = result.simSearch[result.initialDetailLevel - 1].slice(1)
+    } else {
+      similarRegions = result.simSearch
+    }
+    if(similarRegions && similarRegions.length)  {
+      const similarRanges = similarRegions.map((d) => {
+        const coords = d.coordinates
+        const chrm = coords.split(':')[0]
+        const start = coords.split(':')[1].split('-')[0]
+        const stop = coords.split(':')[1].split('-')[1]
+        let range = hilbert.fromRegion(chrm, start, stop-1)[0]
+        range.end = +stop
+        return range
+      })
+
+      setSimilarRegions(similarRanges)
     }
   }
 
@@ -198,6 +224,7 @@ function App() {
       setSelectedOrder(zoom.order)
       setSimSearch(result)
       setSimSearchDetailLevel(result.initialDetailLevel)
+      processSimSearchResults(result)
     })
   }
 
@@ -331,24 +358,26 @@ function App() {
             SVGRenderers={[
               SVGChromosomeNames({ }),
               showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
-              SVGSelected({ hit: hover, stroke: "black", highlightPath: true, strokeWidthMultiplier: 0.1, showGenes }),
+              RegionMask({ regions: [selected, ...similarRegions]}),
+              SVGSelected({ hit: hover, stroke: "black", highlightPath: true, strokeWidthMultiplier: 0.05, showGenes }),
               (
                 (checkRanges(selected, similarRegionListHover)) ? 
-                SVGSelected({ hit: selected, stroke: "darkorange", strokeWidthMultiplier: 0.4, showGenes: false })
-                : SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.4, showGenes: false })
+                SVGSelected({ hit: selected, stroke: "darkorange", strokeWidthMultiplier: 0.05, showGenes: false })
+                : SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.05, showGenes: false })
               ),
               // TODO: highlight search region (from autocomplete)
               // SVGSelected({ hit: region, stroke: "gray", strokeWidthMultiplier: 0.4, showGenes: false }),
               ...DisplaySimSearchRegions({ 
-                simSearch: simSearch, 
-                detailLevel: simSearchDetailLevel, 
+                similarRegions: similarRegions,
+                // simSearch: simSearch, 
+                // detailLevel: simSearchDetailLevel, 
                 selectedRegion: region,
-                order: selectedOrder, 
-                color: "green", 
+                // order: selectedOrder, 
+                color: "gray", 
                 clickedColor: "red",
                 checkRanges: checkRanges,
                 similarRegionListHover: similarRegionListHover,
-                width: 0.4, 
+                width: 0.05, 
                 showGenes: false 
               }),
               showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
