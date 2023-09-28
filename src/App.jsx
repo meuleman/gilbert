@@ -49,6 +49,7 @@ import Autocomplete from './components/Autocomplete/Autocomplete'
 import SimSearchRegion from './components/SimSearch/SimSearchRegion'
 import SimSearchByFactor from './components/SimSearch/SimSearchByFactor'
 import DisplaySimSearchRegions from './components/SimSearch/DisplaySimSearchRegions'
+import SelectedModalSimSearch from './components/SimSearch/SelectedModalSimSearch'
 import NarrateRegion from './components/Narration/NarrateRegion'
 
 const layers = [
@@ -376,6 +377,15 @@ function App() {
           selected={selected}
           handleLegendFactorClick={handleLegendFactorClick}
           searchByFactorIndices={searchByFactorIndices}
+        />
+        <SelectedModalSimSearch
+          simSearch={simSearch}
+          simSearchDetailLevel={simSearchDetailLevel}
+          setSimSearchDetailLevel={setSimSearchDetailLevel}
+          searchByFactorIndices={searchByFactorIndices}
+          selectedOrder={selectedOrder}
+          setRegion={setRegion}
+          setHover={setHover}
         />
         <ZoomLegend 
           k={zoom.transform.k} 

@@ -10,16 +10,16 @@
 }
 
 .selected-modal-simsearch-list-container {
-  /* position: absolute; */
-  position: relative;
-  /* max-height: 650px; */
-  /* top: 20%; */
-  /* top: 175px; */
-  top: 0px;
-  bottom: 0px;
-  right: 0px;
-  left: 0px;
-  z-index: 0;
+  position: absolute;
+  width: 400px;
+  height: auto;
+  bottom: 180px;
+  right: 550px;
+  background-color: white;
+  border: solid black 2px;
+  border-radius: 5px;
+  z-index: 1;
+  padding: 5px 5px 10px 5px;
 }
 
 .conv-svg {

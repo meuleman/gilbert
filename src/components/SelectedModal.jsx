@@ -62,18 +62,18 @@ const SelectedModal = ({
           <SelectedModalNarration
             selectedNarration={selectedNarration}
           />
-          <SelectedModalSimSearch
+          {/* <SelectedModalSimSearch
             simSearch={simSearch}
             simSearchDetailLevel={simSearchDetailLevel}
             setSimSearchDetailLevel={setSimSearchDetailLevel}
             selectedOrder={selectedOrder}
             setRegion={setRegion}
             setHover={setHover}
-          />
+          /> */}
       </div>
       ): (
         <div>
-          <SelectedModalSimSearch
+          {/* <SelectedModalSimSearch
             simSearch={simSearch}
             simSearchDetailLevel={simSearchDetailLevel}
             setSimSearchDetailLevel={setSimSearchDetailLevel}
@@ -81,7 +81,7 @@ const SelectedModal = ({
             selectedOrder={selectedOrder}
             setRegion={setRegion}
             setHover={setHover}
-          />
+          /> */}
         </div>
       )}
      

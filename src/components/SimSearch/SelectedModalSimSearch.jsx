@@ -17,7 +17,7 @@ const SelectedModalSimSearch = ({
   setRegion,
   setHover,
   regionHeight=15,
-  regionMargin=-10,
+  regionMargin=-5,
   barGap=1,
   convThresh=0,
   svgXAdjust=200,
@@ -80,34 +80,17 @@ const SelectedModalSimSearch = ({
   useEffect(() => {
     removeConvBars()
     let selectedList = document.getElementById('selected-list');
-    let selectedListItem = [...selectedList.querySelectorAll('li')]
-
     let simSearchList = document.getElementById('similar-regions-list');
-    let similarListItems = [...simSearchList.querySelectorAll('li')]
 
-    let listItems = selectedListItem.concat(similarListItems)
+    let listItems
+    if(selectedList && simSearchList) {
+      let selectedListItem = [...selectedList.querySelectorAll('li')]    
+      let similarListItems = [...simSearchList.querySelectorAll('li')]
+      listItems = selectedListItem.concat(similarListItems)
+    }
     
-    if(listItems.length > 0) {
-      // get the y positions for each region
-      let allRegionYPos = listItems.map((i) => i.getBoundingClientRect().top)
-
-      // define the size and position of convolution bar svg
-      let convBarSvgHeight = Math.max(...allRegionYPos) - Math.min(...allRegionYPos) + regionHeight
-      let convBarSvgWidth = svgXAdjust / 2
-      
-      let firstRegion = listItems[0].getBoundingClientRect()
-      let firstRegionOverallSize = firstRegion.height
-      let svgYAdjust = convBarSvgHeight + regionMargin + (firstRegionOverallSize - regionHeight) / 2
-      
+    if(listItems?.length > 0) {
       let simSearchListContainer = d3.select("#selected-modal-simsearch-list-container")
-      let convSvg = simSearchListContainer
-        .append("svg")
-        .attr('id', 'convSvg')
-        .attr('className', 'conv-svg')
-        .attr("width", convBarSvgWidth)
-        .attr("height", convBarSvgHeight)
-        .style("position", "absolute")
-        .attr("transform", "translate(" + (svgXAdjust + regionMargin) + ", -" + svgYAdjust + ")")
 
       const tooltip = simSearchListContainer
         .append('div')
@@ -164,6 +147,54 @@ const SelectedModalSimSearch = ({
           .style("stroke-width", "0.1")
       }
 
+
+
+      // get the y positions for each region
+      let allRegionYPos = listItems.map((i) => i.getBoundingClientRect().top)
+
+      // find the ranks we want to create convolution bars for
+      let convBarData = []
+      allRegionYPos.map((y, i) => {
+        const yAdjusted = y - Math.min(...allRegionYPos)
+        const ranks = simSearchRegions[i].percentiles
+        const queryRanks = simSearchRegions[0].percentiles
+        let factorCount = 0
+        ranks.map((r, j) => {
+          if(simSearch.method === "Region") {
+            if(r * queryRanks[j] > convThresh) {
+              convBarData.push({ind: j, factorCount: factorCount, yAdjusted: yAdjusted})
+              factorCount += 1
+            }
+          } else {
+            if((r > 0) && (searchByFactorIndices)) {
+              if (searchByFactorIndices.includes(simSearchFactorOrder[j])) {
+                convBarData.push({ind: j, factorCount: factorCount, yAdjusted: yAdjusted})
+                factorCount += 1
+              }
+            }
+          }
+        })
+      })
+
+      let maxFactorCount = Math.max(...convBarData.map((d) => d.factorCount + 1))
+      
+      // define the size and position of convolution bar svg
+      let convBarSvgHeight = Math.max(...allRegionYPos) - Math.min(...allRegionYPos) + regionHeight
+      let convBarSvgWidth = (regionHeight / 2 + barGap) * maxFactorCount
+
+      let firstRegion = listItems[0].getBoundingClientRect()
+      let firstRegionOverallSize = firstRegion.height
+      let svgYAdjust = convBarSvgHeight + regionMargin + (firstRegionOverallSize - regionHeight) / 2
+      
+      let convSvg = simSearchListContainer
+        .append("svg")
+        .attr('id', 'convSvg')
+        .attr('className', 'conv-svg')
+        .attr("width", convBarSvgWidth)
+        .attr("height", convBarSvgHeight)
+        .style("position", "absolute")
+        .attr("transform", "translate(" + (svgXAdjust + regionMargin) + ", -" + svgYAdjust + ")")
+
       const addBar = function (i, factorCount, yAdjusted) {
         const factorInd = simSearchFactorOrder[i]
         const factor = factors[factorInd]
@@ -179,35 +210,42 @@ const SelectedModalSimSearch = ({
           .on("mouseover", function() {mouseover.bind(this)(factor)})
           .on("mousemove", mousemove)
           .on("mouseleave", mouseleave)
-        factorCount += 1
-        return factorCount
+        // factorCount += 1
+        return //factorCount
       }
 
       // add convolution bars
-      allRegionYPos.map((y, i) => {
-        const yAdjusted = y - Math.min(...allRegionYPos)
-        const ranks = simSearchRegions[i].percentiles
-        const queryRanks = simSearchRegions[0].percentiles
-        let factorCount = 0
-        ranks.map((r, j) => {
-          if(simSearch.method === "Region") {
-            if(r * queryRanks[j] > convThresh) {
-              factorCount = addBar(j, factorCount, yAdjusted)
-            }
-          } else {
-            console.log()
-            if((r > 0) && (searchByFactorIndices)) {
-              if (searchByFactorIndices.includes(simSearchFactorOrder[j])) {
-                factorCount = addBar(j, factorCount, yAdjusted)
-              }
-            }
-          }
-        })
+      convBarData.map((d) => {
+        const yAdjusted = d.yAdjusted
+        const i = d.ind
+        const factorCount = d.factorCount
+        addBar(i, factorCount, yAdjusted)
       })
+      // // add convolution bars
+      // allRegionYPos.map((y, i) => {
+      //   const yAdjusted = y - Math.min(...allRegionYPos)
+      //   const ranks = simSearchRegions[i].percentiles
+      //   const queryRanks = simSearchRegions[0].percentiles
+      //   let factorCount = 0
+      //   ranks.map((r, j) => {
+      //     if(simSearch.method === "Region") {
+      //       if(r * queryRanks[j] > convThresh) {
+      //         factorCount = addBar(j, factorCount, yAdjusted)
+      //       }
+      //     } else {
+      //       if((r > 0) && (searchByFactorIndices)) {
+      //         if (searchByFactorIndices.includes(simSearchFactorOrder[j])) {
+      //           factorCount = addBar(j, factorCount, yAdjusted)
+      //         }
+      //       }
+      //     }
+      //   })
+      // })
     }
   }, [simSearchRegions])
 
   return (
+    (simSearch?.simSearch ?
     <div id='selected-modal-simsearch-list-container' className='selected-modal-simsearch-list-container'>
       {(simSearchDetailLevel) && (
         <DetailLevelSlider
@@ -282,6 +320,7 @@ const SelectedModalSimSearch = ({
         ) : null}
       </ul>
     </div>
+    : <div/>)
   )
 }
 export default SelectedModalSimSearch
