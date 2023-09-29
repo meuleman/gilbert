@@ -248,6 +248,7 @@ function App() {
     setSelectedOrder(null)
     setSimSearch(null)
     setSearchByFactorInds([])
+    setSimilarRegions([])
   }
 
   const [showHilbert, setShowHilbert] = useState(false)
