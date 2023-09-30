@@ -53,7 +53,7 @@ export default function RegionMask({
               height={yScale.range()[1] - yScale.range()[0]}
               fill="black"
               stroke="none"
-              fillOpacity="0.4"
+              fillOpacity="0.3"
               mask="url(#mask)"
             ></rect>
           )}

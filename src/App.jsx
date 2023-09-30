@@ -384,7 +384,7 @@ function App() {
               (
                 (checkRanges(selected, similarRegionListHover)) ? 
                 SVGSelected({ hit: selected, stroke: "darkorange", strokeWidthMultiplier: 0.05, showGenes: false })
-                : SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.05, showGenes: false })
+                : SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.2, showGenes: false })
               ),
               // TODO: highlight search region (from autocomplete)
               // SVGSelected({ hit: region, stroke: "gray", strokeWidthMultiplier: 0.4, showGenes: false }),
