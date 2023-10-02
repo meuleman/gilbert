@@ -220,7 +220,7 @@ function App() {
   const [searchByFactorIndices, setSearchByFactorInds] = useState([])
   function handleLegendFactorClick(newSearchByFactorIndices) {
     setSearchByFactorInds(newSearchByFactorIndices)
-    SimSearchByFactor(newSearchByFactorIndices, zoom.order).then((result) => {
+    SimSearchByFactor(newSearchByFactorIndices, zoom.order, layer).then((result) => {
       setSelected(null)
       setSelectedOrder(zoom.order)
       setSimSearch(result)
