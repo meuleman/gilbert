@@ -53,6 +53,7 @@ import SimSearchByFactor from './components/SimSearch/SimSearchByFactor'
 import DisplaySimSearchRegions from './components/SimSearch/DisplaySimSearchRegions'
 import SelectedModalSimSearch from './components/SimSearch/SelectedModalSimSearch'
 import NarrateRegion from './components/Narration/NarrateRegion'
+import SelectedModalNarration from './components/Narration/SelectedModalNarration'
 
 const layers = [
   Bands, 
@@ -249,6 +250,7 @@ function App() {
     setSimSearch(null)
     setSearchByFactorInds([])
     setSimilarRegions([])
+    setSelectedNarration(null)
   }
 
   const [showHilbert, setShowHilbert] = useState(false)
@@ -357,6 +359,10 @@ function App() {
     <>
       <div className="title">gilbert</div>
 
+      <SelectedModalNarration
+        selectedNarration={selectedNarration}
+      />
+
       <div className="zoomto">
         <Autocomplete onChangeLocation={handleChangeLocationViaAutocomplete} />
       </div>
@@ -448,13 +454,6 @@ function App() {
           height={height} 
           selected={selected} // currently selected cell
           selectedOrder={selectedOrder} 
-          simSearch={simSearch}
-          selectedNarration={selectedNarration}
-          simSearchDetailLevel={simSearchDetailLevel}
-          setSimSearchDetailLevel={setSimSearchDetailLevel}
-          searchByFactorIndices={searchByFactorIndices}
-          setRegion={setRegion}
-          setHover={handleHover}
           layer={layer} 
           zoom={zoom} 
           onClose={handleModalClose} />

@@ -1,7 +1,5 @@
 // A component to display some information below the map when hovering over hilbert cells
 
-import SelectedModalSimSearch from './SimSearch/SelectedModalSimSearch'
-import SelectedModalNarration from './Narration/SelectedMOdalNarration'
 import './SelectedModal.css'
 
 const SelectedModal = ({
@@ -9,13 +7,6 @@ const SelectedModal = ({
   height = 800,
   selected = null,
   selectedOrder = null,
-  simSearch = null,
-  selectedNarration=null,
-  simSearchDetailLevel,
-  setSimSearchDetailLevel,
-  searchByFactorIndices,
-  setRegion,
-  setHover,
   layer,
   zoom,
   onClose=()=>{}
@@ -35,7 +26,7 @@ const SelectedModal = ({
 
   return (
     <>
-    {(selected || simSearch) && (
+    {(selected) && (
     <div className="selected-modal" style={{
       width: width - 2 + "px",
       height: height - 12 + "px"
@@ -44,7 +35,6 @@ const SelectedModal = ({
       <div className="header">
         <div className="close" onClick={onClose}>x</div>
       </div>
-      {selected ? (
       <div className="selected-modal-selected">
           <span className="selected-modal-selected-point">
             {selected.chromosome}:{selected.start}
@@ -59,31 +49,7 @@ const SelectedModal = ({
             {sampleSummary}
           </span>
           <br/>
-          <SelectedModalNarration
-            selectedNarration={selectedNarration}
-          />
-          {/* <SelectedModalSimSearch
-            simSearch={simSearch}
-            simSearchDetailLevel={simSearchDetailLevel}
-            setSimSearchDetailLevel={setSimSearchDetailLevel}
-            selectedOrder={selectedOrder}
-            setRegion={setRegion}
-            setHover={setHover}
-          /> */}
       </div>
-      ): (
-        <div>
-          {/* <SelectedModalSimSearch
-            simSearch={simSearch}
-            simSearchDetailLevel={simSearchDetailLevel}
-            setSimSearchDetailLevel={setSimSearchDetailLevel}
-            searchByFactorIndices={searchByFactorIndices}
-            selectedOrder={selectedOrder}
-            setRegion={setRegion}
-            setHover={setHover}
-          /> */}
-        </div>
-      )}
      
       {/* <div className="selected-modal-order">
         {zoom && (
