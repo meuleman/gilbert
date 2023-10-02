@@ -2,7 +2,7 @@
 import axios from "axios";
 import allFactors from './SimSearchFactors.json'
 
-export default function SimSearchByFactor(factors, order, layer, setSimSearchMethod) {
+export default function SimSearchByFactor(factors, order, layer) {
   const maxSimSearchOrder = 11
   if(factors && order) {
     if((order <= maxSimSearchOrder) && (factors.length > 0)) {
@@ -44,9 +44,9 @@ export default function SimSearchByFactor(factors, order, layer, setSimSearchMet
           fullData.map(r => {
             r.rank += 1
           })
-          return {simSearch: fullData, factors: simSearchFactors, initialDetailLevel: null, method: "SBF"}
+          return {simSearch: fullData, factors: simSearchFactors, initialDetailLevel: null, method: "SBF", layer: layer.name}
         } else {
-          return {simSearch: null, factors: null, initialDetailLevel: null, method: null}
+          return {simSearch: null, factors: null, initialDetailLevel: null, method: null, layer: null}
         }
       })
       .catch((err) => {
@@ -57,7 +57,7 @@ export default function SimSearchByFactor(factors, order, layer, setSimSearchMet
 
       return simSearch
     } else {
-      const simSearch = {simSearch: null, factors: null, initialDetailLevel: null, method: null}
+      const simSearch = {simSearch: null, factors: null, initialDetailLevel: null, method: null, layer: null}
       return Promise.resolve(simSearch)
     }
   }

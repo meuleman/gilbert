@@ -5,6 +5,7 @@ import DetailLevelSlider from './DetailLevelSlider'
 import './SelectedModalSimSearch.css'
 import { useEffect } from 'react'
 import { HilbertChromosome } from '../../lib/HilbertChromosome'
+import simSearchFactors from './SimSearchFactors.json'
 // import { useEffect } from 'react'
 
 
@@ -18,12 +19,16 @@ const SelectedModalSimSearch = ({
   setHover,
   regionHeight=15,
   regionMargin=-5,
-  barGap=1,
+  barGap=2,
   convThresh=0,
   svgXAdjust=200,
+  factorHeaderYHeight = 13,
+  factorHeaderGap = 7,
+  inSearchMinWidth = 80,
+  notInSearchMinWidth = 100,
 } = {}) => {
   let hilbert = new HilbertChromosome(selectedOrder)
-  let simSearchFactorOrder, simSearchRegions, selectedRegion, similarRegions, factors
+  let simSearchFactorOrder, simSearchRegions, selectedRegion, similarRegions, factors, layerFactors
 
   const handleRegionClick = function (chrom, start, stop) {
     let range = hilbert.fromRegion(chrom, start, stop-1)[0]
@@ -51,11 +56,13 @@ const SelectedModalSimSearch = ({
 
   // function to clear the convolution svg
   const removeConvBars = () => {
-    let convSvgElement = d3.selectAll('svg#convSvg')
+    let inSearchSvgElement = d3.selectAll('svg#inSearchSvg')
+    let notInSearchSvgElement = d3.selectAll('svg#notInSearchSvg')
     let convSvgTooltip = d3.selectAll("div#tooltip")
 
     // if an element has been created
-    if(convSvgElement._groups[0].length) convSvgElement.remove()
+    if(inSearchSvgElement._groups[0].length) inSearchSvgElement.remove()
+    if(notInSearchSvgElement._groups[0].length) notInSearchSvgElement.remove()
     if(convSvgTooltip._groups[0].length) convSvgTooltip.remove()
   }
 
@@ -63,6 +70,11 @@ const SelectedModalSimSearch = ({
   let maxDetailLevel
   if(simSearch) {
     factors = simSearch.factors
+    if(simSearch.layer) {  // only in search by factor
+      let layer = simSearch.layer
+      if(layer === "DHS Components SFC") layerFactors = simSearchFactors['DHS'].map(d => d.fullName)
+      else if(layer === 'Chromatin State SFC') layerFactors = simSearchFactors['Chromatin States'].map(d => d.fullName)
+    }
     if(simSearch.simSearch) {
       maxDetailLevel = simSearch.simSearch.length
       if (simSearchDetailLevel) {
@@ -146,7 +158,7 @@ const SelectedModalSimSearch = ({
           .style('z-index', -1)
         d3.select(this)
           .style("stroke", "black")
-          .style("stroke-width", "0.1")
+          .style("stroke-width", "0.5")
       }
 
 
@@ -155,52 +167,42 @@ const SelectedModalSimSearch = ({
       let allRegionYPos = listItems.map((i) => i.getBoundingClientRect().top)
 
       // find the ranks we want to create convolution bars for
-      let convBarData = []
-      allRegionYPos.map((y, i) => {
-        const yAdjusted = y - Math.min(...allRegionYPos)
-        const ranks = simSearchRegions[i].percentiles
-        const queryRanks = simSearchRegions[0].percentiles
-        let factorCount = 0
-        ranks.map((r, j) => {
-          if(simSearch.method === "Region") {
-            if(r * queryRanks[j] > convThresh) {
-              convBarData.push({ind: j, factorCount: factorCount, yAdjusted: yAdjusted})
-              factorCount += 1
-            }
-          } else {
-            if((r > 0) && (searchByFactorIndices)) {
-              if (searchByFactorIndices.includes(simSearchFactorOrder[j])) {
-                convBarData.push({ind: j, factorCount: factorCount, yAdjusted: yAdjusted})
-                factorCount += 1
+      let inSearchData = []
+      let notInSearchData = []
+      let factorsInSearch
+      if((simSearch.method === "Region") && simSearchDetailLevel) {
+        factorsInSearch = simSearchRegions[0].target_factors.slice(0, simSearchDetailLevel)
+      } else if(searchByFactorIndices) {
+        factorsInSearch = searchByFactorIndices
+      }
+
+      let headerY = factorHeaderYHeight + factorHeaderGap
+      if(factorsInSearch) {
+        allRegionYPos.map((y, i) => {
+          const yAdjusted = y - Math.min(...allRegionYPos) + headerY
+          const ranks = simSearchRegions[i].percentiles
+          
+          let inSearchFactorCount = 0
+          let notInSearchFactorCount = 0
+
+          ranks.map((r, j) => {
+            if((r > 0) && factorsInSearch.includes(simSearchFactorOrder[j])) {
+              inSearchData.push({ind: j, factorCount: inSearchFactorCount, yAdjusted: yAdjusted})
+              inSearchFactorCount += 1
+            } else if(r > 0) {
+              if((layerFactors && layerFactors.includes(factors[simSearchFactorOrder[j]].fullName)) || !layerFactors) {
+                notInSearchData.push({ind: j, factorCount: notInSearchFactorCount, yAdjusted: yAdjusted})
+                notInSearchFactorCount += 1
               }
             }
-          }
+          })
         })
-      })
+      }
 
-      let maxFactorCount = Math.max(...convBarData.map((d) => d.factorCount + 1))
-      
-      // define the size and position of convolution bar svg
-      let convBarSvgHeight = Math.max(...allRegionYPos) - Math.min(...allRegionYPos) + regionHeight
-      let convBarSvgWidth = (regionHeight / 2 + barGap) * maxFactorCount
-
-      let firstRegion = listItems[0].getBoundingClientRect()
-      let firstRegionOverallSize = firstRegion.height
-      let svgYAdjust = convBarSvgHeight + regionMargin + (firstRegionOverallSize - regionHeight) / 2
-      
-      let convSvg = simSearchListContainer
-        .append("svg")
-        .attr('id', 'convSvg')
-        .attr('className', 'conv-svg')
-        .attr("width", convBarSvgWidth)
-        .attr("height", convBarSvgHeight)
-        .style("position", "absolute")
-        .attr("transform", "translate(" + (svgXAdjust + regionMargin) + ", -" + svgYAdjust + ")")
-
-      const addBar = function (i, factorCount, yAdjusted) {
+      const addBar = function (i, factorCount, yAdjusted, svg) {
         const factorInd = simSearchFactorOrder[i]
         const factor = factors[factorInd]
-        convSvg
+        svg
           .append("rect")
           .attr("x", factorCount * (regionHeight / 2 + barGap))
           .attr("y", yAdjusted)
@@ -208,41 +210,73 @@ const SelectedModalSimSearch = ({
           .attr("height", regionHeight)
           .style("fill", factor.color)
           .style("stroke", "black")
-          .style("stroke-width", "0.1")
+          .style("stroke-width", "0.5")
           .on("mouseover", function() {mouseover.bind(this)(factor)})
           .on("mousemove", mousemove)
           .on("mouseleave", mouseleave)
-        // factorCount += 1
-        return //factorCount
+        return
       }
 
-      // add convolution bars
-      convBarData.map((d) => {
-        const yAdjusted = d.yAdjusted
-        const i = d.ind
-        const factorCount = d.factorCount
-        addBar(i, factorCount, yAdjusted)
+      // define the size and position of convolution bar svg
+      // heights for all bar svgs
+      let barSvgHeight = Math.max(...allRegionYPos) - Math.min(...allRegionYPos) + regionHeight + headerY
+      let firstRegion = listItems[0].getBoundingClientRect()
+      let firstRegionOverallSize = firstRegion.height
+      let svgYAdjust = barSvgHeight + regionMargin + (firstRegionOverallSize - regionHeight) / 2
+
+      // in search bars
+      let maxInSeachFactorCount = Math.max(...inSearchData.map((d) => d.factorCount + 1))
+      let inSearchBarSvgWidth = Math.max((regionHeight / 2 + barGap) * maxInSeachFactorCount, inSearchMinWidth)
+      
+      let inSearchSvg = simSearchListContainer
+        .append("svg")
+        .attr('id', 'inSearchSvg')
+        .attr('className', 'conv-svg')
+        .attr("width", inSearchBarSvgWidth)
+        .attr("height", barSvgHeight)
+        .style("position", "absolute")
+        .attr("transform", "translate(" + (svgXAdjust + regionMargin) + ", -" + svgYAdjust + ")")
+
+      // add bars
+      inSearchSvg
+          .append("text")
+          .attr("text-anchor", "start")
+          .attr("dy", factorHeaderYHeight)
+          .style('font-size', factorHeaderYHeight)
+          .style('font', 'sans-serif')
+          .text("In Search")
+      inSearchData.map((d) => {
+        addBar(d.ind, d.factorCount, d.yAdjusted, inSearchSvg)
       })
-      // // add convolution bars
-      // allRegionYPos.map((y, i) => {
-      //   const yAdjusted = y - Math.min(...allRegionYPos)
-      //   const ranks = simSearchRegions[i].percentiles
-      //   const queryRanks = simSearchRegions[0].percentiles
-      //   let factorCount = 0
-      //   ranks.map((r, j) => {
-      //     if(simSearch.method === "Region") {
-      //       if(r * queryRanks[j] > convThresh) {
-      //         factorCount = addBar(j, factorCount, yAdjusted)
-      //       }
-      //     } else {
-      //       if((r > 0) && (searchByFactorIndices)) {
-      //         if (searchByFactorIndices.includes(simSearchFactorOrder[j])) {
-      //           factorCount = addBar(j, factorCount, yAdjusted)
-      //         }
-      //       }
-      //     }
-      //   })
-      // })
+
+      // not in search
+      let maxNotInSearchFactorCount = Math.max(...notInSearchData.map((d) => d.factorCount + 1))
+      let notInSearchBarSvgWidth = Math.max((regionHeight / 2 + barGap) * maxNotInSearchFactorCount, notInSearchMinWidth)
+      
+      let notInSearchSvg = simSearchListContainer
+        .append("svg")
+        .attr('id', 'notInSearchSvg')
+        .attr('className', 'conv-svg')
+        .attr("width", notInSearchBarSvgWidth)
+        .attr("height", barSvgHeight)
+        .style("position", "absolute")
+        .attr("transform", "translate(" + (svgXAdjust + inSearchBarSvgWidth + regionMargin) + ", -" + svgYAdjust + ")")
+
+      // add bars
+      if(notInSearchData.length > 0) {
+        notInSearchSvg
+          .append("text")
+          .attr("text-anchor", "start")
+          .attr("dy", factorHeaderYHeight)
+          .style('font-size', factorHeaderYHeight)
+          .style('font', 'sans-serif')
+          .text("Not In Search")
+        notInSearchData.map((d) => {
+          addBar(d.ind, d.factorCount, d.yAdjusted, notInSearchSvg)
+        })
+      }
+
+      ///// other metrics - we have this information for search by factor (and what the current layer is -> <layerFactors>), we just need it for regional
     }
   }, [simSearchRegions])
 
