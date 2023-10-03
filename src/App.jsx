@@ -223,6 +223,7 @@ function App() {
     setSearchByFactorInds(newSearchByFactorIndices)
     SimSearchByFactor(newSearchByFactorIndices, zoom.order, layer).then((result) => {
       setSelected(null)
+      setSelectedNarration(null)
       setSelectedOrder(zoom.order)
       setSimSearch(result)
       setSimSearchDetailLevel(result.initialDetailLevel)
