@@ -3,6 +3,7 @@ import { all } from 'axios'
 import './LensModal.css'
 import lenses from './Lenses/lenses.json'
 import { useEffect, useState } from 'react'
+import LayerLegend from './LayerLegend'
 
 const LensModal = ({
   layers,
@@ -11,13 +12,15 @@ const LensModal = ({
   setLayer,
   setLayerLock,
   layerLock,
+  setLayerLockFromIcon,
+  layerLockFromIcon,
   setSearchByFactorInds,
   order,
   orders=[4,5,6,7,8,9,10,11,12,13,14]
 } = {}) => {
   const lensNames = Object.keys(lenses)
 
-  const [permanentLayer, setPermanentLayer] = useState(null)
+  const [permanentLens, setPermanentLens] = useState(null)
   const [layerLockLayer, setLayerLockLayer] = useState(null)
 
   // finds the layer order for desired lens
@@ -25,7 +28,7 @@ const LensModal = ({
     let newLayerOrder = {}
     orders.forEach((order) => {
       const desiredName = lens[order]
-      const desiredDatasetArr = layers.filter((d) => d.name === desiredName)
+      const desiredDatasetArr = layers.filter((d) => d.name == desiredName)
       if(desiredDatasetArr.length === 1) {
         const desiredDataset = desiredDatasetArr[0]
         newLayerOrder[order] = desiredDataset
@@ -40,12 +43,12 @@ const LensModal = ({
   const changeLensPermanent = (lens, id) => {
     const newLayerOrder = getNewLens(lens)
     if(Object.keys(newLayerOrder).length === orders.length) {
-      if(permanentLayer && (permanentLayer.id !== id)) {
+      if(permanentLens?.id !== id) {
         setSearchByFactorInds([])
       }
       setLayerOrder(newLayerOrder)
       setLayer(newLayerOrder[order])
-      setPermanentLayer({
+      setPermanentLens({
         lens: lens,
         id: id
       })
@@ -53,7 +56,9 @@ const LensModal = ({
   }
 
   // setLayer to what desired lens defines at current order
+  const [hovering, setHovering] = useState(false)
   const onMouseOver = (lens, id) => {
+    setHovering(true)
     const newLayerOrder = getNewLens(lens, id)
     if(Object.keys(newLayerOrder).length === orders.length) {
       setLayer(newLayerOrder[order])
@@ -64,6 +69,7 @@ const LensModal = ({
   // override layerLock and set lens
   const onClick = (lens, id, lensIndex, sublensIndex) => {
     setLayerLock(false)
+    setLayerLockFromIcon(null)
     changeLensPermanent(lens, id)
     if((lensIndex !== null) && (sublensIndex !== null)) {
       let newSelectedSublenses = selectedSublenses
@@ -74,6 +80,7 @@ const LensModal = ({
 
   // set the layer or lens depending on layerLock
   const onMouseLeave = (lens, id) => {
+    setHovering(false)
     if(layerLock) {
       setLayer(layerLockLayer)
     } else {
@@ -83,7 +90,7 @@ const LensModal = ({
 
   // on render, set the permanent layer to Basic
   useEffect(() => {
-    changeLensPermanent(lenses[lensNames[0]], lensNames[0])
+    changeLensPermanent(lenses[lensNames[1]], lensNames[1])
   }, [setLayerOrder])
 
   // handle when layerLock is toggled
@@ -92,15 +99,24 @@ const LensModal = ({
       setLayerLockLayer(currentLayer)
     } else { // load the permanent layer
       setLayerLockLayer(null)
-      if(permanentLayer) {
-        changeLensPermanent(permanentLayer.lens, permanentLayer.id)
+      if(permanentLens) {
+        changeLensPermanent(permanentLens.lens, permanentLens.id)
       }
     }
   }, [layerLock])
 
+  // handle when a layer changes when layerLock is true
+  useEffect(() => {
+    // save the current layer (for MouseLeave)
+    // make sure layerLock is true, we are not hovering over a lens, and it is a different layer than what is already set
+    if(layerLock && !hovering && layerLockLayer?.name !== currentLayer?.name) {
+      setLayerLockLayer(currentLayer)
+    }
+  }, [currentLayer])
+
   let isDropdown = new Array(lensNames.length).fill(false)
   lensNames.map((l, i) => {
-    if (typeof Object.values(lenses[l])[0] === "object") {
+    if (typeof Object.values(lenses[l])[0] == "object") {
       isDropdown[i] = true
     }
   })
@@ -124,9 +140,37 @@ const LensModal = ({
     setDropdownOpen(openArr)
   }
 
+  // when the lock icon is clicked
   const handleLayerLock = () => {
+    if(!layerLock) {
+      // setLayerLockLens(permanentLens)
+      setLayerLockFromIcon(true)
+    } else {
+      // setLayerLockLens(null)
+      setLayerLockFromIcon(null)
+    }
     setLayerLock(!layerLock)
   }
+
+  // let tooltip = document.getElementById('label-tooltip')
+  // const labelMouseOver = (label) => {
+  //   tooltip.style.zIndex = 1
+  //   tooltip.style.opacity = 1
+  //   tooltip.textContent = label
+  // }
+
+  // const labelMouseLeave = () => {
+  //   tooltip.style.zIndex = -10
+  //   tooltip.style.opacity = 0
+  // }
+
+  // const labelMouseMove = (e) => {
+  //   const xOffset = 0
+  //   const yOffset = 0
+
+  //   tooltip.style.left = e.pageX + xOffset + 'px'
+  //   tooltip.style.top = e.pageY + yOffset + 'px'
+  // }
 
   return (
     <>
@@ -138,6 +182,10 @@ const LensModal = ({
             : 'layer-unlocked'
           }
           onClick={() => handleLayerLock()}/>
+          {/* onMouseOver={() => labelMouseOver('Lock Layer')}
+          onMouseLeave={() => labelMouseLeave()}
+          onMouseMove={(e) => labelMouseMove(e)}/> */}
+          {/* <div className='label-tooltip' id='label-tooltip'></div> */}
           <div className='lens-header'>Data Lenses</div>
           <div className="lens-modal-lenses">
             {lensNames.map((l, i) => {
@@ -147,7 +195,10 @@ const LensModal = ({
                 const id = 'dropdown-button-container' + i
                 const sublensName = sublensNames[selectedSublenses[i]]
                 const sublensLenses = sublenses[sublensName]
-                const orderLayer = sublensLenses[order]
+                let orderLayer = sublensLenses[order]
+                if(permanentLens?.id == sublensName && layerLockFromIcon) {
+                  orderLayer = layerLockLayer?.name
+                }
                 return (
                   <div className='lens-column' id={id} key={id}>
                     <div className='lens-label'>
@@ -155,19 +206,19 @@ const LensModal = ({
                     </div>
                     <button
                       className={
-                        (permanentLayer && (!layerLockLayer)) ? 
-                          sublensNames.includes(permanentLayer.id) ? 'dropdown-button-selected' : 'dropdown-button'
+                        ((layerLockFromIcon != false) && sublensNames.includes(permanentLens?.id)) ? 
+                          'dropdown-button-selected' 
                         : 'dropdown-button'
                       }
                       id={l}
                       key={l}
                       onClick={
-                        (permanentLayer && (permanentLayer.id === sublensName)) ? 
+                        ((permanentLens?.id == sublensName) && (layerLockFromIcon != false)) ? 
                           (() => handleDropdownOpen(l)) 
                           :((sublensName && sublensLenses) && (() => onClick(sublensLenses, sublensName)))
                       }
                       onMouseOver={(sublensName && sublensLenses) && (() => onMouseOver(sublensLenses, sublensName))}
-                      onMouseLeave={() => onMouseLeave(permanentLayer.lens, permanentLayer.id)}
+                      onMouseLeave={() => onMouseLeave(permanentLens.lens, permanentLens.id)}
                     >{orderLayer}</button>
                     {dropdownOpen[i] ? (
                       <div  className='dropdown-container'>
@@ -176,15 +227,15 @@ const LensModal = ({
                           return (
                             <button
                               className={
-                                (permanentLayer && (!layerLockLayer)) ? 
-                                  permanentLayer.id === s ? 'dropdown-lens-button-selected' : 'dropdown-lens-button'
+                                ((layerLockFromIcon != false) && permanentLens?.id == s) ? 
+                                  'dropdown-lens-button-selected'
                                 : 'dropdown-lens-button'
                               }
                               key={s}
                               id={s}
                               onClick={() => onClick(sublensLayers, s, i, j)}
                               onMouseOver={() => onMouseOver(sublensLayers, s)}
-                              onMouseLeave={() => onMouseLeave(permanentLayer.lens, permanentLayer.id)}
+                              onMouseLeave={() => onMouseLeave(permanentLens.lens, permanentLens.id)}
                             >
                               {s}
                             </button>
@@ -197,7 +248,11 @@ const LensModal = ({
 
               } else {
                 const lensLayers = lenses[l]
-                const orderLayer = lensLayers[order]
+                let orderLayer = lensLayers[order]
+                if(permanentLens?.id == l && layerLockFromIcon) {
+                  orderLayer = layerLockLayer?.name
+                }
+
                 const id = 'button-container' + i
                 return (
                   <div className='lens-column' id={id} key={id}>
@@ -206,15 +261,15 @@ const LensModal = ({
                     </div>
                     <button 
                       className={
-                        (permanentLayer && (!layerLockLayer)) ? 
-                          permanentLayer.id === l ? 'lens-button-selected' : 'lens-button'
+                        ((layerLockFromIcon != false) && permanentLens?.id == l) ? 
+                        'lens-button-selected'
                         : 'lens-button'
                       }
                       id={l} 
                       key={l} 
                       onClick={() => onClick(lensLayers, l)}
                       onMouseOver={() => onMouseOver(lensLayers, l)}
-                      onMouseLeave={() => onMouseLeave(permanentLayer.lens, permanentLayer.id)}
+                      onMouseLeave={() => onMouseLeave(permanentLens.lens, permanentLens.id)}
                     >{orderLayer}</button>
                   </div>
                 )

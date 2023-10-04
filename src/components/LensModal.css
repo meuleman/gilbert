@@ -124,3 +124,10 @@
 .lens-label {
   width: 100px;
 }
+
+.label-tooltip {
+  position: absolute;
+  background-color: white;
+  border-radius: 5px;
+  border: solid black 2px;
+}

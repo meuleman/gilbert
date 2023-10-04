@@ -124,6 +124,7 @@ function App() {
   }
 
   const [layerLock, setLayerLock] = useState(false)
+  const [layerLockFromIcon, setLayerLockFromIcon] = useState(null)
   const handleChangeLayerLock = (e) => {
     setLayerLock(!layerLock)
   }
@@ -132,6 +133,7 @@ function App() {
   function handleLayer(l) {
     setLayer(l)
     setLayerLock(true)
+    setLayerLockFromIcon(false)
     setSelected(selected)
     setSelectedOrder(selectedOrder)
     setSimSearch(simSearch)
@@ -436,6 +438,8 @@ function App() {
           setLayer={setLayer}
           setLayerLock={setLayerLock}
           layerLock={layerLock}
+          setLayerLockFromIcon={setLayerLockFromIcon}
+          layerLockFromIcon={layerLockFromIcon}
           setSearchByFactorInds={setSearchByFactorInds}
           order={zoom.order}
         />
