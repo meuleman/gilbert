@@ -10,14 +10,6 @@
   src: url('fonts/pricedown bl.ttf');
 }
 
-.title {
-  font-size: 5em;
-  line-height: 1.1em;
-  margin-bottom: 10px;
-  margin-top: -20px;
-  font-family: 'Gilbert';
-  padding: 5px;
-}
 /* APP styles */
 .panels {
   display: flex;
@@ -28,14 +20,65 @@
   padding: 5px;
 }
 
-.zoom-legend {
-  margin-right: 490px;
+/* .................................... HEADER ................................ */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.header-panel {
+  flex-grow: 1;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.title {
+  width: 275px;
+  font-size: 5em;
+  line-height: 1.1em;
+  margin-bottom: 10px;
+  margin-top: -20px;
+  font-family: 'Gilbert';
+  padding: 5px;
+  flex-shrink: 0; /* Prevents this panel from shrinking */
+}
+
+.narration {
+  flex-grow: 1; /* Takes up remaining available space */
+  max-width: calc(100% - 275px - 250px); /* Limits the width */
+  overflow: hidden; /* Prevents content from overflowing */
+  font-size: 18px;
 }
 
 .zoomto {
-  position: absolute;
-  right: 543px;
-  top: 35px;
+  flex-shrink: 0; /* Prevents this panel from shrinking */
+  width: 250px;
+}
+
+/* .................................... FOOTER ................................ */
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+}
+
+.footer-panel {
+  flex-grow: 1;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.footer-panel-left {
+  justify-content: flex-start; /* Align content to the left within the left panel */
+}
+
+.footer-panel-right {
+  justify-content: flex-end; /* Align content to the right within the right panel */
+}
+
+.zoom-legend {
+  margin-right: 490px;
 }
 
 .hilbert-container {

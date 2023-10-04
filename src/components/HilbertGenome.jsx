@@ -129,7 +129,7 @@ const HilbertGenome = ({
   
   // the layer can change when the order changes once we implement some logic for it
   const layer = useMemo(() => {
-    console.log("layer choice")
+    //console.log("layer choice")
     if(activeLayer == "auto") {
       // TODO have some logic for automatically selecting the layer
     } else {

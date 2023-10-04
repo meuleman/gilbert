@@ -49,13 +49,7 @@ const SelectedModalNarration = ({
 
 
   return (
-    (selectedNarration ? 
-      <div id='selected-modal-narration-container' className='selected-modal-narration-container'>
-        <div id='selected-modal-narration-header' className='selected-modal-narration-header'>Narration:</div>
-        <div id='selected-modal-narration-sentence' className='selected-modal-narration-sentence'></div>
-      </div>
-    : <div/>
-    )
+        <div id='selected-modal-narration-sentence'></div>
   )
 }
 export default SelectedModalNarration

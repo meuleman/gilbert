@@ -358,14 +358,19 @@ function App() {
 
   return (
     <>
-      <div className="title">gilbert</div>
+      <div className="header">
+        <div className="header-panel title">gilbert</div>
 
-      <SelectedModalNarration
-        selectedNarration={selectedNarration}
-      />
+        <div className="header-panel narration">
+          <SelectedModalNarration
+            selectedNarration={selectedNarration}
+          />
+        </div>
 
-      <div className="zoomto">
-        <Autocomplete onChangeLocation={handleChangeLocationViaAutocomplete} />
+        <div className="header-panel zoomto">
+          <Autocomplete onChangeLocation={handleChangeLocationViaAutocomplete} />
+        </div>
+
       </div>
 
       <div className="panels">
@@ -450,6 +455,7 @@ function App() {
           effectiveOrder={zoom.order}
           orderDomain={orderDomain} 
           zoomExtent={zoomExtent} />
+          { /*}
         <SelectedModal
           width={480}
           height={height} 
@@ -458,6 +464,7 @@ function App() {
           layer={layer} 
           zoom={zoom} 
           onClose={handleModalClose} />
+          */ }
       </div>
       <div>
         { showPyramid && tracks.filter(d => !!d).map((track, i) => {
@@ -494,28 +501,32 @@ function App() {
           zoom={zoom} 
           onLayer={handleLayer}
           layers={layers} />
-        <div className="vis-controls">
-          <label>
-            <input type="checkbox" checked={showHilbert} onChange={handleChangeShowHilbert} />
-            Show Hilbert Curve
-          </label>
-          <label>
-            <input type="checkbox" checked={showGenes} onChange={handleChangeShowGenes} />
-            Show Gene Overlays
-          </label>
-          <label>
-            <input type="checkbox" checked={showPyramid} onChange={handleChangeShowPyramid} />
-            Show Pyramid
-          </label>
-          {/* <label>
-            <input type="checkbox" checked={layerLock} onChange={handleChangeLayerLock} />
-            Layer lock
-          </label> */}
-          {/* this is an input that adds or subtracts to the calculated order */}
-          <label>
-            Order Offset ({orderOffset}, effective order {zoom.order})
-            <input type="range" min={-2} max={2} value={orderOffset} onChange={(e) => setOrderOffset(+e.target.value)} />
-          </label>
+        <div className="footer">
+          <div className="footer-panel footer-panel-left">
+            <label>
+              <input type="checkbox" checked={showHilbert} onChange={handleChangeShowHilbert} />
+              Show Hilbert Curve
+            </label>
+            <label>
+              <input type="checkbox" checked={showGenes} onChange={handleChangeShowGenes} />
+              Show Gene Overlays
+            </label>
+            <label>
+              <input type="checkbox" checked={showPyramid} onChange={handleChangeShowPyramid} />
+              Show Pyramid
+            </label>
+            {/* <label>
+              <input type="checkbox" checked={layerLock} onChange={handleChangeLayerLock} />
+              Layer lock
+            </label> */}
+          </div>
+          <div className="footer-panel footer-panel-right">
+            {/* this is an input that adds or subtracts to the calculated order */}
+            <label>
+              Order Offset ({orderOffset}, effective order {zoom.order})
+              <input type="range" min={-2} max={2} value={orderOffset} onChange={(e) => setOrderOffset(+e.target.value)} />
+            </label>
+          </div>
         </div>
       </div>
     </>
