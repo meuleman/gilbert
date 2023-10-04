@@ -132,6 +132,7 @@ export default function SVGBBox({
         </defs>
          {/* {highlightPath && highlightRects} */}
          {highlightPath && highlightPaths}
+         { /*}
           <rect
             x={xScale(hit.x) - rw/2}
             y={yScale(hit.y) - rw/2}
@@ -141,6 +142,15 @@ export default function SVGBBox({
             stroke={stroke}
             strokeWidth={sw}
           ></rect>
+        */ }
+          <circle
+            cx={xScale(hit.x)}
+            cy={yScale(hit.y)}
+            r={rw}
+            fill={fill}
+            stroke={stroke}
+            strokeWidth={sw}
+          ></circle>
           {showGenes && genePaths}
     </g>
     )

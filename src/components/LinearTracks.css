@@ -2,9 +2,8 @@
 .linear-tracks {
   max-width: fit-content;
   /* padding: 2px; */
-
-  
 }
+
 .linear-tracks .annotations {
   display: flex;
   flex-direction: row;

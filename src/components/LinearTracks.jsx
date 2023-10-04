@@ -96,7 +96,6 @@ const LinearTracks = ({
           key={"linear-track-" + i} 
           track={track} 
           width={widths[i]}
-          height={height}
           yExtent={[0, yMax]}
           state={state}
           hit={hit}

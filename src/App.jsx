@@ -387,7 +387,7 @@ function App() {
               SVGChromosomeNames({ }),
               showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
               RegionMask({ regions: [selected, ...similarRegions]}),
-              SVGSelected({ hit: hover, stroke: "black", highlightPath: true, strokeWidthMultiplier: 0.05, showGenes }),
+              SVGSelected({ hit: hover, stroke: "black", highlightPath: true, strokeWidthMultiplier: 0.1, showGenes }),
               (
                 (checkRanges(selected, similarRegionListHover)) ? 
                 SVGSelected({ hit: selected, stroke: "darkgold", strokeWidthMultiplier: 0.05, showGenes: false })
