@@ -390,8 +390,8 @@ function App() {
               SVGSelected({ hit: hover, stroke: "black", highlightPath: true, strokeWidthMultiplier: 0.05, showGenes }),
               (
                 (checkRanges(selected, similarRegionListHover)) ? 
-                SVGSelected({ hit: selected, stroke: "darkorange", strokeWidthMultiplier: 0.05, showGenes: false })
-                : SVGSelected({ hit: selected, stroke: "orange", strokeWidthMultiplier: 0.2, showGenes: false })
+                SVGSelected({ hit: selected, stroke: "darkgold", strokeWidthMultiplier: 0.05, showGenes: false })
+                : SVGSelected({ hit: selected, stroke: "gold", strokeWidthMultiplier: 0.35, showGenes: false })
               ),
               // TODO: highlight search region (from autocomplete)
               // SVGSelected({ hit: region, stroke: "gray", strokeWidthMultiplier: 0.4, showGenes: false }),
@@ -465,7 +465,7 @@ function App() {
             <LinearTracks 
               key={track.order + "-track"}
               state={track} 
-              width={width} 
+              width={width}
               hovered={hover} 
               selected={selected} 
               segment={false}

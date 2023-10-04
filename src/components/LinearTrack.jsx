@@ -62,8 +62,6 @@ const LinearTrack = ({
         .domain(yExtent)
         .range([0, height - margin*2])
 
-      // console.log("track", track)
-
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "black"
       let tx = xScale(hit.i) + bw/2
@@ -82,7 +80,6 @@ const LinearTrack = ({
       ctx.lineTo(tx + 5, height);
       ctx.closePath();
       ctx.fill();
-
 
       track.forEach(d => {
         if(!d) return

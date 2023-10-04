@@ -58,22 +58,22 @@ const LinearTracks = ({
 
       tracks = []
       if(segment) {
-      // split track into continuous segments based on d.i
-      let last = track[0]
-      let current = [last]
-      for(let i = 1; i < track.length; i++) {
-        let d = track[i]
-        // if(d.i == last.i + 1) {
-        if(d.i - last.i < gapsize) {
-          current.push(d)
-        } else {
-          tracks.push(current)
-          current = [d]
+        // split track into continuous segments based on d.i
+        let last = track[0]
+        let current = [last]
+        for(let i = 1; i < track.length; i++) {
+          let d = track[i]
+          // if(d.i == last.i + 1) {
+          if(d.i - last.i < gapsize) {
+            current.push(d)
+          } else {
+            tracks.push(current)
+            current = [d]
+          }
+          last = d
         }
-        last = d
-      }
-      if(tracks[tracks.length -1] !== current) tracks.push(current)
-      // console.log("tracks", hit, tracks)
+        if(tracks[tracks.length -1] !== current) tracks.push(current)
+        // console.log("tracks", hit, tracks)
       } else {
         tracks = [track]
       }
@@ -87,8 +87,6 @@ const LinearTracks = ({
       coordExtent = extent(track, d => d.start)
     }
   }
-
-  
  
   return (
     <div className="linear-tracks">
@@ -98,11 +96,12 @@ const LinearTracks = ({
           key={"linear-track-" + i} 
           track={track} 
           width={widths[i]}
+          height={height}
           yExtent={[0, yMax]}
           state={state}
           hit={hit}
+          numtracks={widths.length}
           setHovered={setHovered}
-          
         ></LinearTrack>
       })}
       </div>
