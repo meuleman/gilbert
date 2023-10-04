@@ -166,6 +166,11 @@ function App() {
     }
   }
 
+  function handleDetailLevelChange(detailLevel) {
+    setSimSearchDetailLevel(detailLevel)
+    processSimSearchResults(simSearch, detailLevel)
+  }
+
   // selected powers the sidebar modal and the 1D track
   const [selected, setSelected] = useState(null)
   const [selectedOrder, setSelectedOrder] = useState(null)
@@ -187,7 +192,7 @@ function App() {
       SimSearchRegion(hit, order, layer).then((result) => {
         setSimSearch(result)
         setSimSearchDetailLevel(result.initialDetailLevel)
-        processSimSearchResults(result)
+        processSimSearchResults(result, result.initialDetailLevel)
       })
       NarrateRegion(hit, order).then((result) => {
         setSelectedNarration(result.narrationRanks)
@@ -195,11 +200,11 @@ function App() {
     }
   }
 
-  function processSimSearchResults(result) {
+  function processSimSearchResults(result, detailLevel) {
     let hilbert = HilbertChromosome(zoom.order)
     let similarRegions;
-    if(result.initialDetailLevel) {
-      similarRegions = result.simSearch[result.initialDetailLevel - 1].slice(1)
+    if(detailLevel) {
+      similarRegions = result.simSearch[detailLevel - 1].slice(1)
     } else {
       similarRegions = result.simSearch
     }
@@ -227,7 +232,7 @@ function App() {
       setSelectedOrder(zoom.order)
       setSimSearch(result)
       setSimSearchDetailLevel(result.initialDetailLevel)
-      processSimSearchResults(result)
+      processSimSearchResults(result, result.initialDetailLevel)
     })
   }
 
@@ -438,7 +443,7 @@ function App() {
         <SelectedModalSimSearch
           simSearch={simSearch}
           simSearchDetailLevel={simSearchDetailLevel}
-          setSimSearchDetailLevel={setSimSearchDetailLevel}
+          setSimSearchDetailLevel={handleDetailLevelChange}
           searchByFactorIndices={searchByFactorIndices}
           selectedOrder={selectedOrder}
           setRegion={setRegion}
