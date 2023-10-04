@@ -99,7 +99,6 @@ const LinearTracks = ({
           yExtent={[0, yMax]}
           state={state}
           hit={hit}
-          numtracks={widths.length}
           setHovered={setHovered}
         ></LinearTrack>
       })}

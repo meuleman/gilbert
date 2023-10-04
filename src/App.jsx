@@ -268,6 +268,7 @@ function App() {
   const handleChangeShowGenes = (e) => {
     setShowGenes(!showGenes)
   }
+
   const [showPyramid, setShowPyramid] = useState(true)
   const handleChangeShowPyramid = (e) => {
     setShowPyramid(!showPyramid)
@@ -460,7 +461,6 @@ function App() {
           effectiveOrder={zoom.order}
           orderDomain={orderDomain} 
           zoomExtent={zoomExtent} />
-          { /*}
         <SelectedModal
           width={480}
           height={height} 
@@ -469,7 +469,6 @@ function App() {
           layer={layer} 
           zoom={zoom} 
           onClose={handleModalClose} />
-          */ }
       </div>
       <div>
         { showPyramid && tracks.filter(d => !!d).map((track, i) => {

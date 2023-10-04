@@ -31,6 +31,8 @@
   flex-grow: 1;
   padding: 10px;
   box-sizing: border-box;
+  display: flex; /* Add display:flex to center content vertically */
+  flex-direction: column; /* Stack content vertically within panels */
 }
 
 .title {
@@ -67,6 +69,8 @@
   flex-grow: 1;
   padding: 10px;
   box-sizing: border-box;
+  display: flex; /* Add display:flex to center content vertically */
+  flex-direction: column; /* Stack content vertically within panels */
 }
 
 .footer-panel-left {
