@@ -15,6 +15,7 @@ const LinearTracks = ({
   baseOrder=null,
   baseData=null,
   segment=true,
+  xExtentForTracks=[],
   setHovered = () => {},
 } = {}) => {
   let hit, coordExtent;
@@ -97,6 +98,7 @@ const LinearTracks = ({
           track={track} 
           width={widths[i]}
           yExtent={[0, yMax]}
+          xExtent={xExtentForTracks}
           state={state}
           hit={hit}
           setHovered={setHovered}

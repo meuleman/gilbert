@@ -29,6 +29,7 @@ const LinearTrack = ({
   track = null,
   hit = null,
   yExtent = [],
+  xExtent = [],
   setHovered = () => {},
 } = {}) => {
   const canvasRef = useRef(null);
@@ -49,14 +50,20 @@ const LinearTrack = ({
       // let max = meta["max"]
       // let yExtent = [min,max]
 
-      let xExtent = extent(track, d => d?.i)
-      xExtent[1] += 1
+      // let xExtent = extent(track, d => d?.i)
+      // xExtent[1] += 1
 
-      xScale = scaleBand()
-        .domain(range(xExtent[0], xExtent[1]))
+      // xScale = scaleBand()
+      //   .domain(range(xExtent[0], xExtent[1]))
+      //   .range([margin, width - margin])
+
+      xScale = scaleLinear()
+        .domain(xExtent)
         .range([margin, width - margin])
-
-      let bw = xScale.bandwidth()
+      
+      // let bw = xScale.bandwidth()
+      let bw;
+      if (data.length > 1) bw = xScale(data[1].start) - xScale(data[0].start)
 
       yScale = scaleLinear()
         .domain(yExtent)
@@ -64,7 +71,8 @@ const LinearTrack = ({
 
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "black"
-      let tx = xScale(hit.i) + bw/2
+      // let tx = xScale(hit.i) + bw/2
+      let tx = xScale(hit.start) + bw/2
       ctx.fillRect(tx, margin, 1, height - margin*2)
       // draw a black triangle at the top of the selected point
       ctx.beginPath();
@@ -94,7 +102,8 @@ const LinearTrack = ({
         // }
         // Opacity heatmap version
         if(sample) {
-          let x = xScale(d.i)
+          // let x = xScale(d.i)
+          let x = xScale(d.start)
           let y = 0
           ctx.globalAlpha = 0.2 + 0.8 * sample.value / yExtent[1]
           ctx.fillStyle = fieldColor(sample.field)
@@ -104,7 +113,6 @@ const LinearTrack = ({
 
     }
   }
-
   
   let handleMouseMove = useCallback((event) => {
     if(canvasRef.current) {
@@ -127,7 +135,7 @@ const LinearTrack = ({
         width={width + "px"}
         height={height + "px"}
         ref={canvasRef}
-        onMouseMove={handleMouseMove}
+        // onMouseMove={handleMouseMove}
       />
     </div>
   )

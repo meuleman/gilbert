@@ -5,7 +5,7 @@ import {useEffect, useState, useRef, useCallback, useMemo} from 'react'
 import Data from './lib/data';
 import { HilbertChromosome } from './lib/HilbertChromosome'
 import { debounceNamed } from './lib/debounce'
-import { range } from 'd3-array'
+import { extent, range } from 'd3-array'
 
 
 // base component
@@ -364,6 +364,26 @@ function App() {
     return false
   }
 
+  // calculates the bp start and end position extents for 1D tracks
+  let xExtentForTracks = useMemo(() => {
+    let xExtentForTracks
+    if(data?.data){
+
+      let currentOrderTrackData = [];
+      if(selected) {
+        currentOrderTrackData = data.data.filter(d => d.chromosome == selected.chromosome)
+      } else if(hover) {
+        currentOrderTrackData = data.data.filter(d => d.chromosome == hover.chromosome)
+      }
+      if(currentOrderTrackData.length > 2) {
+        const segmentSize = currentOrderTrackData[1].start - currentOrderTrackData[0].start
+        xExtentForTracks = extent(currentOrderTrackData, d => d.start)
+        xExtentForTracks[1] += segmentSize
+      }
+    }
+    return xExtentForTracks
+  }, [data, selected, hover])
+
   return (
     <>
       <div className="header">
@@ -486,6 +506,7 @@ function App() {
               segment={false}
               baseOrder={zoom.order}
               baseData={data}
+              xExtentForTracks={xExtentForTracks}
             />
           )})}
         <LinearTracks 
@@ -494,7 +515,9 @@ function App() {
           segment={!showPyramid}
           hovered={hover} 
           selected={selected} 
-          setHovered={handleHover} />
+          setHovered={handleHover} 
+          xExtentForTracks={xExtentForTracks}
+          />
         {/* { trackPlus1 && <LinearTracks 
           state={trackPlus1} 
           width={width} 
