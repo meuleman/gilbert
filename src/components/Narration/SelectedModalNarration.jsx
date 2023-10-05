@@ -1,7 +1,7 @@
 // A component to display narration when clicking over hilbert cells
 
 import factors from './NarrationFactors.json'
-import './SelectedModalNarration.css'
+//import './SelectedModalNarration.css'
 import { useEffect } from 'react'
 
 
@@ -38,7 +38,7 @@ const SelectedModalNarration = ({
             }
           }
           narration += factor + " " + metric + phraseEnd
-          var narrationSentence = document.getElementById('selected-modal-narration-sentence')
+          var narrationSentence = document.getElementById('narration-sentence')
           if(narrationSentence) {
             narrationSentence.textContent = narration
           }
@@ -49,7 +49,7 @@ const SelectedModalNarration = ({
 
 
   return (
-        <div id='selected-modal-narration-sentence'></div>
+        <div id='narration-sentence'></div>
   )
 }
 export default SelectedModalNarration

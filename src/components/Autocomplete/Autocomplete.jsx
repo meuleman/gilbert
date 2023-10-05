@@ -509,7 +509,8 @@ class Autocomplete extends Component {
     if (showSuggestions && this.state.userInput) {
       if (filteredSuggestions.length) {
         suggestionsListComponent = (
-          <ul className={(this.props.suggestionsClassName || 'suggestions')} style={(this.props.maxSuggestionHeight)?{maxHeight:`${this.props.maxSuggestionHeight}px`}:{}}>
+          <div className="suggestions">
+          <ul style={(this.props.maxSuggestionHeight)?{maxHeight:`${this.props.maxSuggestionHeight}px`}:{}}>
             {filteredSuggestions.map((suggestion, index) => {
               let className;
 
@@ -519,23 +520,20 @@ class Autocomplete extends Component {
               }
 
               return (!(this.props.isMobile || false)) ? (
-                <li className={className} onMouseEnter={(e) => this.onMouseEnter(e)} onMouseLeave={(e) => this.onMouseLeave(e)} onClick={(e) => this.onClick(e) } key={index} id={"suggestion-" + index}>
-                  <div>
+                  <li className={className} onMouseEnter={(e) => this.onMouseEnter(e)} onMouseLeave={(e) => this.onMouseLeave(e)} onClick={(e) => this.onClick(e) } key={index} id={"suggestion-" + index}>
                     <span className="suggestion-name">{suggestion.name}</span><br />
                     <span className="suggestion-description">{suggestion.description}</span><br />
                     <span className="suggestion-location">{suggestion.location}</span> <span className="suggestion-strand">({suggestion.strand})</span>
-                  </div>
-                </li>
+                  </li>
               ) : (
-                <li className={className} onClick={(e) => this.onClick(e)} key={index} id={"suggestion-" + index}>
-                  <div>
+                  <li className={className} onClick={(e) => this.onClick(e)} key={index} id={"suggestion-" + index}>
                     <span className="suggestion-name">{suggestion.name}</span><br />
                     <span className="suggestion-location">{suggestion.location}</span> <span className="suggestion-strand">({suggestion.strand})</span>
-                  </div>
-                </li>
+                  </li>
               );
             })}
           </ul>
+          </div>
         );
       } else {
         suggestionsListComponent = (
@@ -546,6 +544,7 @@ class Autocomplete extends Component {
 
     return (
       <Fragment>
+        <div className="autocomplete">
         <DebounceInput
           id="autocomplete-input"
           key={this.state.inputKey}
@@ -567,6 +566,7 @@ class Autocomplete extends Component {
           disabled={(this.props.isDisabled) ? this.props.isDisabled : false}
         />
         {suggestionsListComponent}
+        </div>
       </Fragment>
     );
   }
