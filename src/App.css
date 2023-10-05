@@ -25,37 +25,38 @@
 .header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 .header-panel {
+  display: flex; /* Add display:flex to center content vertically */
+  flex-direction: column; /* Stack content vertically within panels */
   flex-grow: 1;
   padding: 10px;
   box-sizing: border-box;
-  display: flex; /* Add display:flex to center content vertically */
-  flex-direction: column; /* Stack content vertically within panels */
 }
 
 .title {
-  width: 275px;
+  width: 280px;
+  flex-shrink: 0;
   font-size: 5em;
   line-height: 1.1em;
-  margin-bottom: 10px;
   margin-top: -20px;
   font-family: 'Gilbert';
-  padding: 5px;
-  flex-shrink: 0; /* Prevents this panel from shrinking */
+  justify-content: flex-start; 
 }
 
 .narration {
   flex-grow: 1; /* Takes up remaining available space */
-  max-width: calc(100% - 275px - 250px); /* Limits the width */
+  width: calc(100% - 280px - 250px); /* Limits the width */
   overflow: hidden; /* Prevents content from overflowing */
   font-size: 18px;
 }
 
 .zoomto {
-  flex-shrink: 0; /* Prevents this panel from shrinking */
   width: 250px;
+  flex-shrink: 0; /* Prevents this panel from shrinking */
+  justify-content: flex-end; /* Align content to the right within the right panel */
 }
 
 /* .................................... FOOTER ................................ */

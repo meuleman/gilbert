@@ -1,15 +1,19 @@
-.autocomplete-input {
+.autocomplete {
+  position: relative;
   display: flex;
+}
+
+.autocomplete-input {
   border-radius: 1px;
   border: none;
-  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.08);
-  margin: 0 auto;
   height: 28px !important;
   width: 230px !important;
+  padding-left: 26px;
+  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.08);
+  margin:auto;
   font-size: 0.9rem;
   letter-spacing: 0.025em;
   line-height: 0.95rem;
-  position: relative;
   top: 3px;
   /* background-image: url(./components/Autocomplete/search.dddddd.png); */
   background-image: url(./search.png);
@@ -21,7 +25,6 @@
   background-color: rgb(230, 230, 230);
   /* color: white; */
   color: black;
-  padding-left: 26px;
   letter-spacing: 0.01em;
 }
 
@@ -33,10 +36,10 @@
 }
 
 .autocomplete-input::placeholder {
+  position: relative;
   font-size: 0.9rem;
   letter-spacing: 0.025em;
   line-height: 0.95rem;
-  position: relative;
   left: 4px;
   top: 0px;
 }
@@ -49,19 +52,21 @@
 
 .suggestions {
   z-index: 10000;
+}
+
+.suggestions ul {
   position: absolute;
-  left: -1px;
+  top: 100%;
+  left: 0px;
   width: 230px;
-  max-height: 400px;
+  max-height: 250px;
   border: 1px solid #222;
   border-top-width: 1px;
   border-radius: 1px;
   list-style: none;
   overflow-y: auto;
   padding-left: 0;
-  margin-top: 5px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0;
   background-color: white;
   font-size: 0.8em;
 }
