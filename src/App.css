@@ -51,6 +51,9 @@
   width: calc(100% - 280px - 250px); /* Limits the width */
   overflow: hidden; /* Prevents content from overflowing */
   font-size: 18px;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
 .zoomto {
