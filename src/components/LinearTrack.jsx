@@ -4,20 +4,25 @@ import { extent, range } from 'd3-array';
 
 // import './LinearTrack.css';
 
-function invertScaleBand(scale, value) {
+function invertScaleLinear(scale, value, bw, bpbw) {
   const domain = scale.domain();
   const paddingOuter = scale(domain[0]);
-  const eachBand = scale.step();
-  
+  // const eachBand = scale.step();
+  const eachBand = bw;
+
   // Calculate the index based on the value
   const index = Math.floor((value - paddingOuter) / eachBand);
 
   // Return the corresponding domain value if index is within bounds
-  if (index >= 0 && index < domain.length) {
-    return domain[index];
+  // if (index >= 0 && index < domain.length) {
+  let startbp = index * bpbw + domain[0] 
+  // if (index >= 0 && (index * bpbw + domain[0] < domain[1])) {
+  if (startbp >= domain[0] && (startbp < domain[1])) {
+    // return domain[index];
+    return startbp;
   }
 
-  // Return undefined if the value is outside the scale's range
+  // Return undefined if the value is outside the scale's domain
   return undefined;
 }
 
@@ -33,7 +38,7 @@ const LinearTrack = ({
   setHovered = () => {},
 } = {}) => {
   const canvasRef = useRef(null);
-  let xScale, yScale;
+  let xScale, yScale, bw, bpbw;
 
   if(canvasRef.current) {
     const ctx = canvasRef.current.getContext('2d');
@@ -62,8 +67,10 @@ const LinearTrack = ({
         .range([margin, width - margin])
       
       // let bw = xScale.bandwidth()
-      let bw;
-      if (data.length > 1) bw = xScale(data[1].start) - xScale(data[0].start)
+      if (data.length > 1) {
+        bpbw = data[1].start - data[0].start
+        bw = xScale(data[1].start) - xScale(data[0].start)
+      }
 
       yScale = scaleLinear()
         .domain(yExtent)
@@ -118,9 +125,13 @@ const LinearTrack = ({
     if(canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect();
       const x = event.clientX - rect.left;
-      let index = invertScaleBand(xScale, x)
-      if(index >= 0) {
-        let hit = track.find(d => d.i == index)
+      // let index = invertScaleBand(xScale, x, bw, bpbw)
+      let startbp = invertScaleLinear(xScale, x, bw, bpbw)
+      // if(index >= 0) {
+      if(startbp) {
+        // let hit = track.find(d => d.i == index)
+        let hit = track.find(d => d.start == startbp)
+        // let hit = track[index]
         if(hit) {
           setHovered(hit)
         }
@@ -135,7 +146,7 @@ const LinearTrack = ({
         width={width + "px"}
         height={height + "px"}
         ref={canvasRef}
-        // onMouseMove={handleMouseMove}
+        onMouseMove={handleMouseMove}
       />
     </div>
   )
