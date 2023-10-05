@@ -338,6 +338,10 @@ function App() {
   }, [zoom.bbox]);
 
   useEffect(() => {
+    setTracks(prevArray => {
+      let newArray = [...prevArray].map((t, i) => (i < zoom.order) ? t : null);
+      return newArray
+    });
     if(zoom.order > 4){
       let order = zoom.order - 1
       while(order >= 4) {
