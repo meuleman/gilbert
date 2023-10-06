@@ -65,11 +65,11 @@
 /* .................................... FOOTER ................................ */
 
 .footer {
-  display: flex;
-  justify-content: space-between;
+  padding: 5px;
 }
 
 .footer-panel {
+  justify-content: space-between;
   flex-grow: 1;
   padding: 10px;
   box-sizing: border-box;
@@ -84,6 +84,8 @@
 .footer-panel-right {
   justify-content: flex-end; /* Align content to the right within the right panel */
 }
+
+/* .................................... FOOTER ................................ */
 
 .zoom-legend {
   margin-right: 490px;

@@ -498,39 +498,41 @@ function App() {
           zoom={zoom} 
           onClose={handleModalClose} />
       </div>
-      <div>
-        { showPyramid && tracks.filter(d => !!d).map((track, i) => {
-          return (
-            <LinearTracks 
-              key={track.order + "-track"}
-              state={track} 
-              width={width}
-              height={50 / (tracks.filter(t => t).length + 1)}
-              hovered={hover} 
-              selected={selected} 
-              segment={false}
-              baseOrder={zoom.order}
-              baseData={data}
-              xExtentForTracks={xExtentForTracks}
+      <div className='footer'>
+        <div className='linear-tracks'>
+          { showPyramid && tracks.filter(d => !!d).map((track, i) => {
+            return (
+              <LinearTracks 
+                key={track.order + "-track"}
+                state={track} 
+                width={width}
+                height={50 / (tracks.filter(t => t).length + 1)}
+                hovered={hover} 
+                selected={selected} 
+                segment={false}
+                baseOrder={zoom.order}
+                baseData={data}
+                xExtentForTracks={xExtentForTracks}
+              />
+            )})}
+          <LinearTracks 
+            state={data} 
+            width={width}
+            height={showPyramid ? 50 / (tracks.filter(t => t).length + 1) : 50}
+            segment={!showPyramid}
+            hovered={hover} 
+            selected={selected} 
+            setHovered={handleHover} 
+            xExtentForTracks={xExtentForTracks}
             />
-          )})}
-        <LinearTracks 
-          state={data} 
-          width={width}
-          height={50 / (tracks.filter(t => t).length + 1)}
-          segment={!showPyramid}
-          hovered={hover} 
-          selected={selected} 
-          setHovered={handleHover} 
-          xExtentForTracks={xExtentForTracks}
-          />
-        {/* { trackPlus1 && <LinearTracks 
-          state={trackPlus1} 
-          width={width} 
-          hovered={hover} 
-          selected={selected} 
-           />
-        } */}
+          {/* { trackPlus1 && <LinearTracks 
+            state={trackPlus1} 
+            width={width} 
+            hovered={hover} 
+            selected={selected} 
+            />
+          } */}
+        </div>
         <StatusBar 
           width={width + 500 + 12 + 30} 
           hover={hover} // the information about the cell the mouse is over
@@ -538,8 +540,8 @@ function App() {
           zoom={zoom} 
           onLayer={handleLayer}
           layers={layers} />
-        <div className="footer">
-          <div className="footer-panel footer-panel-left">
+        <div className="footer-panel">
+          <div className="footer-panel-left">
             <label>
               <input type="checkbox" checked={showHilbert} onChange={handleChangeShowHilbert} />
               Show Hilbert Curve
@@ -557,7 +559,7 @@ function App() {
               Layer lock
             </label> */}
           </div>
-          <div className="footer-panel footer-panel-right">
+          <div className="footer-panel-right">
             {/* this is an input that adds or subtracts to the calculated order */}
             <label>
               Order Offset ({orderOffset}, effective order {zoom.order})

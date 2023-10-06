@@ -1,7 +1,8 @@
+/* TODO: fix the margins!! */
 
 .linear-tracks {
   max-width: fit-content;
-  /* padding: 2px; */
+  line-height: 0px;
 }
 
 .linear-tracks .annotations {
@@ -10,15 +11,12 @@
   justify-content: space-between;
 }
 
-.linear-tracks-canvases {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  /* border: 1px solid lightgray; */
+.linear-track {
+  max-width: fit-content;
+  margin: 0px;
 }
-.linear-genome-canvas {
-  border: 1px solid lightgray;
-  margin: 2px;
-  padding: 0;
 
+.linear-track-canvas {
+  /* margin: 0px 10px -8px 5px; */
 }
+

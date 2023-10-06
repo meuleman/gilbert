@@ -64,7 +64,7 @@ const LinearTrack = ({
 
       xScale = scaleLinear()
         .domain(xExtent)
-        .range([margin, width - margin])
+        .range([margin, width - margin]) // TODO: use of margin here makes little sense?
       
       // let bw = xScale.bandwidth()
       if (data.length > 1) {
@@ -74,13 +74,15 @@ const LinearTrack = ({
 
       yScale = scaleLinear()
         .domain(yExtent)
-        .range([0, height - margin*2])
+        .range([0, height - margin*2]) // TODO: use of margin here makes little sense?
 
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "black"
-      // let tx = xScale(hit.i) + bw/2
+
+      // draw a vertical line at the selected point
       let tx = xScale(hit.start) + bw/2
-      ctx.fillRect(tx, margin, 1, height - margin*2)
+      ctx.fillRect(tx, 0, 1, height - margin)
+
       // draw a black triangle at the top of the selected point
       ctx.beginPath();
       ctx.moveTo(tx, margin);
@@ -90,9 +92,9 @@ const LinearTrack = ({
       ctx.fill();
       // draw a black triangle at the bottom of selected point
       ctx.beginPath();
-      ctx.moveTo(tx, height - margin);
-      ctx.lineTo(tx - 5, height);
-      ctx.lineTo(tx + 5, height);
+      ctx.moveTo(tx, height - margin*2);
+      ctx.lineTo(tx - 5, height - margin);
+      ctx.lineTo(tx + 5, height - margin);
       ctx.closePath();
       ctx.fill();
 
@@ -114,7 +116,7 @@ const LinearTrack = ({
           let y = 0
           ctx.globalAlpha = 0.2 + 0.8 * sample.value / yExtent[1]
           ctx.fillStyle = fieldColor(sample.field)
-          ctx.fillRect(x, y, bw, height - margin)
+          ctx.fillRect(x, y - margin, bw, height)
         }
       })
 
@@ -140,15 +142,13 @@ const LinearTrack = ({
   },[setHovered, track, xScale, canvasRef]);
  
   return (
-    <div className="linear-track">
       <canvas 
-        className="linear-genome-canvas"
+        className="linear-track-canvas"
         width={width + "px"}
-        height={height + "px"}
+        height={height-margin + "px"}
         ref={canvasRef}
         onMouseMove={handleMouseMove}
       />
-    </div>
   )
 };
 

@@ -90,8 +90,7 @@ const LinearTracks = ({
   }
  
   return (
-    <div className="linear-tracks">
-      <div className="linear-tracks-canvases">
+    <div className="linear-track">
       {tracks && tracks.map((track, i) => {
         return <LinearTrack 
           key={"linear-track-" + i} 
@@ -105,10 +104,8 @@ const LinearTracks = ({
           setHovered={setHovered}
         ></LinearTrack>
       })}
-      </div>
-
       {/* <canvas 
-        className="linear-genome-canvas"
+        className="linear-track-canvas"
         width={width + "px"}
         height={height + "px"}
         ref={canvasRef}
