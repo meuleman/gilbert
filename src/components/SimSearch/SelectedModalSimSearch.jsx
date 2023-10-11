@@ -3,7 +3,7 @@
 import * as d3 from 'd3'
 import DetailLevelSlider from './DetailLevelSlider'
 import './SelectedModalSimSearch.css'
-import { useEffect } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { HilbertChromosome } from '../../lib/HilbertChromosome'
 import simSearchFactors from './SimSearchFactors.json'
 // import { useEffect } from 'react'
@@ -29,6 +29,7 @@ const SelectedModalSimSearch = ({
 } = {}) => {
   let hilbert = new HilbertChromosome(selectedOrder)
   let simSearchFactorOrder, simSearchRegions, selectedRegion, similarRegions, factors, layerFactors
+  const [hidden, setHidden] = useState(false)
 
   const handleRegionClick = function (chrom, start, stop) {
     let range = hilbert.fromRegion(chrom, start, stop-1)[0]
@@ -103,7 +104,7 @@ const SelectedModalSimSearch = ({
       listItems = selectedListItem.concat(similarListItems)
     }
     
-    if(listItems?.length > 0) {
+    if(listItems?.length > 0 && !hidden) {
       let simSearchListContainer = d3.select("#selected-modal-simsearch-list-container")
 
       const tooltip = simSearchListContainer
@@ -279,85 +280,107 @@ const SelectedModalSimSearch = ({
 
       ///// other metrics - we have this information for search by factor (and what the current layer is -> <layerFactors>), we just need it for regional
     }
-  }, [simSearchRegions])
+  }, [simSearchRegions, hidden])
+  
+  const handleClickForHidden = function () {
+    setHidden(!hidden)
+    removeConvBars()
+  }
 
   return (
-    (simSearch?.simSearch ?
-    <div id='selected-modal-simsearch-list-container' className='selected-modal-simsearch-list-container'>
-      {(simSearchDetailLevel) && (
-        <DetailLevelSlider
-          detailLevel={simSearchDetailLevel}
-          maxDetailLevel={maxDetailLevel}
-          setDetailLevel={setSimSearchDetailLevel}
-        />
-      )}
-      
-      <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-selected' style={{"fontSize": regionHeight + "px"}}>
-        {selectedRegion ? (
-          "Selected Region:"
-        ) : null}
-      </span>
+    (simSearch?.simSearch && 
+      (!hidden ?
+        <div id='selected-modal-simsearch-list-container' className='selected-modal-simsearch-list-container'>
+          {(simSearchDetailLevel) && (
+            <DetailLevelSlider
+              detailLevel={simSearchDetailLevel}
+              maxDetailLevel={maxDetailLevel}
+              setDetailLevel={setSimSearchDetailLevel}
+            />
+          )}
 
-      <ul id='selected-list' className='selected-modal-simsearch-list'>
-        {selectedRegion ? (
-          selectedRegion.map((s) => {
-            const chrom = s.coordinates.split(':')[0]
-            const start = s.coordinates.split(':')[1].split('-')[0]
-            const stop = s.coordinates.split(':')[1].split('-')[1]
-            const rank = s.rank
-            const factorRanks = s.percentiles
-            return <li 
-              className='selected-modal-simsearch-item' 
-              key={rank}
-              onClick={() => handleRegionClick(chrom, start, stop)}
-              onMouseOver={() => handleRegionMouseOver(chrom, start, stop, factorRanks)}
-              onMouseLeave={() => handleRegionMouseLeave()}
-              style={{
-                "fontSize": regionHeight + "px",
-                "margin": regionMargin + "px"
-              }}
-            >
-              {chrom}:{start}
-            </li>
-          })
-        ) : null}
-      </ul>
-      <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-similar' style={{"fontSize": regionHeight + "px"}}> 
-        {similarRegions ?
-          (similarRegions.length > 0) ?
-            (simSearchDetailLevel) ?
-              "Similar Regions:"
-              : "Top Regions:"
-          : null
-        : null}
-      </span>
-      
-      <ul id='similar-regions-list' className='selected-modal-simsearch-list'>
-        {similarRegions ? (
-          similarRegions.map((s) => {
-            const chrom = s.coordinates.split(':')[0]
-            const start = s.coordinates.split(':')[1].split('-')[0]
-            const stop = s.coordinates.split(':')[1].split('-')[1]
-            const rank = s.rank
-            const factorRanks = s.percentiles
-            return <li 
-              className='selected-modal-simsearch-item' 
-              key={rank}
-              onClick={() => handleRegionClick(chrom, start, stop)}
-              onMouseOver={() => handleRegionMouseOver(chrom, start, stop, factorRanks)}
-              onMouseLeave={() => handleRegionMouseLeave()}
-              style={{
-                "fontSize": regionHeight + "px",
-                "margin": regionMargin + "px"
-              }}
-            >
-              {rank}: {chrom}:{start}
-            </li>
-          })
-        ) : null}
-      </ul>
-    </div>
-    : <div/>)
+          <button 
+            className='container-close-button'
+            onClick={() => handleClickForHidden()}
+          />
+          
+          <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-selected' style={{"fontSize": regionHeight + "px"}}>
+            {selectedRegion ? (
+              "Selected Region:"
+            ) : null}
+          </span>
+
+          <ul id='selected-list' className='selected-modal-simsearch-list'>
+            {selectedRegion ? (
+              selectedRegion.map((s) => {
+                const chrom = s.coordinates.split(':')[0]
+                const start = s.coordinates.split(':')[1].split('-')[0]
+                const stop = s.coordinates.split(':')[1].split('-')[1]
+                const rank = s.rank
+                const factorRanks = s.percentiles
+                return <li 
+                  className='selected-modal-simsearch-item' 
+                  key={rank}
+                  onClick={() => handleRegionClick(chrom, start, stop)}
+                  onMouseOver={() => handleRegionMouseOver(chrom, start, stop, factorRanks)}
+                  onMouseLeave={() => handleRegionMouseLeave()}
+                  style={{
+                    "fontSize": regionHeight + "px",
+                    "margin": regionMargin + "px"
+                  }}
+                >
+                  {chrom}:{start}
+                </li>
+              })
+            ) : null}
+          </ul>
+          <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-similar' style={{"fontSize": regionHeight + "px"}}> 
+            {similarRegions ?
+              (similarRegions.length > 0) ?
+                (simSearchDetailLevel) ?
+                  "Similar Regions:"
+                  : "Top Regions:"
+              : null
+            : null}
+          </span>
+          
+          <ul id='similar-regions-list' className='selected-modal-simsearch-list'>
+            {similarRegions ? (
+              similarRegions.map((s) => {
+                const chrom = s.coordinates.split(':')[0]
+                const start = s.coordinates.split(':')[1].split('-')[0]
+                const stop = s.coordinates.split(':')[1].split('-')[1]
+                const rank = s.rank
+                const factorRanks = s.percentiles
+                return <li 
+                  className='selected-modal-simsearch-item' 
+                  key={rank}
+                  onClick={() => handleRegionClick(chrom, start, stop)}
+                  onMouseOver={() => handleRegionMouseOver(chrom, start, stop, factorRanks)}
+                  onMouseLeave={() => handleRegionMouseLeave()}
+                  style={{
+                    "fontSize": regionHeight + "px",
+                    "margin": regionMargin + "px"
+                  }}
+                >
+                  {rank}: {chrom}:{start}
+                </li>
+              })
+            ) : null}
+          </ul>
+        </div>
+      : 
+      <div
+        className='selected-modal-simsearch-list-container-hidden'
+      >
+        <div className='hidden-header'>Similar Regions</div>
+        <button 
+            className='container-open-button'
+            onClick={() => handleClickForHidden()}
+          />
+
+      </div>)
+    )
   )
 }
 export default SelectedModalSimSearch
