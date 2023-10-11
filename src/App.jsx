@@ -222,6 +222,8 @@ function App() {
       })
 
       setSimilarRegions(similarRanges)
+    } else {
+      setSimilarRegions([])
     }
   }
 
