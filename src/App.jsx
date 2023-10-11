@@ -506,7 +506,7 @@ function App() {
                 key={track.order + "-track"}
                 state={track} 
                 width={width}
-                height={50 / (tracks.filter(t => t).length + 1)}
+                height={100 / (tracks.filter(t => t).length + 1)}
                 hovered={hover} 
                 selected={selected} 
                 segment={false}
@@ -518,7 +518,7 @@ function App() {
           <LinearTracks 
             state={data} 
             width={width}
-            height={showPyramid ? 50 / (tracks.filter(t => t).length + 1) : 50}
+            height={showPyramid && (tracks.filter(t => t).length > 0) ? 100 / (tracks.filter(t => t).length + 1) : 50}
             segment={!showPyramid}
             hovered={hover} 
             selected={selected} 

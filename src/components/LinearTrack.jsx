@@ -78,9 +78,10 @@ const LinearTrack = ({
 
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "black"
+      ctx.globalCompositeOperation='destination-over';
 
       // draw a vertical line at the selected point
-      let tx = xScale(hit.start) + bw/2
+      let tx = xScale(hit.start) // + bw/2
       ctx.fillRect(tx, 0, 1, height - margin)
 
       // draw a black triangle at the top of the selected point
@@ -114,7 +115,7 @@ const LinearTrack = ({
           // let x = xScale(d.i)
           let x = xScale(d.start)
           let y = 0
-          ctx.globalAlpha = 0.2 + 0.8 * sample.value / yExtent[1]
+          ctx.globalAlpha = Math.min(1, 0.5 + 0.8 * sample.value / yExtent[1])
           ctx.fillStyle = fieldColor(sample.field)
           ctx.fillRect(x, y - margin, bw, height)
         }
