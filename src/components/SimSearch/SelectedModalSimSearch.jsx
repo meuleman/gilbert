@@ -164,14 +164,16 @@ const SelectedModalSimSearch = ({
       }
 
       const onclick = (factorInfo) => {
-        const factorInd = factorInfo.ind
-        let newSearchByFactorArr = [...searchByFactorInds]
-        if(searchByFactorInds.includes(factorInd)) {
-          newSearchByFactorArr = newSearchByFactorArr.filter(i => i !== factorInd)
-        } else {
-          newSearchByFactorArr.push(factorInd)
+        if(simSearch.method == 'SBF') {
+          const factorInd = factorInfo.ind
+          let newSearchByFactorArr = [...searchByFactorInds]
+          if(searchByFactorInds.includes(factorInd)) {
+            newSearchByFactorArr = newSearchByFactorArr.filter(i => i !== factorInd)
+          } else {
+            newSearchByFactorArr.push(factorInd)
+          }
+          handleFactorClick(newSearchByFactorArr)
         }
-        handleFactorClick(newSearchByFactorArr)
       }
 
       // get the y positions for each region
