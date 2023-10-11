@@ -181,17 +181,19 @@ const SelectedModalSimSearch = ({
         allRegionYPos.map((y, i) => {
           const yAdjusted = y - Math.min(...allRegionYPos) + headerY
           const ranks = simSearchRegions[i].percentiles
+          const ranksWithFactorInds = ranks.map((r, i) => {return {rank: r, factorInd: simSearchFactorOrder[i]}})
+          const ranksWithFactorIndsSorted = ranksWithFactorInds.sort((a, b) => b.rank - a.rank)
           
           let inSearchFactorCount = 0
           let notInSearchFactorCount = 0
 
-          ranks.map((r, j) => {
-            if((r > 0) && factorsInSearch.includes(simSearchFactorOrder[j])) {
-              inSearchData.push({ind: j, factorCount: inSearchFactorCount, yAdjusted: yAdjusted})
+          ranksWithFactorIndsSorted.map((r) => {
+            if((r.rank > 0) && factorsInSearch.includes(r.factorInd)) {
+              inSearchData.push({factorInd: r.factorInd, factorCount: inSearchFactorCount, yAdjusted: yAdjusted})
               inSearchFactorCount += 1
-            } else if(r > 0) {
-              if((layerFactors && layerFactors.includes(factors[simSearchFactorOrder[j]].fullName)) || !layerFactors) {
-                notInSearchData.push({ind: j, factorCount: notInSearchFactorCount, yAdjusted: yAdjusted})
+            } else if(r.rank > 0) {
+              if((layerFactors && layerFactors.includes(factors[r.factorInd].fullName)) || !layerFactors) {
+                notInSearchData.push({factorInd: r.factorInd, factorCount: notInSearchFactorCount, yAdjusted: yAdjusted})
                 notInSearchFactorCount += 1
               }
             }
@@ -199,8 +201,7 @@ const SelectedModalSimSearch = ({
         })
       }
 
-      const addBar = function (i, factorCount, yAdjusted, svg) {
-        const factorInd = simSearchFactorOrder[i]
+      const addBar = function (factorInd, factorCount, yAdjusted, svg) {
         const factor = factors[factorInd]
         svg
           .append("rect")
@@ -246,7 +247,7 @@ const SelectedModalSimSearch = ({
           .style('font', 'sans-serif')
           .text("In Search")
       inSearchData.map((d) => {
-        addBar(d.ind, d.factorCount, d.yAdjusted, inSearchSvg)
+        addBar(d.factorInd, d.factorCount, d.yAdjusted, inSearchSvg)
       })
 
       // not in search
@@ -272,7 +273,7 @@ const SelectedModalSimSearch = ({
           .style('font', 'sans-serif')
           .text("Not In Search")
         notInSearchData.map((d) => {
-          addBar(d.ind, d.factorCount, d.yAdjusted, notInSearchSvg)
+          addBar(d.factorInd, d.factorCount, d.yAdjusted, notInSearchSvg)
         })
       }
 
