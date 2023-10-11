@@ -13,7 +13,8 @@ const SelectedModalSimSearch = ({
   simSearch,
   simSearchDetailLevel,
   setSimSearchDetailLevel,
-  searchByFactorIndices,
+  searchByFactorInds,
+  handleFactorClick,
   selectedOrder,
   setRegion,
   setHover,
@@ -162,7 +163,16 @@ const SelectedModalSimSearch = ({
           .style("stroke-width", "0.5")
       }
 
-
+      const onclick = (factorInfo) => {
+        const factorInd = factorInfo.ind
+        let newSearchByFactorArr = [...searchByFactorInds]
+        if(searchByFactorInds.includes(factorInd)) {
+          newSearchByFactorArr = newSearchByFactorArr.filter(i => i !== factorInd)
+        } else {
+          newSearchByFactorArr.push(factorInd)
+        }
+        handleFactorClick(newSearchByFactorArr)
+      }
 
       // get the y positions for each region
       let allRegionYPos = listItems.map((i) => i.getBoundingClientRect().top)
@@ -173,8 +183,8 @@ const SelectedModalSimSearch = ({
       let factorsInSearch
       if((simSearch.method === "Region") && simSearchDetailLevel) {
         factorsInSearch = simSearchRegions[0].target_factors.slice(0, simSearchDetailLevel)
-      } else if(searchByFactorIndices) {
-        factorsInSearch = searchByFactorIndices
+      } else if(searchByFactorInds) {
+        factorsInSearch = searchByFactorInds
       }
 
       let headerY = factorHeaderYHeight + factorHeaderGap
@@ -216,6 +226,7 @@ const SelectedModalSimSearch = ({
           .on("mouseover", function() {mouseover.bind(this)(factor)})
           .on("mousemove", mousemove)
           .on("mouseleave", mouseleave)
+          .on("click", function() {onclick.bind(this)(factor)})
         return
       }
 

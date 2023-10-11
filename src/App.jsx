@@ -225,10 +225,10 @@ function App() {
     }
   }
 
-  const [searchByFactorIndices, setSearchByFactorInds] = useState([])
-  function handleLegendFactorClick(newSearchByFactorIndices) {
-    setSearchByFactorInds(newSearchByFactorIndices)
-    SimSearchByFactor(newSearchByFactorIndices, zoom.order, layer).then((result) => {
+  const [searchByFactorInds, setSearchByFactorInds] = useState([])
+  function handleFactorClick(newSearchByFactorInds) {
+    setSearchByFactorInds(newSearchByFactorInds)
+    SimSearchByFactor(newSearchByFactorInds, zoom.order, layer).then((result) => {
       setSelected(null)
       setSelectedNarration(null)
       setSelectedOrder(zoom.order)
@@ -471,14 +471,15 @@ function App() {
           data={data}
           hover={hover}
           selected={selected}
-          handleLegendFactorClick={handleLegendFactorClick}
-          searchByFactorIndices={searchByFactorIndices}
+          handleFactorClick={handleFactorClick}
+          searchByFactorInds={searchByFactorInds}
         />
         <SelectedModalSimSearch
           simSearch={simSearch}
           simSearchDetailLevel={simSearchDetailLevel}
           setSimSearchDetailLevel={handleDetailLevelChange}
-          searchByFactorIndices={searchByFactorIndices}
+          searchByFactorInds={searchByFactorInds}
+          handleFactorClick={handleFactorClick}
           selectedOrder={selectedOrder}
           setRegion={setRegion}
           setHover={setHover}

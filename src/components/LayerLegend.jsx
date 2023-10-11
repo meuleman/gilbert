@@ -8,8 +8,8 @@ const LayerLegend = ({
   data,
   hover,
   selected,
-  handleLegendFactorClick,
-  searchByFactorIndices,
+  handleFactorClick,
+  searchByFactorInds,
   maxNumFactors=25,
 } = {}) => {
   let layerName, SBFFactors, SBFFactorNames, SBFFactorInds = null
@@ -33,13 +33,13 @@ const LayerLegend = ({
     if(SBFFactors) {
       const factorInd = SBFFactorNames.indexOf(factor)
       const SBFFactorInd = SBFFactors[factorInd].ind
-      let newSBFIndices = searchByFactorIndices
+      let newSBFIndices = searchByFactorInds
       if(newSBFIndices.includes(SBFFactorInd)) {
         newSBFIndices = newSBFIndices.filter((ind) => {return ind !== SBFFactorInd})
       } else {
         newSBFIndices.push(SBFFactorInd)
       }
-      handleLegendFactorClick(newSBFIndices)
+      handleFactorClick(newSBFIndices)
     }
   }
 
@@ -109,7 +109,7 @@ const LayerLegend = ({
               factorElement.style.textShadow = '1px 0px 0px black';
             if(SBFFactorNames) {
               const SBFFactorInd = SBFFactorInds[SBFFactorNames.indexOf(f)]
-              if(searchByFactorIndices.includes(SBFFactorInd)) {
+              if(searchByFactorInds.includes(SBFFactorInd)) {
                 factorElement.style.setProperty('--checkmark', `'\\2713'`)
               }
             }
