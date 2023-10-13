@@ -125,14 +125,8 @@ const SelectedModalSimSearch = ({
   
       const mouseover = function (factorInfo) {
         let factor = factorInfo.fullName
-        let metric = ""
-        if(factorInfo.metric === "DHSs") {
-          metric = "DHS Components SFC"
-        } else if(factorInfo.metric === "chromatin states") {
-          metric = "Chromatin States SFC"
-        }
         tooltip
-          .html(factor + " (" + metric + ")")
+          .html(factor)
           .style('opacity', 1)
           .style('z-index', 1)
         d3.select(this)
