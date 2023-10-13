@@ -40,6 +40,8 @@ const LayerLegend = ({
       } else {
         newSBFIndices.push(SBFFactorInd)
       }
+      const currentMetricFactorInds = SBFFactors.map(d => d.ind)
+      newSBFIndices = newSBFIndices.filter(i => currentMetricFactorInds.includes(i))
       handleFactorClick(newSBFIndices)
     }
   }
