@@ -13,6 +13,7 @@ const LayerLegend = ({
   maxNumFactors=25,
 } = {}) => {
   let layerName, SBFFactors, SBFFactorNames, SBFFactorInds = null
+  const [hidden, setHidden] = useState(false)
 
   if(data) {
     layerName = data.layer.name
@@ -48,7 +49,8 @@ const LayerLegend = ({
 
   let inViewData, singleSegmentData, factors, hoverData, factorDataForList
   let hoverHighlights = []
-  if(data) {
+
+  if(data && !hidden) {
     if(data.data.length > 0) {
       inViewData = data.data
       singleSegmentData = inViewData[0].data
@@ -95,7 +97,7 @@ const LayerLegend = ({
         }
         
 
-        let factorPos
+        let factorPos    
         factorPos = factors.map((f, i) => {
           if(factorList) {
             var factorElement = document.createElement('li');
@@ -121,14 +123,31 @@ const LayerLegend = ({
     }
   }
 
+  const handleClickForHidden = function () {
+    setHidden(!hidden)
+  }
+
   return (
     <>
-      {(
-        <div className="legend-box" id="legend-box">
-          <span className='legend-label'>Factors</span>
-          <ul id='factor-list' className='factor-list'/>
-        </div>
-      )}
+      <div className="legend-box" id="legend-box">
+        <button 
+          className={!hidden ? 'container-close-button' : 'container-open-button' }
+          onClick={() => handleClickForHidden()}
+        />
+        <span className='legend-label'>Factors</span>
+        {!hidden ? 
+          <ul 
+            id='factor-list' 
+            className='factor-list' 
+          />
+        :
+          <ul 
+            id='factor-list' 
+            className='factor-list' 
+            style={{'margin': '0px'}}
+          />
+        }
+      </div>
     </>
   )
 }

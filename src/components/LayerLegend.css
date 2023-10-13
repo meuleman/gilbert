@@ -1,31 +1,54 @@
 .legend-box {
   position: absolute;
-  display: flex;
   left: 10px;
   margin: 10px;
-  bottom: 180px;
-  flex-direction: column;
-  justify-content: center;
+  bottom: 170px;
   background-color: white;
   opacity: 0.9;
   border: 2px solid black;
   border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding-left: 10px;
   padding-right: 15px;
+  padding-top: 10px;
+  min-width: 120px;
+  min-height: 30px;
+}
 
+.container-close-button, .container-close-button:hover, .container-close-button:focus, .container-open-button, .container-open-button:hover, .container-open-button:focus {
+  position: absolute;
+  width: 0px;
+  height: 0px;
+  padding: 0px;
+  border: 15px solid black;
+  outline: transparent;
+  right: 5%;
+}
+
+.container-close-button, .container-close-button:hover, .container-close-button:focus {
+  border-color: black transparent transparent transparent;
+  top: 10px;
+}
+
+.container-open-button, .container-open-button:hover, .container-open-button:focus {
+  border-color: transparent transparent black transparent;
+  top: 0px;
 }
 
 .legend-label {
   font-size: 16px;
   font-weight: bold;
   text-align: center;
-  margin-bottom: -10px;
+  margin-bottom: 10px;
 }
 
 ul#factor-list {
   list-style-type: none; /* Removes default bullets */
   padding-left: 0;       /* Removes default padding */
   font-size: 12px;
+  margin-top: -5px;;
 }
 
 ul#factor-list li {
