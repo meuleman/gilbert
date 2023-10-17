@@ -7,8 +7,8 @@ export default function SimSearchByFactor(factors, order, layer) {
   if(factors && order) {
     if((order <= maxSimSearchOrder) && (factors.length > 0)) {
       const simSearchFactors = allFactors['DHS'].concat(allFactors['Chromatin States'])
-      // console.log(factors)
       const numRegions = 20
+      const fusionWeight = 0.1
       const regionMethod = 'hilbert_sfc'
 
       let url = "https://explore.altius.org:5001/search_by_factor"
@@ -18,21 +18,8 @@ export default function SimSearchByFactor(factors, order, layer) {
         scale: order,
         numRegions: numRegions,
         regionMethod: regionMethod,
+        fusionWeight: fusionWeight,
       };
-      // const determineInitialDetailLevel = (data) => {
-      //   const prodRanks = data.map((d) => {
-      //     return d[0].prod_rank
-      //   })
-      //   let initialDetailLevel = 1
-      //   let maxProdRank = prodRanks[0]
-      //   prodRanks.map((d, i) => {
-      //     if(Math.max(d, maxProdRank) !== maxProdRank) {
-      //       maxProdRank = d
-      //       initialDetailLevel = i + 1
-      //     }
-      //   })
-      //   return initialDetailLevel
-      // }
       const simSearch = axios({
         method: 'POST',
         url: url,
@@ -44,9 +31,9 @@ export default function SimSearchByFactor(factors, order, layer) {
           fullData.map(r => {
             r.rank += 1
           })
-          return {simSearch: fullData, factors: simSearchFactors, initialDetailLevel: null, method: "SBF", layer: layer.name}
+          return {simSearch: fullData, factors: simSearchFactors, method: "SBF", layer: layer.name}
         } else {
-          return {simSearch: null, factors: null, initialDetailLevel: null, method: null, layer: null}
+          return {simSearch: null, factors: null, method: null, layer: null}
         }
       })
       .catch((err) => {
@@ -57,7 +44,7 @@ export default function SimSearchByFactor(factors, order, layer) {
 
       return simSearch
     } else {
-      const simSearch = {simSearch: null, factors: null, initialDetailLevel: null, method: null, layer: null}
+      const simSearch = {simSearch: null, factors: null, method: null, layer: null}
       return Promise.resolve(simSearch)
     }
   }

@@ -168,20 +168,21 @@ function App() {
     }
   }
 
-  function handleDetailLevelChange(detailLevel) {
-    setSimSearchDetailLevel(detailLevel)
-    processSimSearchResults(simSearch, detailLevel)
-  }
+  // function handleDetailLevelChange(detailLevel) {
+  //   setSimSearchDetailLevel(detailLevel)
+  //   processSimSearchResults(simSearch, detailLevel)
+  // }
 
   // selected powers the sidebar modal and the 1D track
   const [selected, setSelected] = useState(null)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [simSearch, setSimSearch] = useState(null)
   const [similarRegions, setSimilarRegions] = useState([])
-  const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(null)
+  // const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(null)
+  const [simSearchMethod, setSimSearchMethod] = useState(null)
   const [selectedNarration, setSelectedNarration] = useState(null)
+  
   function handleClick(hit, order) {
-    setSearchByFactorInds([])
     // console.log("click", hit)
     if(hit === selected) {
       setSelected(null) 
@@ -191,10 +192,9 @@ function App() {
       setSelected(hit)
       setSelectedOrder(order)
       // Region SimSearch
-      SimSearchRegion(hit, order, layer).then((result) => {
-        setSimSearch(result)
-        setSimSearchDetailLevel(result.initialDetailLevel)
-        processSimSearchResults(result, result.initialDetailLevel)
+      SimSearchRegion(hit, order, layer, setSearchByFactorInds, []).then((result) => {
+        processSimSearchResults(result)
+        setSimSearchMethod("Region")
       })
       NarrateRegion(hit, order).then((result) => {
         setSelectedNarration(result.narrationRanks)
@@ -202,14 +202,10 @@ function App() {
     }
   }
 
-  function processSimSearchResults(result, detailLevel) {
+  function processSimSearchResults(result) {
+    setSimSearch(result)
     let hilbert = HilbertChromosome(zoom.order)
-    let similarRegions;
-    if(detailLevel) {
-      similarRegions = result.simSearch[detailLevel - 1].slice(1)
-    } else {
-      similarRegions = result.simSearch
-    }
+    let similarRegions = result?.simSearch
     if(similarRegions && similarRegions.length)  {
       const similarRanges = similarRegions.map((d) => {
         const coords = d.coordinates
@@ -224,20 +220,32 @@ function App() {
       setSimilarRegions(similarRanges)
     } else {
       setSimilarRegions([])
+      setSelected(null)
     }
   }
 
+ 
   const [searchByFactorInds, setSearchByFactorInds] = useState([])
   function handleFactorClick(newSearchByFactorInds) {
     setSearchByFactorInds(newSearchByFactorInds)
-    SimSearchByFactor(newSearchByFactorInds, zoom.order, layer).then((result) => {
-      setSelected(null)
-      setSelectedNarration(null)
-      setSelectedOrder(zoom.order)
-      setSimSearch(result)
-      setSimSearchDetailLevel(result.initialDetailLevel)
-      processSimSearchResults(result, result.initialDetailLevel)
-    })
+    if(newSearchByFactorInds.length > 0) {
+      if(simSearchMethod != "Region") {
+        SimSearchByFactor(newSearchByFactorInds, zoom.order, layer).then((result) => {
+          setSelected(null)
+          setSelectedNarration(null)
+          setSelectedOrder(zoom.order)
+          processSimSearchResults(result)
+          setSimSearchMethod("SBF")
+        })
+      } else if(simSearchMethod == "Region") {
+        SimSearchRegion(selected, zoom.order, layer, setSearchByFactorInds, newSearchByFactorInds, simSearchMethod).then((result) => {
+          processSimSearchResults(result)
+        })
+      }
+    } else {
+      processSimSearchResults({simSearch: null, factors: null, method: null, layer: null})
+      setSimSearchMethod(null)
+    }
   }
 
   // keybinding that closes the modal on escape
@@ -261,6 +269,7 @@ function App() {
     setSearchByFactorInds([])
     setSimilarRegions([])
     setSelectedNarration(null)
+    setSimSearchMethod(null)
   }
 
   const [showHilbert, setShowHilbert] = useState(false)
@@ -478,8 +487,6 @@ function App() {
         />
         <SelectedModalSimSearch
           simSearch={simSearch}
-          simSearchDetailLevel={simSearchDetailLevel}
-          setSimSearchDetailLevel={handleDetailLevelChange}
           searchByFactorInds={searchByFactorInds}
           handleFactorClick={handleFactorClick}
           selectedOrder={selectedOrder}

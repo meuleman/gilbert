@@ -2,24 +2,24 @@
 import axios from "axios";
 import allFactors from './SimSearchFactors.json'
 
-export default function SimSearchRegion(selected, order, layer) {
+export default function SimSearchRegion(selected, order, layer, setSearchByFactorInds, factors, simSearchMethod) {
   const maxSimSearchOrder = 11
   if(selected) {
     if(order <= maxSimSearchOrder) {
-      // const allFactors = [...Array(34).keys()]
       let simSearchFactors
       if (layer.name === "DHS Components SFC") {
         simSearchFactors = allFactors['DHS']
-      }
-      else if(layer.name === "Chromatin States SFC") {
+      } else if(layer.name === "Chromatin States SFC") {
         simSearchFactors = allFactors['Chromatin States']
       } else {
-        const simSearch = {simSearch: null, initialDetailLevel: null, factors: null, method: null}
+        const simSearch = {simSearch: null, initialDetailLevel: null, factors: null, method: null, layer: null}
         return Promise.resolve(simSearch)
       }
+      const includedFactors = simSearchFactors.map(f => f.ind)
       const roiURL = "False"
       const queryFactorThresh = 0.5
       const numSimilarRegions = 20
+      const fusionWeight = 0.1
       const regionMethod = 'hilbert_sfc'
 
       let url = "https://explore.altius.org:5001/simsearch"
@@ -28,41 +28,43 @@ export default function SimSearchRegion(selected, order, layer) {
       const start = selected.start
       const stop = start + 1
 
+      let selectedFactors = ''
+      if(simSearchMethod == "Region") {
+        selectedFactors = factors.map(f => {
+          return f - Math.min(...includedFactors)
+        })
+        selectedFactors = JSON.stringify(selectedFactors)
+      }
+
       const postBody = {
         location: `${chromosome}:${start}-${stop}`,
-        factors: JSON.stringify(simSearchFactors.map(f => f.ind)),
+        includedFactors: JSON.stringify(includedFactors),
+        selectedFactors: selectedFactors,
         roiURL: roiURL,
         scale: order,
         queryFactorThresh: queryFactorThresh,
         numSimilarRegions: numSimilarRegions,
         regionMethod: regionMethod,
+        fusionWeight: fusionWeight,
       };
-      const determineInitialDetailLevel = (data) => {
-        const prodRanks = data.map((d) => {
-          return d[0].prod_rank
-        })
-        let detailLevel = 1
-        let maxProdRank = prodRanks[0]
-        prodRanks.map((d, i) => {
-          if(Math.max(d, maxProdRank) !== maxProdRank) {
-            maxProdRank = d
-            detailLevel = i + 1
-          }
-        })
-        return detailLevel
-      }
 
       const simSearch = axios({
         method: 'POST',
         url: url,
         data: postBody
       }).then((response) => {
-        const fullData = response.data;
-        if(fullData.length > 0) {
-          const detailLevel = determineInitialDetailLevel(fullData)
-          return {simSearch: fullData, initialDetailLevel: detailLevel, factors: simSearchFactors, method: "Region"}
+        const data = response.data;
+        if(data.length > 0) {
+          let selectedFactors = data[0].selected_factors
+          if (factors.length == 0) {
+            let selectedFactorsAdjusted = selectedFactors.map(f => {
+              return f + Math.min(...includedFactors)
+            })
+            setSearchByFactorInds(selectedFactorsAdjusted)
+          }
+          return {simSearch: data, factors: simSearchFactors, method: "Region", layer: layer.name}
         } else {
-          return {simSearch: null, initialDetailLevel: null, factors: null, method: null}
+          return {simSearch: null, factors: null, method: null}
         }
       })
       .catch((err) => {
@@ -73,7 +75,7 @@ export default function SimSearchRegion(selected, order, layer) {
 
       return simSearch
     } else {
-      const simSearch = {simSearch: null, initialDetailLevel: null, factors: null, method: null}
+      const simSearch = {simSearch: null, factors: null, method: null, layer: null}
       return Promise.resolve(simSearch)
     }
   }

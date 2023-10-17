@@ -1,7 +1,6 @@
 // A component to display some information below the map when hovering over hilbert cells
 
 import * as d3 from 'd3'
-import DetailLevelSlider from './DetailLevelSlider'
 import './SelectedModalSimSearch.css'
 import { useEffect, useState, useMemo } from 'react'
 import { HilbertChromosome } from '../../lib/HilbertChromosome'
@@ -11,8 +10,6 @@ import simSearchFactors from './SimSearchFactors.json'
 
 const SelectedModalSimSearch = ({
   simSearch,
-  simSearchDetailLevel,
-  setSimSearchDetailLevel,
   searchByFactorInds,
   handleFactorClick,
   selectedOrder,
@@ -29,7 +26,8 @@ const SelectedModalSimSearch = ({
   notInSearchMinWidth = 100,
 } = {}) => {
   let hilbert = new HilbertChromosome(selectedOrder)
-  let simSearchFactorOrder, simSearchRegions, selectedRegion, similarRegions, factors, layerFactors
+  let simSearchRegions, selectedRegion, similarRegions, factors, layerFactors
+  
   const [hidden, setHidden] = useState(false)
 
   const handleRegionClick = function (chrom, start, stop) {
@@ -40,15 +38,14 @@ const SelectedModalSimSearch = ({
   const handleRegionMouseOver = function (chrom, start, stop, ranks) {
     let range = hilbert.fromRegion(chrom, start, stop-1)[0]
     range.end = parseInt(stop)
-    if(simSearchFactorOrder){
-      let hoverData = {}
-      simSearchFactorOrder.map((index, i) => {
-        let factorName = factors[index].fullName
-        let factorRank = ranks[i]
-        hoverData[factorName] = factorRank
-      })
-      range.data = hoverData
-    }
+
+    let hoverData = {}
+    ranks.map((r, i) => {
+      let factorName = factors[i].fullName
+      let factorRank = r
+      hoverData[factorName] = factorRank
+    })
+    range.data = hoverData
     setHover(range, true)
   }
 
@@ -69,7 +66,6 @@ const SelectedModalSimSearch = ({
   }
 
   // set max detail level and sim search results for current detail level
-  let maxDetailLevel
   if(simSearch) {
     factors = simSearch.factors
     if(simSearch.layer) {  // only in search by factor
@@ -78,16 +74,14 @@ const SelectedModalSimSearch = ({
       else if(layer === 'Chromatin State SFC') layerFactors = simSearchFactors['Chromatin States'].map(d => d.fullName)
     }
     if(simSearch.simSearch) {
-      maxDetailLevel = simSearch.simSearch.length
-      if (simSearchDetailLevel) {
-        simSearchRegions = simSearch.simSearch[simSearchDetailLevel - 1]
+      if (simSearch.method == "Region") {
+        simSearchRegions = simSearch.simSearch
         selectedRegion = simSearchRegions.slice(0,1)
         similarRegions = simSearchRegions.slice(1)
       } else {
         simSearchRegions = simSearch.simSearch
         similarRegions = simSearchRegions
       }
-      simSearchFactorOrder = simSearchRegions[0].factor_order
     } else {
       removeConvBars()
     }
@@ -158,16 +152,14 @@ const SelectedModalSimSearch = ({
       }
 
       const onclick = (factorInfo) => {
-        if(simSearch.method == 'SBF') {
-          const factorInd = factorInfo.ind
-          let newSearchByFactorArr = [...searchByFactorInds]
-          if(searchByFactorInds.includes(factorInd)) {
-            newSearchByFactorArr = newSearchByFactorArr.filter(i => i !== factorInd)
-          } else {
-            newSearchByFactorArr.push(factorInd)
-          }
-          handleFactorClick(newSearchByFactorArr)
+        const factorInd = factorInfo.ind
+        let newSearchByFactorArr = [...searchByFactorInds]
+        if(searchByFactorInds.includes(factorInd)) {
+          newSearchByFactorArr = newSearchByFactorArr.filter(i => i !== factorInd)
+        } else {
+          newSearchByFactorArr.push(factorInd)
         }
+        handleFactorClick(newSearchByFactorArr, simSearch.method)
       }
 
       // get the y positions for each region
@@ -177,9 +169,7 @@ const SelectedModalSimSearch = ({
       let inSearchData = []
       let notInSearchData = []
       let factorsInSearch
-      if((simSearch.method === "Region") && simSearchDetailLevel) {
-        factorsInSearch = simSearchRegions[0].target_factors.slice(0, simSearchDetailLevel)
-      } else if(searchByFactorInds) {
+      if(searchByFactorInds) {
         factorsInSearch = searchByFactorInds
       }
 
@@ -188,7 +178,9 @@ const SelectedModalSimSearch = ({
         allRegionYPos.map((y, i) => {
           const yAdjusted = y - Math.min(...allRegionYPos) + headerY
           const ranks = simSearchRegions[i].percentiles
-          const ranksWithFactorInds = ranks.map((r, i) => {return {rank: r, factorInd: simSearchFactorOrder[i]}})
+          const ranksWithFactorInds = ranks.map((r, i) => {
+            return {rank: r, factorInd: factors[i].ind}  // factorInd may not be i (ie Chromatin States)
+          })
           const ranksWithFactorIndsSorted = ranksWithFactorInds.sort((a, b) => b.rank - a.rank)
           
           let inSearchFactorCount = 0
@@ -209,7 +201,7 @@ const SelectedModalSimSearch = ({
       }
 
       const addBar = function (factorInd, factorCount, yAdjusted, svg) {
-        const factor = factors[factorInd]
+        const factor = factors.filter(f => f.ind == factorInd)[0]
         svg
           .append("rect")
           .attr("x", factorCount * (regionHeight / 2 + barGap))
@@ -298,14 +290,6 @@ const SelectedModalSimSearch = ({
     (simSearch?.simSearch && 
       (!hidden ?
         <div id='selected-modal-simsearch-list-container' className='selected-modal-simsearch-list-container'>
-          {(simSearchDetailLevel) && (
-            <DetailLevelSlider
-              detailLevel={simSearchDetailLevel}
-              maxDetailLevel={maxDetailLevel}
-              setDetailLevel={setSimSearchDetailLevel}
-            />
-          )}
-
           <button 
             className='container-close-button'
             onClick={() => handleClickForHidden()}
@@ -344,7 +328,7 @@ const SelectedModalSimSearch = ({
           <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-similar' style={{"fontSize": regionHeight + "px"}}> 
             {similarRegions ?
               (similarRegions.length > 0) ?
-                (simSearchDetailLevel) ?
+                (simSearch.method === "Region") ?
                   "Similar Regions:"
                   : "Top Regions:"
               : null
