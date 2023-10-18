@@ -204,7 +204,7 @@ const TrackPyramid = ({
         ctx.fillStyle = "black"
         ctx.globalAlpha = 1.0
         // draw a vertical line at the selected point
-        let tx = xScale(hit.start) // + bw/2
+        let tx = xScale(hit.start) + bw/2
         ctx.fillRect(tx, 0, 1, height - margin)
 
         // draw a black triangle at the top of the selected point
