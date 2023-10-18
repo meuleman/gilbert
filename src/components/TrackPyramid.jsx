@@ -185,7 +185,7 @@ const TrackPyramid = ({
           })
           tracks.forEach((t, i) => {
             let orderTrack = t.data.filter(d => d.chromosome == hit.chromosome)
-            let orderBw = xScale(orderTrack[1].start) - xScale(orderTrack[0].start)
+            let orderBw = xScale(orderTrack[1]?.start) - xScale(orderTrack[0]?.start)
             orderTrack.forEach(d => {
               if(!d) return
               const sample = fieldChoice(d);
