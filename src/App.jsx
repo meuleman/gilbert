@@ -283,9 +283,9 @@ function App() {
     setShowGenes(!showGenes)
   }
 
-  const [showPyramid, setShowPyramid] = useState(true)
-  const handleChangeShowPyramid = (e) => {
-    setShowPyramid(!showPyramid)
+  const [showGaps, setShowGaps] = useState(true)
+  const handleChangeShowGaps = (e) => {
+    setShowGaps(!showGaps)
   }
 
   // changing the region changes the zoom and will also highlight on the map
@@ -508,13 +508,13 @@ function App() {
             tracks={tracks}
             width={width}
             height={100}
-            segment={!showPyramid}
+            segment={!showGaps}
             hovered={hover} 
             selected={selected} 
             setHovered={handleHover} 
           ></TrackPyramid>
 
-          {/* { showPyramid && tracks.filter(d => d.order < zoom.order).map((track) => {
+          {/* { showGaps && tracks.filter(d => d.order < zoom.order).map((track) => {
             return (
               <LinearTracks 
                 key={track.order + "-track"}
@@ -532,8 +532,8 @@ function App() {
           <LinearTracks 
             state={data} 
             width={width}
-            height={showPyramid && (tracks.filter(t => t).length > 0) ? 100 / (tracks.filter(t => t).length + 1) : 50}
-            segment={!showPyramid}
+            height={showGaps && (tracks.filter(t => t).length > 0) ? 100 / (tracks.filter(t => t).length + 1) : 50}
+            segment={!showGaps}
             hovered={hover} 
             selected={selected} 
             setHovered={handleHover} 
@@ -566,7 +566,7 @@ function App() {
               Show Gene Overlays
             </label>
             <label>
-              <input type="checkbox" checked={showPyramid} onChange={handleChangeShowPyramid} />
+              <input type="checkbox" checked={showGaps} onChange={handleChangeShowGaps} />
               Show gaps
             </label>
             {/* <label>
