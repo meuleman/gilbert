@@ -1,11 +1,11 @@
 /* TODO: fix the margins!! */
 
-.linear-tracks {
+.track-pyramid {
   max-width: fit-content;
   line-height: 0px;
 }
 
-.linear-tracks .annotations {
+.track-pyramid .annotations {
   /* display: flex;
   flex-direction: row;
   justify-content: space-between; */
@@ -13,14 +13,5 @@
   float: right;
   top: 10px;
   margin-left: 5px;
-}
-
-.linear-track {
-  max-width: fit-content;
-  margin: 0px;
-}
-
-.linear-track-canvas {
-  /* margin: 0px 10px -8px 5px; */
 }
 

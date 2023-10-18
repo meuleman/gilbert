@@ -12,7 +12,6 @@ const LinearTracks = ({
   state = null,
   hovered = null,
   selected = null,
-  baseOrder=null,
   baseData=null,
   segment=true,
   xExtentForTracks=[],
@@ -85,7 +84,7 @@ const LinearTracks = ({
       const totalLength = xExtents.reduce((a, b) => a + (b[1] - b[0]), 0)
       widths = xExtents.map(xExtent => (xExtent[1] - xExtent[0]) / totalLength * (width - tracks.length * 4))
 
-      coordExtent = extent(track, d => d.start)
+      // coordExtent = extent(track, d => d.start)
     }
   }
  
@@ -101,9 +100,11 @@ const LinearTracks = ({
           xExtent={xExtentForTracks}
           state={state}
           hit={hit}
+          baseData={baseData}
           setHovered={setHovered}
         ></LinearTrack>
       })}
+      <div className="annotations">order: {state?.order}</div>
       {/* <canvas 
         className="linear-track-canvas"
         width={width + "px"}

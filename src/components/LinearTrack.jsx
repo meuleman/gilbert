@@ -35,17 +35,21 @@ const LinearTrack = ({
   hit = null,
   yExtent = [],
   xExtent = [],
+  baseData = null,
   setHovered = () => {},
 } = {}) => {
   const canvasRef = useRef(null);
   let xScale, yScale, bw, bpbw;
+  let baseTrack = []
 
   if(canvasRef.current) {
     const ctx = canvasRef.current.getContext('2d');
     let data = state.data
     // let meta = state.meta
+
     
     if(data && /*meta &&*/ hit && ctx) {
+      baseTrack = baseData.data.filter(d => d.chromosome == hit.chromosome)
 
       let { fieldChoice, fieldColor} = state.layer
       // let fields = meta["fields"]
@@ -72,9 +76,9 @@ const LinearTrack = ({
         bw = xScale(data[1].start) - xScale(data[0].start)
       }
 
-      yScale = scaleLinear()
-        .domain(yExtent)
-        .range([0, height - margin*2]) // TODO: use of margin here makes little sense?
+      // yScale = scaleLinear()
+      //   .domain(yExtent)
+      //   .range([0, height - margin*2]) // TODO: use of margin here makes little sense?
 
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "black"
@@ -133,14 +137,14 @@ const LinearTrack = ({
       // if(index >= 0) {
       if(startbp) {
         // let hit = track.find(d => d.i == index)
-        let hit = track.find(d => d.start == startbp)
+        let hit = baseTrack.find(d => d.start == startbp)
         // let hit = track[index]
         if(hit) {
           setHovered(hit)
         }
       }
     }
-  },[setHovered, track, xScale, canvasRef]);
+  },[setHovered, baseTrack, bw, bpbw, xScale, canvasRef]);
  
   return (
       <canvas 

@@ -15,6 +15,7 @@ import SVGHilbertPaths from './components/SVGHilbertPaths'
 import SVGGenePaths from './components/SVGGenePaths'
 import ZoomLegend from './components/ZoomLegend'
 import LinearTracks from './components/LinearTracks'
+import TrackPyramid from './components/TrackPyramid'
 import StatusBar from './components/StatusBar'
 import SelectedModal from './components/SelectedModal'
 import LensModal from './components/LensModal'
@@ -310,28 +311,23 @@ function App() {
     setData(payload)
   }
 
-  const [tracks, setTracks] = useState(range(14).map(d => null))
+  const [tracks, setTracks] = useState([])
   // setter for tracks array
-
-
-  const [trackMinus1, setTrackMinus1] = useState(null)
-  const [trackPlus1, setTrackPlus1] = useState(null)
 
   // console.log("tracks?", trackMinus1, trackPlus1)
 
   // this debounced function fetches the data and updates the state
   const fetchData = useMemo(() => {
-    return (layer, order, setter) => {
+    const dataClient = Data({ 
+      debug: false
+    })
+    return (layer, order, bbox, setter) => {
       // we dont want to fetch data if the order is not within the layer order range
       if (order < layer.orders[0] || order > layer.orders[1]) return;
 
       let hilbert = HilbertChromosome(order, { padding: 2 })
       // let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
-      let points = hilbert.fromBbox(zoom.bbox)
-      
-      const dataClient = Data({ 
-        debug: false
-      })
+      let points = hilbert.fromBbox(bbox) 
 
       // console.log("fetching layer", layer)
       let myPromise = dataClient.fetchData(layer, order, points)
@@ -346,29 +342,26 @@ function App() {
       // debounce a function call with a name
       debounceNamed(myPromise, myCallback, 150, layer.name+order) // layer.name + order makes unique call 
     }
-  }, [zoom.bbox]);
+  }, []);
 
   useEffect(() => {
-    setTracks(prevArray => {
-      let newArray = [...prevArray].map((t, i) => (i < zoom.order) ? t : null);
-      return newArray
-    });
-    if(zoom.order > 4){
-      let order = zoom.order - 1
-      while(order >= 4) {
-        fetchData(layer, order, (response) => {
-          setTracks(prevArray => {
-            const newArray = [...prevArray];
-            newArray[response.order] = response;
-            return newArray
-          });
+    // setTracks(prevArray => {
+    //   let newArray = [...prevArray].map((t, i) => (i < zoom.order) ? t : null);
+    //   return newArray
+    // });
+    // fetchData as promises for orders greater than 4 and resolve when they are all done
+
+    let promises = range(4, zoom.order).map(order => {
+      return new Promise((resolve) => {
+        fetchData(layer, order, zoom.bbox, (response) => {
+          resolve(response)
         })
-        order -= 1
-      }
-      // fetchData(layer, zoom.order - 1, setTrackMinus1)
-    }
-    // fetchData(layer, zoom.order + 1, setTrackPlus1)
-  }, [layer, zoom, selected])
+      })
+    })
+    Promise.all(promises).then((responses) => {
+      setTracks(responses)
+    })
+  }, [layer, zoom, selected, fetchData])
 
   // compares two hilbert segments to see if they are equal
   function checkRanges(a, b) {
@@ -510,7 +503,18 @@ function App() {
       </div>
       <div className='footer'>
         <div className='linear-tracks'>
-          { showPyramid && tracks.filter(d => !!d).map((track, i) => {
+          <TrackPyramid
+            state={data} 
+            tracks={tracks}
+            width={width}
+            height={100}
+            segment={!showPyramid}
+            hovered={hover} 
+            selected={selected} 
+            setHovered={handleHover} 
+          ></TrackPyramid>
+
+          {/* { showPyramid && tracks.filter(d => d.order < zoom.order).map((track) => {
             return (
               <LinearTracks 
                 key={track.order + "-track"}
@@ -520,8 +524,8 @@ function App() {
                 hovered={hover} 
                 selected={selected} 
                 segment={false}
-                baseOrder={zoom.order}
                 baseData={data}
+                setHovered={handleHover} 
                 xExtentForTracks={xExtentForTracks}
               />
             )})}
@@ -533,8 +537,9 @@ function App() {
             hovered={hover} 
             selected={selected} 
             setHovered={handleHover} 
+            baseData={data}
             xExtentForTracks={xExtentForTracks}
-            />
+            /> */}
           {/* { trackPlus1 && <LinearTracks 
             state={trackPlus1} 
             width={width} 
