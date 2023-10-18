@@ -1,7 +1,6 @@
-import { useEffect, useCallback, useRef } from 'react';
-import { scaleLinear, scaleBand } from 'd3-scale';
+import { useCallback, useRef } from 'react';
+import { scaleLinear } from 'd3-scale';
 import { extent, max } from 'd3-array';
-import LinearTrack from './LinearTrack';
 
 import './TrackPyramid.css';
 
@@ -35,9 +34,7 @@ const TrackPyramid = ({
   tracks = [], // data from other orders
   hovered = null,
   selected = null,
-  baseData=null,
   segment=true,
-  // xExtentForTracks=[],
   setHovered = () => {},
 } = {}) => {
   const canvasRef = useRef(null);
