@@ -70,7 +70,7 @@ const TrackPyramid = ({
 
 
         let xExtent = extent(track, d => d.start)
-        bpSize = track[1].start - track[0].start
+        bpSize = track[1]?.start - track[0]?.start
         xExtent[1] += bpSize
         // let xExtent = extent(track, d => d.i)
         // xExtent[1] += 1
@@ -204,7 +204,17 @@ const TrackPyramid = ({
         ctx.fillStyle = "black"
         ctx.globalAlpha = 1.0
         // draw a vertical line at the selected point
-        let tx = xScale(hit.start) + bw/2
+        let barScale = xScale
+        if(segment) {
+          xScales.forEach((xs) => {
+            let we = xs.domain()
+            if(hit.start >= we[0] && hit.start <= we[1]) {
+              barScale = xs
+            }
+          })
+        }
+        
+        let tx = barScale(hit.start) + bw/2
         ctx.fillRect(tx, 0, 1, height - margin)
 
         // draw a black triangle at the top of the selected point
@@ -263,7 +273,7 @@ const TrackPyramid = ({
       }
       // console.log(bw, xbw)
       let startbp = invertScaleLinear(xs, x, xbw, bpSize)
-      console.log("x", x, "segment index", si, "x scale range", xs.range(), "result bp", startbp)
+      // console.log("x", x, "segment index", si, "x scale range", xs.range(), "result bp", startbp)
       // if(index >= 0) {
       if(startbp) {
         // let hit = track.find(d => d.i == index)
