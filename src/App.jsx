@@ -567,7 +567,7 @@ function App() {
             </label>
             <label>
               <input type="checkbox" checked={showPyramid} onChange={handleChangeShowPyramid} />
-              Show Pyramid
+              Show gaps
             </label>
             {/* <label>
               <input type="checkbox" checked={layerLock} onChange={handleChangeLayerLock} />
