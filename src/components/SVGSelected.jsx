@@ -146,7 +146,7 @@ export default function SVGBBox({
           <circle
             cx={xScale(hit.x)}
             cy={yScale(hit.y)}
-            r={rw}
+            r={rw*1.25}
             fill={fill}
             stroke={stroke}
             strokeWidth={sw}
