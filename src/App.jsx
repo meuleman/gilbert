@@ -508,7 +508,11 @@ function App() {
           height={height} 
           effectiveOrder={zoom.order}
           orderDomain={orderDomain} 
-          zoomExtent={zoomExtent} />
+          zoomExtent={zoomExtent} 
+          layerOrder={layerOrder} 
+          layer={layer}
+          layerLock={layerLock}
+        />
         {/* <SelectedModal
           width={480}
           height={height} 

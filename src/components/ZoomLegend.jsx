@@ -11,7 +11,10 @@ const ZoomLegend = ({
   effectiveOrder = 4,
   zoomExtent = [0, 100],
   orderDomain = [4, 16],
-  k = 1
+  k = 1,
+  layerOrder,
+  layer,
+  layerLock
 } = {}) => {
 
   let orderZoomScale = useMemo(() => {
@@ -91,8 +94,10 @@ const ZoomLegend = ({
             </div>
 
             <div className="basepair-size"> 1 megabase </div>
-
-            <div className="dataset-label"> DHS Components </div>
+            
+            <div className="dataset-label">
+              {layerLock ? layer?.name : layerOrder && layerOrder[d.order].name}
+            </div>
 
           </div>
         })}
