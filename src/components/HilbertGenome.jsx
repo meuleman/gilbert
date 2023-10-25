@@ -242,13 +242,6 @@ const HilbertGenome = ({
     }
   }, [state.data, state.order, state.dataOrder, state.metas, scales, layer, canvasRef])
 
- 
-  // we want to re-render (by calling handleZoom) when the order offset changes, but not everytime the transform changes
-  // so we don't add state.transform to the dependencies
-  useEffect(() => {
-    handleZoom({ transform: state.transform })
-  }, [orderOffset, pinOrder])
-
 
   // Zoom event handler
   // This is responsible for setting up most of the rendering dependencies
@@ -257,19 +250,19 @@ const HilbertGenome = ({
     let order
     let orderRaw = orderDomain[0] + Math.log2(orderZoomScale(transform.k))
 
-    // logic for calculating the order
-    if(pinOrder) {
-      // we want to stay at this order
-      order = pinOrder
-      // if the zoom out is more than 1.5 orders away from the pinned order, we lower the order
-      // this way we never load too much data
-      if(order - orderRaw >= 1.5) {
-        order -= Math.floor(order - orderRaw)
-      } 
-    } else {
+    // // logic for calculating the order
+    // if(pinOrder) {
+    //   // we want to stay at this order
+    //   order = pinOrder
+    //   // if the zoom out is more than 1.5 orders away from the pinned order, we lower the order
+    //   // this way we never load too much data
+    //   if(order - orderRaw >= 1.5) {
+    //     order -= Math.floor(order - orderRaw)
+    //   } 
+    // } else {
       // this is the default behavior, calculating the order from the zoom
       order = Math.floor(orderRaw)
-    }
+    // }
     // we always offset if asked
     if(orderOffset) {
       order += orderOffset
@@ -306,10 +299,17 @@ const HilbertGenome = ({
     orderDomain, orderZoomScale, 
     renderCanvas,
     onZoom,
-    pinOrder,
+    // pinOrder,
     orderOffset,
-    zoomToRegion
+    // zoomToRegion
   ]);
+
+  // we want to re-render (by calling handleZoom) when the order offset changes, but not everytime the transform changes
+  // so we don't add state.transform to the dependencies
+  useEffect(() => {
+    handleZoom({ transform: state.transform })
+  }, [orderOffset])
+
 
   useEffect(() => {
     // we want to fetch after every time the points recalculate
@@ -355,23 +355,11 @@ const HilbertGenome = ({
       let xw = xScale(xScale.domain()[1] - xScale.domain()[0])
       // we zoom to 1/4 the scale of the hit
       let scale = xw/tw/4
-
-      // we calculate a zoom scale where we don't zoom so far in (offset by the zoom region's pinned order)
-      let orderRaw = orderDomain[0] + Math.log2(orderZoomScale(scale))
-      let diff = Math.floor(orderRaw) - pinnedOrder
-      let zoomToOrder = orderRaw
-      let cappedZoomToOrder = zoomToOrder
-      // console.log("DIFF", diff, pinnedOrder)
-      if(Math.abs(diff) > 1) cappedZoomToOrder = pinnedOrder + Math.sign(diff) * 1
-      let newScale = orderZoomScale.invert(Math.pow(2,(cappedZoomToOrder - orderDomain[0])))
-
-      // console.log("ZOOMING TO ", scale, newScale, orderRaw, zoomToOrder, cappedZoomToOrder)
       let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
-      if(cappedZoomToOrder !== zoomToOrder) {
-        // TODO: magic numbers in the scale / 3
-        transform = zoomIdentity.translate(-tx * newScale + xw/2, -ty * newScale + xw/2).scale(newScale)
+      if(pinnedOrder) {
+        scale = orderZoomScale.invert(Math.pow(2,(pinnedOrder - orderDomain[0] + 0.99)))
+        transform = zoomIdentity.translate(-tx * scale + xw/2, -ty * scale + xw/2).scale(scale)
       }
-
 
       // we may want to control what happens while programming the zoom
       dispatch({ type: actions.ZOOMING, payload: { zooming: true } })
@@ -386,27 +374,28 @@ const HilbertGenome = ({
         })
       // transitionFinished()
     }
-  }, [xScale, yScale, sizeScale, svgRef, zoomDuration, zoomBehavior, orderZoomScale, orderDomain])
+  }, [width, height, xScale, yScale, sizeScale, svgRef, zoomDuration, zoomBehavior, orderZoomScale, orderDomain])
 
   useEffect(() => {
     if(zoomToRegion) {
       const length = zoomToRegion.end - zoomToRegion.start
-      // figure out the appropriate order to zoom to
-      let order = orderDomain[1];
-      while(length > hilbertPosToOrder(1, { from: order, to: orderDomain[1] })) {
-        order--;
-        if(order == orderDomain[0]) break;
+      let order = zoomToRegion.order
+      if(!zoomToRegion.order) {
+        // figure out the appropriate order to zoom to
+        // we want to zoom in quite a bit to the region if it hasn't specified its order
+        order = orderDomain[1];
+        while(length/128 > hilbertPosToOrder(1, { from: order, to: orderDomain[1] })) {
+          order--;
+          if(order == orderDomain[0]) break;
+        }
       }
-      console.log("want to zoom to order", order)
-      // console.log("current scale", state.transform.k)
-      
       // figure out the 2D x,y coordinate for the hilbert position at the zoomed order
-      let pos = hilbertPosToOrder(zoomToRegion.start, { from: orderDomain[1], to: order })
+      let pos = hilbertPosToOrder(zoomToRegion.start + (zoomToRegion.end - zoomToRegion.start)/2, { from: orderDomain[1], to: order })
       let hilbert = HilbertChromosome(order, { padding: 2 })
       let hit = hilbert.get2DPoint(pos, zoomToRegion.chromosome)
-      zoomToBox(hit.x, hit.y, hit.x + hilbert.step, hit.y + hilbert.step, pinOrder || state.order)
+      zoomToBox(hit.x, hit.y, hit.x + hilbert.step, hit.y + hilbert.step, order)
     }
-  }, [zoomToRegion, orderDomain, zoomToBox, pinOrder])
+  }, [zoomToRegion, orderDomain, zoomToBox])
 
 
 
@@ -444,6 +433,7 @@ const HilbertGenome = ({
   }, [state.data, state.transform, state.order, qt, xScale, yScale])
     
   const handleClick = useCallback((event) => {
+    console.log("click!")
     if(!qt) return
     let ex = event.nativeEvent.offsetX
     let ey = event.nativeEvent.offsetY
@@ -460,14 +450,13 @@ const HilbertGenome = ({
     } else {
       return
     }
-    onClick(clicked, state.order);
-    // zoomToBox(hit.x, hit.y, hit.x + step, hit.y + step)
-    // dispatch({ type: actions.SET_SELECTED, payload: clicked })
+    onClick(clicked, state.order, false);
   }, [state.data, state.transform, state.order, qt, xScale, yScale]) 
 
 
 
   const handleDoubleClick = useCallback((event) => {
+    console.log("double click")
     if(!qt) return
     // event.preventDefault()
     // event.stopPropagation()
@@ -486,42 +475,12 @@ const HilbertGenome = ({
     } else { 
       return;
     }
-    onClick(clicked, state.order);
-    // dispatch({ type: actions.SET_SELECTED, payload: clicked })
-
-    // zoom into the hit
-    // first we get the x,y coordinates of the point in absolute position
-    // TODO: the multipliers should be based on aspect ratio
-    // let tx = xScale(hit.x) - sizeScale(step) * 2.5 
-    // let ty = yScale(hit.y) - sizeScale(step) * 1.75
-    // let tw = xScale(step) - xScale(0)
-    // let xw = xScale(xScale.domain()[1] - xScale.domain()[0])
-    // // we zoom to 1/4 the scale of the hit
-    // let scale = xw/tw/4
-    // let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
-
-    // // zoomBehavior.transform(select(svgRef.current), transform) 
-    // // transition the zoom to the new transform
-
-    // // transitionStarted()
-    // select(svgRef.current).transition().duration(1000).call(zoomBehavior.transform, transform)
-    // // transitionFinished()
-    zoomToBox(hit.x, hit.y, hit.x + step, hit.y + step)
+    console.log("am i here?", clicked, state.order)
+    onClick(clicked, state.order, true);
+    zoomToBox(hit.x, hit.y, hit.x + step, hit.y + step, state.order + 2)
 
   }, [state.data, state.transform, state.order, qt, xScale, yScale, zoomToBox]) 
 
-    // fire callbacks when our selected change
-  // partly this is so we can update the selected in the parent when layer changes with new data
-  // TODO: this doesn't quite work if we've changed orders because we wont have the old data for new layer
-  // useEffect(() => {
-  //   let selected = state.selected
-  //   if(selected) {
-  //     let datum = state.data.find(x => x.i == selected.i && x.chromosome == selected.chromosome && x.order == selected.order )
-  //     if(datum)
-  //       onClick(datum, datum.order)
-  //   }
-  // }, [state.data, state.selected]) 
-  
 
   // Render the component
   return (

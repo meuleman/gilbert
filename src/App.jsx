@@ -185,26 +185,31 @@ function App() {
   const [simSearchMethod, setSimSearchMethod] = useState(null)
   const [selectedNarration, setSelectedNarration] = useState(null)
   const [genesetEnrichment, setGenesetEnrichment] = useState(null)
-  function handleClick(hit, order) {
-    // console.log("click", hit)
-    if(hit === selected) {
-      setSelected(null) 
-      setSelectedOrder(null)
-      setSimSearch(null)
-    } else if(hit) {
-      setSelected(hit)
-      setSelectedOrder(order)
-      // Region SimSearch
-      SimSearchRegion(hit, order, layer, setSearchByFactorInds, []).then((regionResult) => {
-        processSimSearchResults(regionResult)
-        GenesetEnrichment(regionResult.simSearch.slice(1), order).then((enrichmentResult) => {
-          setGenesetEnrichment(enrichmentResult)
+  function handleClick(hit, order, double) {
+    // console.log("app click handler", hit, order, double)
+    try {
+      if(hit === selected) {
+        setSelected(null) 
+        setSelectedOrder(null)
+        setSimSearch(null)
+      } else if(hit) {
+        setSelected(hit)
+        setSelectedOrder(order)
+        // Region SimSearch
+        SimSearchRegion(hit, order, layer, setSearchByFactorInds, []).then((regionResult) => {
+          if(!regionResult || !regionResult.simSearch) return;
+          processSimSearchResults(regionResult)
+          GenesetEnrichment(regionResult.simSearch.slice(1), order).then((enrichmentResult) => {
+            setGenesetEnrichment(enrichmentResult)
+          })
+          setSimSearchMethod("Region")
         })
-        setSimSearchMethod("Region")
-      })
-      NarrateRegion(hit, order).then((narrationResult) => {
-        setSelectedNarration(narrationResult.narrationRanks)
-      })
+        NarrateRegion(hit, order).then((narrationResult) => {
+          setSelectedNarration(narrationResult.narrationRanks)
+        })
+      }
+    } catch(e) {
+      console.log("caught error in click", e)
     }
   }
 
@@ -434,7 +439,7 @@ function App() {
             zoomDuration={1000}
             activeLayer={layer}
             orderOffset={orderOffset}
-            pinOrder={region?.order}
+            // pinOrder={region?.order}
             layers={layers}
             SVGRenderers={[
               SVGChromosomeNames({ }),
