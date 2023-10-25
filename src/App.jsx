@@ -55,6 +55,8 @@ import DisplaySimSearchRegions from './components/SimSearch/DisplaySimSearchRegi
 import SelectedModalSimSearch from './components/SimSearch/SelectedModalSimSearch'
 import NarrateRegion from './components/Narration/NarrateRegion'
 import SelectedModalNarration from './components/Narration/SelectedModalNarration'
+import GenesetEnrichment from './components/SimSearch/GenesetEnrichment';
+import Spectrum from './components/Spectrum';
 
 const layers = [
   Bands, 
@@ -182,7 +184,7 @@ function App() {
   // const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(null)
   const [simSearchMethod, setSimSearchMethod] = useState(null)
   const [selectedNarration, setSelectedNarration] = useState(null)
-  
+  const [genesetEnrichment, setGenesetEnrichment] = useState(null)
   function handleClick(hit, order) {
     // console.log("click", hit)
     if(hit === selected) {
@@ -193,12 +195,15 @@ function App() {
       setSelected(hit)
       setSelectedOrder(order)
       // Region SimSearch
-      SimSearchRegion(hit, order, layer, setSearchByFactorInds, []).then((result) => {
-        processSimSearchResults(result)
+      SimSearchRegion(hit, order, layer, setSearchByFactorInds, []).then((regionResult) => {
+        processSimSearchResults(regionResult)
+        GenesetEnrichment(regionResult.simSearch.slice(1), order).then((enrichmentResult) => {
+          setGenesetEnrichment(enrichmentResult)
+        })
         setSimSearchMethod("Region")
       })
-      NarrateRegion(hit, order).then((result) => {
-        setSelectedNarration(result.narrationRanks)
+      NarrateRegion(hit, order).then((narrationResult) => {
+        setSelectedNarration(narrationResult.narrationRanks)
       })
     }
   }
@@ -231,16 +236,22 @@ function App() {
     setSearchByFactorInds(newSearchByFactorInds)
     if(newSearchByFactorInds.length > 0) {
       if(simSearchMethod != "Region") {
-        SimSearchByFactor(newSearchByFactorInds, zoom.order, layer).then((result) => {
+        SimSearchByFactor(newSearchByFactorInds, zoom.order, layer).then((SBFResult) => {
           setSelected(null)
           setSelectedNarration(null)
           setSelectedOrder(zoom.order)
-          processSimSearchResults(result)
+          processSimSearchResults(SBFResult)
           setSimSearchMethod("SBF")
+          GenesetEnrichment(SBFResult.simSearch, zoom.order).then((enrichmentResult) => {
+            setGenesetEnrichment(enrichmentResult)
+          })
         })
       } else if(simSearchMethod == "Region") {
-        SimSearchRegion(selected, zoom.order, layer, setSearchByFactorInds, newSearchByFactorInds, simSearchMethod).then((result) => {
-          processSimSearchResults(result)
+        SimSearchRegion(selected, zoom.order, layer, setSearchByFactorInds, newSearchByFactorInds, simSearchMethod).then((regionResult) => {
+          processSimSearchResults(regionResult)
+          GenesetEnrichment(regionResult.simSearch.slice(1), zoom.order).then((enrichmentResult) => {
+            setGenesetEnrichment(enrichmentResult)
+          })
         })
       }
     } else {
@@ -271,6 +282,7 @@ function App() {
     setSimilarRegions([])
     setSelectedNarration(null)
     setSimSearchMethod(null)
+    setGenesetEnrichment(null)
   }
 
   const [showHilbert, setShowHilbert] = useState(false)
@@ -500,6 +512,11 @@ function App() {
           layer={layer} 
           zoom={zoom} 
           onClose={handleModalClose} />
+        <Spectrum
+          width={400}
+          height={300} 
+          genesetEnrichment={genesetEnrichment}
+        />
       </div>
       <div className='footer'>
         <div className='linear-tracks'>
