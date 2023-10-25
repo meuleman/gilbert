@@ -1,4 +1,7 @@
 
+.zoom-legend {
+  width: 100%;
+}
 .zoom-legend svg {
   max-width: fit-content;
 }

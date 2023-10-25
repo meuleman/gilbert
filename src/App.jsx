@@ -14,7 +14,7 @@ import HilbertGenome from './components/HilbertGenome'
 import SVGHilbertPaths from './components/SVGHilbertPaths'
 import SVGGenePaths from './components/SVGGenePaths'
 import ZoomLegend from './components/ZoomLegend'
-import LinearTracks from './components/LinearTracks'
+// import LinearTracks from './components/LinearTracks'
 import TrackPyramid from './components/TrackPyramid'
 import StatusBar from './components/StatusBar'
 import SelectedModal from './components/SelectedModal'
@@ -509,19 +509,19 @@ function App() {
           effectiveOrder={zoom.order}
           orderDomain={orderDomain} 
           zoomExtent={zoomExtent} />
-        <SelectedModal
+        {/* <SelectedModal
           width={480}
           height={height} 
           selected={selected} // currently selected cell
           selectedOrder={selectedOrder} 
           layer={layer} 
           zoom={zoom} 
-          onClose={handleModalClose} />
-        <Spectrum
+          onClose={handleModalClose} /> */}
+        {/* <Spectrum
           width={400}
           height={300} 
           genesetEnrichment={genesetEnrichment}
-        />
+        /> */}
       </div>
       <div className='footer'>
         <div className='linear-tracks'>
@@ -536,39 +536,6 @@ function App() {
             setHovered={handleHover} 
           ></TrackPyramid>
 
-          {/* { showGaps && tracks.filter(d => d.order < zoom.order).map((track) => {
-            return (
-              <LinearTracks 
-                key={track.order + "-track"}
-                state={track} 
-                width={width}
-                height={100 / (tracks.filter(t => t).length + 1)}
-                hovered={hover} 
-                selected={selected} 
-                segment={false}
-                baseData={data}
-                setHovered={handleHover} 
-                xExtentForTracks={xExtentForTracks}
-              />
-            )})}
-          <LinearTracks 
-            state={data} 
-            width={width}
-            height={showGaps && (tracks.filter(t => t).length > 0) ? 100 / (tracks.filter(t => t).length + 1) : 50}
-            segment={!showGaps}
-            hovered={hover} 
-            selected={selected} 
-            setHovered={handleHover} 
-            baseData={data}
-            xExtentForTracks={xExtentForTracks}
-            /> */}
-          {/* { trackPlus1 && <LinearTracks 
-            state={trackPlus1} 
-            width={width} 
-            hovered={hover} 
-            selected={selected} 
-            />
-          } */}
         </div>
         <StatusBar 
           width={width + 500 + 12 + 30} 
