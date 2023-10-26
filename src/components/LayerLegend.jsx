@@ -19,9 +19,9 @@ const LayerLegend = ({
     layerName = data.layer.name
   }
   if(layerName) {
-    if(layerName === 'DHS Components SFC') {
+    if(layerName === 'DHS Components') {
       SBFFactors = SimSearchFactors['DHS']
-    } else if(layerName === 'Chromatin States SFC') {
+    } else if(layerName === 'Chromatin States') {
       SBFFactors = SimSearchFactors['Chromatin States']
     }
     if(SBFFactors) {
@@ -60,7 +60,7 @@ const LayerLegend = ({
       factors = fullFactorList
 
       // reorder DHS factors
-      if(layerName && ((layerName === 'DHS Components SFC') || (layerName === 'DHS OE Chi'))) {
+      if(layerName && ((layerName === 'DHS Components') || (layerName === 'DHS OE Chi'))) {
         factors = SimSearchFactors['DHS'].map(f => f.fullName)
       }
 

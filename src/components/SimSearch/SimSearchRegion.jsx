@@ -7,9 +7,9 @@ export default function SimSearchRegion(selected, order, layer, setSearchByFacto
   if(selected) {
     if(order <= maxSimSearchOrder) {
       let simSearchFactors
-      if (layer.name === "DHS Components SFC") {
+      if (layer.name === "DHS Components") {
         simSearchFactors = allFactors['DHS']
-      } else if(layer.name === "Chromatin States SFC") {
+      } else if(layer.name === "Chromatin States") {
         simSearchFactors = allFactors['Chromatin States']
       } else {
         const simSearch = {simSearch: null, initialDetailLevel: null, factors: null, method: null, layer: null}

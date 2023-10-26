@@ -70,8 +70,8 @@ const SelectedModalSimSearch = ({
     factors = simSearch.factors
     if(simSearch.layer) {  // only in search by factor
       let layer = simSearch.layer
-      if(layer === "DHS Components SFC") layerFactors = simSearchFactors['DHS'].map(d => d.fullName)
-      else if(layer === 'Chromatin State SFC') layerFactors = simSearchFactors['Chromatin States'].map(d => d.fullName)
+      if(layer === "DHS Components") layerFactors = simSearchFactors['DHS'].map(d => d.fullName)
+      else if(layer === 'Chromatin States') layerFactors = simSearchFactors['Chromatin States'].map(d => d.fullName)
     }
     if(simSearch.simSearch) {
       if (simSearch.method == "Region") {
