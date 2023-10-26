@@ -109,7 +109,7 @@ const ZoomLegend = ({
 
             <div className="label-box"
               style={{
-                backgroundColor: d.order == effectiveOrder ? 'rgba(0.5, 0.5, 0.5, 0.4)' : 'white',
+                backgroundColor: `rgba(0.5, 0.5, 0.5, ${d.order == effectiveOrder ? 0.4 : 0.1})`,
                 fontSize: d.order == effectiveOrder ? "18px" : "16px",
                 fontWeight: d.order == effectiveOrder ? "bold" : "normal",
               }}
