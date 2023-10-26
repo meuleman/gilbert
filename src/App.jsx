@@ -300,7 +300,7 @@ function App() {
     setShowGenes(!showGenes)
   }
 
-  const [showGaps, setShowGaps] = useState(true)
+  const [showGaps, setShowGaps] = useState(false)
   const handleChangeShowGaps = (e) => {
     setShowGaps(!showGaps)
   }
