@@ -5,7 +5,7 @@ import CanvasOpacityValue from "../components/CanvasOpacityValue";
 import * as constants from "../lib/constants";
 
 export default {
-  name: "ENCODE (ENCSR000EOT) Max",
+  name: "K562 DNase-seq",
   datasetName: "encode_ENCSR000EOT_max",
   baseURL: `${constants.baseURLPrefix}/20230727`,
   orders: [4,14],

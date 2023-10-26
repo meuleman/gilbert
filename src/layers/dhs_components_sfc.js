@@ -4,7 +4,7 @@ import CanvasScaledValue from "../components/CanvasScaledValue";
 import * as constants from "../lib/constants";
 
 export default {
-  name: "DHS Components SFC",
+  name: "DHS Components",
   datasetName: "dhs_sfc",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseURLPrefix}/20230622`,
