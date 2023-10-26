@@ -133,7 +133,7 @@ const TrackPyramid = ({
           ctx.clearRect(0, 0, width, height);
           // ctx.globalCompositeOperation='destination-over';
 
-          if(segment) {
+          if(segment && segments) {
             // if we are removing gaps, each segment of the track needs to be rendered with its corresponding xscale
             segments.forEach((seg, si) => {
               let sbw = xScales[si](seg[1].start) - xScales[si](seg[0].start)
