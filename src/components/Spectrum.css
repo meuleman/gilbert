@@ -1,7 +1,10 @@
 .spectrum-container {
   position: absolute;
-  width: 400px;
-  height: 300px;
+  width: 1000px;
+  height: 150px;
   bottom: 200px;
   right: 60px;
+  background-color: white;
+  /* margin: 30px; */
+  z-index: 100;
 }

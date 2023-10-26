@@ -199,9 +199,9 @@ function App() {
         SimSearchRegion(hit, order, layer, setSearchByFactorInds, []).then((regionResult) => {
           if(!regionResult || !regionResult.simSearch) return;
           processSimSearchResults(regionResult)
-          GenesetEnrichment(regionResult.simSearch.slice(1), order).then((enrichmentResult) => {
-            setGenesetEnrichment(enrichmentResult)
-          })
+          // GenesetEnrichment(regionResult.simSearch.slice(1), order).then((enrichmentResult) => {
+          //   setGenesetEnrichment(enrichmentResult)
+          // })
           setSimSearchMethod("Region")
         })
         NarrateRegion(hit, order).then((narrationResult) => {
@@ -247,16 +247,16 @@ function App() {
           setSelectedOrder(zoom.order)
           processSimSearchResults(SBFResult)
           setSimSearchMethod("SBF")
-          GenesetEnrichment(SBFResult.simSearch, zoom.order).then((enrichmentResult) => {
-            setGenesetEnrichment(enrichmentResult)
-          })
+          // GenesetEnrichment(SBFResult.simSearch, zoom.order).then((enrichmentResult) => {
+          //   setGenesetEnrichment(enrichmentResult)
+          // })
         })
       } else if(simSearchMethod == "Region") {
         SimSearchRegion(selected, zoom.order, layer, setSearchByFactorInds, newSearchByFactorInds, simSearchMethod).then((regionResult) => {
           processSimSearchResults(regionResult)
-          GenesetEnrichment(regionResult.simSearch.slice(1), zoom.order).then((enrichmentResult) => {
-            setGenesetEnrichment(enrichmentResult)
-          })
+          // GenesetEnrichment(regionResult.simSearch.slice(1), zoom.order).then((enrichmentResult) => {
+          //   setGenesetEnrichment(enrichmentResult)
+          // })
         })
       }
     } else {
@@ -522,8 +522,8 @@ function App() {
           zoom={zoom} 
           onClose={handleModalClose} /> */}
         {/* <Spectrum
-          width={400}
-          height={300} 
+          width={1000}
+          height={150} 
           genesetEnrichment={genesetEnrichment}
         /> */}
       </div>

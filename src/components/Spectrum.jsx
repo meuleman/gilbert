@@ -3,19 +3,22 @@ import './Spectrum.css'
 import GenesetEnrichmentOrder from './SimSearch/GenesetEnrichmentOrder.json'
 
 const SelectedModal = ({
+  genesetEnrichment,
+  windowSize = 100,
   width = 400,
   height = 700,
-  plotXStart = 30,
-  plotXStop = width - 20,
-  plotYStart = 20,
-  plotYStop = height - 20,
-  windowSize = 100,
-  genesetEnrichment
+  xtickMargin = 30,
+  plotXStart = xtickMargin,
+  plotXStop = width,
+  plotYStart = 0,
+  spectrumBarHeight = 10,
+  plotYStop = height - spectrumBarHeight,
 } = {}) => {
   let enrichments = new Array(GenesetEnrichmentOrder.length).fill(0)
   let enrichmentsMax = new Array(GenesetEnrichmentOrder.length).fill(0)
   let enrichmentsSmooth = new Array(GenesetEnrichmentOrder.length).fill(0)
   let orderedOriginalIndices = GenesetEnrichmentOrder.map(g => g.originalIndex)
+  
 
   const removeSvg = () => {
     let svgElement = d3.selectAll('svg#spectrum-svg')
@@ -85,16 +88,55 @@ const SelectedModal = ({
         .attr("transform", "translate(0, " + plotYStop + ")")
         .call(d3.axisBottom(x).tickValues([]))
 
-      // console.log(enrichments.filter(a => a > 0))
+      const invertX = (xPos) => {
+        const range = x.range()
+        let index = Math.round((xPos - range[0]) / (range[1] - range[0]) * GenesetEnrichmentOrder.length)
+        // console.log(xPos, range, index)
+        return index
+      }
+
+      const mouseover = () => {
+      }
+
+      
+      const mousemove = (m) => {
+        const xIndex = invertX(m.offsetX)
+      }
+
+      // draw the enrichment line
       spectrumsvg.append("path")
         .datum(enrichmentsSmooth)
         .attr("fill", "none")
         .attr("stroke", "black")
         .attr("stroke-width", 1)
         .attr("d", d3.line()
-          .x(function(d, i) { return x(i) })
-          .y(function(d) { return y(d) })
-          )
+          .x(function(d, i) {return x(i)})
+          .y(function(d) {return y(d)})
+        )
+
+      // fill space under enrichment line
+      spectrumsvg.append("path")
+        .datum(enrichmentsSmooth)
+        .attr("fill", "darkgrey")
+        .attr("d", d3.area()
+          .x(function(d, i) {return x(i)})
+          .y0(y.range()[0])
+          .y1(function(d) {return y(d)})
+        )
+        .on('mouseover', mouseover)
+        .on('mousemove', mousemove)
+        // .on('mo`useleave', function() {mouseleave.bind(this)("none")})
+
+      // spectrum bar
+      const colorbarX = (x) => d3.interpolateRainbow(x)
+      spectrumsvg.selectAll()
+        .data(enrichmentsSmooth)
+        .join("rect")
+        .attr("fill", function(d, i) {return colorbarX(i / enrichmentsSmooth.length)})
+        .attr("x", function(d, i) {return x(i)})
+        .attr("y", y.range()[0])
+        .attr("width", (x.range()[1] - x.range()[0]) / (x.domain()[1] - x.domain()[0]))
+        .attr("height", spectrumBarHeight)
     }
   }
   
