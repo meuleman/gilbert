@@ -5,3 +5,17 @@
 .zoom-legend svg {
   max-width: fit-content;
 }
+/* .zoom-indicator {
+  border: solid black 1px;
+  border-right: transparent;
+} */
+
+.label-box{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 200px;
+  border: solid black 1px;
+  /* border-left: transparent; */
+}

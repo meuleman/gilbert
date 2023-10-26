@@ -53,6 +53,20 @@ const ZoomLegend = ({
 
   let orderHeight = height/(orderDomain[1] - orderDomain[0] + 1) 
 
+  const segmentSizeFromOrder = function(order) {
+    let size = 4 ** (14 - order)
+    
+    let sizeText = ''
+    if(size < 1000) {
+      sizeText = size + 'bp'
+    } else if(size < 1000000) {
+      sizeText = '~' + Math.floor(size / 1000) + 'kb'
+    } else {
+      sizeText = '~' + Math.floor(size / 1000000) + 'Mb'
+    }
+    return sizeText
+  }
+
   return (
     <div className="zoom-legend" style={{
       height: height+"px"
@@ -93,10 +107,20 @@ const ZoomLegend = ({
               {d.order} 
             </div>
 
-            <div className="basepair-size"> 1 megabase </div>
-            
-            <div className="dataset-label">
-              {layerLock ? layer?.name : layerOrder && layerOrder[d.order].name}
+            <div className="label-box"
+              style={{
+                backgroundColor: d.order == effectiveOrder ? 'rgba(0.5, 0.5, 0.5, 0.4)' : 'white',
+                fontSize: d.order == effectiveOrder ? "18px" : "16px",
+                fontWeight: d.order == effectiveOrder ? "bold" : "normal",
+              }}
+            >
+              <div className="dataset-label">
+                {layerLock ? layer?.name : layerOrder && layerOrder[d.order].name}
+              </div>
+
+              <div className="basepair-size">({segmentSizeFromOrder(d.order)})</div>
+              
+              
             </div>
 
           </div>
