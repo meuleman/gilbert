@@ -94,14 +94,21 @@ const ZoomLegend = ({
 
             <div className="zoom-indicator" style={{
               backgroundColor: `rgba(0.5, 0.5, 0.5, ${d.order == effectiveOrder ? 0.4 : 0.3})`,
-              height: "100%",
+              // height: "100%",
               width: "30px",
               fontFamily: "Gilbert",
               fontSize: d.order == effectiveOrder ? "24px" : "20px",
               fontWeight: d.order == effectiveOrder ? "bold" : "normal",
-              color: d.order == effectiveOrder ? "black" : "white",
-              stroke: d.order == effectiveOrder ? "white" : "none",
-              textAlign: "center",
+              // color: d.order == effectiveOrder ? "black" : "white",
+              color: "white",
+              // stroke: d.order == effectiveOrder ? "white" : "none",
+              // strokeWidth: d.order == effectiveOrder ? "5px" : "0px",
+              textShadow: d.order == effectiveOrder ? "0px 0px 10px red" : "none",
+              // textAlign: "center",
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "start",
               // display: "inline-block"
             }}>
               {d.order} 
@@ -110,17 +117,17 @@ const ZoomLegend = ({
             <div className="label-box"
               style={{
                 backgroundColor: `rgba(0.5, 0.5, 0.5, ${d.order == effectiveOrder ? 0.4 : 0.1})`,
-                fontSize: d.order == effectiveOrder ? "18px" : "16px",
-                fontWeight: d.order == effectiveOrder ? "bold" : "normal",
               }}
             >
-              <div className="dataset-label">
+              <div className="basepair-size">{segmentSizeFromOrder(d.order)}</div>
+              <div className="dataset-label"
+                style={{
+                  fontWeight: d.order == effectiveOrder ? "bold" : "normal",
+                  color: d.order == effectiveOrder ? "black" : "gray",
+                }}
+              >
                 {layerLock ? layer?.name : layerOrder && layerOrder[d.order].name}
               </div>
-
-              <div className="basepair-size">({segmentSizeFromOrder(d.order)})</div>
-              
-              
             </div>
 
           </div>

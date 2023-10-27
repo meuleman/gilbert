@@ -13,11 +13,23 @@
 .label-box{
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 200px;
+  justify-content: start;
+  width: 170px;
   border: solid black 1px;
-  border-radius: 5px;
-  margin: 5px 0px 5px 10px;
-  /* border-left: transparent; */
+  margin: 0px 0px 0px 0px;
+}
+.basepair-size {
+  text-align: left;
+  margin-left: 5px;
+  margin-top: 1%;
+  /* padding-top: 8px; */
+  /* top: 4px; */
+  height: 50%;
+}
+.dataset-label {
+  height: 50%;
+  text-align: left;
+  margin-left: 20px;
+  margin-bottom: 10%;
+  /* vertical-align: top; */
 }
