@@ -141,7 +141,7 @@ const SelectedModal = ({
               const genesetName = GenesetEnrichmentOrder[representativeIndex].genesetName
               const enrichment = enrichments[representativeIndex]
               tooltip
-                .html("xIndex: " + representativeIndex + "<br>" + "Geneset: " + genesetName + "<br>" + "Enrichment: " + enrichment)
+                .html("xIndex: " + representativeIndex + "<br>" + "Geneset: " + genesetName + "<br>" + "Enrichment -log10(p-value): " + Math.round(enrichment * 10000) / 10000)
             }
           }
         }
@@ -163,17 +163,30 @@ const SelectedModal = ({
             .y(function(d) {return y(d)})
           )
 
-        // fill space under enrichment line
+        // // fill space under enrichment line
         const colorbarX = (x) => d3.interpolateRainbow(x)
-        spectrumsvg.append("path")
-          .datum(enrichmentsSmooth)
-          .attr("fill", "darkgrey")
-          // .attr("fill", function(d, i) {return colorbarX(i / enrichmentsSmooth.length)})
-          .attr("d", d3.area()
-            .x(function(d, i) {return x(i)})
-            .y0(y.range()[0])
-            .y1(function(d) {return y(d)})
-          )
+        // spectrumsvg.append("path")
+        //   .datum(enrichmentsSmooth)
+        //   .attr("fill", "darkgrey")
+        //   // .attr("fill", function(d, i) {return colorbarX(i / enrichmentsSmooth.length)})
+        //   .attr("d", d3.area()
+        //     .x(function(d, i) {return x(i)})
+        //     .y0(y.range()[0])
+        //     .y1(function(d) {return y(d)})
+        //   )
+        //   .on('mouseover', mouseover)
+        //   .on('mousemove', mousemove)
+        //   .on('mouseleave', mouseleave)
+          
+        // spectrum bar
+        spectrumsvg.selectAll()
+          .data(enrichmentsSmooth)
+          .join("rect")
+          .attr("fill", function(d, i) {return colorbarX(i / enrichmentsSmooth.length)})
+          .attr("x", function(d, i) {return x(i)})
+          .attr("y", function(d) {return y(d)})
+          .attr("width", (x.range()[1] - x.range()[0]) / (x.domain()[1] - x.domain()[0]))
+          .attr("height",  function(d) {return y.range()[0] - y(d)})
           .on('mouseover', mouseover)
           .on('mousemove', mousemove)
           .on('mouseleave', mouseleave)
