@@ -128,7 +128,8 @@ const TrackPyramid = ({
           Rendering 
           ====================================
           */ 
-          let trackHeight = height / (tracks.length + 1)
+          let tracksFiltered = tracks.filter(t => t.order !== state.order)
+          let trackHeight = height / (tracksFiltered.length + 1)
 
           ctx.clearRect(0, 0, width, height);
           // ctx.globalCompositeOperation='destination-over';
@@ -151,7 +152,7 @@ const TrackPyramid = ({
               })
 
               // render the tracks from other orders
-              tracks.forEach((t, i) => {
+              tracksFiltered.forEach((t, i) => {
                 // we filter out any points not within the current segment
                 // TODO: is the filtering logic correct? are we cutting too much?
                 let orderTrack = t.data.filter(d => d.chromosome == hit.chromosome && d.start >= xExtents[si][0] && d.start <= xExtents[si][1])
@@ -183,7 +184,7 @@ const TrackPyramid = ({
                 ctx.fillRect(x, y - margin, bw, trackHeight)
               }
             })
-            tracks.forEach((t, i) => {
+            tracksFiltered.forEach((t, i) => {
               let orderTrack = t.data.filter(d => d.chromosome == hit.chromosome)
               let orderBw = xScale(orderTrack[1]?.start) - xScale(orderTrack[0]?.start)
               orderTrack.forEach(d => {
