@@ -294,7 +294,7 @@ function App() {
   const handleChangeShowHilbert = (e) => {
     setShowHilbert(!showHilbert)
   }
-  const [showDebug, setShowDebug] = useState(false)
+  const [showDebug, setShowDebug] = useState(true)
   const handleChangeShowDebug = (e) => {
     setShowDebug(!showDebug)
   }
