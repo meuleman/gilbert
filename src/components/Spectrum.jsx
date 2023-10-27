@@ -1,6 +1,7 @@
 import * as d3 from 'd3'
 import './Spectrum.css'
 import GenesetEnrichmentOrder from './SimSearch/GenesetEnrichmentOrder.json'
+import { useEffect } from 'react'
 
 const SelectedModal = ({
   genesetEnrichment,
@@ -56,94 +57,145 @@ const SelectedModal = ({
       let enrichmentsMaxInWindow = enrichmentsMax.slice(startIndex, endIndex)
       enrichmentsSmooth[i] = enrichmentsMaxInWindow.reduce((a, b) => a + b) / enrichmentsMaxInWindow.length
     })
-    
   }
 
-  let simSearchListContainer = d3.select("#spectrum-container")
-  if(genesetEnrichment && simSearchListContainer && enrichmentsSmooth) {
-    removeSvg()
-    if(Math.max(...enrichmentsSmooth) > 0) {
-      let spectrumsvg = simSearchListContainer
-        .append("svg")
-          .attr('id', 'spectrum-svg')
-          .attr('className', 'spectrum-svg')
-          .attr("width", width)
-          .attr("height", height)
-          .style("position", "absolute")
+  
+  useEffect(() => {
+    let simSearchListContainer = d3.select("#spectrum-container")
+    if(genesetEnrichment && simSearchListContainer && enrichmentsSmooth) {
+      removeSvg()
+      if(Math.max(...enrichmentsSmooth) > 0) {
+        let spectrumsvg = simSearchListContainer
+          .append("svg")
+            .attr('id', 'spectrum-svg')
+            .attr('className', 'spectrum-svg')
+            .attr("width", width)
+            .attr("height", height)
+            .style("position", "absolute")
 
-      // y scale
-      const y = d3.scaleLinear()
-        .domain([0, Math.max(...enrichmentsSmooth)])
-        .range([plotYStop, plotYStart])
-      spectrumsvg.append('g')
-        .style('font', '8px sans-serif')
-        .attr("transform", "translate(" + plotXStart + ", 0)")
-        .call(d3.axisLeft(y)) // .tickValues([Math.min(...enrichments), Math.max(...enrichments)]).tickFormat(d3.format(".0"))
-      
-      const x = d3.scaleLinear()
-        .domain([0, GenesetEnrichmentOrder.length - 1])
-        .range([plotXStart, plotXStop])
-      spectrumsvg.append('g')
-        .style('font', '8px sans-serif')
-        .attr("transform", "translate(0, " + plotYStop + ")")
-        .call(d3.axisBottom(x).tickValues([]))
+          const tooltip = simSearchListContainer
+            .append('div')
+            .style('opacity', 0)
+            .attr('class', 'tooltip')
+            .style('background-color', 'white')
+            .style('border', 'solid')
+            .style('border-width', '1px')
+            .style('border-radius', '5px')
+            .style('padding', '10px')
+            .style('position', 'absolute')
+            .style('display', 'inline')
+            .style('z-index', -1)
 
-      const invertX = (xPos) => {
-        const range = x.range()
-        let index = Math.round((xPos - range[0]) / (range[1] - range[0]) * GenesetEnrichmentOrder.length)
-        // console.log(xPos, range, index)
-        return index
+        // y scale
+        const y = d3.scaleLinear()
+          .domain([0, Math.max(...enrichmentsSmooth)])
+          .range([plotYStop, plotYStart])
+        spectrumsvg.append('g')
+          .style('font', '8px sans-serif')
+          .attr("transform", "translate(" + plotXStart + ", 0)")
+          .call(d3.axisLeft(y)) // .tickValues([Math.min(...enrichments), Math.max(...enrichments)]).tickFormat(d3.format(".0"))
+        
+        const x = d3.scaleLinear()
+          .domain([0, GenesetEnrichmentOrder.length - 1])
+          .range([plotXStart, plotXStop])
+        spectrumsvg.append('g')
+          .style('font', '8px sans-serif')
+          .attr("transform", "translate(0, " + plotYStop + ")")
+          .call(d3.axisBottom(x).tickValues([]))
+
+        const invertX = (xPos) => {
+          const range = x.range()
+          let index = Math.round((xPos - range[0]) / (range[1] - range[0]) * GenesetEnrichmentOrder.length)
+          // console.log(xPos, range, index)
+          return index
+        }
+
+        const mouseover = () => {
+          // const xIndex = invertX(m.offsetX)
+          tooltip
+            .style('opacity', 1)
+            .style('z-index', 1)
+        }
+
+        const findOffset = function () {
+          // offset of parent element
+          const parentElement = document.getElementById('spectrum-container');
+          const parentOffset = parentElement.getBoundingClientRect()
+          return parentOffset
+        }
+        
+        const mousemove = (e) => {
+          const parentOffset = findOffset()
+          tooltip.style('left', (e.clientX - parentOffset.x + 20) + 'px')
+          tooltip.style('top', (e.clientY - parentOffset.y) + 'px')
+          const xIndex = invertX(e.offsetX)
+          if((xIndex >= 0) && (xIndex < GenesetEnrichmentOrder.length)){
+            let startIndex = Math.max(0, xIndex - windowSize / 2)
+            let endIndex = Math.min(enrichments.length, xIndex + windowSize / 2)
+            let windowValues = enrichments.slice(startIndex, endIndex)
+            let windowValuesIndexFiltered = windowValues.map((v, i) => [v, i]).filter(vi => vi[0] > 0)
+            if(windowValuesIndexFiltered.length > 0) {
+              let windowValuesArgmax = [...windowValuesIndexFiltered].sort((a, b) => Math.abs(a[1] - (windowSize / 2)) - Math.abs(b[1] - (windowSize / 2)))[0]
+              let representativeIndex = startIndex+windowValuesArgmax[1]
+  
+              const genesetName = GenesetEnrichmentOrder[representativeIndex].genesetName
+              const enrichment = enrichments[representativeIndex]
+              tooltip
+                .html("xIndex: " + representativeIndex + "<br>" + "Geneset: " + genesetName + "<br>" + "Enrichment: " + enrichment)
+            }
+          }
+        }
+
+        const mouseleave= () => {
+          tooltip
+            .style('opacity', 0)
+            .style('z-index', -1)
+        }
+
+        // draw the enrichment line
+        spectrumsvg.append("path")
+          .datum(enrichmentsSmooth)
+          .attr("fill", "none")
+          .attr("stroke", "black")
+          .attr("stroke-width", 1)
+          .attr("d", d3.line()
+            .x(function(d, i) {return x(i)})
+            .y(function(d) {return y(d)})
+          )
+
+        // fill space under enrichment line
+        const colorbarX = (x) => d3.interpolateRainbow(x)
+        spectrumsvg.append("path")
+          .datum(enrichmentsSmooth)
+          .attr("fill", "darkgrey")
+          // .attr("fill", function(d, i) {return colorbarX(i / enrichmentsSmooth.length)})
+          .attr("d", d3.area()
+            .x(function(d, i) {return x(i)})
+            .y0(y.range()[0])
+            .y1(function(d) {return y(d)})
+          )
+          .on('mouseover', mouseover)
+          .on('mousemove', mousemove)
+          .on('mouseleave', mouseleave)
+
+        // spectrum bar
+        spectrumsvg.selectAll()
+          .data(enrichmentsSmooth)
+          .join("rect")
+          .attr("fill", function(d, i) {return colorbarX(i / enrichmentsSmooth.length)})
+          .attr("x", function(d, i) {return x(i)})
+          .attr("y", y.range()[0])
+          .attr("width", (x.range()[1] - x.range()[0]) / (x.domain()[1] - x.domain()[0]))
+          .attr("height", spectrumBarHeight)
       }
-
-      const mouseover = () => {
-      }
-
-      
-      const mousemove = (m) => {
-        const xIndex = invertX(m.offsetX)
-      }
-
-      // draw the enrichment line
-      spectrumsvg.append("path")
-        .datum(enrichmentsSmooth)
-        .attr("fill", "none")
-        .attr("stroke", "black")
-        .attr("stroke-width", 1)
-        .attr("d", d3.line()
-          .x(function(d, i) {return x(i)})
-          .y(function(d) {return y(d)})
-        )
-
-      // fill space under enrichment line
-      spectrumsvg.append("path")
-        .datum(enrichmentsSmooth)
-        .attr("fill", "darkgrey")
-        .attr("d", d3.area()
-          .x(function(d, i) {return x(i)})
-          .y0(y.range()[0])
-          .y1(function(d) {return y(d)})
-        )
-        .on('mouseover', mouseover)
-        .on('mousemove', mousemove)
-        // .on('mo`useleave', function() {mouseleave.bind(this)("none")})
-
-      // spectrum bar
-      const colorbarX = (x) => d3.interpolateRainbow(x)
-      spectrumsvg.selectAll()
-        .data(enrichmentsSmooth)
-        .join("rect")
-        .attr("fill", function(d, i) {return colorbarX(i / enrichmentsSmooth.length)})
-        .attr("x", function(d, i) {return x(i)})
-        .attr("y", y.range()[0])
-        .attr("width", (x.range()[1] - x.range()[0]) / (x.domain()[1] - x.domain()[0]))
-        .attr("height", spectrumBarHeight)
     }
-  }
+  }, [genesetEnrichment])
+  
   
 
   return (
     <>
-    <div className='spectrum-container' id='spectrum-container'>
+    <div className='spectrum-container' id='spectrum-container' style={{height: height + 'px'}}>
 
     </div>
     </>
