@@ -27,6 +27,8 @@ const initialState = {
   order: 0,
   // The hilbert points in view for the current order
   points: [],
+  // the loading state
+  loading: false,
   // The data fetched from the layer for each point in points
   data: [],
   // The hilbert order when the data is fetched (this could be different than the current order if the user zooms in before the data is fetched)
@@ -44,6 +46,7 @@ const initialState = {
 const actions = {
   ZOOM: "ZOOM", // have all the zoom dependencies update the state at once
   ZOOMING: "ZOOMING", // if we are actively zooming
+  SET_LOADING: "SET_LOADING",
   SET_DATA: "SET_DATA",
   SET_METAS: "SET_METAS",
   SET_SELECTED: "SET_SELECTED",
@@ -61,9 +64,13 @@ function reducer(state, action) {
       const { zooming } = action.payload;
       return { ...state, zooming };
     }
+    case actions.SET_LOADING: {
+      const { loading } = action.payload;
+      return { ...state, loading };
+    }
     case actions.SET_DATA: {
       const { data, order } = action.payload;
-      return { ...state, data, dataOrder: order }
+      return { ...state, data, dataOrder: order, loading: false }
     }
     case actions.SET_METAS:
       return { ...state, metas: action.payload };
@@ -75,9 +82,6 @@ function reducer(state, action) {
       throw new Error();
   }
 }
-
-
-// TODO: broadcast channel for pubsub events (zoom, hover, click, etc)
 
 const HilbertGenome = ({
     orderMin = 4,
@@ -149,15 +153,17 @@ const HilbertGenome = ({
       // console.log("fetching data")
       // we dont want to fetch data if the order is not within the layer order range
       if (state.order < layer.orders[0] || state.order > layer.orders[1]) return;
+      dispatch({ type: actions.SET_LOADING, payload: { loading: true } });
       
       const dataClient = Data({ 
-        debug
+        // debug
       })
       let myPromise = dataClient.fetchData(layer, state.order, state.points)
       let myCallback = (data) => {
         if(data) {
           dispatch({ type: actions.SET_DATA, payload: { data, order: state.order } });
         }
+        // dispatch({ type: actions.SET_LOADING, payload: { loading: false } });
       }
       debounce(myPromise, myCallback, 150)
     }
@@ -180,7 +186,7 @@ const HilbertGenome = ({
       // console.log("layer", layer)
 
       const dataClient = Data({ 
-        debug
+        // debug
       })
       // fetch the meta for each order in this layer
       Promise.all(range(layer.orders[0], layer.orders[1] + 1)
@@ -219,12 +225,14 @@ const HilbertGenome = ({
   // with the latest data available (updated via state)
   const renderCanvas = useMemo(() => { 
     return function(transform, points) {
+      console.log("render canvas", state.loading)
       // notice that we are overriding transform and points in the state we pass in
       // this is because we want to render immediately with the values in the zoom handler
       // the data in the state may be stale but we still want to render it
       // this will all be run again when the data is updated to draw fresh data
       CanvasBase({ scales, state: { 
         data: state.data, 
+        loading: state.loading,
         points, 
         order: state.order, 
         dataOrder: state.dataOrder, 
@@ -233,6 +241,7 @@ const HilbertGenome = ({
 
       layer.renderer({ scales, state: { 
         data: state.data, 
+        loading: state.loading,
         points, 
         meta: state.metas.get(state.dataOrder), 
         order: state.order, 
@@ -240,7 +249,7 @@ const HilbertGenome = ({
         transform
       }, layer, canvasRef })
     }
-  }, [state.data, state.order, state.dataOrder, state.metas, scales, layer, canvasRef])
+  }, [state.data, state.loading, state.order, state.dataOrder, state.metas, scales, layer, canvasRef])
 
 
   // Zoom event handler
@@ -319,6 +328,7 @@ const HilbertGenome = ({
 
   useEffect(() => {
     // we want to make sure and render again once the data loads
+    console.log("render use effect, data, points, transform")
     renderCanvas(state.transform, state.points)
   }, [state.data, state.points, state.transform, renderCanvas ])
 
@@ -526,6 +536,24 @@ const HilbertGenome = ({
         </g>
         
       </svg>
+      { debug && <div className="debug" style={{
+                     position:"fixed", 
+                     top:"20px", 
+                     right:"300px",
+                     fontSize: "10px"
+                  }}
+          onClick={(evt) => {
+            evt.stopPropagation()
+            evt.preventDefault()
+            console.log("state", state)
+            console.log("layer", layer)
+            console.log("canvas ref", canvasRef)
+          }}>
+        <div className="debug-item">order: {state.order}</div>
+        <div className="debug-item">layer: {layer?.name}</div>
+        <div className="debug-item">loading: {state.loading ? "LOADING" : "DONE"}</div>
+        <div className="debug-item">points: {state.points.length}</div>
+      </div>}
     </div>
     
     

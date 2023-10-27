@@ -63,7 +63,7 @@ const layers = [
   GeneCounts,
   GCContent,
   Nucleotides,
-  // DHS_OE_Chi,
+  DHS_OE_Chi,
   DHS_Components_Sfc,
   DHS_Mean_Signal,
   DHS_Density,
@@ -199,9 +199,9 @@ function App() {
         SimSearchRegion(hit, order, layer, setSearchByFactorInds, []).then((regionResult) => {
           if(!regionResult || !regionResult.simSearch) return;
           processSimSearchResults(regionResult)
-          // GenesetEnrichment(regionResult.simSearch.slice(1), order).then((enrichmentResult) => {
-          //   setGenesetEnrichment(enrichmentResult)
-          // })
+          GenesetEnrichment(regionResult.simSearch.slice(1), order).then((enrichmentResult) => {
+            setGenesetEnrichment(enrichmentResult)
+          })
           setSimSearchMethod("Region")
         })
         NarrateRegion(hit, order).then((narrationResult) => {
@@ -247,16 +247,16 @@ function App() {
           setSelectedOrder(zoom.order)
           processSimSearchResults(SBFResult)
           setSimSearchMethod("SBF")
-          // GenesetEnrichment(SBFResult.simSearch, zoom.order).then((enrichmentResult) => {
-          //   setGenesetEnrichment(enrichmentResult)
-          // })
+          GenesetEnrichment(SBFResult.simSearch, zoom.order).then((enrichmentResult) => {
+            setGenesetEnrichment(enrichmentResult)
+          })
         })
       } else if(simSearchMethod == "Region") {
         SimSearchRegion(selected, zoom.order, layer, setSearchByFactorInds, newSearchByFactorInds, simSearchMethod).then((regionResult) => {
           processSimSearchResults(regionResult)
-          // GenesetEnrichment(regionResult.simSearch.slice(1), zoom.order).then((enrichmentResult) => {
-          //   setGenesetEnrichment(enrichmentResult)
-          // })
+          GenesetEnrichment(regionResult.simSearch.slice(1), zoom.order).then((enrichmentResult) => {
+            setGenesetEnrichment(enrichmentResult)
+          })
         })
       }
     } else {
@@ -294,13 +294,17 @@ function App() {
   const handleChangeShowHilbert = (e) => {
     setShowHilbert(!showHilbert)
   }
+  const [showDebug, setShowDebug] = useState(false)
+  const handleChangeShowDebug = (e) => {
+    setShowDebug(!showDebug)
+  }
   
   const [showGenes, setShowGenes] = useState(true)
   const handleChangeShowGenes = (e) => {
     setShowGenes(!showGenes)
   }
 
-  const [showGaps, setShowGaps] = useState(false)
+  const [showGaps, setShowGaps] = useState(true)
   const handleChangeShowGaps = (e) => {
     setShowGaps(!showGaps)
   }
@@ -473,7 +477,7 @@ function App() {
             onClick={handleClick}
             onData={onData}
             // onLayer={handleLayer}
-            debug={false}
+            debug={showDebug}
           />
         </div>
         <LensModal
@@ -508,22 +512,18 @@ function App() {
           height={height} 
           effectiveOrder={zoom.order}
           orderDomain={orderDomain} 
-          zoomExtent={zoomExtent} 
-          layerOrder={layerOrder} 
-          layer={layer}
-          layerLock={layerLock}
-        />
-        {/* <SelectedModal
+          zoomExtent={zoomExtent} />
+        <SelectedModal
           width={480}
           height={height} 
           selected={selected} // currently selected cell
           selectedOrder={selectedOrder} 
           layer={layer} 
           zoom={zoom} 
-          onClose={handleModalClose} /> */}
+          onClose={handleModalClose} />
         {/* <Spectrum
-          width={1000}
-          height={150} 
+          width={400}
+          height={300} 
           genesetEnrichment={genesetEnrichment}
         /> */}
       </div>
@@ -550,6 +550,10 @@ function App() {
           layers={layers} />
         <div className="footer-panel">
           <div className="footer-panel-left">
+            <label>
+              <input type="checkbox" checked={showDebug} onChange={handleChangeShowDebug} />
+              Debug
+            </label>
             <label>
               <input type="checkbox" checked={showHilbert} onChange={handleChangeShowHilbert} />
               Show Hilbert Curve
