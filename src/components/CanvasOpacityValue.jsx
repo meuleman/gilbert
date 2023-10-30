@@ -50,8 +50,8 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
     let {xScale ,yScale ,sizeScale} = scales
     
     // state
-    let {data, points, meta, transform, order, dataOrder} = state
-    if(!points || !data || !meta) return;
+    let {data, meta, transform, order} = state
+    if(!data || !meta) return;
 
     // the min and max for scaling
     // let fields = meta["fields"]
@@ -65,7 +65,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
 
     let i,d,dm1,dp1,xx,yy; 
     // make sure to render with the data's order
-    const step = Math.pow(0.5, dataOrder)
+    const step = Math.pow(0.5, order)
     const sw = step //* (1 - strokeWidthMultiplier);
     const rw = sizeScale(sw) * t.k //- 1
     const srw = rw * 0.7

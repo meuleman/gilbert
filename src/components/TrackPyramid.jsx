@@ -264,7 +264,7 @@ const TrackPyramid = ({
       let xbw = bw;
       let si = 0;
 
-      if(segment) {
+      if(segment && xScales) {
         xScales.forEach((xs,i) => {
           let we = xs.range()
           if(x >= we[0] && x <= we[1]) {

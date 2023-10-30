@@ -9,8 +9,11 @@ export default function GenePaths({
 } = {}) {
   return function GenePathsComponent({ state, scales }) {
 
-    const { points, order } = state
+    // const { points, order } = state
+    const { dataPoints, dataOrder } = state
     const { xScale, yScale, sizeScale } = scales
+    let order = dataOrder;
+    let points = dataPoints;
 
     if(!points) return;
 

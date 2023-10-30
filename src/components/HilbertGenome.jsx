@@ -33,6 +33,10 @@ const initialState = {
   data: [],
   // The hilbert order when the data is fetched (this could be different than the current order if the user zooms in before the data is fetched)
   dataOrder: 0,
+  // the layer when the data is fetched
+  dataLayer: null,
+  //the points when the data is fetched
+  dataPoints: [],
   // The meta data for each available order of the layer
   metas: new Map(),
   // The data point selected by clicking
@@ -69,8 +73,8 @@ function reducer(state, action) {
       return { ...state, loading };
     }
     case actions.SET_DATA: {
-      const { data, order } = action.payload;
-      return { ...state, data, dataOrder: order, loading: false }
+      const { data, order, layer, points } = action.payload;
+      return { ...state, data, dataOrder: order, dataPoints: points, dataLayer: layer, loading: false }
     }
     case actions.SET_METAS:
       return { ...state, metas: action.payload };
@@ -161,7 +165,7 @@ const HilbertGenome = ({
       let myPromise = dataClient.fetchData(layer, state.order, state.points)
       let myCallback = (data) => {
         if(data) {
-          dispatch({ type: actions.SET_DATA, payload: { data, order: state.order } });
+          dispatch({ type: actions.SET_DATA, payload: { data, order: state.order, layer, points: state.points } });
         }
         // dispatch({ type: actions.SET_LOADING, payload: { loading: false } });
       }
@@ -225,7 +229,6 @@ const HilbertGenome = ({
   // with the latest data available (updated via state)
   const renderCanvas = useMemo(() => { 
     return function(transform, points) {
-      console.log("render canvas", state.loading)
       // notice that we are overriding transform and points in the state we pass in
       // this is because we want to render immediately with the values in the zoom handler
       // the data in the state may be stale but we still want to render it
@@ -233,21 +236,22 @@ const HilbertGenome = ({
       CanvasBase({ scales, state: { 
         data: state.data, 
         loading: state.loading,
-        points, 
-        order: state.order, 
-        dataOrder: state.dataOrder, 
+        // points, 
+        // order: state.order, 
+        points: state.dataPoints,
+        order: state.dataOrder,
         transform
       }, layer, canvasRef })
 
+      if(state.dataLayer?.datasetName !== layer.datasetName) return
       layer.renderer({ scales, state: { 
         data: state.data, 
         loading: state.loading,
-        points, 
+        points: state.dataPoints, 
         meta: state.metas.get(state.dataOrder), 
-        order: state.order, 
-        dataOrder: state.dataOrder, 
+        order: state.dataOrder, 
         transform
-      }, layer, canvasRef })
+      }, layer: state.dataLayer, canvasRef })
     }
   }, [state.data, state.loading, state.order, state.dataOrder, state.metas, scales, layer, canvasRef])
 
@@ -328,7 +332,6 @@ const HilbertGenome = ({
 
   useEffect(() => {
     // we want to make sure and render again once the data loads
-    console.log("render use effect, data, points, transform")
     renderCanvas(state.transform, state.points)
   }, [state.data, state.points, state.transform, renderCanvas ])
 
@@ -358,7 +361,6 @@ const HilbertGenome = ({
       // TODO the multipliers should be based on aspect ratio
       const xOffset =  (width/height)*2
       const yOffset = -(width/height)*2
-      console.log(width, height, width/height, height/width)
       let tx = xScale(x0) - sizeScale(x1 - x0) * xOffset
       let ty = yScale(y0) - sizeScale(y1 - y0) * yOffset
       let tw = xScale(x1 - x0) - xScale(0) // the width of the box
@@ -443,11 +445,9 @@ const HilbertGenome = ({
   }, [state.data, state.transform, state.order, qt, xScale, yScale])
     
   const handleClick = useCallback((event) => {
-    console.log("click!")
     if(!qt) return
     let ex = event.nativeEvent.offsetX
     let ey = event.nativeEvent.offsetY
-    // console.log("mouse y", event)
     let ut = untransform(ex, ey, state.transform)
     let step = Math.pow(0.5, state.order)
     let hit = qt.find(xScale.invert(ut.x), yScale.invert(ut.y), step * 3)
@@ -466,7 +466,6 @@ const HilbertGenome = ({
 
 
   const handleDoubleClick = useCallback((event) => {
-    console.log("double click")
     if(!qt) return
     // event.preventDefault()
     // event.stopPropagation()
@@ -485,7 +484,6 @@ const HilbertGenome = ({
     } else { 
       return;
     }
-    console.log("am i here?", clicked, state.order)
     onClick(clicked, state.order, true);
     zoomToBox(hit.x, hit.y, hit.x + step, hit.y + step, state.order + 2)
 
@@ -547,7 +545,7 @@ const HilbertGenome = ({
             evt.preventDefault()
             console.log("state", state)
             console.log("layer", layer)
-            console.log("canvas ref", canvasRef)
+            console.log("canvas ref", canvasRef.current)
           }}>
         <div className="debug-item">order: {state.order}</div>
         <div className="debug-item">layer: {layer?.name}</div>
