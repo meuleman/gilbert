@@ -5,7 +5,7 @@ import CanvasOpacityValue from "../components/CanvasOpacityValue";
 
 
 export default {
-  name: "Gene Counts",
+  name: "Gene Density",
   datasetName: "gencode",
   baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   orders: [4,9],
