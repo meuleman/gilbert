@@ -115,7 +115,7 @@ function App() {
         //let { height } = containerRef.current.getBoundingClientRect()
         let height = window.innerHeight - 270;
         // account for the zoom legend (30) and padding (48)
-        let w = window.innerWidth - 30 - 24 - 500
+        let w = window.innerWidth - 30 - 24 - 180// - 500
         // console.log("sup", window.innerWidth, w, width)
         setSize([w, height]);
       }
@@ -513,14 +513,14 @@ function App() {
           effectiveOrder={zoom.order}
           orderDomain={orderDomain} 
           zoomExtent={zoomExtent} />
-        <SelectedModal
+        {/* <SelectedModal
           width={480}
           height={height} 
           selected={selected} // currently selected cell
           selectedOrder={selectedOrder} 
           layer={layer} 
           zoom={zoom} 
-          onClose={handleModalClose} />
+          onClose={handleModalClose} /> */}
         {/* <Spectrum
           width={400}
           height={300} 
