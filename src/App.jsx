@@ -43,6 +43,7 @@ import UKBB_Counts from './layers/ukbb_counts'
 import Repeats_Sfc from './layers/repeats_sfc'
 import CpG_Island_Density from './layers/cpg_islands_density'
 import ENCSR000EOT from './layers/encode_ENCSR000EOT_max'
+import LADs from './layers/lads'
 // import DHS_Coreg_2500 from './layers/dhs_coreg_2500'
 // import DHS_Coreg_Multiscale from './layers/dhs_coregMultiscale'
 // import DHS_Coreg_Best_Scale_max from './layers/dhs_coregBestScale_max'
@@ -79,7 +80,8 @@ const layers = [
   UKBB,
   UKBB_Counts,
   CpG_Island_Density,
-  ENCSR000EOT
+  ENCSR000EOT,
+  LADs
 ]
 
 // const initialLayerOrder = {
