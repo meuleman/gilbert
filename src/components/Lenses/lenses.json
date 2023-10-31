@@ -52,18 +52,18 @@
       "13": "K562 DNase-seq", 
       "14": "K562 DNase-seq"
     },
-    "CpG Islands": {
-      "4": "CpG Islands", 
-      "5": "CpG Islands", 
-      "6": "CpG Islands", 
-      "7": "CpG Islands", 
-      "8": "CpG Islands", 
-      "9": "CpG Islands", 
-      "10": "CpG Islands", 
-      "11": "CpG Islands", 
-      "12": "CpG Islands", 
-      "13": "CpG Islands", 
-      "14": "CpG Islands"
+    "CD8+ DNase-seq": {
+      "4": "CD8+ DNase-seq", 
+      "5": "CD8+ DNase-seq", 
+      "6": "CD8+ DNase-seq", 
+      "7": "CD8+ DNase-seq", 
+      "8": "CD8+ DNase-seq", 
+      "9": "CD8+ DNase-seq", 
+      "10": "CD8+ DNase-seq", 
+      "11": "CD8+ DNase-seq", 
+      "12": "CD8+ DNase-seq", 
+      "13": "CD8+ DNase-seq", 
+      "14": "CD8+ DNase-seq"
     }
   }
   
