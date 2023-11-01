@@ -17,7 +17,7 @@ import ZoomLegend from './components/ZoomLegend'
 // import LinearTracks from './components/LinearTracks'
 import TrackPyramid from './components/TrackPyramid'
 import StatusBar from './components/StatusBar'
-import SelectedModal from './components/SelectedModal'
+//import SelectedModal from './components/SelectedModal'
 import LensModal from './components/LensModal'
 import LayerLegend from './components/LayerLegend'
 import SVGSelected from './components/SVGSelected'
@@ -515,8 +515,12 @@ function App() {
           k={zoom.transform.k} 
           height={height} 
           effectiveOrder={zoom.order}
+          zoomExtent={zoomExtent} 
           orderDomain={orderDomain} 
-          zoomExtent={zoomExtent} />
+          layerOrder={layerOrder}
+          layer={layer}
+          layerLock={layerLock}
+        />
         {/* <SelectedModal
           width={480}
           height={height} 
@@ -546,7 +550,7 @@ function App() {
 
         </div>
         <StatusBar 
-          width={width + 500 + 12 + 30} 
+          width={width + 12 + 30} 
           hover={hover} // the information about the cell the mouse is over
           layer={layer} 
           zoom={zoom} 
