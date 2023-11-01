@@ -1,6 +1,7 @@
 .autocomplete {
   position: relative;
   display: flex;
+  right: 300px;
 }
 
 .autocomplete-input {

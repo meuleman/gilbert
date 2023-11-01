@@ -14,7 +14,8 @@ const ZoomLegend = ({
   k = 1,
   layerOrder,
   layer,
-  layerLock
+  layerLock,
+  lensHovering
 } = {}) => {
 
   let orderZoomScale = useMemo(() => {
@@ -126,7 +127,7 @@ const ZoomLegend = ({
                   color: d.order == effectiveOrder ? "black" : "gray",
                 }}
               >
-                {layerLock ? layer?.name : layerOrder && layerOrder[d.order].name}
+                {(layerLock && !lensHovering) ? layer?.name : layerOrder && layerOrder[d.order].name}
               </div>
             </div>
 

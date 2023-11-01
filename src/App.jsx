@@ -108,6 +108,7 @@ function App() {
   const containerRef = useRef()
 
   const [layerOrder, setLayerOrder] = useState(null)
+  const [lensHovering, setLensHovering] = useState(false)
 
   // let's fill the container and update the width and height if window resizes
   const [width, height] = useWindowSize();
@@ -494,6 +495,8 @@ function App() {
           setLayerLockFromIcon={setLayerLockFromIcon}
           layerLockFromIcon={layerLockFromIcon}
           setSearchByFactorInds={setSearchByFactorInds}
+          setLensHovering={setLensHovering}
+          lensHovering={lensHovering}
           order={zoom.order}
         />
         <LayerLegend 
@@ -520,6 +523,7 @@ function App() {
           layerOrder={layerOrder}
           layer={layer}
           layerLock={layerLock}
+          lensHovering={lensHovering}
         />
         {/* <SelectedModal
           width={480}
