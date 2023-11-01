@@ -299,6 +299,7 @@ const HilbertGenome = ({
       bbox,
       points,
     }
+
     // update the state
     dispatch({ type: actions.ZOOM, payload })
     
@@ -536,8 +537,8 @@ const HilbertGenome = ({
       </svg>
       { debug && <div className="debug" style={{
                      position:"fixed", 
-                     top:"20px", 
-                     right:"300px",
+                     bottom:"20px", 
+                     right:"20px",
                      fontSize: "10px"
                   }}
           onClick={(evt) => {
