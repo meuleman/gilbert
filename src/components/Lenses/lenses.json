@@ -52,18 +52,18 @@
       "13": "K562 DNase-seq", 
       "14": "K562 DNase-seq"
     },
-    "CD8+ DNase-seq": {
-      "4": "CD8+ DNase-seq", 
-      "5": "CD8+ DNase-seq", 
-      "6": "CD8+ DNase-seq", 
-      "7": "CD8+ DNase-seq", 
-      "8": "CD8+ DNase-seq", 
-      "9": "CD8+ DNase-seq", 
-      "10": "CD8+ DNase-seq", 
-      "11": "CD8+ DNase-seq", 
-      "12": "CD8+ DNase-seq", 
-      "13": "CD8+ DNase-seq", 
-      "14": "CD8+ DNase-seq"
+    "CD3+ DNase-seq": {
+      "4": "CD3+ DNase-seq", 
+      "5": "CD3+ DNase-seq", 
+      "6": "CD3+ DNase-seq", 
+      "7": "CD3+ DNase-seq", 
+      "8": "CD3+ DNase-seq", 
+      "9": "CD3+ DNase-seq", 
+      "10": "CD3+ DNase-seq", 
+      "11": "CD3+ DNase-seq", 
+      "12": "CD3+ DNase-seq", 
+      "13": "CD3+ DNase-seq", 
+      "14": "CD3+ DNase-seq"
     }
   }
   
