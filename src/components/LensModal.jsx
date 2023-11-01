@@ -20,6 +20,25 @@ const LensModal = ({
   order,
   orders=[4,5,6,7,8,9,10,11,12,13,14]
 } = {}) => {
+
+  // "Integrative" : {
+  //   "4": "DHS Components", 
+  //   "5": "DHS Components", 
+  //   "6": "DHS Components", 
+  //   "7": "DHS Components", 
+  //   "8": "Chromatin States", 
+  //   "9": "Chromatin States", 
+  //   "10": "TF Motifs", 
+  //   "11": "GC Content", 
+  //   "12": "GC Content", 
+  //   "13": "GC Content", 
+  //   "14": "Nucleotides"
+  // },
+  // positioning with zoom legend label boxes
+  const zoomLegendElement = document.querySelector('.label-box');
+  const xPos = zoomLegendElement?.getBoundingClientRect().left
+  const buttonWidth = zoomLegendElement?.getBoundingClientRect().width
+
   const lensNames = Object.keys(lenses)
 
   const [permanentLens, setPermanentLens] = useState(null)
@@ -177,7 +196,7 @@ const LensModal = ({
   return (
     <>
       {(
-        <div className="lens-modal">
+        <div className="lens-panel" style={{left: xPos}}>
           {/* <div className={
             (layerLock) ? 
               'layer-locked'
@@ -188,8 +207,7 @@ const LensModal = ({
           onMouseLeave={() => labelMouseLeave()}
           onMouseMove={(e) => labelMouseMove(e)}/> */}
           {/* <div className='label-tooltip' id='label-tooltip'></div> */}
-          <div className='lens-header'>Data Lenses</div>
-          <div className="lens-modal-lenses">
+          <div className="lens-panel-lenses">
             {lensNames.map((l, i) => {
               if (isDropdown[i]) {
                 const sublenses = lenses[l]
@@ -214,6 +232,7 @@ const LensModal = ({
                       }
                       id={l}
                       key={l}
+                      style={{width: buttonWidth}}
                       onClick={
                         ((permanentLens?.id == sublensName) && (layerLockFromIcon != false)) ? 
                           (() => handleDropdownOpen(l)) 
@@ -235,6 +254,7 @@ const LensModal = ({
                               }
                               key={s}
                               id={s}
+                              style={{width: buttonWidth}}
                               onClick={() => onClick(sublensLayers, s, i, j)}
                               onMouseOver={() => onMouseOver(sublensLayers, s)}
                               onMouseLeave={() => onMouseLeave(permanentLens.lens, permanentLens.id)}
@@ -269,6 +289,7 @@ const LensModal = ({
                       }
                       id={l} 
                       key={l} 
+                      style={{width: buttonWidth}}
                       onClick={() => onClick(lensLayers, l)}
                       onMouseOver={() => onMouseOver(lensLayers, l)}
                       onMouseLeave={() => onMouseLeave(permanentLens.lens, permanentLens.id)}
@@ -278,6 +299,7 @@ const LensModal = ({
               }
             })}
           </div>
+          <div className='lens-header'>Lenses</div>
         </div>
       )}
     </>
