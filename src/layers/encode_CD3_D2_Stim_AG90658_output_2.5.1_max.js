@@ -5,8 +5,8 @@ import CanvasOpacityValue from "../components/CanvasOpacityValue";
 import * as constants from "../lib/constants";
 
 export default {
-  name: "CD8+ DNase-seq",
-  datasetName: "encode_CD8_D2_Stim_AG90658_output_2.5.1_max",
+  name: "CD3+ DNase-seq",
+  datasetName: "encode_CD3_D2_Stim_AG90658_output_2.5.1_max",
   baseURL: `${constants.baseURLPrefix}/20231030`,
   orders: [4,13],
   renderer: CanvasOpacityValue,
