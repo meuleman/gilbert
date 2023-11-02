@@ -2,7 +2,7 @@ import * as d3 from 'd3'
 import './Spectrum.css'
 import GenesetEnrichmentOrder from './SimSearch/GenesetEnrichmentOrder.json'
 import { useEffect } from 'react'
-import colors from './Spectrum/colors.json'
+import colors from './Spectrum/colors_hsl.json'
 
 const SelectedModal = ({
   genesetEnrichment,
@@ -176,16 +176,16 @@ const SelectedModal = ({
         // })
 
         // fill space under enrichment line
-        const colorbarX = d3.scaleSequential((x) => {
-          let color = colors[x]
+        // const colorbarX = d3.scaleSequential((x) => {
+        //   let color = colors[x]
           
-          let rgb = 'rgb(' + color.slice(0,3).toString() + ')'
-          // console.log(rgb)
-          return rgb
-        })
+        //   let rgb = 'rgb(' + color.slice(0,3).toString() + ')'
+        //   // console.log(rgb)
+        //   return rgb
+        // })
         // console.log(colorbarX(5000))
-        const interpolateColors = d3.scaleOrdinal().domain([0, colors.length - 1]).range(colors)
-        console.log(interpolateColors(1000))
+        const colorbarX = d3.scaleOrdinal().domain([...Array(colors.length).keys()]).range(colors)
+        // console.log(colors.length , interpolateColors(500))
 
 
         // console.log(colors)
@@ -236,7 +236,24 @@ const SelectedModal = ({
           .data(enrichmentsSmooth)
           .join("rect")
           // .attr("fill", function(d, i) {return colorbarX(i / enrichmentsSmooth.length)})
-          .attr("fill", function(d, i) {return colorbarX(i)})
+          // .attr("fill", function(d, i) {
+          //   let c = colorbarX(i)
+          //   let r = Math.round(c[0] * 255)
+          //   let g = Math.round(c[1] * 255)
+          //   let b = Math.round(c[2] * 255)
+          //   let a = 1
+          //   let rgbaColor = `rgba(${r}, ${g}, ${b}, ${a})`
+          //   return rgbaColor
+          // })
+          .attr("fill", function(d, i) {
+            let c = colorbarX(i)
+            // let r = Math.round(c[0] * 255)
+            // let g = Math.round(c[1] * 255)
+            // let b = Math.round(c[2] * 255)
+            // let a = 1
+            // let rgbaColor = `rgba(${r}, ${g}, ${b}, ${a})`
+            return c
+          })
           .attr("x", function(d, i) {return x(i)})
           .attr("y", y.range()[0])
           .attr("width", (x.range()[1] - x.range()[0]) / (x.domain()[1] - x.domain()[0]))
