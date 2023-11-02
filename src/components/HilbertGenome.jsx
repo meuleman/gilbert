@@ -37,6 +37,8 @@ const initialState = {
   dataLayer: null,
   //the points when the data is fetched
   dataPoints: [],
+  // meta for order when data is fetched
+  dataMeta: {},
   // The meta data for each available order of the layer
   metas: new Map(),
   // The data point selected by clicking
@@ -73,8 +75,8 @@ function reducer(state, action) {
       return { ...state, loading };
     }
     case actions.SET_DATA: {
-      const { data, order, layer, points } = action.payload;
-      return { ...state, data, dataOrder: order, dataPoints: points, dataLayer: layer, loading: false }
+      const { data, order, layer, points, meta } = action.payload;
+      return { ...state, data, dataOrder: order, dataPoints: points, dataLayer: layer, dataMeta: meta, loading: false }
     }
     case actions.SET_METAS:
       return { ...state, metas: action.payload };
@@ -105,11 +107,9 @@ const HilbertGenome = ({
     activeLayer = "bands",
     pinOrder = 0,
     orderOffset = 0,
-    layers = [],
     SVGRenderers = [],
     onZoom = () => {},
     onHover = () => {},
-    onLayer= () => {},
     onClick = () => {},
     onData = () => {},
     debug = false,
@@ -145,11 +145,6 @@ const HilbertGenome = ({
     }
   }, [activeLayer])
 
-  // Data fetching
-  // const dataClient = Data({ 
-  //   debug
-  // })
-
   // this debounced function fetches the data and updates the state
   const fetchData = useMemo(() => {
     return () => {
@@ -165,30 +160,35 @@ const HilbertGenome = ({
       let myPromise = dataClient.fetchData(layer, state.order, state.points)
       let myCallback = (data) => {
         if(data) {
-          dispatch({ type: actions.SET_DATA, payload: { data, order: state.order, layer, points: state.points } });
+          dispatch({ type: actions.SET_DATA, payload: { 
+            data, 
+            order: state.order, 
+            layer, 
+            points: state.points, 
+            meta: state.metas.get(state.order) 
+          } });
         }
         // dispatch({ type: actions.SET_LOADING, payload: { loading: false } });
       }
       debounce(myPromise, myCallback, 150)
     }
-  }, [state.zooming, state.order, state.points, layer, debug]);
+  }, [state.zooming, state.order, state.points, state.metas, layer, debug]);
 
   // when the data changes, let the parent component know
   useEffect(() => {
+    if(!state.dataLayer) return
     onData({
       data: state.data, 
       dataOrder: state.dataOrder,
       meta: state.metas.get(state.dataOrder), 
       points: state.points, 
       order: state.order, 
-      layer
+      layer: state.dataLayer
     })
-  }, [state.data, state.dataOrder, state.order, layer])
+  }, [state.data, state.dataOrder, state.order, state.dataLayer, state.points])
 
   useEffect(() => {
     if (layer) {
-      // console.log("layer", layer)
-
       const dataClient = Data({ 
         // debug
       })
@@ -228,11 +228,12 @@ const HilbertGenome = ({
   // this allows us to re-render whenever the transform changes (frequently on zoom)
   // with the latest data available (updated via state)
   const renderCanvas = useMemo(() => { 
-    return function(transform, points) {
-      // notice that we are overriding transform and points in the state we pass in
-      // this is because we want to render immediately with the values in the zoom handler
-      // the data in the state may be stale but we still want to render it
-      // this will all be run again when the data is updated to draw fresh data
+    return function(transform) {
+      // make sure we don't try to render without the dataLayer ready
+      if(!state.dataLayer) return;
+      // all of the data we are rendering is associated with the currently loaded data in state 
+      // (including layer, order and meta at time data was loaded)
+
       CanvasBase({ scales, state: { 
         data: state.data, 
         loading: state.loading,
@@ -241,19 +242,18 @@ const HilbertGenome = ({
         points: state.dataPoints,
         order: state.dataOrder,
         transform
-      }, layer, canvasRef })
+      }, layer: state.dataLayer, canvasRef })
 
-      if(state.dataLayer?.datasetName !== layer.datasetName) return
-      layer.renderer({ scales, state: { 
+      state.dataLayer.renderer({ scales, state: { 
         data: state.data, 
         loading: state.loading,
         points: state.dataPoints, 
-        meta: state.metas.get(state.dataOrder), 
+        meta: state.dataMeta, 
         order: state.dataOrder, 
         transform
       }, layer: state.dataLayer, canvasRef })
     }
-  }, [state.data, state.loading, state.order, state.dataOrder, state.metas, scales, layer, canvasRef])
+  }, [state.data, state.loading, state.order, state.dataOrder, state.dataMeta, scales, state.dataLayer, canvasRef])
 
 
   // Zoom event handler
