@@ -1,0 +1,31 @@
+.layer-dropdown-container {
+  border: 0px solid black;
+  position: absolute;
+  right: 0px;
+  width: fit-content;
+  /* margin-right: 12px; */
+}
+
+.layer-locked {
+  position: absolute;
+  top: 30px;
+  right: 4px;
+  background-image: url(./Lenses/locked.png);
+  background-repeat: no-repeat;
+  background-size: 20px 25px;
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+}
+
+.layer-unlocked {
+  position: absolute;
+  top: 30px;
+  right: 10px;
+  background-image: url(./Lenses/unlocked.png);
+  background-repeat: no-repeat;
+  background-size: 25px 25px;
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+}

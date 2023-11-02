@@ -73,14 +73,14 @@ const StatusBar = ({
             )}
         </div>
      
-        <div className="status-bar-layer">
+        {/* <div className="status-bar-layer">
           <LayerDropdown 
             layers={layers} 
             activeLayer={layer} 
             onLayer={onLayer} 
             order={zoom.order}
             />
-        </div>
+        </div> */}
         <div className="status-bar-order">
           {zoom && (
             <span>Order: {zoom.order}</span>

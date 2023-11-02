@@ -16,6 +16,7 @@ import SVGGenePaths from './components/SVGGenePaths'
 import ZoomLegend from './components/ZoomLegend'
 // import LinearTracks from './components/LinearTracks'
 import TrackPyramid from './components/TrackPyramid'
+import LayerDropdown from './components/LayerDropdown'
 import StatusBar from './components/StatusBar'
 //import SelectedModal from './components/SelectedModal'
 import LensModal from './components/LensModal'
@@ -544,15 +545,23 @@ function App() {
           <TrackPyramid
             state={data} 
             tracks={tracks}
-            width={width}
+            width={width * 0.95}
             height={100}
             segment={!showGaps}
             hovered={hover} 
             selected={selected} 
             setHovered={handleHover} 
           ></TrackPyramid>
-
         </div>
+        <LayerDropdown 
+          layers={layers} 
+          activeLayer={layer} 
+          onLayer={handleLayer}
+          order={zoom.order}
+          layerLock={layerLock}
+          setLayerLock={setLayerLock}
+          setLayerLockFromIcon={setLayerLockFromIcon}
+        />
         <StatusBar 
           width={width + 12 + 30} 
           hover={hover} // the information about the cell the mouse is over

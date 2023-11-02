@@ -1,8 +1,13 @@
+import './LayerDropdown.css'
+
 const LayerDropdown = ({
   activeLayer,
   layers = [],
   order,
   onLayer = () => {},
+  layerLock, 
+  setLayerLock,
+  setLayerLockFromIcon,
 } = {}) => {
   if(!layers || !activeLayer) return null;
 
@@ -23,23 +28,47 @@ const LayerDropdown = ({
   //   setTimeout(() => onLayer(nextActiveLayer), 1)
   // }
 
+  // when the lock icon is clicked
+  const handleLayerLock = () => {
+    if(!layerLock) {
+      setLayerLockFromIcon(true)
+    } else {
+      setLayerLockFromIcon(null)
+    }
+    setLayerLock(!layerLock)
+  }
+
+  const hilbertElement = document.querySelector('.hilbert-genome-svg')
+  const yPos = hilbertElement?.getBoundingClientRect().bottom
+
+  const layerDropdownElement = document.querySelector('.layer-dropdown-container')
+  const zoomLegendElement = document.querySelector('.label-box')
+  const rightPos = zoomLegendElement?.getBoundingClientRect().right - layerDropdownElement?.getBoundingClientRect().width
+
   return (
-    <>
-    <select value={tlayer.name} onChange={handleChange}>
-      {layers.map((layer) => (
-        <option 
-          key={layer.name} 
-          value={layer.name}
-          disabled={disabledKeys.includes(layer.name)}
-        >
-          {layer.name} ({layer.orders[0]}-{layer.orders[1]})
-        </option>
-      ))}
-    </select>
-    <span className="warning" style={{color: "red"}}>
-    {disabledKeys.includes(tlayer.name) && "⚠️ Layer out of bounds"}
-    </span>
-    </>
+    <div className="layer-dropdown-container" style={{top: yPos, left: rightPos}}> 
+      <select value={tlayer.name} onChange={handleChange}>
+        {layers.map((layer) => (
+          <option 
+            key={layer.name} 
+            value={layer.name}
+            disabled={disabledKeys.includes(layer.name)}
+          >
+            {layer.name} ({layer.orders[0]}-{layer.orders[1]})
+          </option>
+        ))}
+      </select>
+      <br/>
+      <span className="warning" style={{color: "red"}}>
+      {disabledKeys.includes(tlayer.name) && "⚠️ Layer out of bounds"}
+      </span>
+      <div className={
+          (layerLock) ? 
+            'layer-locked'
+          : 'layer-unlocked'
+        }
+        onClick={() => handleLayerLock()}/>
+      </div>
   );
 }
 
