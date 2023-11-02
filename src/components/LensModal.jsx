@@ -109,9 +109,9 @@ const LensModal = ({
     }
   }
 
-  // on render, set the permanent layer to Basic
+  // on render, set the permanent layer to Default
   useEffect(() => {
-    changeLensPermanent(lenses[lensNames[1]], lensNames[1])
+    changeLensPermanent(lenses[lensNames[0]], lensNames[0])
   }, [setLayerOrder])
 
   // handle when layerLock is toggled

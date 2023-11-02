@@ -1,4 +1,17 @@
 {
+  "Default" : {
+    "4": "Bands", 
+    "5": "LADs", 
+    "6": "Gene Density", 
+    "7": "DHS Components", 
+    "8": "Chromatin States", 
+    "9": "DHS Density", 
+    "10": "(DHS) TF Motifs", 
+    "11": "CD3+ DNase-seq", 
+    "12": "CD3+ Fiber-seq", 
+    "13": "GC Content", 
+    "14": "Nucleotides"
+  },
   "Basic": {
     "4": "Bands", 
     "5": "Bands", 
@@ -24,31 +37,5 @@
     "12": "GC Content", 
     "13": "GC Content", 
     "14": "Nucleotides"
-  },
-  "Demo" : {
-    "4": "Bands", 
-    "5": "LADs", 
-    "6": "Gene Density", 
-    "7": "DHS Components", 
-    "8": "Chromatin States", 
-    "9": "DHS Density", 
-    "10": "(DHS) TF Motifs", 
-    "11": "CD3+ DNase-seq", 
-    "12": "CD3+ Fiber-seq", 
-    "13": "GC Content", 
-    "14": "Nucleotides"
-  },
-  "CD3+ DNase-seq": {
-    "4": "CD3+ DNase-seq", 
-    "5": "CD3+ DNase-seq", 
-    "6": "CD3+ DNase-seq", 
-    "7": "CD3+ DNase-seq", 
-    "8": "CD3+ DNase-seq", 
-    "9": "CD3+ DNase-seq", 
-    "10": "CD3+ DNase-seq", 
-    "11": "CD3+ DNase-seq", 
-    "12": "CD3+ DNase-seq", 
-    "13": "CD3+ DNase-seq", 
-    "14": "CD3+ DNase-seq"
   }
 } 

@@ -2,7 +2,7 @@
   position: absolute;
   display: flex;
   /* right: 0px; */
-  top: 10px;
+  top: 30px;
   /* top: 0px; */
   /* margin: 0px 2px 0px 0px; */
   /* height: 150px; */
@@ -47,7 +47,7 @@
   height: fit-content;
   display: flex;
   position: absolute;
-  bottom: 15px;
+  bottom: 5px;
   left: 0px;
   rotate: 270deg;
   transform-origin: left bottom;
