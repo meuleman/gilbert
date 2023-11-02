@@ -137,6 +137,7 @@ const TrackPyramid = ({
           if(segment && segments) {
             // if we are removing gaps, each segment of the track needs to be rendered with its corresponding xscale
             segments.forEach((seg, si) => {
+              if(!xScales[si] || !seg || seg.length < 2) return
               let sbw = xScales[si](seg[1].start) - xScales[si](seg[0].start)
               // render the current order
               seg.forEach(d => {
