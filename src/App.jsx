@@ -541,27 +541,29 @@ function App() {
         /> */}
       </div>
       <div className='footer'>
-        <div className='linear-tracks'>
-          <TrackPyramid
-            state={data} 
-            tracks={tracks}
-            width={width * 0.95}
-            height={100}
-            segment={!showGaps}
-            hovered={hover} 
-            selected={selected} 
-            setHovered={handleHover} 
-          ></TrackPyramid>
+        <div className='footer-row'>
+          <div className='linear-tracks'>
+            <TrackPyramid
+              state={data} 
+              tracks={tracks}
+              width={width * 0.95}
+              height={100}
+              segment={!showGaps}
+              hovered={hover} 
+              selected={selected} 
+              setHovered={handleHover} 
+            ></TrackPyramid>
+          </div>
+          <LayerDropdown 
+            layers={layers} 
+            activeLayer={layer} 
+            onLayer={handleLayer}
+            order={zoom.order}
+            layerLock={layerLock}
+            setLayerLock={setLayerLock}
+            setLayerLockFromIcon={setLayerLockFromIcon}
+          />
         </div>
-        <LayerDropdown 
-          layers={layers} 
-          activeLayer={layer} 
-          onLayer={handleLayer}
-          order={zoom.order}
-          layerLock={layerLock}
-          setLayerLock={setLayerLock}
-          setLayerLockFromIcon={setLayerLockFromIcon}
-        />
         <StatusBar 
           width={width + 12 + 30} 
           hover={hover} // the information about the cell the mouse is over

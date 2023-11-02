@@ -85,6 +85,12 @@
   justify-content: flex-end; /* Align content to the right within the right panel */
 }
 
+.footer-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
 /* .................................... FOOTER ................................ */
 
 

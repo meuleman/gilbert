@@ -38,15 +38,9 @@ const LayerDropdown = ({
     setLayerLock(!layerLock)
   }
 
-  const hilbertElement = document.querySelector('.hilbert-genome-svg')
-  const yPos = hilbertElement?.getBoundingClientRect().bottom
-
-  const layerDropdownElement = document.querySelector('.layer-dropdown-container')
-  const zoomLegendElement = document.querySelector('.label-box')
-  const rightPos = zoomLegendElement?.getBoundingClientRect().right - layerDropdownElement?.getBoundingClientRect().width
 
   return (
-    <div className="layer-dropdown-container" style={{top: yPos, left: rightPos}}> 
+    <div className="layer-dropdown-container"> 
       <select value={tlayer.name} onChange={handleChange}>
         {layers.map((layer) => (
           <option 
