@@ -33,7 +33,7 @@
     "8": "Chromatin States", 
     "9": "DHS Density", 
     "10": "DHS Mapped TF Motifs", 
-    "11": "K562 DNase-seq", 
+    "11": "CD3+ DNase-seq", 
     "12": "CD3+ Fiber-seq", 
     "13": "GC Content", 
     "14": "Nucleotides"
