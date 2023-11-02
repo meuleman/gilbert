@@ -11,6 +11,7 @@ export default function SVGBBox({
   fill = "none",
   strokeWidthMultiplier = 0.2,
   hit = null,
+  type = null,
   // order = 4,
   showGenes = false,
   highlightPath = false
@@ -18,10 +19,14 @@ export default function SVGBBox({
   return function SVGBBoxComponent({ state, scales }) {
     if(!hit) return null
 
-    const { points, bbox, order } = state
+    const { dataOrder, bbox } = state
     const { xScale, yScale, sizeScale } = scales
 
-    let step = Math.pow(0.5, hit.order)
+
+    let order = hit.order
+    if(type == "hover") order = dataOrder
+
+    let step = Math.pow(0.5, order)
     let rw = sizeScale(step)
     // TODO: why is this order and not hit.order
     let sw = sizeScale(Math.pow(0.5, order))*strokeWidthMultiplier
@@ -32,9 +37,9 @@ export default function SVGBBox({
 
     let highlightRects, highlightPaths;
     let length = 1
-    if(highlightPath) {
-      let hilbert = HilbertChromosome(hit.order)
-      let stride = hilbertPosToOrder(1, {from: hit.order, to: 14 })
+    if(highlightPath && dataOrder == order)  {
+      let hilbert = HilbertChromosome(order)
+      let stride = hilbertPosToOrder(1, {from: order, to: 14 })
       // let range = hilbert.fromRegion(hit.chromosome, Math.max(hit.start - stride * length, 0), hit.start + stride * length)
       let range = hilbert.fromRegion(hit.chromosome, hit.start, hit.start + stride)
       // let color = scaleDiverging()

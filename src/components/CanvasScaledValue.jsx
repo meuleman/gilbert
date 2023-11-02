@@ -68,7 +68,7 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
           }
           // let a = alphaScale(sample.value)
           let srw = rw * shrinkScale(sample.value)
-          ctx.globalAlpha = //a < 0 ? 0 : a
+          // ctx.globalAlpha = a < 0 ? 0 : a
           ctx.fillStyle = fieldColor(sample.field)
           ctx.strokeStyle = fieldColor(sample.field)
           ctx.fillRect(xx - srw/2, yy - srw/2, srw, srw)

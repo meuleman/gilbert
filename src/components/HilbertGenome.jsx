@@ -39,6 +39,8 @@ const initialState = {
   dataPoints: [],
   // meta for order when data is fetched
   dataMeta: {},
+  // the transform at the time of data fetching
+  dataTransform: {},
   // The meta data for each available order of the layer
   metas: new Map(),
   // The data point selected by clicking
@@ -75,8 +77,17 @@ function reducer(state, action) {
       return { ...state, loading };
     }
     case actions.SET_DATA: {
-      const { data, order, layer, points, meta } = action.payload;
-      return { ...state, data, dataOrder: order, dataPoints: points, dataLayer: layer, dataMeta: meta, loading: false }
+      const { data, order, layer, points, meta, transform } = action.payload;
+      return { 
+        ...state, 
+        data, 
+        dataOrder: order, 
+        dataPoints: points, 
+        dataLayer: layer, 
+        dataMeta: meta, 
+        dataTransform: transform,
+        loading: false 
+      }
     }
     case actions.SET_METAS:
       return { ...state, metas: action.payload };
@@ -165,14 +176,15 @@ const HilbertGenome = ({
             order: state.order, 
             layer, 
             points: state.points, 
-            meta: state.metas.get(state.order) 
+            meta: state.metas.get(state.order),
+            transform: state.transform
           } });
         }
         // dispatch({ type: actions.SET_LOADING, payload: { loading: false } });
       }
       debounce(myPromise, myCallback, 150)
     }
-  }, [state.zooming, state.order, state.points, state.metas, layer, debug]);
+  }, [state.zooming, state.order, state.points, state.metas, state.transform, layer, debug]);
 
   // when the data changes, let the parent component know
   useEffect(() => {
@@ -182,10 +194,11 @@ const HilbertGenome = ({
       dataOrder: state.dataOrder,
       meta: state.metas.get(state.dataOrder), 
       points: state.points, 
+      bbox: state.bbox,
       order: state.order, 
       layer: state.dataLayer
     })
-  }, [state.data, state.dataOrder, state.order, state.dataLayer, state.points])
+  }, [state.data, state.dataOrder, state.order, state.dataLayer, state.points, state.bbox])
 
   useEffect(() => {
     if (layer) {
@@ -228,7 +241,7 @@ const HilbertGenome = ({
   // this allows us to re-render whenever the transform changes (frequently on zoom)
   // with the latest data available (updated via state)
   const renderCanvas = useMemo(() => { 
-    return function(transform) {
+    return function(transform, points) {
       // make sure we don't try to render without the dataLayer ready
       if(!state.dataLayer) return;
       // all of the data we are rendering is associated with the currently loaded data in state 
@@ -237,10 +250,10 @@ const HilbertGenome = ({
       CanvasBase({ scales, state: { 
         data: state.data, 
         loading: state.loading,
-        // points, 
-        // order: state.order, 
-        points: state.dataPoints,
-        order: state.dataOrder,
+        points, 
+        order: state.order, 
+        // points: state.dataPoints,
+        // order: state.dataOrder,
         transform
       }, layer: state.dataLayer, canvasRef })
 
@@ -333,6 +346,8 @@ const HilbertGenome = ({
 
   useEffect(() => {
     // we want to make sure and render again once the data loads
+    // if data's transform is not same as current transform dont render
+    if(JSON.stringify(state.dataTransform) !== JSON.stringify(state.transform)) return;
     renderCanvas(state.transform, state.points)
   }, [state.data, state.points, state.transform, renderCanvas ])
 

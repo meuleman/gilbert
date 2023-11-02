@@ -379,10 +379,11 @@ function App() {
     //   return newArray
     // });
     // fetchData as promises for orders greater than 4 and resolve when they are all done
+    if(!data) return
 
-    let promises = range(4, zoom.order).map(order => {
+    let promises = range(4, data.order).map(order => {
       return new Promise((resolve) => {
-        fetchData(layer, order, zoom.bbox, (response) => {
+        fetchData(layer, order, data.bbox, (response) => {
           resolve(response)
         })
       })
@@ -390,7 +391,7 @@ function App() {
     Promise.all(promises).then((responses) => {
       setTracks(responses)
     })
-  }, [layer, zoom, selected, fetchData])
+  }, [data, selected, fetchData])
 
   // compares two hilbert segments to see if they are equal
   function checkRanges(a, b) {
@@ -457,7 +458,7 @@ function App() {
               SVGChromosomeNames({ }),
               showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
               RegionMask({ regions: [selected, ...similarRegions]}),
-              SVGSelected({ hit: hover, stroke: "black", highlightPath: true, strokeWidthMultiplier: 0.1, showGenes }),
+              SVGSelected({ hit: hover, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
               (
                 (checkRanges(selected, similarRegionListHover)) ? 
                 SVGSelected({ hit: selected, stroke: "darkgold", strokeWidthMultiplier: 0.05, showGenes: false })
