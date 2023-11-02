@@ -2,7 +2,8 @@ import * as d3 from 'd3'
 import './Spectrum.css'
 import GenesetEnrichmentOrder from './SimSearch/GenesetEnrichmentOrder.json'
 import { useEffect } from 'react'
-import colors from './Spectrum/colors_hsl.json'
+import colors from './Spectrum/colors.json'
+import labels from './Spectrum/labels.json'
 
 const SelectedModal = ({
   genesetEnrichment,
@@ -12,7 +13,7 @@ const SelectedModal = ({
   xtickMargin = 30,
   plotXStart = xtickMargin,
   plotXStop = width,
-  plotYStart = 0,
+  plotYStart = 20,
   spectrumBarHeight = 10,
   plotYStop = height - spectrumBarHeight,
 } = {}) => {
@@ -171,7 +172,7 @@ const SelectedModal = ({
         //   hslColor.l = 0.5
         //   hslColor.s = 1
         //   let color = hslColor.toString()
-        //   // console.log(hslColor, color)
+        //   // console.log(hslColor, color, d3.interpolateRainbow(x))
         //   return color
         // })
 
@@ -184,7 +185,17 @@ const SelectedModal = ({
         //   return rgb
         // })
         // console.log(colorbarX(5000))
-        const colorbarX = d3.scaleOrdinal().domain([...Array(colors.length).keys()]).range(colors)
+        const colorscale = d3.scaleOrdinal().domain([...Array(colors.length).keys()]).range(colors)
+        const colorbarX = (i) => {
+          let c = colorscale(i)
+          let r = Math.round(c[0] * 255)
+          let g = Math.round(c[1] * 255)
+          let b = Math.round(c[2] * 255)
+          let rgbColor = `rgb(${r}, ${g}, ${b})`
+          let hsl = d3.hsl(rgbColor)
+          hsl.l = hsl.l + 0.05
+          return hsl.toString()
+        }
         // console.log(colors.length , interpolateColors(500))
 
 
@@ -236,28 +247,21 @@ const SelectedModal = ({
           .data(enrichmentsSmooth)
           .join("rect")
           // .attr("fill", function(d, i) {return colorbarX(i / enrichmentsSmooth.length)})
-          // .attr("fill", function(d, i) {
-          //   let c = colorbarX(i)
-          //   let r = Math.round(c[0] * 255)
-          //   let g = Math.round(c[1] * 255)
-          //   let b = Math.round(c[2] * 255)
-          //   let a = 1
-          //   let rgbaColor = `rgba(${r}, ${g}, ${b}, ${a})`
-          //   return rgbaColor
-          // })
-          .attr("fill", function(d, i) {
-            let c = colorbarX(i)
-            // let r = Math.round(c[0] * 255)
-            // let g = Math.round(c[1] * 255)
-            // let b = Math.round(c[2] * 255)
-            // let a = 1
-            // let rgbaColor = `rgba(${r}, ${g}, ${b}, ${a})`
-            return c
-          })
+          .attr("fill", function(d, i) {return colorbarX(i)})
           .attr("x", function(d, i) {return x(i)})
           .attr("y", y.range()[0])
           .attr("width", (x.range()[1] - x.range()[0]) / (x.domain()[1] - x.domain()[0]))
           .attr("height", spectrumBarHeight)
+
+        
+        labels.forEach((d) => {
+          spectrumsvg.append("text")
+            .attr("x", x(d.i))
+            .attr("y", 0)
+            .attr("dominant-baseline", "hanging")
+            .text(d.label)
+        })
+        
       }
     }
   }, [genesetEnrichment])
