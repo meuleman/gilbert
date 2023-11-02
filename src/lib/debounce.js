@@ -1,33 +1,47 @@
 let timeoutId = null;
-let token = null;
+let lastInvocationTimestamp = null;
 
-function debounce(promise, callback, delay) {
+function debounce(promiseFn, callback, delay) {
+  const currentTimestamp = Date.now();
+
   // If a timeout is already running, clear it
   if (timeoutId !== null) {
     clearTimeout(timeoutId);
   }
 
-  // Create a new token for this invocation
-  const thisToken = Symbol();
-
-  // Assign the token to the outer scope variable for comparison later
-  token = thisToken;
-
   timeoutId = setTimeout(() => {
-    // Invoke the provided promise function
-    promise
+    lastInvocationTimestamp = currentTimestamp;
+    promiseFn()
       .then(result => {
-        // Only process the result if the token matches the current token (i.e., no later invocation has occurred)
-        if (token === thisToken) {
+        // Check if current invocation is the latest
+        if (lastInvocationTimestamp === currentTimestamp) {
           callback(result);
-        } else {
-          callback(null);
         }
+        // Otherwise, do nothing or you can call callback with null or some indication of being outdated
       })
       .catch(err => {
         console.error(err);
+        // You could call callback with the error if needed
       });
   }, delay);
+}
+
+let allowCall = true
+
+function debounceTimed(promiseFn, callback, delay) {
+  // If a call is allowed, proceed
+  if (allowCall) {
+    allowCall = false; // Block further calls until after the delay
+    promiseFn()
+      .then(callback)
+      .catch(console.error)
+      .finally(function() {
+        // Set a timeout to allow the next call after the delay period
+        setTimeout(() => {
+          allowCall = true;
+        }, delay);
+      });
+  }
 }
 
 let timeoutIds = {};
@@ -64,5 +78,6 @@ function debounceNamed(promise, callback, delay, name) {
 
 export {
   debounce,
+  debounceTimed,
   debounceNamed 
 }

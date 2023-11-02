@@ -134,6 +134,11 @@ function App() {
     return size;
   }
 
+  const [duration, setDuration] = useState(1000)
+  const handleChangeDuration = (e) => {
+    setDuration(+e.target.value)
+  }
+
   const [layerLock, setLayerLock] = useState(false)
   const [layerLockFromIcon, setLayerLockFromIcon] = useState(null)
   const handleChangeLayerLock = (e) => {
@@ -449,9 +454,9 @@ function App() {
             width={width} 
             height={height}
             zoomToRegion={region}
-            zoomDuration={1000}
             activeLayer={layer}
             orderOffset={orderOffset}
+            zoomDuration={duration}
             // pinOrder={region?.order}
             layers={layers}
             SVGRenderers={[
@@ -591,6 +596,10 @@ function App() {
             <label>
               <input type="checkbox" checked={showGaps} onChange={handleChangeShowGaps} />
               Show gaps
+            </label>
+            <label>
+              <input type="number" value={duration} onChange={handleChangeDuration}></input>
+              Zoom duration
             </label>
             {/* <label>
               <input type="checkbox" checked={layerLock} onChange={handleChangeLayerLock} />

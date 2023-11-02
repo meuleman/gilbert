@@ -88,6 +88,9 @@
 .footer-panel-left {
   justify-content: flex-start; /* Align content to the left within the left panel */
 }
+.footer-panel-left label {
+  padding: 5px;
+}
 
 .footer-panel-right {
   justify-content: flex-end; /* Align content to the right within the right panel */

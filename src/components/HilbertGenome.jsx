@@ -10,7 +10,7 @@ import { range } from 'd3-array';
 import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome';
 import { getBboxDomain, untransform } from '../lib/bbox';
 import Data from '../lib/data';
-import { debounce } from '../lib/debounce'
+import { debounce, debounceTimed } from '../lib/debounce'
 import scaleCanvas from '../lib/canvas';
 import CanvasBase from './CanvasBase';
 
@@ -40,7 +40,7 @@ const initialState = {
   // meta for order when data is fetched
   dataMeta: {},
   // the transform at the time of data fetching
-  dataTransform: {},
+  dataTransform: zoomIdentity,
   // The meta data for each available order of the layer
   metas: new Map(),
   // The data point selected by clicking
@@ -90,7 +90,8 @@ function reducer(state, action) {
       }
     }
     case actions.SET_METAS:
-      return { ...state, metas: action.payload };
+      const { metas, metaLayer } = action.payload;
+      return { ...state, metas, metaLayer };
     case actions.SET_SELECTED:
       return { ...state, selected: action.payload };
     case actions.SET_HOVERED:
@@ -159,16 +160,22 @@ const HilbertGenome = ({
   // this debounced function fetches the data and updates the state
   const fetchData = useMemo(() => {
     return () => {
-      if(state.zooming) return 
+      // if(state.zooming) return 
       // console.log("fetching data")
       // we dont want to fetch data if the order is not within the layer order range
       if (state.order < layer.orders[0] || state.order > layer.orders[1]) return;
-      dispatch({ type: actions.SET_LOADING, payload: { loading: true } });
+      if(state.metaLayer?.datasetName !== layer?.datasetName) {
+        // console.log("mismatched layer", layer)
+        return;
+      } else {
+        // console.log("matching layer")
+      }
+      // if(state.zooming) console.log("zooming!")
       
       const dataClient = Data({ 
         // debug
       })
-      let myPromise = dataClient.fetchData(layer, state.order, state.points)
+      // let myPromise = dataClient.fetchData(layer, state.order, state.points)
       let myCallback = (data) => {
         if(data) {
           dispatch({ type: actions.SET_DATA, payload: { 
@@ -182,13 +189,24 @@ const HilbertGenome = ({
         }
         // dispatch({ type: actions.SET_LOADING, payload: { loading: false } });
       }
-      debounce(myPromise, myCallback, 150)
+      if(state.zooming) {
+        debounceTimed(() => {
+          dispatch({ type: actions.SET_LOADING, payload: { loading: true } });
+          return dataClient.fetchData(layer, state.order, state.points)
+        }, myCallback, 150)
+      } else {
+        debounce(() => {
+          dispatch({ type: actions.SET_LOADING, payload: { loading: true } });
+          return dataClient.fetchData(layer, state.order, state.points)
+        }, myCallback, 150)
+      }
     }
-  }, [state.zooming, state.order, state.points, state.metas, state.transform, layer, debug]);
+  }, [state.zooming, state.order, state.points, state.metas, state.transform, layer]);
 
   // when the data changes, let the parent component know
   useEffect(() => {
     if(!state.dataLayer) return
+    if(state.zooming) return
     onData({
       data: state.data, 
       dataOrder: state.dataOrder,
@@ -199,7 +217,7 @@ const HilbertGenome = ({
       layer: state.dataLayer,
       loading: state.loading
     })
-  }, [state.data, state.dataOrder, state.order, state.dataLayer, state.points, state.bbox])
+  }, [state.data, state.dataOrder, state.dataLayer])
 
   useEffect(() => {
     if (layer) {
@@ -213,13 +231,13 @@ const HilbertGenome = ({
         })
       ).then(metas => {
         const metaMap = new Map(metas.map(meta => [meta.order, meta]))
-        dispatch({ type: actions.SET_METAS, payload: metaMap})
+        dispatch({ type: actions.SET_METAS, payload: { metas: metaMap, metaLayer: layer }})
       }).catch(err => {
         console.log("caught", err)
       })
       // onLayer(layer)
     }
-  }, [layer, debug ])
+  }, [layer])
 
 
   // setup the zoom behavior
@@ -348,7 +366,13 @@ const HilbertGenome = ({
   useEffect(() => {
     // we want to make sure and render again once the data loads
     // if data's transform is not same as current transform dont render
-    if(JSON.stringify(state.dataTransform) !== JSON.stringify(state.transform)) return;
+    let sameTransform = JSON.stringify(state.dataTransform) === JSON.stringify(state.transform)
+    // console.log("rerender?", sameTransform)
+    if(!sameTransform) {
+      // console.log("data transform", state.dataTransform)
+      // console.log("current transform", state.transform)
+      return;
+    }
     renderCanvas(state.transform, state.points)
   }, [state.data, state.points, state.transform, renderCanvas ])
 
