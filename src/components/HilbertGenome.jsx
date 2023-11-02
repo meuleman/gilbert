@@ -6,6 +6,7 @@ import { zoom, zoomIdentity } from 'd3-zoom';
 import { select } from 'd3-selection';
 import { quadtree } from 'd3-quadtree';
 import { range } from 'd3-array';
+import { easeLinear, easePolyOut, easePolyIn } from 'd3-ease';
 
 import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome';
 import { getBboxDomain, untransform } from '../lib/bbox';
@@ -419,6 +420,7 @@ const HilbertGenome = ({
       // transitionStarted()
       select(svgRef.current)
         .transition()
+        .ease(easePolyOut)
         .duration(zoomDuration)
         .call(zoomBehavior.transform, transform)
         .on("end", () => {

@@ -134,31 +134,21 @@ function App() {
     return size;
   }
 
-  const [duration, setDuration] = useState(1000)
+  const [duration, setDuration] = useState(10000)
   const handleChangeDuration = (e) => {
     setDuration(+e.target.value)
   }
 
   const [layerLock, setLayerLock] = useState(false)
   const [layerLockFromIcon, setLayerLockFromIcon] = useState(null)
-  const handleChangeLayerLock = (e) => {
-    setLayerLock(!layerLock)
-  }
 
   const [layer, setLayer] = useState(Bands)
   function handleLayer(l) {
     setLayer(l)
     setLayerLock(true)
     setLayerLockFromIcon(false)
-    setSelected(selected)
-    setSelectedOrder(selectedOrder)
-    setSimSearch(simSearch)
     setSearchByFactorInds([])
   }
-
-
-  // TODO: handleData, and pass data to the subcomponents
-  // TODO: they can do their own data lookup based on layer and the hilbert point
 
   // We want to keep track of the zoom state
   const [zoom, setZoom] = useState({order: 4, points: [], bbox: {}, transform: {}})
@@ -206,6 +196,7 @@ function App() {
         setSelectedOrder(null)
         setSimSearch(null)
       } else if(hit) {
+        console.log("hit", hit)
         setSelected(hit)
         setSelectedOrder(order)
         // Region SimSearch
@@ -327,7 +318,23 @@ function App() {
 
   function handleChangeLocationViaAutocomplete(autocompleteRegion) {
     if (!autocompleteRegion) return
-    console.log(`autocompleteRegion ${JSON.stringify(autocompleteRegion)}`);
+    // console.log(`autocompleteRegion ${JSON.stringify(autocompleteRegion)}`);
+    console.log("autocomplete", autocompleteRegion)
+
+    // const length = zoomToRegion.end - zoomToRegion.start
+    //   let order = zoomToRegion.order
+    //   if(!zoomToRegion.order) {
+    //     // figure out the appropriate order to zoom to
+    //     // we want to zoom in quite a bit to the region if it hasn't specified its order
+    //     order = orderDomain[1];
+    //     while(length/128 > hilbertPosToOrder(1, { from: order, to: orderDomain[1] })) {
+    //       order--;
+    //       if(order == orderDomain[0]) break;
+    //     }
+    //   }
+    // let pos = hilbertPosToOrder(zoomToRegion.start + (zoomToRegion.end - zoomToRegion.start)/2, { from: orderDomain[1], to: order })
+    // let hilbert = HilbertChromosome(order, { padding: 2 })
+    // let hit = hilbert.get2DPoint(pos, zoomToRegion.chromosome)
     setRegion({
       chromosome: autocompleteRegion.chrom, 
       start: autocompleteRegion.start, 
