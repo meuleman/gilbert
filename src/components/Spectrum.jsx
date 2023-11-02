@@ -163,8 +163,16 @@ const SelectedModal = ({
             .y(function(d) {return y(d)})
           )
 
-        // // fill space under enrichment line
-        const colorbarX = (x) => d3.interpolateRainbow(x)
+        // fill space under enrichment line
+        const colorbarX = d3.scaleSequential((x) => {
+          const hslColor = d3.hsl(d3.interpolateRainbow(x))
+          hslColor.l = 0.5
+          hslColor.s = 1
+          let color = hslColor.toString()
+          return color
+        })
+        // const colorbarX = (x) => d3.interpolateRainbow(x)
+
         // spectrumsvg.append("path")
         //   .datum(enrichmentsSmooth)
         //   .attr("fill", "darkgrey")
