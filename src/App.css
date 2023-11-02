@@ -20,6 +20,14 @@
   padding: 5px;
 }
 
+@keyframes spin {
+  to { stroke-dashoffset: 0; }
+}
+
+.spinner {
+  animation: spin 0.5s linear infinite;
+}
+
 /* .................................... HEADER ................................ */
 
 .header {

@@ -26,6 +26,9 @@ export default function SVGBBox({
     let order = hit.order
     if(type == "hover") order = dataOrder
 
+    let loading = false
+    if(type == "hover" && state.loading) loading = true
+
     let step = Math.pow(0.5, order)
     let rw = sizeScale(step)
     // TODO: why is this order and not hit.order
@@ -106,6 +109,8 @@ export default function SVGBBox({
         )})
     }
 
+    const radius = rw * 1.25;
+    const circumference = radius * 2 * Math.PI;
     
     return (
       <g>
@@ -155,6 +160,9 @@ export default function SVGBBox({
             fill={fill}
             stroke={stroke}
             strokeWidth={sw}
+            strokeDasharray={loading ? circumference / 16 : circumference}
+            strokeDashoffset={loading ? circumference / 16 : 0}
+            className={loading ? 'spinner' : ''}
           ></circle>
           {showGenes && genePaths}
     </g>

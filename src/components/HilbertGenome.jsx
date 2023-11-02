@@ -196,7 +196,8 @@ const HilbertGenome = ({
       points: state.points, 
       bbox: state.bbox,
       order: state.order, 
-      layer: state.dataLayer
+      layer: state.dataLayer,
+      loading: state.loading
     })
   }, [state.data, state.dataOrder, state.order, state.dataLayer, state.points, state.bbox])
 
