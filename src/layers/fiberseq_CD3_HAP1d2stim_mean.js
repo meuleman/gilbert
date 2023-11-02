@@ -8,7 +8,7 @@ export default {
   name: "CD3+ Fiber-seq",
   datasetName: "fs_CD3_HAP1d2stim_mean",
   baseURL: `${constants.baseURLPrefix}/20231101`,
-  orders: [12,12],
+  orders: [4,13],
   renderer: CanvasOpacityValue,
   fieldChoice: d => ({ field: "mean", value: d.data?.mean}),
   fieldColor: scaleOrdinal()
