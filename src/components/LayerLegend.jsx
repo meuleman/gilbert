@@ -74,7 +74,7 @@ const LayerLegend = ({
         }
 
         if(factors.length > maxNumFactors) {  // if there are too many factors to show
-          if(selected && (Object.keys(selected.data).filter(f => fullFactorList.includes(f)).length === fullFactorList.length)) {
+          if(selected?.data && (Object.keys(selected.data).filter(f => fullFactorList.includes(f)).length === fullFactorList.length)) {
             factorDataForList = selected.data
           }
           if(factorDataForList && (Object.keys(factorDataForList).filter(f => fullFactorList.includes(f)).length === fullFactorList.length)) {
