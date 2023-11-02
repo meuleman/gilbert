@@ -25,7 +25,7 @@ const SelectedModal = ({
 
   const removeSvg = () => {
     let svgElement = d3.selectAll('svg#spectrum-svg')
-    let svgTooltip = d3.selectAll("div#tooltip")
+    let svgTooltip = d3.selectAll("div#spectrum-tooltip")
 
     // if an element has been created
     if(svgElement._groups[0].length) svgElement.remove()
@@ -78,7 +78,7 @@ const SelectedModal = ({
           const tooltip = simSearchListContainer
             .append('div')
             .style('opacity', 0)
-            .attr('class', 'tooltip')
+            .attr('class', 'spectrum-tooltip')
             .style('background-color', 'white')
             .style('border', 'solid')
             .style('border-width', '1px')
