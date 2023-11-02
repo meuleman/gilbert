@@ -193,7 +193,7 @@ const SelectedModal = ({
           let b = Math.round(c[2] * 255)
           let rgbColor = `rgb(${r}, ${g}, ${b})`
           let hsl = d3.hsl(rgbColor)
-          hsl.l = hsl.l + 0.05
+          hsl.l = hsl.l + 0.1
           return hsl.toString()
         }
         // console.log(colors.length , interpolateColors(500))
