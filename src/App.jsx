@@ -3,7 +3,7 @@ import './App.css'
 import {useEffect, useState, useRef, useCallback, useMemo} from 'react'
 
 import Data from './lib/data';
-import { HilbertChromosome } from './lib/HilbertChromosome'
+import { HilbertChromosome, hilbertPosToOrder } from './lib/HilbertChromosome'
 import { debounceNamed } from './lib/debounce'
 import { extent, range } from 'd3-array'
 
@@ -321,26 +321,31 @@ function App() {
     // console.log(`autocompleteRegion ${JSON.stringify(autocompleteRegion)}`);
     console.log("autocomplete", autocompleteRegion)
 
-    // const length = zoomToRegion.end - zoomToRegion.start
-    //   let order = zoomToRegion.order
-    //   if(!zoomToRegion.order) {
-    //     // figure out the appropriate order to zoom to
-    //     // we want to zoom in quite a bit to the region if it hasn't specified its order
-    //     order = orderDomain[1];
-    //     while(length/128 > hilbertPosToOrder(1, { from: order, to: orderDomain[1] })) {
-    //       order--;
-    //       if(order == orderDomain[0]) break;
-    //     }
-    //   }
-    // let pos = hilbertPosToOrder(zoomToRegion.start + (zoomToRegion.end - zoomToRegion.start)/2, { from: orderDomain[1], to: order })
-    // let hilbert = HilbertChromosome(order, { padding: 2 })
-    // let hit = hilbert.get2DPoint(pos, zoomToRegion.chromosome)
-    setRegion({
-      chromosome: autocompleteRegion.chrom, 
-      start: autocompleteRegion.start, 
-      end: autocompleteRegion.stop 
-      // order: ...
-    })
+    const length = autocompleteRegion.stop - autocompleteRegion.start
+    // figure out the appropriate order to zoom to
+    // we want to zoom in quite a bit to the region if it hasn't specified its order
+    let order = orderDomain[1];
+    while(length/128 > hilbertPosToOrder(1, { from: order, to: orderDomain[1] })) {
+      order--;
+      if(order == orderDomain[0]) break;
+    }
+    console.log("order", order)
+    let pos = hilbertPosToOrder(autocompleteRegion.start + (autocompleteRegion.stop - autocompleteRegion.start)/2, { from: orderDomain[1], to: order })
+    console.log("pos", pos)
+    let hilbert = HilbertChromosome(order, { padding: 2 })
+    let hit = hilbert.get2DPoint(pos, autocompleteRegion.chrom)
+    hit.start = autocompleteRegion.start
+    hit.end = autocompleteRegion.stop
+    hit.data = []
+    console.log("hit", hit)
+    setRegion(hit)
+    setSelected(hit)
+    // setRegion({
+    //   chromosome: autocompleteRegion.chrom, 
+    //   start: autocompleteRegion.start, 
+    //   end: autocompleteRegion.stop 
+    //   // order: ...
+    // })
   }
 
   // number state for orderOffset
