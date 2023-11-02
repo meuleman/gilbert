@@ -2,6 +2,7 @@ import * as d3 from 'd3'
 import './Spectrum.css'
 import GenesetEnrichmentOrder from './SimSearch/GenesetEnrichmentOrder.json'
 import { useEffect } from 'react'
+import colors from './Spectrum/colors.json'
 
 const SelectedModal = ({
   genesetEnrichment,
@@ -164,46 +165,78 @@ const SelectedModal = ({
           )
 
         // fill space under enrichment line
+        // const colorbarX = d3.scaleSequential((x) => {
+        //   const hslColor = d3.hsl(d3.interpolateRainbow(x))
+        //   // console.log(hslColor)
+        //   hslColor.l = 0.5
+        //   hslColor.s = 1
+        //   let color = hslColor.toString()
+        //   // console.log(hslColor, color)
+        //   return color
+        // })
+
+        // fill space under enrichment line
         const colorbarX = d3.scaleSequential((x) => {
-          const hslColor = d3.hsl(d3.interpolateRainbow(x))
-          hslColor.l = 0.5
-          hslColor.s = 1
-          let color = hslColor.toString()
-          return color
+          let color = colors[x]
+          
+          let rgb = 'rgb(' + color.slice(0,3).toString() + ')'
+          // console.log(rgb)
+          return rgb
         })
+        // console.log(colorbarX(5000))
+        const interpolateColors = d3.scaleOrdinal().domain([0, colors.length - 1]).range(colors)
+        console.log(interpolateColors(1000))
+
+
+        // console.log(colors)
+        // const colorbarX = d3.scaleOrdinal().domain([0, GenesetEnrichmentOrder.length]).range(colors)
         // const colorbarX = (x) => d3.interpolateRainbow(x)
 
-        // spectrumsvg.append("path")
-        //   .datum(enrichmentsSmooth)
-        //   .attr("fill", "darkgrey")
-        //   // .attr("fill", function(d, i) {return colorbarX(i / enrichmentsSmooth.length)})
-        //   .attr("d", d3.area()
-        //     .x(function(d, i) {return x(i)})
-        //     .y0(y.range()[0])
-        //     .y1(function(d) {return y(d)})
-        //   )
-        //   .on('mouseover', mouseover)
-        //   .on('mousemove', mousemove)
-        //   .on('mouseleave', mouseleave)
-          
-        // spectrum bar
-        spectrumsvg.selectAll()
-          .data(enrichmentsSmooth)
-          .join("rect")
-          .attr("fill", function(d, i) {return colorbarX(i / enrichmentsSmooth.length)})
-          .attr("x", function(d, i) {return x(i)})
-          .attr("y", function(d) {return y(d)})
-          .attr("width", (x.range()[1] - x.range()[0]) / (x.domain()[1] - x.domain()[0]))
-          .attr("height",  function(d) {return y.range()[0] - y(d)})
+        // const colors = [
+        //   "#0000ff", "#1f77b4", "#00ff00", "#2ca02c", "#ff7f0e",
+        //   "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f",
+        //   "#bcbd22", "#17becf"
+        // ]
+        // const colorScale = d3.scaleOrdinal()
+        //   .range(colors)
+        // console.log(colorScale(0), colorScale(1))
+        // const interpolateColor = d3.interpolateHsl(d3.rgb(colorScale(0)), d3.rgb(colorScale(1)))
+        // const colorbarX = d3.range(0, 1, 1 / GenesetEnrichmentOrder.length).map(interpolateColor)
+        // console.log(intermediateColors)
+
+        // fill under spectrum curve
+        spectrumsvg.append("path")
+          .datum(enrichmentsSmooth)
+          .attr("fill", "black")
+          // .attr("fill", function(d, i) {return colorbarX(i / enrichmentsSmooth.length)})
+          .attr("d", d3.area()
+            .x(function(d, i) {return x(i)})
+            .y0(y.range()[0])
+            .y1(function(d) {return y(d)})
+          )
           .on('mouseover', mouseover)
           .on('mousemove', mousemove)
           .on('mouseleave', mouseleave)
+          
+        // // fill under spectrum curve
+        // spectrumsvg.selectAll()
+        //   .data(enrichmentsSmooth)
+        //   .join("rect")
+        //   .attr("fill", "#000000")
+        //   .attr("x", function(d, i) {return x(i)})
+        //   .attr("y", function(d) {return y(d)})
+        //   .attr("width", (x.range()[1] - x.range()[0]) / (x.domain()[1] - x.domain()[0]))
+        //   .attr("height",  function(d) {return y.range()[0] - y(d)})
+        //   .on('mouseover', mouseover)
+        //   .on('mousemove', mousemove)
+        //   .on('mouseleave', mouseleave)
 
         // spectrum bar
         spectrumsvg.selectAll()
           .data(enrichmentsSmooth)
           .join("rect")
-          .attr("fill", function(d, i) {return colorbarX(i / enrichmentsSmooth.length)})
+          // .attr("fill", function(d, i) {return colorbarX(i / enrichmentsSmooth.length)})
+          .attr("fill", function(d, i) {return colorbarX(i)})
           .attr("x", function(d, i) {return x(i)})
           .attr("y", y.range()[0])
           .attr("width", (x.range()[1] - x.range()[0]) / (x.domain()[1] - x.domain()[0]))
