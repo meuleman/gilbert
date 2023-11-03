@@ -195,8 +195,8 @@ function App() {
         setSelected(null) 
         setSelectedOrder(null)
         setSimSearch(null)
+        setStations([])
       } else if(hit) {
-        console.log("hit", hit)
         setSelected(hit)
         setSelectedOrder(order)
         // Region SimSearch
@@ -211,6 +211,7 @@ function App() {
         NarrateRegion(hit, order).then((narrationResult) => {
           setSelectedNarration(narrationResult.narrationRanks)
         })
+        updateStations(hit)
       }
     } catch(e) {
       console.log("caught error in click", e)
@@ -236,6 +237,7 @@ function App() {
     } else {
       setSimilarRegions([])
       setSelected(null)
+      setStations([])
     }
   }
 
@@ -247,6 +249,7 @@ function App() {
       if(simSearchMethod != "Region") {
         SimSearchByFactor(newSearchByFactorInds, zoom.order, layer).then((SBFResult) => {
           setSelected(null)
+          setStations([])
           setSelectedNarration(null)
           setSelectedOrder(zoom.order)
           processSimSearchResults(SBFResult)
@@ -285,6 +288,7 @@ function App() {
   function handleModalClose() {
     setRegion(null)
     setSelected(null)
+    setStations([])
     setSelectedOrder(null)
     setSimSearch(null)
     setSearchByFactorInds([])
@@ -339,6 +343,7 @@ function App() {
     console.log("autocomplete hilbert region", hit)
     setRegion(hit)
     setSelected(hit)
+    updateStations(hit)
     
   }
 
@@ -352,6 +357,7 @@ function App() {
   }
 
   const [tracks, setTracks] = useState([])
+  const [stations, setStations] = useState([])
   // setter for tracks array
 
   // console.log("tracks?", trackMinus1, trackPlus1)
@@ -366,17 +372,12 @@ function App() {
       if (order < layer.orders[0] || order > layer.orders[1]) return;
 
       let hilbert = HilbertChromosome(order, { padding: 2 })
-      // let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
       let points = hilbert.fromBbox(bbox) 
 
-      // console.log("fetching layer", layer)
       let myPromise = dataClient.fetchData(layer, order, points)
       let myCallback = (data) => {
         if(data) {
-          // console.log("GOT DATA", data, layer, order)
           setter({ data, layer, order})
-          // setLayerData(layer, data, zoom.order)
-          // dispatch({ type: actions.SET_DATA, payload: { data, order: zoom.order } });
         }
       }
       // debounce a function call with a name
@@ -384,14 +385,9 @@ function App() {
     }
   }, []);
 
+  // When data or selected changes, we want to update the tracks
   useEffect(() => {
-    // setTracks(prevArray => {
-    //   let newArray = [...prevArray].map((t, i) => (i < zoom.order) ? t : null);
-    //   return newArray
-    // });
-    // fetchData as promises for orders greater than 4 and resolve when they are all done
     if(!data) return
-
     let promises = range(4, data.order).map(order => {
       return new Promise((resolve) => {
         fetchData(layer, order, data.bbox, (response) => {
@@ -402,7 +398,47 @@ function App() {
     Promise.all(promises).then((responses) => {
       setTracks(responses)
     })
-  }, [data, selected, fetchData])
+  }, [data, selected, layerOrder, fetchData])
+
+  // When data or selected changes, we want to update the zoom legend
+  let updateStations = useCallback((hit) => {
+    if(!data) return
+    if(!hit) return
+    let promises = range(4, data.order).map(order => {
+      return new Promise((resolve) => {
+        // get the layer at this order
+        let orderLayer = layerOrder[order]
+        // calculate the bbox from the selected hilbert cell that would fetch just the cell for the region
+        let hilbert = HilbertChromosome(order, { padding: 2 })
+        let step = hilbert.step
+        let bbox = {
+          x: hit.x - step/2,
+          y: hit.y - step/2,
+          width: step*2,
+          height: step*2
+        }
+        // console.log("bbox", bbox)
+        fetchData(orderLayer, order, bbox, (response) => {
+          // get the appropriate datum by looking at the corresponding hilbert pos from the selected.start
+          let pos = hilbertPosToOrder(hit.start, { from: orderDomain[1], to: order })
+          let point = hilbert.get2DPoint(pos, hit.chromosome)
+          let datum = response.data.find(d => d.i == point.i)
+          // console.log("pos", pos, "point", point, "datum", datum)
+          resolve({ layer: orderLayer, station: datum })
+        })
+      })
+    })
+    Promise.all(promises).then((responses) => {
+      // console.log("responses", responses)
+      setStations(responses)
+    })
+  }, [data, layerOrder, fetchData, setStations])
+
+  useEffect(() => {
+    updateStations(selected)
+  }, [data, layerOrder, fetchData, setStations])
+
+
 
   // compares two hilbert segments to see if they are equal
   function checkRanges(a, b) {
@@ -539,6 +575,8 @@ function App() {
           layer={layer}
           layerLock={layerLock}
           lensHovering={lensHovering}
+          stations={stations}
+          selected={selected}
         />
         {/* <SelectedModal
           width={480}

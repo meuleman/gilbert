@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { scaleLinear } from 'd3-scale';
+import { group } from 'd3-array';
 import * as Plot from "@observablehq/plot"
 
 import './ZoomLegend.css';
@@ -12,10 +13,12 @@ const ZoomLegend = ({
   zoomExtent = [0, 100],
   orderDomain = [4, 16],
   k = 1,
+  selected,
   layerOrder,
   layer,
   layerLock,
-  lensHovering
+  lensHovering,
+  stations = []
 } = {}) => {
 
   let orderZoomScale = useMemo(() => {
@@ -24,6 +27,14 @@ const ZoomLegend = ({
     // we pad out the maximum so we scroll to the end of the last order
     .range([1, Math.pow(2, orderDomain[1] - orderDomain[0] + 0.999)]); 
   }, [zoomExtent, orderDomain])
+
+  let stationsMap = useMemo(() => {
+    return group(stations, d => d.station.order)
+  })
+
+  let orderRaw = orderDomain[0] + Math.log2(orderZoomScale(k));
+  let order = Math.floor(orderRaw);
+  let activeLayer = (layerLock && !lensHovering) ? layer : layerOrder && layerOrder[order]
 
   // calculate order data for plotting
   let orders = useMemo(() => {
@@ -45,12 +56,28 @@ const ZoomLegend = ({
         if(i > 0)
           orders[i - 1].z2 = o.z
         if(i == orders.length - 1) o.z2 = zoomExtent[1]
+        let station = stationsMap.get(o.order)
+        if(station && station[0]) {
+          o.station = station[0].station
+          o.layer = station[0].layer
+          o.field = o.layer.fieldChoice(o.station)
+          o.color = o.layer.fieldColor(o.field.field)
+          // console.log("ORDER", o)
+        }
+        if(o.order == order && activeLayer && selected) {
+          o.layer = activeLayer
+          o.station = selected
+          o.field = o.layer.fieldChoice(o.station)
+          o.color = o.layer.fieldColor(o.field.field)
+        }
       })
     return orders
-  }, [zoomExtent, orderDomain, orderZoomScale])
+  }, [order, zoomExtent, orderDomain, orderZoomScale, stationsMap])
 
-  let orderRaw = orderDomain[0] + Math.log2(orderZoomScale(k));
-  let order = Math.floor(orderRaw);
+  // console.log("station map", stationsMap)
+  // console.log("ORDERS", orders)
+
+
 
   let orderHeight = height/(orderDomain[1] - orderDomain[0] + 1) 
 
@@ -67,6 +94,7 @@ const ZoomLegend = ({
     }
     return sizeText
   }
+
 
   return (
     <div className="zoom-legend" style={{
@@ -128,6 +156,21 @@ const ZoomLegend = ({
                 }}
               >
                 {(layerLock && !lensHovering) ? layer?.name : layerOrder && layerOrder[d.order].name}
+              </div>
+              
+              <div className="station" style={{
+                // color: d.color
+              }}>
+                <div className="station-square" style={{
+                  backgroundColor: d.color,
+                  marginRight: "5px",
+                  width: "10px",
+                  height:"10px",
+                  display: "inline-block",
+                  // border: "1px solid gray"
+                }}></div>
+                {d.field && d.field.field} 
+                {/* {d.field && d.field.value} */}
               </div>
             </div>
 
