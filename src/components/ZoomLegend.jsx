@@ -29,7 +29,7 @@ const ZoomLegend = ({
   }, [zoomExtent, orderDomain])
 
   let stationsMap = useMemo(() => {
-    return group(stations, d => d.station.order)
+    return group(stations, d => d.station?.order)
   })
 
   let orderRaw = orderDomain[0] + Math.log2(orderZoomScale(k));
