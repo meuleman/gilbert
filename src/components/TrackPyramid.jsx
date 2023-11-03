@@ -64,7 +64,7 @@ const TrackPyramid = ({
         track = data.filter(d => d.chromosome == hit.chromosome)
         if(track[0]?.start !== undefined) {
           // console.log("track", track)
-          let { fieldChoice, fieldColor } = state.layer
+          let { fieldChoice, fieldColor, orders } = state.layer
           yMax = max(track, d => fieldChoice(d)?.value)
           yExtent = [0, yMax]
 
@@ -112,7 +112,7 @@ const TrackPyramid = ({
           xExtents = segments.map(track => extent(track, d => d?.start)).map(d => [d[0], d[1] + bpSize])
           // add up the lengths of the segments
           const totalLength = xExtents.reduce((a, b) => a + (b[1] - b[0]), 0)
-          widths = xExtents.map(xExtent => (xExtent[1] - xExtent[0]) / totalLength * (width - 1))
+          widths = xExtents.map(xExtent => (xExtent[1] - xExtent[0]) / totalLength * (width - segments.length * 4))
 
           let lastW = 0
           xScales = widths.map((w,i) => {
@@ -128,7 +128,7 @@ const TrackPyramid = ({
           Rendering 
           ====================================
           */ 
-          let tracksFiltered = tracks.filter(t => t.order !== state.order)
+          let tracksFiltered = tracks.filter(t => t.order !== state.order && t.order >= orders[0] && t.order <= orders[1])
           let trackHeight = height / (tracksFiltered.length + 1)
 
           ctx.clearRect(0, 0, width, height);
@@ -298,7 +298,7 @@ const TrackPyramid = ({
           let hit = track.find(d => d.start == startbp)
           // let hit = track[index]
           if(hit) {
-            // console.log("hit", hit, x, xbw)
+            console.log("hit", hit, x, xbw)
             setHovered(hit)
           }
         }
