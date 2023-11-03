@@ -77,7 +77,7 @@ const TrackPyramid = ({
 
           xScale = scaleLinear()
           .domain(xExtent)
-          .range([0, width])
+          .range([0, width - 40])
 
           if (data.length > 1) {
             bw = xScale(track[1].start) - xScale(track[0].start)
@@ -112,7 +112,7 @@ const TrackPyramid = ({
           xExtents = segments.map(track => extent(track, d => d?.start)).map(d => [d[0], d[1] + bpSize])
           // add up the lengths of the segments
           const totalLength = xExtents.reduce((a, b) => a + (b[1] - b[0]), 0)
-          widths = xExtents.map(xExtent => (xExtent[1] - xExtent[0]) / totalLength * (width - segments.length * 4))
+          widths = xExtents.map(xExtent => (xExtent[1] - xExtent[0]) / totalLength * (width - 41))
 
           let lastW = 0
           xScales = widths.map((w,i) => {
@@ -262,6 +262,16 @@ const TrackPyramid = ({
 
             })
           }
+          // blank out the last part so overflow of higher orders is hidden
+          ctx.fillStyle = "white"
+          ctx.fillRect(xScale(xExtent[1]), 0, 40, height - margin)
+          ctx.fillStyle = "black"
+          ctx.fillText(data.order, xScale(xExtent[1]) + 5, trackHeight/2)
+          tracksFiltered.forEach((t,i) => {
+            ctx.fillStyle = "black"
+            ctx.fillText(t.order, xScale(xExtent[1]) + 5, height - (i+1)*trackHeight + trackHeight/2)
+
+          })
         } else {
           ctx.clearRect(0, 0, width, height);
         }
