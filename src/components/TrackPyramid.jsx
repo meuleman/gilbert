@@ -77,7 +77,7 @@ const TrackPyramid = ({
 
           xScale = scaleLinear()
           .domain(xExtent)
-          .range([margin, width - margin])
+          .range([0, width])
 
           if (data.length > 1) {
             bw = xScale(track[1].start) - xScale(track[0].start)
@@ -109,10 +109,10 @@ const TrackPyramid = ({
           // }
 
           // for each track in the segments, calculate the xExtent
-          xExtents = segments.map(track => extent(track, d => d?.start))
+          xExtents = segments.map(track => extent(track, d => d?.start)).map(d => [d[0], d[1] + bpSize])
           // add up the lengths of the segments
           const totalLength = xExtents.reduce((a, b) => a + (b[1] - b[0]), 0)
-          widths = xExtents.map(xExtent => (xExtent[1] - xExtent[0]) / totalLength * (width - segments.length * 4))
+          widths = xExtents.map(xExtent => (xExtent[1] - xExtent[0]) / totalLength * (width - 1))
 
           let lastW = 0
           xScales = widths.map((w,i) => {
@@ -234,21 +234,34 @@ const TrackPyramid = ({
           ctx.closePath();
           ctx.fill();
 
-          // debugging: this renders a start and end line for each segment
-          // TODO: render little triangles indicating the close of a gap?
-          segments.forEach((seg,si) =>{
-            ctx.fillStyle = "purple"
-            let xs = xScale
-            if(segment) {
-              xs = xScales[si]
-            }
-            tx = xs(xExtents[si][0])
-            // console.log("tx", tx, si, xExtents[si])
-            ctx.fillRect(tx, 0, 2, height - margin)
-            ctx.fillStyle = "blue"
-            tx = xs(xExtents[si][1])
-            ctx.fillRect(tx, 0, 2, height - margin)
-          })
+          // render the bounds of the segment
+          if(segment) {
+            segments.forEach((seg,si) =>{
+              // let xs = xScale
+              let xs = xScales[si]
+              // console.log(si, xs(xExtents[si][0]), xs(xExtents[si][1]))
+              // console.log("tx", tx, si, xExtents[si])
+
+              //right 
+              tx = xs(xExtents[si][1])
+              ctx.fillStyle = "white"
+              ctx.fillRect(tx, 0, 2, height - margin)
+              ctx.fillStyle = "black"
+              ctx.fillRect(tx-1, 0, 1, height - margin)
+              ctx.fillRect(tx-4, 0, 4, 1)
+              ctx.fillRect(tx-4, height-margin, 4, 1)
+
+              //left 
+              ctx.fillStyle = "white"
+              tx = xs(xExtents[si][0])
+              ctx.fillRect(tx, 0, 2, height - margin)
+              ctx.fillStyle = "black"
+              ctx.fillRect(tx+2, 0, 1, height - margin)
+              ctx.fillRect(tx+2, 0, 4, 1)
+              ctx.fillRect(tx+2, height-margin, 4, 1)
+
+            })
+          }
         } else {
           ctx.clearRect(0, 0, width, height);
         }
@@ -285,6 +298,7 @@ const TrackPyramid = ({
           let hit = track.find(d => d.start == startbp)
           // let hit = track[index]
           if(hit) {
+            // console.log("hit", hit, x, xbw)
             setHovered(hit)
           }
         }
