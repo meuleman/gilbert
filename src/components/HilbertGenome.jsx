@@ -161,22 +161,13 @@ const HilbertGenome = ({
   // this debounced function fetches the data and updates the state
   const fetchData = useMemo(() => {
     return () => {
-      // if(state.zooming) return 
-      // console.log("fetching data")
       // we dont want to fetch data if the order is not within the layer order range
       if (state.order < layer.orders[0] || state.order > layer.orders[1]) return;
-      if(state.metaLayer?.datasetName !== layer?.datasetName) {
-        // console.log("mismatched layer", layer)
-        return;
-      } else {
-        // console.log("matching layer")
-      }
-      // if(state.zooming) console.log("zooming!")
+      if(state.metaLayer?.datasetName !== layer?.datasetName) return;
       
       const dataClient = Data({ 
         // debug
       })
-      // let myPromise = dataClient.fetchData(layer, state.order, state.points)
       let myCallback = (data) => {
         if(data) {
           dispatch({ type: actions.SET_DATA, payload: { 
@@ -187,6 +178,21 @@ const HilbertGenome = ({
             meta: state.metas.get(state.order),
             transform: state.transform
           } });
+          if(state.zooming) {
+            // if we are zooming we want to update the selected hit to be the datum at the current order
+            let pos = hilbertPosToOrder(zoomToRegion.start + (zoomToRegion.end - zoomToRegion.start)/2, { from: orderDomain[1], to: state.order })
+            let hilbert = HilbertChromosome(state.order, { padding: 2 })
+            let hit = hilbert.get2DPoint(pos, zoomToRegion.chromosome)
+            let datum = data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
+            if(datum){
+              let selected = {
+                ...zoomToRegion,
+                ...datum
+              }
+              // onHover(selected)
+              onClick(selected, state.order, false)
+            }
+          }
         }
         // dispatch({ type: actions.SET_LOADING, payload: { loading: false } });
       }
@@ -207,7 +213,7 @@ const HilbertGenome = ({
   // when the data changes, let the parent component know
   useEffect(() => {
     if(!state.dataLayer) return
-    if(state.zooming) return
+    // if(state.zooming) return
     onData({
       data: state.data, 
       dataOrder: state.dataOrder,
@@ -474,15 +480,17 @@ const HilbertGenome = ({
     // console.log("mouse y", event)
     let ut = untransform(ex, ey, state.transform)
     let step = Math.pow(0.5, state.order)
-    let hit = qt.find(xScale.invert(ut.x), yScale.invert(ut.y), step * 3)
-    
+    let xx = xScale.invert(ut.x)
+    let yy = yScale.invert(ut.y)
+    let hit = qt.find(xx, yy, step * 3)
+
     let hover = hit;
     if(hit) {
       let datum = state.data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
       if(datum)
         hover = datum
     } else {
-      return
+      // return
     }
     onHover(hover);
   }, [state.data, state.transform, state.order, qt, xScale, yScale])
@@ -532,6 +540,10 @@ const HilbertGenome = ({
 
   }, [state.data, state.transform, state.order, qt, xScale, yScale, zoomToBox]) 
 
+  const onMouseLeave = useCallback((event) => {
+    onHover(null);
+  }, [onHover])
+
 
   // Render the component
   return (
@@ -545,6 +557,7 @@ const HilbertGenome = ({
       onMouseMove={handleMouseMove}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
+      onMouseLeave={onMouseLeave}
       >
       
       <canvas 

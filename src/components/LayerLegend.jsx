@@ -52,6 +52,7 @@ const LayerLegend = ({
   let inViewData, singleSegmentData, factors, hoverData, factorDataForList
   let hoverHighlights = []
 
+
   if(data && !hidden) {
     if(data.data.length > 0) {
       inViewData = data.data
