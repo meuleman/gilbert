@@ -435,7 +435,7 @@ function App() {
     if(!dataRef.current) return
     if(!hit) return
     debounceTimed(() => { 
-      console.log("actually updating", layerLockRef.current, layerRef.current)
+      // console.log("actually updating", layerLockRef.current, layerRef.current)
       let promises = range(4, dataRef.current.order).map(order => {
         return new Promise((resolve) => {
           // get the layer at this order
