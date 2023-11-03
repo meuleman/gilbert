@@ -4,8 +4,8 @@ import {useEffect, useState, useRef, useCallback, useMemo} from 'react'
 
 import Data from './lib/data';
 import { HilbertChromosome, hilbertPosToOrder } from './lib/HilbertChromosome'
-import { debounceNamed } from './lib/debounce'
-import { extent, range } from 'd3-array'
+import { debounceNamed, debounceTimed } from './lib/debounce'
+import { range } from 'd3-array'
 
 
 // base component
@@ -111,6 +111,11 @@ function App() {
   const containerRef = useRef()
 
   const [layerOrder, setLayerOrder] = useState(null)
+  const layerOrderRef = useRef(layerOrder)
+  useEffect(() => {
+    layerOrderRef.current = layerOrder
+  }, [layerOrder])
+
   const [lensHovering, setLensHovering] = useState(false)
 
   // let's fill the container and update the width and height if window resizes
@@ -163,17 +168,6 @@ function App() {
   //   setLayer(layerOrder[zoom.order])
   // } 
   
-  // the hover can be null or the data in a hilbert cell
-  const [hover, setHover] = useState(null)
-  // for when a region is hovered in the similar region list
-  const [similarRegionListHover, setSimilarRegionListHover] = useState(null)
-  function handleHover(hit, similarRegionList=false) {
-    setHover(hit)
-    if(similarRegionList) {
-      setSimilarRegionListHover(hit)
-    }
-  }
-
   // function handleDetailLevelChange(detailLevel) {
   //   setSimSearchDetailLevel(detailLevel)
   //   processSimSearchResults(simSearch, detailLevel)
@@ -217,6 +211,27 @@ function App() {
       console.log("caught error in click", e)
     }
   }
+
+  const selectedRef = useRef(selected);
+  useEffect(() => {
+    selectedRef.current = selected;
+  }, [selected]);
+
+  // the hover can be null or the data in a hilbert cell
+  const [hover, setHover] = useState(null)
+  // for when a region is hovered in the similar region list
+  const [similarRegionListHover, setSimilarRegionListHover] = useState(null)
+  const handleHover = useCallback((hit, similarRegionList=false) => {
+    if(hit && !selectedRef.current) {
+      updateStations(hit)
+    }
+    if(similarRegionList) {
+      setSimilarRegionListHover(hit)
+    }
+    setHover(hit)
+  }, [setSimilarRegionListHover])
+
+
 
   function processSimSearchResults(result) {
     setSimSearch(result)
@@ -351,6 +366,11 @@ function App() {
   const [orderOffset, setOrderOffset] = useState(0)
 
   const [data, setData] = useState(null)
+  const dataRef = useRef(data)
+  useEffect(() => {
+    dataRef.current = data
+  }, [data])
+
   function onData(payload) {
     // console.log("got some data", payload)
     setData(payload)
@@ -402,36 +422,39 @@ function App() {
 
   // When data or selected changes, we want to update the zoom legend
   let updateStations = useCallback((hit) => {
-    if(!data) return
+    if(!dataRef.current) return
     if(!hit) return
-    let promises = range(4, data.order).map(order => {
-      return new Promise((resolve) => {
-        // get the layer at this order
-        let orderLayer = layerOrder[order]
-        // calculate the bbox from the selected hilbert cell that would fetch just the cell for the region
-        let hilbert = HilbertChromosome(order, { padding: 2 })
-        let step = hilbert.step
-        let bbox = {
-          x: hit.x - step/2,
-          y: hit.y - step/2,
-          width: step*2,
-          height: step*2
-        }
-        // console.log("bbox", bbox)
-        fetchData(orderLayer, order, bbox, (response) => {
-          // get the appropriate datum by looking at the corresponding hilbert pos from the selected.start
-          let pos = hilbertPosToOrder(hit.start, { from: orderDomain[1], to: order })
-          let point = hilbert.get2DPoint(pos, hit.chromosome)
-          let datum = response.data.find(d => d.i == point.i)
-          // console.log("pos", pos, "point", point, "datum", datum)
-          resolve({ layer: orderLayer, station: datum })
+    debounceTimed(() => { 
+      let promises = range(4, dataRef.current.order).map(order => {
+        return new Promise((resolve) => {
+          // get the layer at this order
+          let orderLayer = layerOrderRef.current[order]
+          // calculate the bbox from the selected hilbert cell that would fetch just the cell for the region
+          let hilbert = HilbertChromosome(order, { padding: 2 })
+          let step = hilbert.step
+          let bbox = {
+            x: hit.x - step/2,
+            y: hit.y - step/2,
+            width: step*2,
+            height: step*2
+          }
+          // console.log("bbox", bbox)
+          fetchData(orderLayer, order, bbox, (response) => {
+            // get the appropriate datum by looking at the corresponding hilbert pos from the selected.start
+            let pos = hilbertPosToOrder(hit.start, { from: orderDomain[1], to: order })
+            let point = hilbert.get2DPoint(pos, hit.chromosome)
+            let datum = response.data.find(d => d.i == point.i)
+            // console.log("pos", pos, "point", point, "datum", datum)
+            resolve({ layer: orderLayer, station: datum })
+          })
         })
       })
-    })
-    Promise.all(promises).then((responses) => {
-      // console.log("responses", responses)
-      setStations(responses)
-    })
+      return Promise.all(promises)
+    }, (responses) => setStations(responses), 150)
+    // .then((responses) => {
+    //   // console.log("responses", responses)
+    //   setStations(responses)
+    // })
   }, [data, layerOrder, fetchData, setStations])
 
   useEffect(() => {
@@ -449,25 +472,6 @@ function App() {
     return false
   }
 
-  // calculates the bp start and end position extents for 1D tracks
-  let xExtentForTracks = useMemo(() => {
-    let xExtentForTracks
-    if(data?.data){
-
-      let currentOrderTrackData = [];
-      if(selected) {
-        currentOrderTrackData = data.data.filter(d => d.chromosome == selected.chromosome)
-      } else if(hover) {
-        currentOrderTrackData = data.data.filter(d => d.chromosome == hover.chromosome)
-      }
-      if(currentOrderTrackData.length > 2) {
-        const segmentSize = currentOrderTrackData[1].start - currentOrderTrackData[0].start
-        xExtentForTracks = extent(currentOrderTrackData, d => d.start)
-        xExtentForTracks[1] += segmentSize
-      }
-    }
-    return xExtentForTracks
-  }, [data, selected, hover])
 
   return (
     <>
@@ -576,7 +580,7 @@ function App() {
           layerLock={layerLock}
           lensHovering={lensHovering}
           stations={stations}
-          selected={selected}
+          selected={selected || hover}
         />
         {/* <SelectedModal
           width={480}
