@@ -11,7 +11,7 @@ import { easeLinear, easePolyOut, easeExpOut, easeQuadOut } from 'd3-ease';
 import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome';
 import { getBboxDomain, untransform } from '../lib/bbox';
 import Data from '../lib/data';
-import { debounce, debounceTimed } from '../lib/debounce'
+import { debouncer, debouncerTimed } from '../lib/debounce'
 import scaleCanvas from '../lib/canvas';
 import CanvasBase from './CanvasBase';
 
@@ -160,6 +160,8 @@ const HilbertGenome = ({
 
   // this debounced function fetches the data and updates the state
   const fetchData = useMemo(() => {
+    const debounceTimed = debouncerTimed()
+    const debounce = debouncer()
     return () => {
       // we dont want to fetch data if the order is not within the layer order range
       if (state.order < layer.orders[0] || state.order > layer.orders[1]) return;

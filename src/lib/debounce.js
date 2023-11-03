@@ -1,47 +1,53 @@
-let timeoutId = null;
-let lastInvocationTimestamp = null;
 
-function debounce(promiseFn, callback, delay) {
-  const currentTimestamp = Date.now();
+function debouncer() {
+  let timeoutId = null;
+  let lastInvocationTimestamp = null;
+  function debounce(promiseFn, callback, delay) {
+    const currentTimestamp = Date.now();
 
-  // If a timeout is already running, clear it
-  if (timeoutId !== null) {
-    clearTimeout(timeoutId);
+    // If a timeout is already running, clear it
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
+
+    timeoutId = setTimeout(() => {
+      lastInvocationTimestamp = currentTimestamp;
+      promiseFn()
+        .then(result => {
+          // Check if current invocation is the latest
+          if (lastInvocationTimestamp === currentTimestamp) {
+            callback(result);
+          }
+          // Otherwise, do nothing or you can call callback with null or some indication of being outdated
+        })
+        .catch(err => {
+          console.error(err);
+          // You could call callback with the error if needed
+        });
+    }, delay);
   }
-
-  timeoutId = setTimeout(() => {
-    lastInvocationTimestamp = currentTimestamp;
-    promiseFn()
-      .then(result => {
-        // Check if current invocation is the latest
-        if (lastInvocationTimestamp === currentTimestamp) {
-          callback(result);
-        }
-        // Otherwise, do nothing or you can call callback with null or some indication of being outdated
-      })
-      .catch(err => {
-        console.error(err);
-        // You could call callback with the error if needed
-      });
-  }, delay);
+  return debounce
 }
 
-let allowCall = true
-
-function debounceTimed(promiseFn, callback, delay) {
-  // If a call is allowed, proceed
-  if (allowCall) {
-    allowCall = false; // Block further calls until after the delay
-    promiseFn()
-      .then(callback)
-      .catch(console.error)
-      .finally(function() {
-        // Set a timeout to allow the next call after the delay period
-        setTimeout(() => {
-          allowCall = true;
-        }, delay);
-      });
+function debouncerTimed() {
+  let allowCall = true
+  function debounceTimed(promiseFn, callback, delay) {
+    // If a call is allowed, proceed
+    // console.log("allowCall: ", allowCall)
+    if (allowCall) {
+      allowCall = false; // Block further calls until after the delay
+      promiseFn()
+        .then(callback)
+        .catch(console.error)
+        .finally(function() {
+          // Set a timeout to allow the next call after the delay period
+          setTimeout(() => {
+            allowCall = true;
+          }, delay);
+        });
+    }
   }
+  return debounceTimed
 }
 
 let timeoutIds = {};
@@ -77,7 +83,7 @@ function debounceNamed(promise, callback, delay, name) {
 }
 
 export {
-  debounce,
-  debounceTimed,
+  debouncer,
+  debouncerTimed,
   debounceNamed 
 }

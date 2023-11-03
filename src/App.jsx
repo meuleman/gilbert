@@ -4,7 +4,7 @@ import {useEffect, useState, useRef, useCallback, useMemo} from 'react'
 
 import Data from './lib/data';
 import { HilbertChromosome, hilbertPosToOrder } from './lib/HilbertChromosome'
-import { debounceNamed, debounceTimed } from './lib/debounce'
+import { debounceNamed, debouncerTimed } from './lib/debounce'
 import { range } from 'd3-array'
 
 
@@ -146,7 +146,6 @@ function App() {
 
   const [layerLock, setLayerLock] = useState(false)
   const [layerLockFromIcon, setLayerLockFromIcon] = useState(null)
-
   const [layer, setLayer] = useState(Bands)
   function handleLayer(l) {
     setLayer(l)
@@ -154,6 +153,15 @@ function App() {
     setLayerLockFromIcon(false)
     setSearchByFactorInds([])
   }
+
+  const layerLockRef = useRef(layerLock)
+  useEffect(() => {
+    layerLockRef.current = layerLock
+  }, [layerLock])
+  const layerRef = useRef(layer)
+  useEffect(() => {
+    layerRef.current = layer
+  }, [layer])
 
   // We want to keep track of the zoom state
   const [zoom, setZoom] = useState({order: 4, points: [], bbox: {}, transform: {}})
@@ -421,14 +429,17 @@ function App() {
   }, [data, selected, layerOrder, fetchData])
 
   // When data or selected changes, we want to update the zoom legend
+  const debounceTimed = debouncerTimed()
   let updateStations = useCallback((hit) => {
+    // console.log("updating stations", dataRef.current, hit)
     if(!dataRef.current) return
     if(!hit) return
     debounceTimed(() => { 
+      console.log("actually updating", layerLockRef.current, layerRef.current)
       let promises = range(4, dataRef.current.order).map(order => {
         return new Promise((resolve) => {
           // get the layer at this order
-          let orderLayer = layerOrderRef.current[order]
+          let orderLayer = layerLockRef.current ? layerRef.current : layerOrderRef.current[order]
           // calculate the bbox from the selected hilbert cell that would fetch just the cell for the region
           let hilbert = HilbertChromosome(order, { padding: 2 })
           let step = hilbert.step
@@ -581,6 +592,7 @@ function App() {
           lensHovering={lensHovering}
           stations={stations}
           selected={selected || hover}
+          // selected={selected}
         />
         {/* <SelectedModal
           width={480}
