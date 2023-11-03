@@ -64,7 +64,7 @@ const ZoomLegend = ({
           o.color = o.layer.fieldColor(o.field.field)
           // console.log("ORDER", o)
         }
-        if(o.order == order && activeLayer && selected) {
+        if(o.order == order && activeLayer && selected && selected.data && Object.keys(selected?.data).length) {
           o.layer = activeLayer
           o.station = selected
           o.field = o.layer.fieldChoice(o.station)
