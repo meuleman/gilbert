@@ -116,21 +116,21 @@ class Autocomplete extends Component {
     setTimeout(() => {
       try {
         this.props.onChangeInput && this.props.onChangeInput(this.inputRef.value);
-        const pastedRegion = Helpers.getRangeFromString(this.state.selectedSuggestionLocation, 
-          true, 
-          null,
-          this.props.annotationAssemblyRaw || Constants.appDefaultAssembly
-        );
-        if (pastedRegion) {
-          this.props.onChangeLocation && this.props.onChangeLocation({
-            ...pastedRegion, 
-            type: 'interval',
-          });
-        }
+        // const pastedRegion = Helpers.getRangeFromString(this.state.selectedSuggestionLocation, 
+        //   true, 
+        //   null,
+        //   this.props.annotationAssemblyRaw || Constants.appDefaultAssembly
+        // );
+        // if (pastedRegion) {
+        //   this.props.onChangeLocation && this.props.onChangeLocation({
+        //     ...pastedRegion, 
+        //     type: 'interval',
+        //   });
+        // }
       }
       catch(err) {
         console.log(`${this.inputRef} | ${err}`);
-      };
+      }
     }, 500);
   }
 
