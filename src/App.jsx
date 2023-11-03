@@ -325,27 +325,21 @@ function App() {
     // figure out the appropriate order to zoom to
     // we want to zoom in quite a bit to the region if it hasn't specified its order
     let order = orderDomain[1];
-    while(length/128 > hilbertPosToOrder(1, { from: order, to: orderDomain[1] })) {
+    while(length > hilbertPosToOrder(1, { from: order, to: orderDomain[1] })) {
       order--;
       if(order == orderDomain[0]) break;
     }
-    console.log("order", order)
     let pos = hilbertPosToOrder(autocompleteRegion.start + (autocompleteRegion.stop - autocompleteRegion.start)/2, { from: orderDomain[1], to: order })
-    console.log("pos", pos)
     let hilbert = HilbertChromosome(order, { padding: 2 })
     let hit = hilbert.get2DPoint(pos, autocompleteRegion.chrom)
     hit.start = autocompleteRegion.start
     hit.end = autocompleteRegion.stop
-    hit.data = []
-    console.log("hit", hit)
+    hit.data = {}
+    hit.type = "autocomplete" // TODO: we can use this to determine alternative rendering
+    console.log("autocomplete hilbert region", hit)
     setRegion(hit)
     setSelected(hit)
-    // setRegion({
-    //   chromosome: autocompleteRegion.chrom, 
-    //   start: autocompleteRegion.start, 
-    //   end: autocompleteRegion.stop 
-    //   // order: ...
-    // })
+    
   }
 
   // number state for orderOffset

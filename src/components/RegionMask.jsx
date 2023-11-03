@@ -13,7 +13,7 @@ export default function RegionMask({
   strokeWidthMultiplier = 0.2,
 } = {}) {
   return function RegionMaskComponent({ state, scales }) {
-    if(regions.length && regions.filter(d => !!d)) {
+    if(regions.length && regions.filter(d => !!d).length) {
       const { points, bbox, order } = state
       const { xScale, yScale, sizeScale } = scales
 
@@ -21,7 +21,7 @@ export default function RegionMask({
       // let rw = sizeScale(step)
       // let sw = sizeScale(Math.pow(0.5, order))*strokeWidthMultiplier
 
-      const rects = regions.filter(d => !!d).map((region,i) => {
+      const rects = regions.filter(d => !!d && d.type !== "autocomplete").map((region,i) => {
         let step = Math.pow(0.5, region.order)
         let rw = sizeScale(step)
         return (<rect
