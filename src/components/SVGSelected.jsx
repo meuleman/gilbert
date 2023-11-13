@@ -45,6 +45,8 @@ export default function SVGBBox({
       let stride = hilbertPosToOrder(1, {from: order, to: 14 })
       // let range = hilbert.fromRegion(hit.chromosome, Math.max(hit.start - stride * length, 0), hit.start + stride * length)
       let range = hilbert.fromRegion(hit.chromosome, hit.start, hit.start + stride)
+      // This forces the hit to be in the right place for the current roder
+      hit = range[0]
       // let color = scaleDiverging()
       //   .domain([0, 3, 6])
       //   .interpolator(interpolateBrBG)

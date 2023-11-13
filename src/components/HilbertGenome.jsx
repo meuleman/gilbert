@@ -90,9 +90,10 @@ function reducer(state, action) {
         loading: false 
       }
     }
-    case actions.SET_METAS:
+    case actions.SET_METAS: {
       const { metas, metaLayer } = action.payload;
       return { ...state, metas, metaLayer };
+    }
     case actions.SET_SELECTED:
       return { ...state, selected: action.payload };
     case actions.SET_HOVERED:
@@ -343,6 +344,11 @@ const HilbertGenome = ({
 
     // update the state
     dispatch({ type: actions.ZOOM, payload })
+
+    // update hover with the mouse event
+    if(event.sourceEvent){
+      handleMouseMove(event.sourceEvent)
+    }
     
     // update the parent component
     onZoom(payload)
@@ -477,11 +483,15 @@ const HilbertGenome = ({
   // Mouse move event handler
   const handleMouseMove = useCallback((event) => {
     if(!qt) return
-    let ex = event.nativeEvent.offsetX
-    let ey = event.nativeEvent.offsetY
+    let ex = event.offsetX
+    let ey = event.offsetY
+    if(event.nativeEvent) {
+      ex = event.nativeEvent.offsetX
+      ey = event.nativeEvent.offsetY
+    }
     // console.log("mouse y", event)
     let ut = untransform(ex, ey, state.transform)
-    let step = Math.pow(0.5, state.order)
+    let step = Math.pow(0.5, state.dataOrder)
     let xx = xScale.invert(ut.x)
     let yy = yScale.invert(ut.y)
     let hit = qt.find(xx, yy, step * 3)
@@ -495,7 +505,7 @@ const HilbertGenome = ({
       // return
     }
     onHover(hover);
-  }, [state.data, state.transform, state.order, qt, xScale, yScale])
+  }, [state.data, state.transform, state.dataOrder, qt, xScale, yScale])
     
   const handleClick = useCallback((event) => {
     if(!qt) return
