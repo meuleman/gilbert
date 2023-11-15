@@ -175,22 +175,23 @@ const SelectedModalSimSearch = ({
 
       let headerY = factorHeaderYHeight + factorHeaderGap
       if(factorsInSearch) {
-        allRegionYPos.map((y, i) => {
-          const yAdjusted = y - Math.min(...allRegionYPos) + headerY
+        let allRegionYPosMin = Math.min(...allRegionYPos)
+        allRegionYPos.forEach((y, i) => {
+          const yAdjusted = y - allRegionYPosMin + headerY
           const ranks = simSearchRegions[i].percentiles
-          const ranksWithFactorInds = ranks.map((r, i) => {
-            return {rank: r, factorInd: factors[i].ind}  // factorInd may not be i (ie Chromatin States)
-          })
-          const ranksWithFactorIndsSorted = ranksWithFactorInds.sort((a, b) => b.rank - a.rank)
+          const ranksWithFactorIndsSorted = ranks
+            .map((r, i) => ({rank: r, factorInd: factors[i].ind}))  // factorInd may not be i (ie Chromatin States)
+            .sort((a, b) => b.rank - a.rank)
           
           let inSearchFactorCount = 0
           let notInSearchFactorCount = 0
 
           ranksWithFactorIndsSorted.map((r) => {
-            if((r.rank > 0) && factorsInSearch.includes(r.factorInd)) {
+            let nonZeroRank = r.rank > 0
+            if((nonZeroRank) && factorsInSearch.includes(r.factorInd)) {
               inSearchData.push({factorInd: r.factorInd, factorCount: inSearchFactorCount, yAdjusted: yAdjusted})
               inSearchFactorCount += 1
-            } else if(r.rank > 0) {
+            } else if(nonZeroRank) {
               if((layerFactors && layerFactors.includes(factors[r.factorInd].fullName)) || !layerFactors) {
                 notInSearchData.push({factorInd: r.factorInd, factorCount: notInSearchFactorCount, yAdjusted: yAdjusted})
                 notInSearchFactorCount += 1
@@ -286,6 +287,34 @@ const SelectedModalSimSearch = ({
     removeConvBars()
   }
 
+  const handleClick = (chrom, start, stop) => handleRegionClick(chrom, start, stop);
+  const handleMouseOver = (chrom, start, stop, factorRanks) => handleRegionMouseOver(chrom, start, stop, factorRanks);
+  const handleMouseLeave = () => handleRegionMouseLeave();
+
+  const addRegion = (s) => {
+    const [chrom, startStop] = s.coordinates.split(':')
+    const [start, stop] = startStop.split('-')
+    const rank = s.rank
+    const factorRanks = s.percentiles
+    let label = rank === 0 ? chrom + ':' + start : rank + ': ' + chrom + ':' + start
+
+    return (
+      <li 
+        className='selected-modal-simsearch-item' 
+        key={rank}
+        onClick={() => handleClick(chrom, start, stop)}
+        onMouseOver={() => handleMouseOver(chrom, start, stop, factorRanks)}
+        onMouseLeave={() => handleMouseLeave()}
+        style={{
+          "fontSize": regionHeight + "px",
+          "margin": regionMargin + "px"
+        }}
+      >
+        {label}
+      </li>
+    )
+  }
+
   return (
     (simSearch?.simSearch && 
       (!hidden ?
@@ -302,62 +331,18 @@ const SelectedModalSimSearch = ({
           </span>
 
           <ul id='selected-list' className='selected-modal-simsearch-list'>
-            {selectedRegion ? (
-              selectedRegion.map((s) => {
-                const chrom = s.coordinates.split(':')[0]
-                const start = s.coordinates.split(':')[1].split('-')[0]
-                const stop = s.coordinates.split(':')[1].split('-')[1]
-                const rank = s.rank
-                const factorRanks = s.percentiles
-                return <li 
-                  className='selected-modal-simsearch-item' 
-                  key={rank}
-                  onClick={() => handleRegionClick(chrom, start, stop)}
-                  onMouseOver={() => handleRegionMouseOver(chrom, start, stop, factorRanks)}
-                  onMouseLeave={() => handleRegionMouseLeave()}
-                  style={{
-                    "fontSize": regionHeight + "px",
-                    "margin": regionMargin + "px"
-                  }}
-                >
-                  {chrom}:{start}
-                </li>
-              })
-            ) : null}
+            {selectedRegion ? (selectedRegion.map(addRegion)) : null}
           </ul>
           <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-similar' style={{"fontSize": regionHeight + "px"}}> 
-            {similarRegions ?
-              (similarRegions.length > 0) ?
-                (simSearch.method === "Region") ?
-                  "Similar Regions:"
-                  : "Top Regions:"
-              : null
+            {similarRegions && (similarRegions.length > 0) ?
+              (simSearch.method === "Region") ?
+                "Similar Regions:"
+                : "Top Regions:"
             : null}
           </span>
           
           <ul id='similar-regions-list' className='selected-modal-simsearch-list'>
-            {similarRegions ? (
-              similarRegions.map((s) => {
-                const chrom = s.coordinates.split(':')[0]
-                const start = s.coordinates.split(':')[1].split('-')[0]
-                const stop = s.coordinates.split(':')[1].split('-')[1]
-                const rank = s.rank
-                const factorRanks = s.percentiles
-                return <li 
-                  className='selected-modal-simsearch-item' 
-                  key={rank}
-                  onClick={() => handleRegionClick(chrom, start, stop)}
-                  onMouseOver={() => handleRegionMouseOver(chrom, start, stop, factorRanks)}
-                  onMouseLeave={() => handleRegionMouseLeave()}
-                  style={{
-                    "fontSize": regionHeight + "px",
-                    "margin": regionMargin + "px"
-                  }}
-                >
-                  {rank}: {chrom}:{start}
-                </li>
-              })
-            ) : null}
+            {similarRegions ? (similarRegions.map(addRegion)) : null}
           </ul>
         </div>
       : 
