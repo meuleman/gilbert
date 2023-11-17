@@ -146,6 +146,7 @@ const ZoomLegend = ({
             <div className="label-box"
               style={{
                 backgroundColor: `rgba(0.5, 0.5, 0.5, ${d.order == effectiveOrder ? 0.4 : 0.1})`,
+                width: "100%",
               }}
             >
               <div className="basepair-size">{segmentSizeFromOrder(d.order)}</div>

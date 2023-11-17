@@ -40,8 +40,8 @@ const LayerDropdown = ({
 
 
   return (
-    <div className="layer-dropdown-container"> 
-      <select value={tlayer.name} onChange={handleChange}>
+    <div className="layer-dropdown-container">
+      <select className='layer-dropdown' value={tlayer.name} onChange={handleChange}>
         {layers.map((layer) => (
           <option 
             key={layer.name} 
@@ -61,8 +61,9 @@ const LayerDropdown = ({
             'layer-locked'
           : 'layer-unlocked'
         }
-        onClick={() => handleLayerLock()}/>
-      </div>
+        onClick={() => handleLayerLock()}
+      />
+    </div>
   );
 }
 

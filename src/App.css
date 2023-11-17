@@ -109,4 +109,15 @@
   width: 100%;
 }
 
+/* ................................. LAYER COLUMN ............................. */
 
+
+.layer-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-right: 5px;
+  position: relative;
+}

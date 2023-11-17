@@ -551,7 +551,7 @@ function App() {
             debug={showDebug}
           />
         </div>
-        <LensModal
+        {/* <LensModal
           layers={layers}
           currentLayer={layer}
           setLayerOrder={setLayerOrder}
@@ -564,7 +564,7 @@ function App() {
           setLensHovering={setLensHovering}
           lensHovering={lensHovering}
           order={zoom.order}
-        />
+        /> */}
         <LayerLegend 
           data={data}
           hover={hover}
@@ -580,7 +580,47 @@ function App() {
           setRegion={setRegion}
           setHover={setHover}
         />
-        <ZoomLegend 
+        <div className='layer-column'>
+          <LensModal
+            layers={layers}
+            currentLayer={layer}
+            setLayerOrder={setLayerOrder}
+            setLayer={setLayer}
+            setLayerLock={setLayerLock}
+            layerLock={layerLock}
+            setLayerLockFromIcon={setLayerLockFromIcon}
+            layerLockFromIcon={layerLockFromIcon}
+            setSearchByFactorInds={setSearchByFactorInds}
+            setLensHovering={setLensHovering}
+            lensHovering={lensHovering}
+            order={zoom.order}
+          />
+          <ZoomLegend 
+            k={zoom.transform.k} 
+            height={height} 
+            effectiveOrder={zoom.order}
+            zoomExtent={zoomExtent} 
+            orderDomain={orderDomain} 
+            layerOrder={layerOrder}
+            layer={layer}
+            layerLock={layerLock}
+            lensHovering={lensHovering}
+            stations={stations}
+            selected={selected || hover}
+            // selected={selected}
+          />
+          <LayerDropdown 
+            layers={layers} 
+            activeLayer={layer} 
+            onLayer={handleLayer}
+            order={zoom.order}
+            layerLock={layerLock}
+            setLayerLock={setLayerLock}
+            setLayerLockFromIcon={setLayerLockFromIcon}
+          />
+
+        </div>
+        {/* <ZoomLegend 
           k={zoom.transform.k} 
           height={height} 
           effectiveOrder={zoom.order}
@@ -593,7 +633,7 @@ function App() {
           stations={stations}
           selected={selected || hover}
           // selected={selected}
-        />
+        /> */}
         {/* <SelectedModal
           width={480}
           height={height} 
@@ -622,7 +662,7 @@ function App() {
               setHovered={handleHover} 
             ></TrackPyramid>
           </div>
-          <LayerDropdown 
+          {/* <LayerDropdown 
             layers={layers} 
             activeLayer={layer} 
             onLayer={handleLayer}
@@ -630,7 +670,7 @@ function App() {
             layerLock={layerLock}
             setLayerLock={setLayerLock}
             setLayerLockFromIcon={setLayerLockFromIcon}
-          />
+          /> */}
         </div>
         <StatusBar 
           width={width + 12 + 30} 

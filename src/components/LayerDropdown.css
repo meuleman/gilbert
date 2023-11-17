@@ -2,9 +2,14 @@
   border: 0px solid black;
   position: relative;
   right: 0px;
-  width: fit-content;
-  margin-right: 5px;
-  margin-top: -10px;
+  width: 100%;
+  height: fit-content;
+  /* margin-right: 5px;
+  margin-top: -10px; */
+}
+
+.layer-dropdown {
+  width: 100%;
 }
 
 .layer-locked {

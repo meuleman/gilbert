@@ -196,7 +196,8 @@ const LensModal = ({
   return (
     <>
       {(
-        <div className="lens-panel" style={{left: xPos}}>
+        <div className="lens-panel" style={{top: `${-1 * Object.keys(lenses).length * 20}px`}}>
+          <div className='lens-header'>Lenses</div>
           {/* <div className={
             (layerLock) ? 
               'layer-locked'
@@ -232,7 +233,7 @@ const LensModal = ({
                       }
                       id={l}
                       key={l}
-                      style={{width: buttonWidth}}
+                      // style={{width: buttonWidth}}
                       onClick={
                         ((permanentLens?.id == sublensName) && (layerLockFromIcon != false)) ? 
                           (() => handleDropdownOpen(l)) 
@@ -254,7 +255,7 @@ const LensModal = ({
                               }
                               key={s}
                               id={s}
-                              style={{width: buttonWidth}}
+                              // style={{width: buttonWidth}}
                               onClick={() => onClick(sublensLayers, s, i, j)}
                               onMouseOver={() => onMouseOver(sublensLayers, s)}
                               onMouseLeave={() => onMouseLeave(permanentLens.lens, permanentLens.id)}
@@ -289,7 +290,7 @@ const LensModal = ({
                       }
                       id={l} 
                       key={l} 
-                      style={{width: buttonWidth}}
+                      // style={{width: buttonWidth}}
                       onClick={() => onClick(lensLayers, l)}
                       onMouseOver={() => onMouseOver(lensLayers, l)}
                       onMouseLeave={() => onMouseLeave(permanentLens.lens, permanentLens.id)}
@@ -299,7 +300,6 @@ const LensModal = ({
               }
             })}
           </div>
-          <div className='lens-header'>Lenses</div>
         </div>
       )}
     </>
