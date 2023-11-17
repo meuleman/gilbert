@@ -126,29 +126,66 @@ const SelectedModal = ({
           return parentOffset
         }
         
+        // const mousemove = (e) => {
+        //   const parentOffset = findOffset()
+        //   tooltip.style('left', (e.clientX - parentOffset.x + 20) + 'px')
+        //   tooltip.style('top', (e.clientY - parentOffset.y) + 'px')
+        //   const xIndex = invertX(e.offsetX)
+        //   if((xIndex >= 0) && (xIndex < GenesetEnrichmentOrder.length)){
+        //     let startIndex = Math.max(0, xIndex - windowSize / 2)
+        //     let endIndex = Math.min(enrichments.length, xIndex + windowSize / 2)
+        //     let windowValues = enrichments.slice(startIndex, endIndex)
+        //     let windowValuesIndexFiltered = windowValues.map((v, i) => [v, i]).filter(vi => vi[0] > 0)
+        //     if(windowValuesIndexFiltered.length > 0) {
+        //       let windowValuesArgmax = [...windowValuesIndexFiltered].sort((a, b) => Math.abs(a[1] - (windowSize / 2)) - Math.abs(b[1] - (windowSize / 2)))[0]
+        //       let representativeIndex = startIndex+windowValuesArgmax[1]
+  
+        //       const genesetName = GenesetEnrichmentOrder[representativeIndex].genesetName
+        //       const enrichment = enrichments[representativeIndex]
+        //       tooltip
+        //         .html("xIndex: " + representativeIndex + "<br>" + "Geneset: " + genesetName + "<br>" + "Enrichment -log10(p-value): " + Math.round(enrichment * 10000) / 10000)
+        //     }
+        //   }
+        // }
         const mousemove = (e) => {
+          let hoverWindowSize = 10
           const parentOffset = findOffset()
           tooltip.style('left', (e.clientX - parentOffset.x + 20) + 'px')
           tooltip.style('top', (e.clientY - parentOffset.y) + 'px')
           const xIndex = invertX(e.offsetX)
+
           if((xIndex >= 0) && (xIndex < GenesetEnrichmentOrder.length)){
-            let startIndex = Math.max(0, xIndex - windowSize / 2)
-            let endIndex = Math.min(enrichments.length, xIndex + windowSize / 2)
+            // find genesets in window
+            let startIndex = Math.max(0, xIndex - hoverWindowSize / 2)
+            let endIndex = Math.min(enrichments.length, xIndex + hoverWindowSize / 2)
             let windowValues = enrichments.slice(startIndex, endIndex)
+            // only keep significant genesets
             let windowValuesIndexFiltered = windowValues.map((v, i) => [v, i]).filter(vi => vi[0] > 0)
+
+            let representativeIndex
             if(windowValuesIndexFiltered.length > 0) {
-              let windowValuesArgmax = [...windowValuesIndexFiltered].sort((a, b) => Math.abs(a[1] - (windowSize / 2)) - Math.abs(b[1] - (windowSize / 2)))[0]
-              let representativeIndex = startIndex+windowValuesArgmax[1]
-  
-              const genesetName = GenesetEnrichmentOrder[representativeIndex].genesetName
-              const enrichment = enrichments[representativeIndex]
-              tooltip
-                .html("xIndex: " + representativeIndex + "<br>" + "Geneset: " + genesetName + "<br>" + "Enrichment -log10(p-value): " + Math.round(enrichment * 10000) / 10000)
+              // find the closest significant geneset to the event
+              let windowValuesArgmax = [...windowValuesIndexFiltered]
+                .sort((a, b) => Math.abs(a[1] - (hoverWindowSize / 2)) - Math.abs(b[1] - (hoverWindowSize / 2)))[0]
+              representativeIndex = startIndex+windowValuesArgmax[1]
+            } else {
+              // if no significant genesets, find the closest geneset to the event
+              representativeIndex = xIndex
             }
+            const genesetName = GenesetEnrichmentOrder[representativeIndex].genesetName
+            const enrichment = enrichments[representativeIndex]
+            if(enrichment > 0) {
+              tooltip
+                .html("xIndex: <b>" + representativeIndex + "</b><br>Geneset: <b>" + genesetName + "</b><br>Enrichment -log10(p-value): <b>" + Math.round(enrichment * 10000) / 10000) + "</b>"
+            } else {
+              tooltip
+                .html("xIndex: " + representativeIndex + "<br>Geneset: " + genesetName + "<br>Enrichment -log10(p-value): " + Math.round(enrichment * 10000) / 10000)
+            }
+            
           }
         }
 
-        const mouseleave= () => {
+        const mouseleave = () => {
           tooltip
             .style('opacity', 0)
             .style('z-index', -1)
@@ -215,6 +252,10 @@ const SelectedModal = ({
         // const colorbarX = d3.range(0, 1, 1 / GenesetEnrichmentOrder.length).map(interpolateColor)
         // console.log(intermediateColors)
 
+        spectrumsvg.on('mousemove', mousemove)
+        spectrumsvg.on('mouseover', mouseover)
+        spectrumsvg.on('mouseleave', mouseleave)
+
         // fill under spectrum curve
         spectrumsvg.append("path")
           .datum(enrichmentsSmooth)
@@ -225,9 +266,9 @@ const SelectedModal = ({
             .y0(y.range()[0])
             .y1(function(d) {return y(d)})
           )
-          .on('mouseover', mouseover)
-          .on('mousemove', mousemove)
-          .on('mouseleave', mouseleave)
+          // .on('mouseover', mouseover)
+          // .on('mousemove', mousemove)
+          // .on('mouseleave', mouseleave)
           
         // // fill under spectrum curve
         // spectrumsvg.selectAll()
