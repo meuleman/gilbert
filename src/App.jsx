@@ -38,6 +38,7 @@ import DHS_Density from './layers/dhs_density'
 import Chromatin_States_Sfc from './layers/chromatin_states_sfc'
 // import TF_Motifs_OE_Chi from './layers/tf_motifs_oe_chi'
 import TF_Motifs_Sfc from './layers/tf_motifs_sfc'
+import TF_Motifs_Sfc_max from './layers/tf_motifs_sfc_max'
 import DHS_mapped_TF_motifs_sfc from './layers/dhs_mapped_tf_motifs_sfc'
 import UKBB from './layers/ukbb'
 import UKBB_Counts from './layers/ukbb_counts'
@@ -78,6 +79,7 @@ const layers = [
   Chromatin_States_Sfc,
   // TF_Motifs_OE_Chi,
   TF_Motifs_Sfc,
+  TF_Motifs_Sfc_max,
   DHS_mapped_TF_motifs_sfc,
   Repeats_Sfc,
   UKBB,
