@@ -8,7 +8,7 @@ const tfColors = ["#23171b","#362357","#433087","#433087","#493dac","#493dac","#
 
 export default {
   name: "TF Motifs (MAX)",
-  datasetName: "tf_sfc_max_factor",
+  datasetName: "tf_sfc_full_max_factor",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseURLPrefix}/20231020`,
   orders: [4,10],
