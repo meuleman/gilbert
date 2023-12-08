@@ -27,6 +27,10 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
 
     // the min and max for scaling
     let fields = meta["fields"]
+    let max_layer = false
+    if ((fields.length == 2) && (fields[0] == "max_field") && (fields[1] == "max_value")) {
+      max_layer = true
+    }
     let nonzero_min = meta["nonzero_min"]
     let min = nonzero_min ? nonzero_min : meta["min"]
     if(!min.length && min < 0) min = 0;
@@ -61,7 +65,12 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
         const sample = fieldChoice(d);
         if(sample) {
           if(min.length) {
-            let fi = fields.indexOf(sample.field)
+            let fi
+            if (max_layer) {
+              fi = 1
+            } else {
+              fi = fields.indexOf(sample.field)
+            }
             domain = [min[fi] < 0 ? 0 : min[fi], max[fi]]
             alphaScale.domain(domain)
             shrinkScale.domain(domain)
