@@ -3,7 +3,7 @@ import './App.css'
 import {useEffect, useState, useRef, useCallback, useMemo} from 'react'
 
 import Data from './lib/data';
-import { HilbertChromosome, hilbertPosToOrder } from './lib/HilbertChromosome'
+import { HilbertChromosome, hilbertPosToOrder, checkRanges } from './lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from './lib/debounce'
 import { range } from 'd3-array'
 
@@ -105,9 +105,11 @@ const layers = [
 //   14: Nucleotides,
 // }
 
+// declare globally so it isn't recreated on every render
+const debounceTimed = debouncerTimed()
 
 function App() {
-  const orderDomain = [4, 14]
+  const orderDomain = useMemo(() => [4, 14])
   const zoomExtent = [0.85, 4000]
 
   const containerRef = useRef()
@@ -167,21 +169,17 @@ function App() {
 
   // We want to keep track of the zoom state
   const [zoom, setZoom] = useState({order: 4, points: [], bbox: {}, transform: {}})
+  const zoomRef = useRef(zoom)
+  useEffect(() => {
+    zoomRef.current = zoom
+  }, [zoom])
   const handleZoom = useCallback((newZoom) => {
-    if(zoom.order !== newZoom.order && !layerLock) {
-      setLayer(layerOrder[newZoom.order])
+    if(zoomRef.current.order !== newZoom.order && !layerLockRef.current) {
+      setLayer(layerOrderRef.current[newZoom.order])
     }  
     setZoom(newZoom)
-  }, [zoom, layerLock])
-  // function handleZoom(zoom) {
-  //   setZoom(zoom)
-  //   setLayer(layerOrder[zoom.order])
-  // } 
-  
-  // function handleDetailLevelChange(detailLevel) {
-  //   setSimSearchDetailLevel(detailLevel)
-  //   processSimSearchResults(simSearch, detailLevel)
-  // }
+  }, [zoom, layerLock, layerOrder, setZoom, setLayer])
+
 
   // selected powers the sidebar modal and the 1D track
   const [selected, setSelected] = useState(null)
@@ -229,6 +227,7 @@ function App() {
 
   // the hover can be null or the data in a hilbert cell
   const [hover, setHover] = useState(null)
+  const [lastHover, setLastHover] = useState(null)
   // for when a region is hovered in the similar region list
   const [similarRegionListHover, setSimilarRegionListHover] = useState(null)
   const handleHover = useCallback((hit, similarRegionList=false) => {
@@ -239,6 +238,7 @@ function App() {
       setSimilarRegionListHover(hit)
     }
     setHover(hit)
+    if(hit) setLastHover(hit)
   }, [setSimilarRegionListHover])
 
 
@@ -382,22 +382,23 @@ function App() {
   }, [data])
 
   function onData(payload) {
-    // console.log("got some data", payload)
     setData(payload)
   }
 
+  const [trackState, setTrackState] = useState(data)
   const [tracks, setTracks] = useState([])
+  const [tracksLoading, setTracksLoading] = useState(false)
   const [stations, setStations] = useState([])
   // setter for tracks array
 
   // console.log("tracks?", trackMinus1, trackPlus1)
 
   // this debounced function fetches the data and updates the state
-  const fetchData = useMemo(() => {
+  const fetchLayerData = useMemo(() => {
     const dataClient = Data({ 
       debug: false
     })
-    return (layer, order, bbox, setter) => {
+    return (layer, order, bbox, key, setter) => {
       // we dont want to fetch data if the order is not within the layer order range
       if (order < layer.orders[0] || order > layer.orders[1]) return;
 
@@ -406,32 +407,39 @@ function App() {
 
       let myPromise = dataClient.fetchData(layer, order, points)
       let myCallback = (data) => {
+        // console.log("got data", data, order)
         if(data) {
           setter({ data, layer, order})
         }
       }
-      // debounce a function call with a name
-      debounceNamed(myPromise, myCallback, 150, layer.name+order) // layer.name + order makes unique call 
+      // debounce a function call with a name to make sure no collisions
+      // collision would be accidentally debouncing a different data call because we reuse this function
+      debounceNamed(myPromise, myCallback, 150, key+":"+layer.name+":"+order) // layer.name + order makes unique call 
     }
   }, []);
 
   // When data or selected changes, we want to update the tracks
   useEffect(() => {
-    if(!data) return
-    let promises = range(4, data.order).map(order => {
+    if(!dataRef.current) return
+    const minOrder = Math.max(layerRef.current.orders[0], dataRef.current.order - 5)
+    let promises = range(minOrder, dataRef.current.order).map(order => {
       return new Promise((resolve) => {
-        fetchData(layer, order, data.bbox, (response) => {
+        fetchLayerData(layerRef.current, order, dataRef.current.bbox, "pyramid", (response) => {
           resolve(response)
         })
       })
     })
+    setTracksLoading(true)
     Promise.all(promises).then((responses) => {
+      setTrackState(dataRef.current)
       setTracks(responses)
+      setTracksLoading(false)
     })
-  }, [data, selected, layerOrder, fetchData])
+  // make sure this updates only when the data changes
+  // the pyramid will lag behind a little bit but wont make too many requests
+  }, [data]) 
 
   // When data or selected changes, we want to update the zoom legend
-  const debounceTimed = debouncerTimed()
   let updateStations = useCallback((hit) => {
     // console.log("updating stations", dataRef.current, hit)
     if(!dataRef.current) return
@@ -452,7 +460,7 @@ function App() {
             height: step*2
           }
           // console.log("bbox", bbox)
-          fetchData(orderLayer, order, bbox, (response) => {
+          fetchLayerData(orderLayer, order, bbox, "station", (response) => {
             // get the appropriate datum by looking at the corresponding hilbert pos from the selected.start
             let pos = hilbertPosToOrder(hit.start, { from: orderDomain[1], to: order })
             let point = hilbert.get2DPoint(pos, hit.chromosome)
@@ -464,27 +472,11 @@ function App() {
       })
       return Promise.all(promises)
     }, (responses) => setStations(responses), 150)
-    // .then((responses) => {
-    //   // console.log("responses", responses)
-    //   setStations(responses)
-    // })
-  }, [data, layerOrder, fetchData, setStations])
+  }, [dataRef, setStations, fetchLayerData, orderDomain])
 
   useEffect(() => {
     updateStations(selected)
-  }, [data, layerOrder, fetchData, setStations])
-
-
-
-  // compares two hilbert segments to see if they are equal
-  function checkRanges(a, b) {
-    if(!a || !b) return false
-    if(a.i == b.i && a.chromosome == b.chromosome && a.order == b.order) {
-      return true
-    }
-    return false
-  }
-
+  }, [updateStations, selected, data]) 
 
   return (
     <>
@@ -654,12 +646,13 @@ function App() {
         <div className='footer-row'>
           <div className='linear-tracks'>
             <TrackPyramid
-              state={data} 
+              state={trackState} 
               tracks={tracks}
-              width={width * 0.95}
+              tracksLoading={tracksLoading}
+              width={width * 1.0}
               height={100}
               segment={!showGaps}
-              hovered={hover} 
+              hovered={lastHover} 
               selected={selected} 
               setHovered={handleHover} 
             ></TrackPyramid>

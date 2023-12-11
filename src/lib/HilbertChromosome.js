@@ -23,6 +23,15 @@ export function hilbertPosToOrder(pos, {
   return Math.floor(pos / Math.pow(4, from - to))
 }
 
+// compares two hilbert segments to see if they are equal
+export function checkRanges(a, b) {
+  if(!a || !b) return false
+  if(a.i == b.i && a.chromosome == b.chromosome && a.order == b.order) {
+    return true
+  }
+  return false
+}
+
 // This class allows us to calculate the points of the hilbert curve in a chromosome
 // aware way. We can get the points for a chromosome at any order, and we can get
 // the points only within a bounding box

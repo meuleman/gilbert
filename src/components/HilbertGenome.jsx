@@ -103,6 +103,10 @@ function reducer(state, action) {
   }
 }
 
+// we define these globally so they dont get reset by app rerenders
+const dataDebounceTimed = debouncerTimed()
+const dataDebounce = debouncer()
+
 const HilbertGenome = ({
     orderMin = 4,
     orderMax = 14,
@@ -161,8 +165,6 @@ const HilbertGenome = ({
 
   // this debounced function fetches the data and updates the state
   const fetchData = useMemo(() => {
-    const debounceTimed = debouncerTimed()
-    const debounce = debouncer()
     return () => {
       // we dont want to fetch data if the order is not within the layer order range
       if (state.order < layer.orders[0] || state.order > layer.orders[1]) return;
@@ -199,19 +201,21 @@ const HilbertGenome = ({
         }
         // dispatch({ type: actions.SET_LOADING, payload: { loading: false } });
       }
+      // TODO: we should cancel dataClient.fetchData requests if they are in progress when a new request is made
+      // this would require some more tracking of requests and plumbing in dataClient to be able to abort them
       if(state.zooming) {
-        debounceTimed(() => {
+        dataDebounceTimed(() => {
           dispatch({ type: actions.SET_LOADING, payload: { loading: true } });
           return dataClient.fetchData(layer, state.order, state.points)
         }, myCallback, 150)
       } else {
-        debounce(() => {
+        dataDebounce(() => {
           dispatch({ type: actions.SET_LOADING, payload: { loading: true } });
           return dataClient.fetchData(layer, state.order, state.points)
         }, myCallback, 150)
       }
     }
-  }, [state.zooming, state.order, state.points, state.metas, state.transform, layer]);
+  }, [state.zooming, state.order, state.points, state.metas, state.metaLayer, state.transform, layer]);
 
   // when the data changes, let the parent component know
   useEffect(() => {
@@ -252,7 +256,6 @@ const HilbertGenome = ({
 
   // setup the zoom behavior
   const zoomBehavior = useMemo(() => {
-    // console.log("zoombehavior init")
     return zoom()
       .extent([
         [0, 0],
@@ -376,7 +379,7 @@ const HilbertGenome = ({
     // we want to fetch after every time the points recalculate
     // this will be often but the fetch is debounced
     fetchData()
-  }, [state.points, state.metas, fetchData])
+  }, [state.points, state.metas, state.metaLayer, fetchData])
 
   useEffect(() => {
     // we want to make sure and render again once the data loads

@@ -32,6 +32,7 @@ const TrackPyramid = ({
   margin = 5,
   state = null,
   tracks = [], // data from other orders
+  tracksLoading = false,
   hovered = null,
   selected = null,
   segment=true,
@@ -43,6 +44,8 @@ const TrackPyramid = ({
   let segments, widths, xExtents, xScales;
   let xScale
   let bw, bpSize
+  const loadingColor = "lightgray"
+  const marginRight = 10
 
   if(canvasRef.current) {
     const ctx = canvasRef.current.getContext('2d');
@@ -77,7 +80,7 @@ const TrackPyramid = ({
 
           xScale = scaleLinear()
           .domain(xExtent)
-          .range([0, width - 40])
+          .range([0, width - marginRight])
 
           if (data.length > 1) {
             bw = xScale(track[1].start) - xScale(track[0].start)
@@ -112,7 +115,7 @@ const TrackPyramid = ({
           xExtents = segments.map(track => extent(track, d => d?.start)).map(d => [d[0], d[1] + bpSize])
           // add up the lengths of the segments
           const totalLength = xExtents.reduce((a, b) => a + (b[1] - b[0]), 0)
-          widths = xExtents.map(xExtent => (xExtent[1] - xExtent[0]) / totalLength * (width - 41))
+          widths = xExtents.map(xExtent => (xExtent[1] - xExtent[0]) / totalLength * (width - 1 - marginRight))
 
           let lastW = 0
           xScales = widths.map((w,i) => {
@@ -147,7 +150,7 @@ const TrackPyramid = ({
                   let x = xScales[si](d.start)
                   let y = 0
                   ctx.globalAlpha = Math.min(1, 0.5 + 0.8 * sample.value / yExtent[1])
-                  ctx.fillStyle = fieldColor(sample.field)
+                  ctx.fillStyle = tracksLoading ? loadingColor : fieldColor(sample.field)
                   ctx.fillRect(x, y - margin, sbw, trackHeight)
                 }
               })
@@ -166,7 +169,7 @@ const TrackPyramid = ({
                     let x = xScales[si](d.start)
                     let y = 0
                     ctx.globalAlpha = Math.min(1, 0.5 + 0.8 * sample.value / yExtent[1])
-                    ctx.fillStyle = fieldColor(sample.field)
+                    ctx.fillStyle = tracksLoading ? loadingColor : fieldColor(sample.field)
                     ctx.fillRect(x, y - margin + height - ((i+1) * trackHeight), orderBw, trackHeight)
                   }
                 })
@@ -181,7 +184,7 @@ const TrackPyramid = ({
                 let x = xScale(d.start)
                 let y = 0
                 ctx.globalAlpha = Math.min(1, 0.5 + 0.8 * sample.value / yExtent[1])
-                ctx.fillStyle = fieldColor(sample.field)
+                ctx.fillStyle = tracksLoading ? loadingColor : fieldColor(sample.field)
                 ctx.fillRect(x, y - margin, bw, trackHeight)
               }
             })
@@ -195,7 +198,7 @@ const TrackPyramid = ({
                   let x = xScale(d.start)
                   let y = 0
                   ctx.globalAlpha = Math.min(1, 0.5 + 0.8 * sample.value / yExtent[1])
-                  ctx.fillStyle = fieldColor(sample.field)
+                  ctx.fillStyle = tracksLoading ? loadingColor : fieldColor(sample.field)
                   ctx.fillRect(x, y - margin + height - ((i+1) * trackHeight), orderBw, trackHeight)
                 }
               })
@@ -279,42 +282,55 @@ const TrackPyramid = ({
     }
   }
 
+
+  // TODO this could be cleaner... useCallback needs refs tho
+  let xScaleRef = useRef(xScale)
+  xScaleRef.current = xScale
+  let xScalesRef = useRef(xScales)
+  xScalesRef.current = xScales
+  let bwRef = useRef(bw)
+  bwRef.current = bw
+  let bpSizeRef = useRef(bpSize)
+  bpSizeRef.current = bpSize
+  let segmentRef = useRef(segment)
+  let segmentsRef = useRef(segments)
+  segmentsRef.current = segments
+  let trackRef = useRef(track)
+  trackRef.current = track
+  // console.log("???", bw, bwRef)
+
   let handleMouseMove = useCallback((event) => {
     if(canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect();
       const x = event.clientX - rect.left;
       // first figure out which segment we are in
-      let xs = xScale;
-      let xbw = bw;
+      let xs = xScaleRef.current;
+      let xss = xScalesRef.current;
+      let xbw = bwRef.current;
+      let segs = segmentsRef.current;
       let si = 0;
 
-      if(segment && xScales) {
-        xScales.forEach((xs,i) => {
-          let we = xs.range()
+      if(segmentRef.current && xss) {
+        xss.forEach((xsi,i) => {
+          let we = xsi.range()
           if(x >= we[0] && x <= we[1]) {
             si = i
           }
         })
-        xs = xScales[si]
-        xbw = xs(segments[si][1].start) - xs(segments[si][0].start)
+        xs = xss[si]
+        xbw = xs(segs[si][1].start) - xs(segs[si][0].start)
       }
-      // console.log(bw, xbw)
       if(xs) {
-        let startbp = invertScaleLinear(xs, x, xbw, bpSize)
-        // console.log("x", x, "segment index", si, "x scale range", xs.range(), "result bp", startbp)
-        // if(index >= 0) {
+        let startbp = invertScaleLinear(xs, x, xbw, bpSizeRef.current)
         if(startbp) {
-          // let hit = track.find(d => d.i == index)
-          let hit = track.find(d => d.start == startbp)
-          // let hit = track[index]
+          let hit = trackRef.current.find(d => d.start == startbp)
           if(hit) {
-            console.log("hit", hit, x, xbw)
             setHovered(hit)
           }
         }
       }
     }
-  },[setHovered, bw, bpSize, xScale, canvasRef, segment, xScales, segments, xExtents, track]);
+  },[canvasRef, setHovered]);
  
   return (
     <div className="track-pyramid">
@@ -325,7 +341,7 @@ const TrackPyramid = ({
         ref={canvasRef}
         onMouseMove={handleMouseMove}
       />     
-      <div className="annotations">order: {state?.order}</div>
+      {/* <div className="annotations">order: {state?.order}</div> */}
        {/* {hit && coordExtent &&  <div className="annotations">
           <div className="start">{hit.chromosome}:{coordExtent[0]} </div>
           <div className="end">{hit.chromosome}:{coordExtent[1]}</div>

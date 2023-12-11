@@ -1,4 +1,5 @@
-
+// This version will only return the result of the last call to be made within the delay period
+// This means that if many calls are made within the delay period, all will be invoked but only the last returned
 function debouncer() {
   let timeoutId = null;
   let lastInvocationTimestamp = null;
@@ -29,6 +30,8 @@ function debouncer() {
   return debounce
 }
 
+// This version will only allow a call to be made after the delay period has passed
+// So if many calls are made within the delay period, only the first one will be invoked
 function debouncerTimed() {
   let allowCall = true
   function debounceTimed(promiseFn, callback, delay) {
@@ -53,6 +56,8 @@ function debouncerTimed() {
 let timeoutIds = {};
 let tokens = {};
 
+// This version works the same as `debouncer` but allows you to specify a name for the timeout
+// This way you can debounce the same function called with different parameters without blocking each other
 function debounceNamed(promise, callback, delay, name) {
   // If a timeout is already running with the same name, clear it
   if (timeoutIds[name] !== undefined) {
