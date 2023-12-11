@@ -26,11 +26,18 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
     }
 
     // the min and max for scaling
-    let fields = meta["fields"]
     let nonzero_min = meta["nonzero_min"]
-    let min = nonzero_min ? nonzero_min : meta["min"]
+    let fields, max, min
+    if ((meta["fields"].length == 2) && (meta["fields"][0] == "max_field") && (meta["fields"][1] == "max_value")) {
+      fields = meta["full_fields"]
+      max = meta["full_max"]
+      min = nonzero_min ? nonzero_min : meta["full_min"]
+    } else {
+      fields = meta["fields"]
+      max = meta["max"]
+      min = nonzero_min ? nonzero_min : meta["min"]
+    }
     if(!min.length && min < 0) min = 0;
-    let max = meta["max"]
 
     // rendering constants
     let t = {...transform}
