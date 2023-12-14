@@ -7,7 +7,6 @@ import { HilbertChromosome, hilbertPosToOrder, checkRanges } from './lib/Hilbert
 import { debounceNamed, debouncerTimed } from './lib/debounce'
 import { range } from 'd3-array'
 
-
 // base component
 import HilbertGenome from './components/HilbertGenome'
 // rendering components
@@ -62,6 +61,9 @@ import NarrateRegion from './components/Narration/NarrateRegion'
 import SelectedModalNarration from './components/Narration/SelectedModalNarration'
 import GenesetEnrichment from './components/SimSearch/GenesetEnrichment';
 import Spectrum from './components/Spectrum';
+
+import { ReactComponent as GilbertLogo } from "./assets/gilbert-logo.svg?react"
+
 
 const layers = [
   Bands,
@@ -485,7 +487,9 @@ function App() {
   return (
     <>
       <div className="header">
-        <div className="header-panel title">gilbert</div>
+        <div className="header-panel title">
+          <GilbertLogo />
+        </div>
 
         <div className="header-panel narration">
           <SelectedModalNarration
