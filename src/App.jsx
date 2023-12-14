@@ -143,10 +143,13 @@ function App() {
     return size;
   }
 
+  // Zoom duration for programmatic zoom
   const [duration, setDuration] = useState(10000)
   const handleChangeDuration = (e) => {
     setDuration(+e.target.value)
   }
+
+  const [isZooming, setIsZooming] = useState(false)
 
   const [layerLock, setLayerLock] = useState(false)
   const [layerLockFromIcon, setLayerLockFromIcon] = useState(null)
@@ -414,13 +417,14 @@ function App() {
       }
       // debounce a function call with a name to make sure no collisions
       // collision would be accidentally debouncing a different data call because we reuse this function
-      debounceNamed(myPromise, myCallback, 150, key+":"+layer.name+":"+order) // layer.name + order makes unique call 
+      debounceNamed(myPromise, myCallback, 50, key+":"+layer.name+":"+order) // layer.name + order makes unique call 
     }
   }, []);
 
   // When data or selected changes, we want to update the tracks
   useEffect(() => {
     if(!dataRef.current) return
+    if(isZooming) return;
     const minOrder = Math.max(layerRef.current.orders[0], dataRef.current.order - 5)
     let promises = range(minOrder, dataRef.current.order).map(order => {
       return new Promise((resolve) => {
@@ -429,7 +433,7 @@ function App() {
         })
       })
     })
-    setTracksLoading(true)
+    // if(isZooming) setTracksLoading(true)
     Promise.all(promises).then((responses) => {
       setTrackState(dataRef.current)
       setTracks(responses)
@@ -437,7 +441,7 @@ function App() {
     })
   // make sure this updates only when the data changes
   // the pyramid will lag behind a little bit but wont make too many requests
-  }, [data]) 
+  }, [zoom, data, isZooming, fetchLayerData]) 
 
   // When data or selected changes, we want to update the zoom legend
   let updateStations = useCallback((hit) => {
@@ -541,6 +545,7 @@ function App() {
             onHover={handleHover}
             onClick={handleClick}
             onData={onData}
+            onZooming={(d) => setIsZooming(d.zooming)}
             // onLayer={handleLayer}
             debug={showDebug}
           />
@@ -648,7 +653,7 @@ function App() {
             <TrackPyramid
               state={trackState} 
               tracks={tracks}
-              tracksLoading={tracksLoading}
+              tracksLoading={isZooming || tracksLoading}
               width={width * 1.0}
               height={100}
               segment={!showGaps}

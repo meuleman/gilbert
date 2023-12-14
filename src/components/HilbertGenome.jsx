@@ -106,6 +106,7 @@ function reducer(state, action) {
 // we define these globally so they dont get reset by app rerenders
 const dataDebounceTimed = debouncerTimed()
 const dataDebounce = debouncer()
+const zoomDebounce = debouncer()
 
 const HilbertGenome = ({
     orderMin = 4,
@@ -130,6 +131,7 @@ const HilbertGenome = ({
     onHover = () => {},
     onClick = () => {},
     onData = () => {},
+    onZooming = () => {},
     debug = false,
   }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -234,6 +236,10 @@ const HilbertGenome = ({
   }, [state.data, state.dataOrder, state.dataLayer])
 
   useEffect(() => {
+    onZooming({ zooming: state.zooming })
+  }, [state.zooming, onZooming])
+
+  useEffect(() => {
     if (layer) {
       const dataClient = Data({ 
         // debug
@@ -303,60 +309,63 @@ const HilbertGenome = ({
 
   // Zoom event handler
   // This is responsible for setting up most of the rendering dependencies
+  // TODO: debounce this while we are programmatically zooming
   const handleZoom = useCallback((event) => {
-    let transform = event.transform;
-    let order
-    let orderRaw = orderDomain[0] + Math.log2(orderZoomScale(transform.k))
+    zoomDebounce(() => new Promise((resolve, reject) => {resolve()}), () => {
+      let transform = event.transform;
+      let order
+      let orderRaw = orderDomain[0] + Math.log2(orderZoomScale(transform.k))
 
-    // // logic for calculating the order
-    // if(pinOrder) {
-    //   // we want to stay at this order
-    //   order = pinOrder
-    //   // if the zoom out is more than 1.5 orders away from the pinned order, we lower the order
-    //   // this way we never load too much data
-    //   if(order - orderRaw >= 1.5) {
-    //     order -= Math.floor(order - orderRaw)
-    //   } 
-    // } else {
-      // this is the default behavior, calculating the order from the zoom
-      order = Math.floor(orderRaw)
-    // }
-    // we always offset if asked
-    if(orderOffset) {
-      order += orderOffset
-    }
-    // make sure our order never goes out of bounds
-    if(order < orderDomain[0]) order = orderDomain[0]
-    if(order > orderDomain[1]) order = orderDomain[1]
+      // // logic for calculating the order
+      // if(pinOrder) {
+      //   // we want to stay at this order
+      //   order = pinOrder
+      //   // if the zoom out is more than 1.5 orders away from the pinned order, we lower the order
+      //   // this way we never load too much data
+      //   if(order - orderRaw >= 1.5) {
+      //     order -= Math.floor(order - orderRaw)
+      //   } 
+      // } else {
+        // this is the default behavior, calculating the order from the zoom
+        order = Math.floor(orderRaw)
+      // }
+      // we always offset if asked
+      if(orderOffset) {
+        order += orderOffset
+      }
+      // make sure our order never goes out of bounds
+      if(order < orderDomain[0]) order = orderDomain[0]
+      if(order > orderDomain[1]) order = orderDomain[1]
 
-    // update the svg transform (zooms the svg)
-    select(sceneRef.current)
-      .attr("transform", transform)
+      // update the svg transform (zooms the svg)
+      select(sceneRef.current)
+        .attr("transform", transform)
 
-    // calculate new state dependencies based on order and zoom 
-    let hilbert = HilbertChromosome(order, { padding: 2 })
-    let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
-    let points = hilbert.fromBbox(bbox)
+      // calculate new state dependencies based on order and zoom 
+      let hilbert = HilbertChromosome(order, { padding: 2 })
+      let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
+      let points = hilbert.fromBbox(bbox)
 
-    const payload = {
-      transform,
-      order,
-      bbox,
-      points,
-    }
+      const payload = {
+        transform,
+        order,
+        bbox,
+        points,
+      }
 
-    // update the state
-    dispatch({ type: actions.ZOOM, payload })
+      // update the state
+      dispatch({ type: actions.ZOOM, payload })
 
-    // update hover with the mouse event
-    if(event.sourceEvent){
-      handleMouseMove(event.sourceEvent)
-    }
-    
-    // update the parent component
-    onZoom(payload)
-    // we want to update our canvas renderer immediately with new transform
-    renderCanvas(transform, points)
+      // update hover with the mouse event
+      if(event.sourceEvent){
+        handleMouseMove(event.sourceEvent)
+      }
+      
+      // update the parent component
+      onZoom(payload)
+      // we want to update our canvas renderer immediately with new transform
+      renderCanvas(transform, points)
+    }, 5)
   }, [
     xScale, yScale, 
     width, height, 
