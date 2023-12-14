@@ -12,24 +12,19 @@ const LayerLegend = ({
   searchByFactorInds,
   maxNumFactors=25,
 } = {}) => {
+  let fullFactorList, factorsToShow, factorsToHighlight = []
   let layerName, SBFFactors, SBFFactorNames, SBFFactorInds = null
+  var factorList = document.getElementById('factor-list');
+  if(factorList) factorList.innerHTML = '';
+
+  // if the legend is hidden or not
   const [hidden, setHidden] = useState(false)
 
-  if(data) {
-    layerName = data.layer.name
+  const handleClickForHidden = function () {
+    setHidden(!hidden)
   }
-  if(layerName) {
-    if(layerName === 'DHS Components') {
-      SBFFactors = SimSearchFactors['DHS']
-    } else if(layerName === 'Chromatin States') {
-      SBFFactors = SimSearchFactors['Chromatin States']
-    }
-    if(SBFFactors) {
-      SBFFactorNames = SBFFactors.map(f => f.fullName)
-      SBFFactorInds = SBFFactors.map(f => f.ind)
-    }
-  }
-  
+
+  // function to handle the click for adding factors to the search by factor list
   const handleClick = (factor) => {
     if(SBFFactors) {
       const factorInd = SBFFactorNames.indexOf(factor)
@@ -46,88 +41,103 @@ const LayerLegend = ({
     }
   }
 
-  var factorList = document.getElementById('factor-list');
-  if(factorList) factorList.innerHTML = '';
+  // set layer name and search by factor factors
+  layerName = data?.layer.name
+  if(layerName === 'DHS Components') SBFFactors = SimSearchFactors['DHS'];
+  else if(layerName === 'Chromatin States') SBFFactors = SimSearchFactors['Chromatin States'];
+  if(SBFFactors) {
+    SBFFactorNames = SBFFactors.map(f => f.fullName)
+    SBFFactorInds = SBFFactors.map(f => f.ind)
+  }
+  
+  // set the full list of factors
+  if(data) {
+    let meta = data.meta
+    if(meta) {
+      fullFactorList = (
+        (meta.fields.length == 2) && (meta.fields[0] == "max_field") && (meta.fields[1] == "max_value")
+      ) ? meta['full_fields'] : meta['fields']
+    }
+  }
 
-  let inViewData, singleSegmentData, factors, hoverData, factorDataForList
-  let hoverHighlights = []
-
-
-  if(data && !hidden) {
-    if(data.data.length > 0) {
-      inViewData = data.data
-      singleSegmentData = inViewData[0].data
-      let fullFactorList = Object.keys(singleSegmentData)
-      factors = fullFactorList
-
-      // reorder DHS factors
-      if(layerName && ((layerName === 'DHS Components') || (layerName === 'DHS OE Chi'))) {
-        factors = SimSearchFactors['DHS'].map(f => f.fullName)
+  // set the factors to show
+  // if there are less than maxNumFactors, show all factors
+  if(fullFactorList && (fullFactorList.length <= maxNumFactors)) {
+    factorsToShow = fullFactorList
+  } else {
+    let dataToShow
+    // prioritize selected data
+    if(selected?.data) {
+      dataToShow = selected.data
+    // if no selected data, use hover data
+    } else if(hover?.data) {
+      dataToShow = hover.data
+    }
+    if(dataToShow) {
+      let dataToShowFactors = Object.keys(dataToShow)
+      let dataToShowValues = Object.values(dataToShow)
+      // if max layer, set other factors and their corresponding values to 0
+      if ((dataToShowFactors.length == 2) && (dataToShowFactors[0] == "max_field") && (dataToShowFactors[1] == "max_value")) {
+        dataToShow = Object.fromEntries(fullFactorList.map((f, i) => {
+          return [f, (fullFactorList[dataToShowValues[0]] == f) ? dataToShowValues[1] : 0]
+          }
+        ))
+        dataToShowFactors = Object.keys(dataToShow)
+        dataToShowValues = Object.values(dataToShow)
       }
-
-      if(factors) {
-        if(hover) {
-          hoverData = hover.data
-          factorDataForList = hoverData
-        }
-        if (hoverData) {
-          hoverHighlights = factors.filter((f) => {return hoverData[f] > 0})
-        }
-
-        if(factors.length > maxNumFactors) {  // if there are too many factors to show
-          if(selected?.data && (Object.keys(selected.data).filter(f => fullFactorList.includes(f)).length === fullFactorList.length)) {
-            factorDataForList = selected.data
+      // ensure that the factors are for our current layer
+      if(
+        (dataToShowFactors.length > 0) && 
+        (dataToShowFactors.filter(f => fullFactorList.includes(f)).length === dataToShowFactors.length)
+      ) {
+        // sort the factors by their values
+        let factorValues = dataToShowValues.map((v, i) => {
+          return { value: v, index: i, factor: dataToShowFactors[i] }
+        }).sort((f1, f2) => {return f2.value - f1.value})
+        // filter out factors with 0 values and take the top maxNumFactors
+        let factorValuesFiltered = factorValues.filter((f, i) => {
+          if((f.value > 0) && (i < maxNumFactors)){
+            return f.factor
           }
-          if(factorDataForList && (Object.keys(factorDataForList).filter(f => fullFactorList.includes(f)).length === fullFactorList.length)) {
-            // use hover data to get factor order
-            let factorValues = Object.values(factorDataForList).map((v, i) => {
-              return {value: v, index: i}
-            })
-            factorValues.sort((f1, f2) => {return f2.value - f1.value})
-            // filter to relevant factors
-            const factorValuesFiltered = factorValues.filter((f, i) => {
-              if((f.value > 0) && (i < maxNumFactors)){
-                return factors[f.index]
-              }
-            })
-            // reorder factors
-            factors = factorValuesFiltered.map((f) => {
-              return factors[f.index]
-            })
-          } else {
-            factors = []
-          }
-        }
-        
-
-        let factorPos    
-        factorPos = factors.map((f, i) => {
-          if(factorList) {
-            var factorElement = document.createElement('li');
-            factorElement.classList.add('factor-item');
-            factorElement.textContent = f
-            // add on click behavior
-            factorElement.onclick = () => handleClick(f)
-            // Set the color of the square bullet using CSS variable
-            factorElement.style.setProperty('--bullet-color', data.layer.fieldColor(f));  
-            if(hoverHighlights.includes(f)) 
-              factorElement.style.textShadow = '1px 0px 0px black';
-            if(SBFFactorNames) {
-              const SBFFactorInd = SBFFactorInds[SBFFactorNames.indexOf(f)]
-              if(searchByFactorInds.includes(SBFFactorInd)) {
-                factorElement.style.setProperty('--checkmark', `'\\2713'`)
-              }
-            }
-            factorList.appendChild(factorElement)
-          }
-          return 
         })
+        factorsToShow = factorValuesFiltered.map(f => f.factor)
       }
     }
   }
 
-  const handleClickForHidden = function () {
-    setHidden(!hidden)
+  // set the factors to highlight
+  if(hover?.data) {
+    let hoverData = hover.data
+    let hoverKeys = Object.keys(hoverData)
+    if ((hoverKeys.length == 2) && (hoverKeys[0] == "max_field") && (hoverKeys[1] == "max_value")) {
+      let factorName = fullFactorList[hover.data.max_field]
+      hoverData = {[factorName]: hover.data.max_value}
+    }
+    factorsToHighlight = fullFactorList.filter((f) => {return hoverData[f] > 0})
+  }
+
+  // add factors to legend
+  if(!hidden) {
+    factorsToShow?.forEach((f) => {
+      if(factorList) {
+        var factorElement = document.createElement('li');
+        factorElement.classList.add('factor-item');
+        factorElement.textContent = f
+        // add on click behavior
+        factorElement.onclick = () => handleClick(f)
+        // Set the color of the square bullet using CSS variable
+        factorElement.style.setProperty('--bullet-color', data.layer.fieldColor(f));  
+        if(factorsToHighlight.includes(f)) 
+          factorElement.style.textShadow = '1px 0px 0px black';
+        if(SBFFactorNames) {
+          const SBFFactorInd = SBFFactorInds[SBFFactorNames.indexOf(f)]
+          if(searchByFactorInds.includes(SBFFactorInd)) {
+            factorElement.style.setProperty('--checkmark', `'\\2713'`)
+          }
+        }
+        factorList.appendChild(factorElement)
+      }
+    })
   }
 
   return (
