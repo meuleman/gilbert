@@ -32,17 +32,21 @@ import GeneCounts from './layers/gene_counts'
 import Nucleotides from './layers/nucleotides'
 import DHS_OE_Chi from './layers/dhs_oe_chi'
 import DHS_Components_Sfc from './layers/dhs_components_sfc'
+import DHS_Components_Sfc_max from './layers/dhs_components_sfc_max'
 import DHS_Mean_Signal from './layers/dhs_meansignal'
 import DHS_Density from './layers/dhs_density'
 // import Chromatin_OE_Chi from './layers/chromatin_oe_chi'
 import Chromatin_States_Sfc from './layers/chromatin_states_sfc'
+import Chromatin_States_Sfc_max from './layers/chromatin_states_sfc_max';
 // import TF_Motifs_OE_Chi from './layers/tf_motifs_oe_chi'
 import TF_Motifs_Sfc from './layers/tf_motifs_sfc'
 import TF_Motifs_Sfc_max from './layers/tf_motifs_sfc_max'
 import DHS_mapped_TF_motifs_sfc from './layers/dhs_mapped_tf_motifs_sfc'
+import DHS_mapped_TF_motifs_sfc_max from './layers/dhs_mapped_tf_motifs_sfc_max'
 import UKBB from './layers/ukbb'
 import UKBB_Counts from './layers/ukbb_counts'
 import Repeats_Sfc from './layers/repeats_sfc'
+import Repeats_Sfc_max from './layers/repeats_sfc_max'
 import CpG_Island_Density from './layers/cpg_islands_density'
 import ENCSR000EOT from './layers/encode_ENCSR000EOT_max'
 import CD3 from './layers/encode_CD3_D2_Stim_AG90658_output_2.5.1_max'
@@ -70,6 +74,7 @@ const layers = [
   Nucleotides,
   DHS_OE_Chi,
   DHS_Components_Sfc,
+  DHS_Components_Sfc_max,
   DHS_Mean_Signal,
   DHS_Density,
   // DHS_Coreg_2500,
@@ -77,11 +82,14 @@ const layers = [
   // DHS_Coreg_Best_Scale_max,
   // Chromatin_OE_Chi,
   Chromatin_States_Sfc,
+  Chromatin_States_Sfc_max,
   // TF_Motifs_OE_Chi,
   TF_Motifs_Sfc,
   TF_Motifs_Sfc_max,
   DHS_mapped_TF_motifs_sfc,
+  DHS_mapped_TF_motifs_sfc_max,
   Repeats_Sfc,
+  Repeats_Sfc_max,
   UKBB,
   UKBB_Counts,
   CpG_Island_Density,

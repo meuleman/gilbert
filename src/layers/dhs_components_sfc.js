@@ -5,10 +5,10 @@ import * as constants from "../lib/constants";
 
 export default {
   name: "DHS Components",
-  datasetName: "dhs_sfc",
+  datasetName: "dhs_offset0_sfc",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseURLPrefix}/20230622`,
-  orders: [4,12],
+  baseURL: `${constants.baseURLPrefix}/20231020`,
+  orders: [4,10],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
