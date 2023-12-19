@@ -1,21 +1,22 @@
 .layer-dropdown-container {
-  border: 0px solid black;
-  position: relative;
-  right: 0px;
+  display: flex;
+  align-items: center;
+  column-gap: 5px;
   width: 100%;
   height: fit-content;
-  /* margin-right: 5px;
-  margin-top: -10px; */
+}
+
+.layer-dropdown-parent {
+  flex-grow: 1;
 }
 
 .layer-dropdown {
+  display: block;
+  box-sizing: border-box;
   width: 100%;
 }
 
 .layer-locked {
-  position: absolute;
-  top: 30px;
-  right: 4px;
   background-image: url(./Lenses/locked.png);
   background-repeat: no-repeat;
   background-size: 20px 25px;
@@ -25,13 +26,15 @@
 }
 
 .layer-unlocked {
-  position: absolute;
-  top: 30px;
-  right: 10px;
   background-image: url(./Lenses/unlocked.png);
   background-repeat: no-repeat;
   background-size: 25px 25px;
   width: 25px;
   height: 25px;
   cursor: pointer;
+}
+
+.lock-container {
+  flex-grow: 0;
+  flex-shrink: 0;
 }

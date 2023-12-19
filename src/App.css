@@ -28,6 +28,44 @@
   animation: spin 0.5s linear infinite;
 }
 
+/* ................................. HEADER REDUX ............................. */
+
+.footer {
+  grid-column: span 2;
+  background-color: #333;
+}
+
+.header {
+  box-sizing: border-box;
+  display: flex;
+  column-gap: 14px;
+  padding: 14px;
+}
+
+.header--brand,
+.header--search {
+  flex: 0 0 auto;
+}
+
+.header--narration {
+  flex: 1 0 auto;
+}
+
+.primary-grid {
+  display: grid;
+  grid-template-columns: [left-col] 1fr [right-col] 230px [end-col];
+  grid-template-rows: [header] max-content [content] 1fr [footer] max-content [end];
+  height: 100vh;
+}
+
+
+/* ................................. HEADER REDUX ............................. */
+
+.header2 {
+  display: flex;
+  align-items: center;
+}
+
 /* .................................... HEADER ................................ */
 
 .header {
@@ -107,17 +145,34 @@
 
 .hilbert-container {
   width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* ................................. LAYER COLUMN ............................. */
 
 
 .layer-column {
+  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
   width: 100%;
-  margin-right: 5px;
+  height: 100%;
+}
+
+.lenses {
+  min-height: 0;
+}
+
+.zoom-legend-container {
+  flex-grow: 1;
+  overflow: auto;  
+  min-height: 0;
+}
+  
+/* .............................HILBERT VISUALIZATION ......................... */
+
+.visualization {
   position: relative;
+  overflow: hidden;
 }

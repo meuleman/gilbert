@@ -41,28 +41,28 @@ const LayerDropdown = ({
 
   return (
     <div className="layer-dropdown-container">
-      <select className='layer-dropdown' value={tlayer.name} onChange={handleChange}>
-        {layers.map((layer) => (
-          <option 
-            key={layer.name} 
-            value={layer.name}
-            disabled={disabledKeys.includes(layer.name)}
-          >
-            {layer.name} ({layer.orders[0]}-{layer.orders[1]})
-          </option>
-        ))}
-      </select>
-      <br/>
-      <span className="warning" style={{color: "red"}}>
-      {disabledKeys.includes(tlayer.name) && "⚠️ Layer out of bounds"}
-      </span>
-      <div className={
-          (layerLock) ? 
-            'layer-locked'
-          : 'layer-unlocked'
-        }
-        onClick={() => handleLayerLock()}
-      />
+      <div className="layer-dropdown-parent">
+        <select className='layer-dropdown' value={tlayer.name} onChange={handleChange}>
+          {layers.map((layer) => (
+            <option 
+              key={layer.name} 
+              value={layer.name}
+              disabled={disabledKeys.includes(layer.name)}
+            >
+              {layer.name} ({layer.orders[0]}-{layer.orders[1]})
+            </option>
+          ))}
+        </select>
+        <div className="warning" style={{color: "red"}}>
+          {disabledKeys.includes(tlayer.name) && "⚠️ Layer out of bounds"}
+        </div>
+      </div>
+      <div className="lock-container">
+        <div
+          className={layerLock ? 'layer-locked' : 'layer-unlocked'}
+          onClick={() => handleLayerLock()}
+        />
+      </div>
     </div>
   );
 }

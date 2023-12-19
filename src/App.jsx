@@ -62,7 +62,7 @@ import SelectedModalNarration from './components/Narration/SelectedModalNarratio
 import GenesetEnrichment from './components/SimSearch/GenesetEnrichment';
 import Spectrum from './components/Spectrum';
 
-import { ReactComponent as GilbertLogo } from "./assets/gilbert-logo.svg?react"
+import GilbertLogo from "./assets/gilbert-logo.svg?react"
 
 
 const layers = [
@@ -131,12 +131,11 @@ function App() {
     useEffect(() => {
       function updateSize() {
         if(!containerRef.current) return
-        //let { height } = containerRef.current.getBoundingClientRect()
-        let height = window.innerHeight - 270;
-        // account for the zoom legend (30) and padding (48)
-        let w = window.innerWidth - 30 - 24 - 180// - 500
-        // console.log("sup", window.innerWidth, w, width)
-        setSize([w, height]);
+        const { height, width } = containerRef.current.getBoundingClientRect()
+        console.log(containerRef.current.getBoundingClientRect())
+        console.log("width x height", width, height)
+
+        setSize([width, height]);
       }
       window.addEventListener('resize', updateSize);
       updateSize();
@@ -486,21 +485,267 @@ function App() {
 
   return (
     <>
-      <div className="header">
-        <div className="header-panel title">
-          <GilbertLogo />
+      <div className="primary-grid">
+        {/* header row */}
+        <div className="header">
+          <div className="header--brand">
+            <GilbertLogo height="50" width="auto" />
+          </div>
+          <div className="header--narration">
+            <SelectedModalNarration
+              selectedNarration={selectedNarration}
+            />
+          </div>
+          <div className="header--search">
+            <Autocomplete
+              onChangeLocation={handleChangeLocationViaAutocomplete}
+            />
+          </div>
         </div>
+        <div className="lensmode">
+          <LensModal
+            layers={layers}
+            currentLayer={layer}
+            setLayerOrder={setLayerOrder}
+            setLayer={setLayer}
+            setLayerLock={setLayerLock}
+            layerLock={layerLock}
+            setLayerLockFromIcon={setLayerLockFromIcon}
+            layerLockFromIcon={layerLockFromIcon}
+            setSearchByFactorInds={setSearchByFactorInds}
+            setLensHovering={setLensHovering}
+            lensHovering={lensHovering}
+            order={zoom.order}
+          />
+          <LayerDropdown
+            layers={layers}
+            activeLayer={layer}
+            onLayer={handleLayer}
+            order={zoom.order}
+            layerLock={layerLock}
+            setLayerLock={setLayerLock}
+            setLayerLockFromIcon={setLayerLockFromIcon}
+          />
+        </div>
+        
+        {/* primary content */}
+        <div className="visualization">
+          <LayerLegend 
+            data={data}
+            hover={hover}
+            selected={selected}
+            handleFactorClick={handleFactorClick}
+            searchByFactorInds={searchByFactorInds}
+          />
+          <div ref={containerRef} className="hilbert-container">
+            {containerRef.current && (
+              <HilbertGenome 
+                orderMin={orderDomain[0]}
+                orderMax={orderDomain[1]}
+                zoomMin={zoomExtent[0]}
+                zoomMax={zoomExtent[1]}
+                width={width} 
+                height={height}
+                zoomToRegion={region}
+                activeLayer={layer}
+                orderOffset={orderOffset}
+                zoomDuration={duration}
+                // pinOrder={region?.order}
+                layers={layers}
+                SVGRenderers={[
+                  SVGChromosomeNames({ }),
+                  showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
+                  RegionMask({ regions: [selected, ...similarRegions]}),
+                  SVGSelected({ hit: hover, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
+                  (
+                    (checkRanges(selected, similarRegionListHover)) ? 
+                    SVGSelected({ hit: selected, stroke: "darkgold", strokeWidthMultiplier: 0.05, showGenes: false })
+                    : SVGSelected({ hit: selected, stroke: "gold", strokeWidthMultiplier: 0.35, showGenes: false })
+                  ),
+                  // TODO: highlight search region (from autocomplete)
+                  // SVGSelected({ hit: region, stroke: "gray", strokeWidthMultiplier: 0.4, showGenes: false }),
+                  ...DisplaySimSearchRegions({ 
+                    similarRegions: similarRegions,
+                    // simSearch: simSearch, 
+                    // detailLevel: simSearchDetailLevel, 
+                    selectedRegion: region,
+                    // order: selectedOrder, 
+                    color: "gray", 
+                    clickedColor: "red",
+                    checkRanges: checkRanges,
+                    similarRegionListHover: similarRegionListHover,
+                    width: 0.05, 
+                    showGenes: false 
+                  }),
+                  showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
+                ]}
+                onZoom={handleZoom}
+                onHover={handleHover}
+                onClick={handleClick}
+                onData={onData}
+                onZooming={(d) => setIsZooming(d.zooming)}
+                // onLayer={handleLayer}
+                debug={showDebug}
+              />
+            )}
+          </div>
+        </div>
+        <div className="lenses">
+          <SelectedModalSimSearch
+            simSearch={simSearch}
+            searchByFactorInds={searchByFactorInds}
+            handleFactorClick={handleFactorClick}
+            selectedOrder={selectedOrder}
+            setRegion={setRegion}
+            setHover={setHover}
+          />
+          <div className='layer-column'>
+            <div className="zoom-legend-container">
+              {containerRef.current && (
+                <ZoomLegend 
+                  k={zoom.transform.k} 
+                  height={height} 
+                  effectiveOrder={zoom.order}
+                  zoomExtent={zoomExtent} 
+                  orderDomain={orderDomain} 
+                  layerOrder={layerOrder}
+                  layer={layer}
+                  layerLock={layerLock}
+                  lensHovering={lensHovering}
+                  stations={stations}
+                  selected={selected || hover}
+                  // selected={selected}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* footer */}
+        <div className="footer">
+          <div className='footer-row'>
+            <div className='linear-tracks'>
+              <TrackPyramid
+                state={trackState} 
+                tracks={tracks}
+                tracksLoading={isZooming || tracksLoading}
+                width={width * 1.0}
+                height={100}
+                segment={!showGaps}
+                hovered={lastHover} 
+                selected={selected} 
+                setHovered={handleHover} 
+              />
+            </div>
+          </div>
+          <StatusBar 
+            width={width + 12 + 30} 
+            hover={hover} // the information about the cell the mouse is over
+            layer={layer} 
+            zoom={zoom} 
+            onLayer={handleLayer}
+            layers={layers}
+          />
+          <div className="footer-panel">
+            <div className="footer-panel-left">
+              <label>
+                <input type="checkbox" checked={showDebug} onChange={handleChangeShowDebug} />
+                Debug
+              </label>
+              <label>
+                <input type="checkbox" checked={showHilbert} onChange={handleChangeShowHilbert} />
+                Show Hilbert Curve
+              </label>
+              <label>
+                <input type="checkbox" checked={showGenes} onChange={handleChangeShowGenes} />
+                Show Gene Overlays
+              </label>
+              <label>
+                <input type="checkbox" checked={showGaps} onChange={handleChangeShowGaps} />
+                Show gaps
+              </label>
+              <label>
+                <input type="number" value={duration} onChange={handleChangeDuration}></input>
+                Zoom duration
+              </label>
+              {/* <label>
+                <input type="checkbox" checked={layerLock} onChange={handleChangeLayerLock} />
+                Layer lock
+              </label> */}
+            </div>
+            <div className="footer-panel-right">
+              {/* this is an input that adds or subtracts to the calculated order */}
+              <label>
+                Order Offset ({orderOffset}, effective order {zoom.order})
+                <input type="range" min={-2} max={2} value={orderOffset} onChange={(e) => setOrderOffset(+e.target.value)} />
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  )
 
-        <div className="header-panel narration">
+  return (
+    <>
+      <div className="primary-grid">
+        {/* header row */}
+        <div className="header-col logo">
+          <psan>HEAD</psan>
+        </div>
+        <div className="header-col narration">
+          <psan>HEAD</psan>
+        </div>
+        <div className="header-col ">
+          <psan>HEAD</psan>
+        </div>
+        
+        {/* primary content */}
+        <div className="visualization">
+          <span>APP</span>
+        </div>
+        <div className="lenses">
+          <span>APP</span>
+        </div>
+        
+        {/* footer */}
+        <div className="footer-col">
+          <p>FOOT</p>
+        </div>
+      </div>
+      
+      <div className="header2">
+        <div className="logo">
+          <GilbertLogo
+            height="50"
+          />
+        </div>
+        <div className="narration">
           <SelectedModalNarration
             selectedNarration={selectedNarration}
           />
         </div>
-
-        <div className="header-panel zoomto">
-          <Autocomplete onChangeLocation={handleChangeLocationViaAutocomplete} />
+        <div className="search">
+          <Autocomplete
+            onChangeLocation={handleChangeLocationViaAutocomplete}
+          />
         </div>
-
+        <div className="lens-mode">
+          <LensModal
+            layers={layers}
+            currentLayer={layer}
+            setLayerOrder={setLayerOrder}
+            setLayer={setLayer}
+            setLayerLock={setLayerLock}
+            layerLock={layerLock}
+            setLayerLockFromIcon={setLayerLockFromIcon}
+            layerLockFromIcon={layerLockFromIcon}
+            setSearchByFactorInds={setSearchByFactorInds}
+            setLensHovering={setLensHovering}
+            lensHovering={lensHovering}
+            order={zoom.order}
+          />
+        </div>
       </div>
 
       <div className="panels">
@@ -584,20 +829,6 @@ function App() {
           setHover={setHover}
         />
         <div className='layer-column'>
-          <LensModal
-            layers={layers}
-            currentLayer={layer}
-            setLayerOrder={setLayerOrder}
-            setLayer={setLayer}
-            setLayerLock={setLayerLock}
-            layerLock={layerLock}
-            setLayerLockFromIcon={setLayerLockFromIcon}
-            layerLockFromIcon={layerLockFromIcon}
-            setSearchByFactorInds={setSearchByFactorInds}
-            setLensHovering={setLensHovering}
-            lensHovering={lensHovering}
-            order={zoom.order}
-          />
           <ZoomLegend 
             k={zoom.transform.k} 
             height={height} 

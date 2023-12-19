@@ -97,9 +97,7 @@ const ZoomLegend = ({
 
 
   return (
-    <div className="zoom-legend" style={{
-      height: height+"px"
-      }}>
+    <div className="zoom-legend">
       <div className="zoom-indicator-arrow" style={{
         position: "relative",
         display: "block",
