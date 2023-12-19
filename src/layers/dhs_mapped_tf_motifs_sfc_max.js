@@ -7,7 +7,7 @@ const tfColors = ["#23171b","#362357","#433087","#433087","#493dac","#493dac","#
 
 
 export default {
-  name: "(DHS) TF Motifs (MAX)",
+  name: "(DHS) TF Motifs",
   datasetName: "tf_overlapping_dhs_sfc_max",
   baseURL: `${constants.baseURLPrefix}/20230622`,
   orders: [4,12],
