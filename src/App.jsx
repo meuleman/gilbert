@@ -61,8 +61,12 @@ import Autocomplete from './components/Autocomplete/Autocomplete'
 import SimSearchRegion from './components/SimSearch/SimSearchRegion'
 import SimSearchByFactor from './components/SimSearch/SimSearchByFactor'
 import DisplaySimSearchRegions from './components/SimSearch/DisplaySimSearchRegions'
+import DisplayedExampleRegions from './components/ExampleRegions/DisplayExampleRegions';
+import exampleRegions from './components/ExampleRegions/domains.samples_3517.20kb.strict_max_mi.non_overlapping.gte_HBG2.qualifyingDHS_maxMI_sorted.CT20231212.json'
+// import exampleRegions from './components/ExampleRegions/domains.samples_3517.1kb.strict_max_mi.non_overlapping.gte_92.2per.maxMI_meanMI_sorted.CT20231212.json'
 import SelectedModalSimSearch from './components/SimSearch/SelectedModalSimSearch'
 import NarrateRegion from './components/Narration/NarrateRegion'
+import CrossScaleNarration from './components/Narration/CrossScaleNarration'
 import SelectedModalNarration from './components/Narration/SelectedModalNarration'
 import GenesetEnrichment from './components/SimSearch/GenesetEnrichment';
 import Spectrum from './components/Spectrum';
@@ -200,6 +204,7 @@ function App() {
   // const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(null)
   const [simSearchMethod, setSimSearchMethod] = useState(null)
   const [selectedNarration, setSelectedNarration] = useState(null)
+  const [crossScaleNarration, setCrossScaleNarration] = useState(new Array(11).fill(null))
   const [genesetEnrichment, setGenesetEnrichment] = useState(null)
   function handleClick(hit, order, double) {
     // console.log("app click handler", hit, order, double)
@@ -223,6 +228,14 @@ function App() {
         })
         NarrateRegion(hit, order).then((narrationResult) => {
           setSelectedNarration(narrationResult.narrationRanks)
+        })
+        CrossScaleNarration(hit, fetchLayerData, [
+          DHS_Components_Sfc_max,
+          Chromatin_States_Sfc_max,
+          TF_Motifs_Sfc_max,
+          Repeats_Sfc_max
+        ]).then(crossScaleResponse => {
+          setCrossScaleNarration(crossScaleResponse)
         })
         updateStations(hit)
       }
@@ -547,6 +560,14 @@ function App() {
                 width: 0.05, 
                 showGenes: false 
               }),
+              // ...DisplayedExampleRegions({
+              //   exampleRegions: exampleRegions ? exampleRegions : [],
+              //   hilbert: HilbertChromosome(zoom.order),
+              //   checkRanges: checkRanges,
+              //   width: 0.2,
+              //   color: "yellow",
+              //   numRegions: 1,
+              // }),
               showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
             ]}
             onZoom={handleZoom}
@@ -614,6 +635,7 @@ function App() {
             lensHovering={lensHovering}
             stations={stations}
             selected={selected || hover}
+            crossScaleNarration={crossScaleNarration}
             // selected={selected}
           />
           <LayerDropdown 
