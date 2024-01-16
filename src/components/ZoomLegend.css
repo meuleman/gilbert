@@ -17,6 +17,7 @@
   width: 170px;
   border: solid black 1px;
   margin: 0px 0px 0px 0px;
+  position: relative;
 }
 .basepair-size {
   text-align: left;
@@ -44,4 +45,20 @@
 .cross-scale-narration-layer, .cross-scale-narration-field  {
   font-size: 12px;
   margin-left: 5px;
+}
+
+.csn-box {
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+  /* margin: 5px; */
+  border-width: 1px 0px 0px 1px;
+  border-style: solid;
+  border-color: black;
+  padding: 0px 5px 0px 5px;
+  font-size: small;
+  /* display: flex;
+  align-items: center;
+  justify-content: center; */
+  /* line-height: 3; */
 }

@@ -179,8 +179,12 @@ const ZoomLegend = ({
                 {d.field && d.field.field} 
                 {/* {d.field && d.field.value} */}
               </div>
-              <div className='cross-scale-narration-layer'>{crossScaleNarrationPerOrder[d.order]?.layer}</div>
-              <div className='cross-scale-narration-field'>{crossScaleNarrationPerOrder[d.order]?.field}</div>
+              {/* <div className='cross-scale-narration-layer'>{crossScaleNarrationPerOrder[d.order]?.layer}</div>
+              <div className='cross-scale-narration-field'>{crossScaleNarrationPerOrder[d.order]?.field}</div> */}
+              {
+                crossScaleNarrationPerOrder[d.order] ? <div className='csn-box'>...</div> : null
+              }
+              {/* <div className='csn-box'>...</div> */}
             </div>
 
           </div>
