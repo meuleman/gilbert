@@ -18,7 +18,8 @@ const ZoomLegend = ({
   layer,
   layerLock,
   lensHovering,
-  stations = []
+  stations = [],
+  crossScaleNarration,
 } = {}) => {
 
   let orderZoomScale = useMemo(() => {
@@ -95,6 +96,11 @@ const ZoomLegend = ({
     return sizeText
   }
 
+  let crossScaleNarrationFiltered = crossScaleNarration?.filter(n => n !== null)
+  let crossScaleNarrationPerOrder = {}
+  if(crossScaleNarrationFiltered.length > 0) {
+    crossScaleNarrationFiltered.forEach(n => crossScaleNarrationPerOrder[n.order] = n)
+  }
 
   return (
     <div className="zoom-legend" style={{
@@ -173,6 +179,8 @@ const ZoomLegend = ({
                 {d.field && d.field.field} 
                 {/* {d.field && d.field.value} */}
               </div>
+              <div className='cross-scale-narration-layer'>{crossScaleNarrationPerOrder[d.order]?.layer}</div>
+              <div className='cross-scale-narration-field'>{crossScaleNarrationPerOrder[d.order]?.field}</div>
             </div>
 
           </div>

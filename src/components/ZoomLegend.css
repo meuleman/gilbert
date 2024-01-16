@@ -41,3 +41,7 @@
   /* margin-bottom: 10%; */
   /* vertical-align: top; */
 }
+.cross-scale-narration-layer, .cross-scale-narration-field  {
+  font-size: 12px;
+  margin-left: 5px;
+}
