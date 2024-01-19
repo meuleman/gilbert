@@ -14,7 +14,8 @@ export default function SVGBBox({
   type = null,
   // order = 4,
   showGenes = false,
-  highlightPath = false
+  highlightPath = false,
+  radiusMultiplier = 1.25,
 } = {}) {
   return function SVGBBoxComponent({ state, scales }) {
     if(!hit) return null
@@ -111,7 +112,7 @@ export default function SVGBBox({
         )})
     }
 
-    const radius = rw * 1.25;
+    const radius = rw * radiusMultiplier;
     const circumference = radius * 2 * Math.PI;
     
     return (
@@ -158,7 +159,7 @@ export default function SVGBBox({
           <circle
             cx={xScale(hit.x)}
             cy={yScale(hit.y)}
-            r={rw*1.25}
+            r={rw*radiusMultiplier}
             fill={fill}
             stroke={stroke}
             strokeWidth={sw}

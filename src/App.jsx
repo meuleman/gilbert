@@ -62,8 +62,8 @@ import SimSearchRegion from './components/SimSearch/SimSearchRegion'
 import SimSearchByFactor from './components/SimSearch/SimSearchByFactor'
 import DisplaySimSearchRegions from './components/SimSearch/DisplaySimSearchRegions'
 import DisplayedExampleRegions from './components/ExampleRegions/DisplayExampleRegions';
-import exampleRegions from './components/ExampleRegions/domains.samples_3517.20kb.strict_max_mi.non_overlapping.gte_HBG2.qualifyingDHS_maxMI_sorted.CT20231212.json'
-// import exampleRegions from './components/ExampleRegions/domains.samples_3517.1kb.strict_max_mi.non_overlapping.gte_92.2per.maxMI_meanMI_sorted.CT20231212.json'
+import Domain20kbRegions from './components/ExampleRegions/domains.samples_3517.20kb.strict_max_mi.non_overlapping.gte_HBG2.qualifyingDHS_maxMI_sorted.CT20231212.json'
+import Domain1kbRegions from './components/ExampleRegions/domains.samples_3517.1kb.strict_max_mi.non_overlapping.gte_92.2per.maxMI_meanMI_sorted.CT20231212.json'
 import SelectedModalSimSearch from './components/SimSearch/SelectedModalSimSearch'
 import NarrateRegion from './components/Narration/NarrateRegion'
 import CrossScaleNarration from './components/Narration/CrossScaleNarration'
@@ -194,6 +194,14 @@ function App() {
     }  
     setZoom(newZoom)
   }, [zoom, layerLock, layerOrder, setZoom, setLayer])
+
+  // Example Regions to project onto the Hilbert Curve
+  const possibleExampleRegions = [
+    {"label": "None", "regions": []},
+    {"label": "20kb", "regions": Domain20kbRegions},
+    {"label": "1kb", "regions": Domain1kbRegions}
+  ]
+  const [exampleRegions, setExampleRegions] = useState(possibleExampleRegions[0].regions)
 
 
   // selected powers the sidebar modal and the 1D track
@@ -560,14 +568,14 @@ function App() {
                 width: 0.05, 
                 showGenes: false 
               }),
-              // ...DisplayedExampleRegions({
-              //   exampleRegions: exampleRegions ? exampleRegions : [],
-              //   hilbert: HilbertChromosome(zoom.order),
-              //   checkRanges: checkRanges,
-              //   width: 0.2,
-              //   color: "yellow",
-              //   numRegions: 1,
-              // }),
+              ...DisplayedExampleRegions({
+                exampleRegions: exampleRegions,
+                hilbert: HilbertChromosome(zoom.order),
+                checkRanges: checkRanges,
+                width: 0.2,
+                color: "red",
+                numRegions: 100,
+              }),
               showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
             ]}
             onZoom={handleZoom}
@@ -730,6 +738,14 @@ function App() {
             <label>
               <input type="number" value={duration} onChange={handleChangeDuration}></input>
               Zoom duration
+            </label>
+            <label>
+              <select onChange={(e) => setExampleRegions(possibleExampleRegions[e.target.value].regions)}>
+                {possibleExampleRegions.map((d, i)  => {
+                  return <option value={i} key={i}>{d.label}</option>
+                })}
+              </select>
+              Example Regions
             </label>
             {/* <label>
               <input type="checkbox" checked={layerLock} onChange={handleChangeLayerLock} />

@@ -10,6 +10,7 @@ const DisplayedExampleRegions = ({
   width = 0.4,
   showGenes = false,
   numRegions,
+  radisMultiplier=0.125,
 } = {}) => {
   if(exampleRegions.length) {
     if(numRegions) {
@@ -28,10 +29,7 @@ const DisplayedExampleRegions = ({
     })
 
     const SVGExampleArr = exampleRanges.map((range) => { 
-      // if the segment is hovered in the similar regions list, darken color
-      // let hoverColorAdjust = checkRanges(range, similarRegionListHover) ? "dark" : ""
-      // return SVGSelected({ hit: range, stroke: checkRanges(range, selectedRegion) ? hoverColorAdjust + clickedColor : hoverColorAdjust + color, strokeWidthMultiplier: width, showGenes })
-      return SVGSelected({ hit: range, stroke: color, strokeWidthMultiplier: width, showGenes })
+      return SVGSelected({ hit: range, stroke: color, strokeWidthMultiplier: width, showGenes: showGenes, radiusMultiplier: radisMultiplier })
     })
 
     return SVGExampleArr
