@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { scaleLinear } from 'd3-scale';
 import { group } from 'd3-array';
 import * as Plot from "@observablehq/plot"
@@ -21,6 +21,11 @@ const ZoomLegend = ({
   stations = [],
   crossScaleNarration,
 } = {}) => {
+
+  const [csnView, setCsnView] = useState(false)
+  const handleCSNClick = () => {
+    setCsnView(!csnView)
+  }
 
   let orderZoomScale = useMemo(() => {
     return scaleLinear()
@@ -57,19 +62,29 @@ const ZoomLegend = ({
         if(i > 0)
           orders[i - 1].z2 = o.z
         if(i == orders.length - 1) o.z2 = zoomExtent[1]
-        let station = stationsMap.get(o.order)
-        if(station && station[0]) {
-          o.station = station[0].station
-          o.layer = station[0].layer
-          o.field = o.layer.fieldChoice(o.station)
-          o.color = o.layer.fieldColor(o.field.field)
-          // console.log("ORDER", o)
-        }
-        if(o.order == order && activeLayer && selected && selected.data && Object.keys(selected?.data).length) {
-          o.layer = activeLayer
-          o.station = selected
-          o.field = o.layer.fieldChoice(o.station)
-          o.color = o.layer.fieldColor(o.field.field)
+        if (!csnView) {
+          let station = stationsMap.get(o.order)
+          // console.log(station)
+          if(station && station[0]) {
+            o.station = station[0].station
+            o.layer = station[0].layer
+            o.field = o.layer.fieldChoice(o.station)
+            o.color = o.layer.fieldColor(o.field.field)
+            // console.log("ORDER", o)
+          }
+          if(o.order == order && activeLayer && selected && selected.data && Object.keys(selected?.data).length) {
+            o.layer = activeLayer
+            o.station = selected
+            o.field = o.layer.fieldChoice(o.station)
+            o.color = o.layer.fieldColor(o.field.field)
+          }
+        } else {
+          const scaleNarration = crossScaleNarration.filter(n => n.order == o.order)
+          if(scaleNarration.length == 1) {
+            o.layer = scaleNarration[0].layer
+            o.field = scaleNarration[0].field
+            o.color = o.field?.color
+          }
         }
       })
     return orders
@@ -162,7 +177,7 @@ const ZoomLegend = ({
                   color: d.order == effectiveOrder ? "black" : "gray",
                 }}
               >
-                {(layerLock && !lensHovering) ? layer?.name : layerOrder && layerOrder[d.order].name}
+                {csnView ? d.layer?.name : (layerLock && !lensHovering) ? layer?.name : layerOrder && layerOrder[d.order].name}
               </div>
               
               <div className="station" style={{
@@ -182,7 +197,11 @@ const ZoomLegend = ({
               {/* <div className='cross-scale-narration-layer'>{crossScaleNarrationPerOrder[d.order]?.layer}</div>
               <div className='cross-scale-narration-field'>{crossScaleNarrationPerOrder[d.order]?.field}</div> */}
               {
-                crossScaleNarrationPerOrder[d.order] ? <div className='csn-box'>...</div> : null
+                (
+                  crossScaleNarrationPerOrder[d.order] ? 
+                  <div className='csn-box' onClick={handleCSNClick} style={{cursor: 'pointer'}}>...</div> 
+                  :null
+                )
               }
               {/* <div className='csn-box'>...</div> */}
             </div>

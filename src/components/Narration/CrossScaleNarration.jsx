@@ -24,8 +24,8 @@ export default async function CrossScaleNarration(selected, fetchLayerData, laye
           return fetchData(layer, order, orderRange).then((response) => {
             const topFields = response.map(d => layer.fieldChoice(d))
             const topField = topFields.sort((a,b) => {return b.value - a.value})[0]
-            topField.layer = layer.name
-            return topField
+            topField.color = layer.fieldColor(topField.field)
+            return {field: topField, layer: layer}
           })
         } else {
           return Promise.resolve(null)
@@ -34,11 +34,11 @@ export default async function CrossScaleNarration(selected, fetchLayerData, laye
       return topFieldsAcrossLayers.then((response) => {
         let fields = response.filter(d => d !== null)
         if(fields.length > 0) {
-          const topField = fields.sort((a,b) => {return b.value - a.value})[0]
+          const topField = fields.sort((a,b) => {return b.field.value - a.field.value})[0]
           topField.order = order
           return topField
         } else {
-          return null
+          return {field: null, value: null, order: order, color: null, layer: null}
         }
       })
     }))
