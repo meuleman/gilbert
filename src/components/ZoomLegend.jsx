@@ -173,7 +173,7 @@ const ZoomLegend = ({
               <div className="basepair-size">{segmentSizeFromOrder(d.order)}</div>
               <div className="dataset-label"
                 style={{
-                  fontWeight: d.order == effectiveOrder ? "bold" : "normal",
+                  fontWeight: (d.order == effectiveOrder && !csnView) ? "bold" : "normal",
                   color: d.order == effectiveOrder ? "black" : "gray",
                 }}
               >
