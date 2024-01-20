@@ -79,7 +79,7 @@ const ZoomLegend = ({
             o.color = o.layer.fieldColor(o.field.field)
           }
         } else {
-          const scaleNarration = crossScaleNarration.filter(n => n.order == o.order)
+          const scaleNarration = crossScaleNarration.filter(n => n?.order == o.order)
           if(scaleNarration.length == 1) {
             o.layer = scaleNarration[0].layer
             o.field = scaleNarration[0].field

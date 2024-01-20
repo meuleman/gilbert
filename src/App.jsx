@@ -353,6 +353,7 @@ function App() {
     setSelectedNarration(null)
     setSimSearchMethod(null)
     setGenesetEnrichment(null)
+    setCrossScaleNarration(new Array(11).fill(null))
   }
 
   const [showHilbert, setShowHilbert] = useState(false)
