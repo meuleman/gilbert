@@ -67,6 +67,7 @@ import Domain1kbRegions from './components/ExampleRegions/domains.samples_3517.1
 import SelectedModalSimSearch from './components/SimSearch/SelectedModalSimSearch'
 import NarrateRegion from './components/Narration/NarrateRegion'
 import CrossScaleNarration from './components/Narration/CrossScaleNarration'
+import LayerSuggestion from './components/Narration/LayerSuggestion'
 import SelectedModalNarration from './components/Narration/SelectedModalNarration'
 import GenesetEnrichment from './components/SimSearch/GenesetEnrichment';
 import Spectrum from './components/Spectrum';
@@ -417,6 +418,21 @@ function App() {
   function onData(payload) {
     setData(payload)
   }
+
+  // // when in layer suggestion mode, this function will update the
+  // // layer order based on the current viewable data
+  // let LayerSuggestionMode = true
+  // useMemo(() => {
+  //   if(LayerSuggestionMode) {
+  //     LayerSuggestion(data, layerOrder, setLayerOrder, [
+  //       DHS_Components_Sfc_max,
+  //       Chromatin_States_Sfc_max,
+  //       TF_Motifs_Sfc_max,
+  //       Repeats_Sfc_max
+  //     ])
+  //   }
+  // }, [data])
+
 
   const [trackState, setTrackState] = useState(data)
   const [tracks, setTracks] = useState([])
