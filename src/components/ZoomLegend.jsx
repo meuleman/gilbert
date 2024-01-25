@@ -113,7 +113,7 @@ const ZoomLegend = ({
 
   let crossScaleNarrationFiltered = crossScaleNarration?.filter(n => n !== null)
   let crossScaleNarrationPerOrder = {}
-  if(crossScaleNarrationFiltered.length > 0) {
+  if(crossScaleNarrationFiltered?.length > 0) {
     crossScaleNarrationFiltered.forEach(n => crossScaleNarrationPerOrder[n.order] = n)
   }
 
