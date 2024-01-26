@@ -62,7 +62,6 @@ export default async function CrossScaleNarration(selected, fetchLayerData, laye
         }
       })
     }))
-    console.log(topFieldsAcrossOrders)
     return topFieldsAcrossOrders
   }
 
@@ -133,16 +132,16 @@ export default async function CrossScaleNarration(selected, fetchLayerData, laye
         for(var child of tree[i]) { 
           // if child is parent, then we continue without recursing further 
           if (child == parent){
-            if(tree[i].length == 1){
-              bestPathThroughNode[i].push(segmentData[i])
-            }
             continue
           }
           // continue to traverse tree 
           searchTree(segmentData, tree, child, i); 
           // store the maxScore of previous visited node and present visited node 
           if(scoresThroughNode[child] > maxScore) {
-            maxScore = scoresThroughNode[child];
+            maxScore = scoresThroughNode[child]
+            if(bestPathThroughNode[child].length == 0) {
+              bestPathThroughNode[child].push(segmentData[child])
+            }
             bestPathThroughNode[i] = [segmentData[i], ...bestPathThroughNode[child]]
           }
         } 
@@ -153,11 +152,15 @@ export default async function CrossScaleNarration(selected, fetchLayerData, laye
       console.log("best path", bestPathThroughNode[0])
       let bestPath = bestPathThroughNode[0].map(d => {
         let field = d.topField
-        field.color = d.layer.fieldColor(field.field)
-        return {
-          order: d.order,
-          layer: d.layer,
-          field: field,
+        if(field.value !== null) {
+          field.color = d.layer.fieldColor(field.field)
+          return {
+            order: d.order,
+            layer: d.layer,
+            field: field,
+          }
+        } else {
+          return null
         }
       })
       return bestPath
