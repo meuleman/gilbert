@@ -64,6 +64,7 @@ import DisplaySimSearchRegions from './components/SimSearch/DisplaySimSearchRegi
 import DisplayedExampleRegions from './components/ExampleRegions/DisplayExampleRegions';
 import Domain20kbRegions from './components/ExampleRegions/domains.samples_3517.20kb.strict_max_mi.non_overlapping.gte_HBG2.qualifyingDHS_maxMI_sorted.CT20231212.json'
 import Domain1kbRegions from './components/ExampleRegions/domains.samples_3517.1kb.strict_max_mi.non_overlapping.gte_92.2per.maxMI_meanMI_sorted.CT20231212.json'
+import HBG2DHSMaskedRegions from './components/ExampleRegions/top_100_HBG2_DHS_masked_regions_across_biosamples_CT20240126.json'
 import SelectedModalSimSearch from './components/SimSearch/SelectedModalSimSearch'
 import NarrateRegion from './components/Narration/NarrateRegion'
 import CrossScaleNarration from './components/Narration/CrossScaleNarration'
@@ -200,7 +201,8 @@ function App() {
   const possibleExampleRegions = [
     {"label": "None", "regions": []},
     {"label": "20kb", "regions": Domain20kbRegions},
-    {"label": "1kb", "regions": Domain1kbRegions}
+    {"label": "1kb", "regions": Domain1kbRegions},
+    {"label": "HBG2 DHS Distance Masked", "regions": HBG2DHSMaskedRegions}
   ]
   const [exampleRegions, setExampleRegions] = useState(possibleExampleRegions[0].regions)
 
