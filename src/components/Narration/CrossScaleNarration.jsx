@@ -31,13 +31,16 @@ export default async function CrossScaleNarration(selected, pathCSN, layers) {
           return fetchData(layer, order, orderRange)
             .then((response) => {
               // top field per segment
-              const topFields = response.map(d => layer.fieldChoice(d))
+              const topFields = response.map(d => {
+                layer.fieldChoice(d)
+                return {region: d, field: layer.fieldChoice(d)}
+              })
               // top field across segments
-              const topField = topFields.sort((a,b) => {return b.value - a.value})[0]
-              if(topField.value !== null) {
+              const topField = topFields.sort((a,b) => {return b.field.value - a.field.value})[0]
+              if(topField.field.value !== null) {
                 // color for subway station
-                topField.color = layer.fieldColor(topField.field)
-                return {field: topField, layer: layer}
+                topField.field.color = layer.fieldColor(topField.field.field)
+                return {field: topField.field, layer: layer, region: topField.region}
               } else {
                 return null
               }
@@ -169,6 +172,7 @@ export default async function CrossScaleNarration(selected, pathCSN, layers) {
         if(field.value !== null) {
           field.color = d.layer.fieldColor(field.field)
           return {
+            region: d,
             order: d.order,
             layer: d.layer,
             field: field,
