@@ -62,7 +62,8 @@ export default async function CrossScaleNarration(selected, pathCSN, layers) {
           topField.order = order
           return topField
         } else {
-          return {field: {field: null, value: null, color: null}, region: null, order: order, layer: null}
+          return null
+          // return {field: {field: null, value: null, color: null}, region: null, order: order, layer: null}
         }
       })
     }))
