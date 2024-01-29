@@ -256,7 +256,7 @@ function App() {
   }
 
   // change CSN method from path based to drill based
-  const [pathCSN, setPathCSN] = useState(false)
+  const [pathCSN, setPathCSN] = useState(true)
   const handleChangePathCSN = (e) => {
     setPathCSN(!pathCSN)
   }

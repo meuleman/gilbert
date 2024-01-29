@@ -70,10 +70,8 @@ export default async function CrossScaleNarration(selected, pathCSN, layers) {
   if(selected && pathCSN) {
     // get the top field within each layer for all overlapping segments
     let topFieldsAllLayers = Promise.all(layers.map((layer, i) => {
-      // from order of selected segment to 14...
-      let ordersUp = orders.slice(selected.order - Math.min(...orders))
       // ... find the top field within each segment for each layer
-      let topFieldsAllOrders = Promise.all(ordersUp.map((order) => {
+      let topFieldsAllOrders = Promise.all(orders.map((order) => {
         // if the layer includes current order
         if((layer.orders[0] <= order) && (layer.orders[1] >= order)) {
           // get hilbert ranges
@@ -122,9 +120,13 @@ export default async function CrossScaleNarration(selected, pathCSN, layers) {
     })
 
     let bestPath = topFieldsAcrossLayers.then((response) => {
-      let segmentData = response
-      // create tree
-      let numSegments = segmentData.length
+      // from order of selected segment to 14...
+      let ordersUp = orders.slice(selected.order - Math.min(...orders))
+      let orderUpSegmentData = response.filter(d => ordersUp.includes(d.order))
+      let orderDownSegmentData = response.filter(d => !ordersUp.includes(d.order))
+
+      // create tree for orderUp data
+      let numSegments = orderUpSegmentData.length
       let tree = new Array(numSegments).fill(null).map(d => [])
       let scoresThroughNode = new Array(numSegments).fill(0)
       let bestPathThroughNode = new Array(numSegments).fill(null).map(d => [])
@@ -135,8 +137,8 @@ export default async function CrossScaleNarration(selected, pathCSN, layers) {
       }
 
       // function to traverse the tree and find the best path
-      let searchTree = (segmentData, tree, i, parent) => { 
-        scoresThroughNode[i] = segmentData[i].topField.value
+      let searchTree = (orderUpSegmentData, tree, i, parent) => { 
+        scoresThroughNode[i] = orderUpSegmentData[i].topField.value
         var maxScore = 0; 
         for(var child of tree[i]) { 
           // move on if no new nodes
@@ -144,23 +146,24 @@ export default async function CrossScaleNarration(selected, pathCSN, layers) {
             continue
           }
           // go deeper into the tree 
-          searchTree(segmentData, tree, child, i)
+          searchTree(orderUpSegmentData, tree, child, i)
           // update max score and path
           if(scoresThroughNode[child] > maxScore) {
             maxScore = scoresThroughNode[child]
             if(bestPathThroughNode[child].length == 0) {
-              bestPathThroughNode[child].push(segmentData[child])
+              bestPathThroughNode[child].push(orderUpSegmentData[child])
             }
-            bestPathThroughNode[i] = [segmentData[i], ...bestPathThroughNode[child]]
+            bestPathThroughNode[i] = [orderUpSegmentData[i], ...bestPathThroughNode[child]]
           }
         } 
         // add score through current node
         scoresThroughNode[i] += maxScore
       }
       // find best path
-      searchTree(segmentData, tree, 0, -1)
-      console.log("best path", bestPathThroughNode[0])
-      let bestPath = bestPathThroughNode[0].map(d => {
+      searchTree(orderUpSegmentData, tree, 0, -1)
+      let bestPath = [...orderDownSegmentData, ...bestPathThroughNode[0]]
+      console.log("best path", bestPath)
+      let bestPathReorg = bestPath.map(d => {
         let field = d.topField
         // only keep stations with significant scores
         if(field.value !== null) {
@@ -174,7 +177,7 @@ export default async function CrossScaleNarration(selected, pathCSN, layers) {
           return null
         }
       })
-      return bestPath
+      return bestPathReorg
     })
     return bestPath
   }
