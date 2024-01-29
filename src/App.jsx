@@ -206,7 +206,6 @@ function App() {
   ]
   const [exampleRegions, setExampleRegions] = useState(possibleExampleRegions[0].regions)
 
-
   // selected powers the sidebar modal and the 1D track
   const [selected, setSelected] = useState(null)
   const [selectedOrder, setSelectedOrder] = useState(null)
@@ -240,20 +239,39 @@ function App() {
         NarrateRegion(hit, order).then((narrationResult) => {
           setSelectedNarration(narrationResult.narrationRanks)
         })
-        CrossScaleNarration(hit, fetchLayerData, [
-          DHS_Components_Sfc_max,
-          Chromatin_States_Sfc_max,
-          TF_Motifs_Sfc_max,
-          Repeats_Sfc_max
-        ]).then(crossScaleResponse => {
-          setCrossScaleNarration(crossScaleResponse)
-        })
+        // console.log(pathCSN)
+        // CrossScaleNarration(hit, pathCSN, [
+        //   DHS_Components_Sfc_max,
+        //   Chromatin_States_Sfc_max,
+        //   TF_Motifs_Sfc_max,
+        //   Repeats_Sfc_max
+        // ]).then(crossScaleResponse => {
+        //   setCrossScaleNarration(crossScaleResponse)
+        // })
         updateStations(hit)
       }
     } catch(e) {
       console.log("caught error in click", e)
     }
   }
+
+  // change CSN method from path based to drill based
+  const [pathCSN, setPathCSN] = useState(false)
+  const handleChangePathCSN = (e) => {
+    setPathCSN(!pathCSN)
+  }
+  useEffect(() => {
+    if(selected){
+      CrossScaleNarration(selected, pathCSN, [
+        DHS_Components_Sfc_max,
+        Chromatin_States_Sfc_max,
+        TF_Motifs_Sfc_max,
+        Repeats_Sfc_max
+      ]).then(crossScaleResponse => {
+        setCrossScaleNarration(crossScaleResponse)
+      })
+    }
+  }, [pathCSN, selected])
 
   const selectedRef = useRef(selected);
   useEffect(() => {
@@ -546,7 +564,6 @@ function App() {
         </div>
 
       </div>
-
       <div className="panels">
         <div ref={containerRef} className="hilbert-container">
           <HilbertGenome 
@@ -765,6 +782,10 @@ function App() {
                 })}
               </select>
               Example Regions
+            </label>
+            <label>
+              <input type='checkbox' checked={pathCSN} onChange={handleChangePathCSN} />
+              Path-Based Cross Scale Narration
             </label>
             {/* <label>
               <input type="checkbox" checked={layerLock} onChange={handleChangeLayerLock} />

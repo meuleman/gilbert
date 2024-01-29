@@ -2,7 +2,8 @@
 import Data from '../../lib/data';
 import { HilbertChromosome, hilbertPosToOrder, checkRanges } from '../../lib/HilbertChromosome'
 
-export default async function CrossScaleNarration(selected, fetchLayerData, layers, method='path') {
+export default async function CrossScaleNarration(selected, pathCSN, layers) {
+  // console.log(pathCSN)
   const fetchData = Data({debug: false}).fetchData;
   
   let orders = Array.from({length: 11}, (a, i) => i + 4);
@@ -17,7 +18,7 @@ export default async function CrossScaleNarration(selected, fetchLayerData, laye
     return range
   }
 
-  if(selected && method == 'drill') {
+  if(selected && !pathCSN) {
     // get the top field within each order
     let topFieldsAcrossOrders = Promise.all(orders.map((order) => {
       // get the top field within each layer for all overlapping segments
@@ -66,7 +67,7 @@ export default async function CrossScaleNarration(selected, fetchLayerData, laye
   }
 
   // path based approach where the each suggested segment is within the one an order below it
-  if(selected && method == 'path') {
+  if(selected && pathCSN) {
     // get the top field within each layer for all overlapping segments
     let topFieldsAllLayers = Promise.all(layers.map((layer, i) => {
       // from order of selected segment to 14...
