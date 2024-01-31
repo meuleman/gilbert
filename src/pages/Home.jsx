@@ -252,7 +252,7 @@ function Home() {
           setSimSearchMethod("Region")
         })
         NarrateRegion(hit, order).then((narrationResult) => {
-          setSelectedNarration(narrationResult.narrationRanks)
+          narrationResult && setSelectedNarration(narrationResult.narrationRanks)
         })
         // console.log(pathCSN)
         // CrossScaleNarration(hit, pathCSN, [

@@ -27,9 +27,10 @@ export default function NarrateRegion(selected, order) {
         return {narrationRanks: data.percentiles, coordinates: data.coordinates}
       })
       .catch((err) => {
-        // console.error(`error:     ${JSON.stringify(err)}`);
-        // console.error(`post body: ${JSON.stringify(postBody)}`);
+        console.error(`error:     ${JSON.stringify(err)}`);
+        console.error(`post body: ${JSON.stringify(postBody)}`);
         // alert('Query Failed: Try another region.');
+        return null
       });
 
       return narration
