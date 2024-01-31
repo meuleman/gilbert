@@ -17,12 +17,13 @@ const DisplayedExampleRegions = ({
       exampleRegions = exampleRegions.slice(0, numRegions)
     }
     const exampleRanges = exampleRegions.map(r => {
-      let chrm = r.chr
+      // TODO: we should have a Region class that standardizes the fields
+      let chrm = r.chr || r.chromosome
       if(!chrm.includes('chr')) {
         chrm = 'chr' + chrm
       }
       const start = r.start
-      const stop = r.stop
+      const stop = r.stop || r.end
 
       let range = hilbert.fromRegion(chrm, start, stop)[0]
       return range

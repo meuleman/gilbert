@@ -1,0 +1,18 @@
+
+
+function showKb(diff) {
+  const log10Diff = Math.log10(diff);
+  const scaleAsStr = (log10Diff < 3) ? `${Math.ceil(diff/100)*100}nt` :
+               (log10Diff < 4) ? `${Math.floor(diff/1000)}kb` :
+               (log10Diff < 5) ? `${Math.floor(diff/1000)}kb` :
+               (log10Diff < 6) ? `${Math.floor(diff/1000)}kb` :
+               (log10Diff < 7) ? `${Math.floor(diff/1000000)}Mb` :
+               (log10Diff < 8) ? `${Math.floor(diff/1000000)}Mb` :
+               (log10Diff < 9) ? `${Math.floor(diff/1000000)}Mb` :
+                                 `${Math.floor(diff/1000000000)}Gb`;
+  return scaleAsStr
+}
+
+export {
+  showKb
+}
