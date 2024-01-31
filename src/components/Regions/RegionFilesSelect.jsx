@@ -6,7 +6,6 @@ import './RegionFilesSelect.css';
 function RegionFilesSelect({ selected, onSelect }) {
  
   const getSetList = () => {
-    console.log("getting the setlist?", localStorage.getItem('setList'))
     return JSON.parse(localStorage.getItem('setList')) || [];
   }
 

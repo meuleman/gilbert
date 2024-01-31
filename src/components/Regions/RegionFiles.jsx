@@ -12,8 +12,6 @@ function RegionFiles() {
   const [setList, setSetList] = useState(getSetList());
 
   useEffect(() => {
-    // localStorage.setItem('setList', JSON.stringify(setList));
-    console.log("use effect on setlist", setList)
     saveSetList(setList);
   }, [setList]);
 
@@ -66,7 +64,6 @@ function RegionFiles() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      console.log("new set", newSet)
       const newList = [...setList, newSet];
       setSetList(newList);
       // save to localstorage
@@ -76,7 +73,6 @@ function RegionFiles() {
   }, [setList, navigate]);
 
   const deleteSet = useCallback((name) => {
-    console.log("delete", name)
     // Remove from local storage
     localStorage.removeItem(name);
     // Remove from the list
@@ -92,7 +88,6 @@ function RegionFiles() {
         // Process file content into an array
         const data = processFile(content);
         // Store in local storage
-        console.log("loaded file", file.name, data)
         saveSet(file.name, data)
       };
       reader.readAsText(file);
