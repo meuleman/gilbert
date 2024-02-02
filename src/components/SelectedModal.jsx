@@ -1,62 +1,32 @@
 // A component to display some information below the map when hovering over hilbert cells
+import { urlify } from '../lib/regions'
+import { Link } from 'react-router-dom'
+import { showKb } from '../lib/display'
 
 import './SelectedModal.css'
 
 const SelectedModal = ({
-  width = 500,
-  height = 800,
   selected = null,
-  selectedOrder = null,
-  layer,
-  zoom,
-  onClose=()=>{}
+  onClose=()=>{},
+  onZoom=()=>{},
+  children=null
 } = {}) => {
-  let sample = null
-  let sampleSummary = ""
-  if(layer && selected && selected.data) {
-    sample = layer.fieldChoice(selected)
-    if(sample) {
-      sampleSummary = `${sample.field}: ${sample.value}`
-      if(layer.fieldSummary) {
-        sampleSummary = layer.fieldSummary(selected)
-      }
-    }
-    // console.log("sample", sample, sampleSummary)
-  }
-
+  
   return (
     <>
-    {(selected) && (
-    <div className="selected-modal" style={{
-      width: width - 2 + "px",
-      height: height - 12 + "px"
-    }}>
-      
+    {selected && (
+    <div className="selected-modal">
       <div className="header">
+        <Link to={`/region?region=${urlify(selected)}`} target="_blank">Details ↗️</Link>
+        <Link onClick={onZoom} alt="Zoom to region">🧭 Zoom to region</Link>         
         <div className="close" onClick={onClose}>x</div>
       </div>
       <div className="selected-modal-selected">
-          <span className="selected-modal-selected-point">
-            {selected.chromosome}:{selected.start}
-          </span>
-          <br/>
-          <span className="selected-modal-selected-hilbert">
-            Hilbert index: { selected.i } &nbsp;
-            Hilbert order: {selectedOrder}
-          </span>
-          <br/>
-          <span className="selected-modal-selected-data">
-            {sampleSummary}
-          </span>
-          <br/>
+        🎯 {selected.chromosome}:{selected.start} - {selected.end} ({showKb(selected.end - selected.start)})
       </div>
-     
-      {/* <div className="selected-modal-order">
-        {zoom && (
-          <span>Order: {zoom.order}</span>
-        )}
-
-      </div> */}
+      <div className="selected-modal-children">
+        {children}
+      </div>
     </div>
   )}
 </>

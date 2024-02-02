@@ -1,7 +1,8 @@
 import {useEffect, useState, useRef, useCallback, useMemo} from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import Data from '../lib/data';
+import { urlify, jsonify, fromPosition } from '../lib/regions'
 import { HilbertChromosome, hilbertPosToOrder, checkRanges } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
 import { range } from 'd3-array'
@@ -62,11 +63,10 @@ import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
 import SimSearchByFactor from '../components/SimSearch/SimSearchByFactor'
 import DisplaySimSearchRegions from '../components/SimSearch/DisplaySimSearchRegions'
 import DisplayedExampleRegions from '../components/ExampleRegions/DisplayExampleRegions';
-import Domain20kbRegions from '../components/ExampleRegions/domains.samples_3517.20kb.strict_max_mi.non_overlapping.gte_HBG2.qualifyingDHS_maxMI_sorted.CT20231212.json'
-import Domain1kbRegions from '../components/ExampleRegions/domains.samples_3517.1kb.strict_max_mi.non_overlapping.gte_92.2per.maxMI_meanMI_sorted.CT20231212.json'
-import HBG2DHSMaskedRegions from '../components/ExampleRegions/top_100_HBG2_DHS_masked_regions_across_biosamples_CT20240126.json'
+
 import { getSet } from '../components/Regions/localstorage'
 import RegionFilesSelect from '../components/Regions/RegionFilesSelect'
+import SelectedModal from '../components/SelectedModal'
 import SelectedModalSimSearch from '../components/SimSearch/SelectedModalSimSearch'
 import NarrateRegion from '../components/Narration/NarrateRegion'
 import CrossScaleNarration from '../components/Narration/CrossScaleNarration'
@@ -132,6 +132,7 @@ function Home() {
   const initialRegionset = queryParams.get('regionset');
   const initialSelectedRegion = queryParams.get('region');
 
+
   const navigate = useNavigate();
 
 
@@ -173,20 +174,8 @@ function Home() {
     return size;
   }
 
-  // useEffect(() => {
-  //   setRegionSet(initialRegionset)
-  // }, [initialRegionset])
-
-  const updateUrlParams = (newRegionSet, newSelected) => {
-    const params = new URLSearchParams();
-    if (newRegionSet) params.set('regionset', newRegionSet);
-    // if (newSelected) params.set('selected', newSelected);
-    console.log("update url", newRegionSet, newSelected)
-    navigate({ search: params.toString() }, { replace: true });
-  };
-
   // Zoom duration for programmatic zoom
-  const [duration, setDuration] = useState(10000)
+  const [duration, setDuration] = useState(1000)
   const handleChangeDuration = (e) => {
     setDuration(+e.target.value)
   }
@@ -225,28 +214,9 @@ function Home() {
     setZoom(newZoom)
   }, [zoom, layerLock, layerOrder, setZoom, setLayer])
 
-  // // Example Regions to project onto the Hilbert Curve
-  // const possibleExampleRegions = [
-  //   {"label": "None", "regions": []},
-  //   {"label": "20kb", "regions": Domain20kbRegions},
-  //   {"label": "1kb", "regions": Domain1kbRegions},
-  //   {"label": "HBG2 DHS Distance Masked", "regions": HBG2DHSMaskedRegions}
-  // ]
-  
-  const [regionset, setRegionSet] = useState(initialRegionset)
-  // let startingExampleRegions = possibleExampleRegions[0].regions
-  const [exampleRegions, setExampleRegions] = useState([])
-  useEffect(() => {
-    const set = getSet(regionset)
-    if(set) {
-      setExampleRegions(set)
-    }
-    updateUrlParams(regionset, selected)
-  }, [regionset])
-  // console.log("domain 20kb", Domain20kbRegions)
 
-  // selected powers the sidebar modal and the 1D track
-  const [selected, setSelected] = useState(null)
+    // selected powers the sidebar modal and the 1D track
+  const [selected, setSelected] = useState(jsonify(initialSelectedRegion))
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [simSearch, setSimSearch] = useState(null)
   const [similarRegions, setSimilarRegions] = useState([])
@@ -293,6 +263,27 @@ function Home() {
       console.log("caught error in click", e)
     }
   }
+
+  const updateUrlParams = useCallback((newRegionSet, newSelected) => {
+    const params = new URLSearchParams();
+    if (newRegionSet) params.set('regionset', newRegionSet);
+    if (newSelected) params.set('region', urlify(newSelected));
+    console.log("update url", newRegionSet, newSelected)
+    navigate({ search: params.toString() }, { replace: true });
+  }, [navigate]);
+
+  const [regionset, setRegionSet] = useState(initialRegionset)
+  // let startingExampleRegions = possibleExampleRegions[0].regions
+  const [exampleRegions, setExampleRegions] = useState([])
+  useEffect(() => {
+    const set = getSet(regionset)
+    if(set) {
+      setExampleRegions(set)
+    }
+    updateUrlParams(regionset, selected)
+  }, [regionset, selected, setExampleRegions, updateUrlParams])
+  // console.log("domain 20kb", Domain20kbRegions)
+
 
   // change CSN method from path based to drill based
   const [pathCSN, setPathCSN] = useState(true)
@@ -438,26 +429,14 @@ function Home() {
   }
 
   // changing the region changes the zoom and will also highlight on the map
-  const [region, setRegion] = useState(null)
+  const [region, setRegion] = useState(jsonify(initialSelectedRegion))
 
   function handleChangeLocationViaAutocomplete(autocompleteRegion) {
     if (!autocompleteRegion) return
     // console.log(`autocompleteRegion ${JSON.stringify(autocompleteRegion)}`);
     console.log("autocomplete", autocompleteRegion)
 
-    const length = autocompleteRegion.stop - autocompleteRegion.start
-    // figure out the appropriate order to zoom to
-    // we want to zoom in quite a bit to the region if it hasn't specified its order
-    let order = orderDomain[1];
-    while(length > hilbertPosToOrder(1, { from: order, to: orderDomain[1] })) {
-      order--;
-      if(order == orderDomain[0]) break;
-    }
-    let pos = hilbertPosToOrder(autocompleteRegion.start + (autocompleteRegion.stop - autocompleteRegion.start)/2, { from: orderDomain[1], to: order })
-    let hilbert = HilbertChromosome(order, { padding: 2 })
-    let hit = hilbert.get2DPoint(pos, autocompleteRegion.chrom)
-    hit.start = autocompleteRegion.start
-    hit.end = autocompleteRegion.stop
+    const hit = fromPosition(autocompleteRegion.chrom, autocompleteRegion.start, autocompleteRegion.stop)
     hit.data = {}
     hit.type = "autocomplete" // TODO: we can use this to determine alternative rendering
     console.log("autocomplete hilbert region", hit)
@@ -637,12 +616,31 @@ function Home() {
         {/* primary content */}
         <div className="visualization">
           <LayerLegend 
-              data={data}
-              hover={hover}
-              selected={selected}
-              handleFactorClick={handleFactorClick}
+            data={data}
+            hover={hover}
+            selected={selected}
+            handleFactorClick={handleFactorClick}
+            searchByFactorInds={searchByFactorInds}
+          />
+          {selected ? 
+              <SelectedModal 
+                selected={selected} 
+                onZoom={() => { setRegion(null); setRegion(selected)}}
+                onClose={handleModalClose}
+                >
+            <SelectedModalSimSearch
+              simSearch={simSearch}
               searchByFactorInds={searchByFactorInds}
+              handleFactorClick={handleFactorClick}
+              onZoom={(region) => { 
+                setRegion(null); 
+                const hit = fromPosition(region.chromosome, region.start, region.end)
+                setRegion(hit)}}
+              selectedOrder={selectedOrder}
+              setRegion={setRegion}
+              setHover={setHover}
             />
+            </SelectedModal> : null}
             <div ref={containerRef} className="hilbert-container">
               {containerRef.current && ( 
                 <HilbertGenome 
@@ -705,14 +703,7 @@ function Home() {
             </div>
           </div>
           <div className="lenses">
-            <SelectedModalSimSearch
-              simSearch={simSearch}
-              searchByFactorInds={searchByFactorInds}
-              handleFactorClick={handleFactorClick}
-              selectedOrder={selectedOrder}
-              setRegion={setRegion}
-              setHover={setHover}
-            />
+            
             <div className='layer-column'>
               <div className="zoom-legend-container">
                 {containerRef.current && (
@@ -781,14 +772,6 @@ function Home() {
               <input type="number" value={duration} onChange={handleChangeDuration}></input>
               Zoom duration
             </label>
-            {/* <label>
-              <select onChange={(e) => setExampleRegions(possibleExampleRegions[e.target.value].regions)}>
-                {possibleExampleRegions.map((d, i)  => {
-                  return <option value={i} key={i}>{d.label}</option>
-                })}
-              </select>
-              Example Regions
-            </label> */}
             <label>
               <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
                 if(set) {

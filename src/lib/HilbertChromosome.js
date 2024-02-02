@@ -118,6 +118,7 @@ export function HilbertChromosome(order, {
           i,
           chromosome: chromosome.name,
           start: hilbertPosToOrder(i, { from: order, to: maxOrder }), // the local start position
+          end: hilbertPosToOrder(i+1, { from: order, to: maxOrder }), // the local end position
           // ...h,
           // add the chromosome's offset back to get our global x, y coordinate
           x: px,

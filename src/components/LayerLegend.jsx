@@ -88,7 +88,7 @@ const LayerLegend = ({
       // ensure that the factors are for our current layer
       if(
         (dataToShowFactors.length > 0) && 
-        (dataToShowFactors.filter(f => fullFactorList.includes(f)).length === dataToShowFactors.length)
+        (dataToShowFactors.filter(f => fullFactorList?.includes(f)).length === dataToShowFactors.length)
       ) {
         // sort the factors by their values
         let factorValues = dataToShowValues.map((v, i) => {

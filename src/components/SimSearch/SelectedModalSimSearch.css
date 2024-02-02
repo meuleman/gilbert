@@ -1,23 +1,42 @@
 .selected-modal-simsearch-list {
   list-style-type: none;
   margin: 0px;
+  padding-inline-start: 12px;
   /* min-height: 50%; */
 }
 
 .selected-modal-simsearch-item {
+  /* height: 5%; */
+}
+.selected-modal-simsearch-item .selector {
+  padding-right: 4px;
   cursor: pointer;
-  height: 5%;
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+.selected-modal-simsearch-item .selector:hover {
+  filter: grayscale(0%);
+  opacity: 1
+}
+.selected-modal-simsearch-item .zoomer {
+  filter: grayscale(100%);
+  cursor: pointer;
+  opacity: 0.5;
+}
+.selected-modal-simsearch-item .zoomer:hover {
+  filter: grayscale(0%);
+  opacity: 1
 }
 
 .selected-modal-simsearch-list-container, .selected-modal-simsearch-list-container-hidden {
-  position: absolute;
-  bottom: 180px;
-  background-color: white;
-  border: solid black 2px;
+  /* position: absolute; */
+  /* bottom: 20px; */
+  /* background-color: white; */
+  /* border: solid black 2px; */
   padding: 5px 5px 10px 5px;
-  width: 400px;
-  right: 250px;
-  border-radius: 5px;
+  width: 440px;
+  /* right: 20px; */
+  /* border-radius: 5px; */
 }
 
 .selected-modal-simsearch-list-container {
@@ -30,18 +49,18 @@
   z-index: 0;
 }
 
-.hidden-header {
+.simsearch-hidden-header {
   position: absolute;
-  top: 20%;
+  bottom: 10px;
   width: 100%;
-  text-align: center;
+  /* text-align: center; */
   font-size: large;
   font-weight: 700;
 }
 
-.container-close-button, .container-close-button:hover, .container-close-button:focus, .container-open-button, .container-open-button:hover, .container-open-button:focus {
+.simsearch-container-close-button, .simsearch-container-close-button:hover, .simsearch-container-close-button:focus, .simsearch-container-open-button, .simsearch-container-open-button:hover, .simsearch-container-open-button:focus {
   position: absolute;
-  top: 3%;
+  bottom: 10px;
   width: 0px;
   height: 0px;
   padding: 0px;
@@ -50,10 +69,10 @@
   right: 2%;
 }
 
-.container-close-button, .container-close-button:hover, .container-close-button:focus {
+.simsearch-container-close-button, .simsearch-container-close-button:hover, .simsearch-container-close-button:focus {
   border-color: black transparent transparent transparent;
 }
-.container-open-button, .container-open-button:hover, .container-open-button:focus {
+.simsearch-container-open-button, .simsearch-container-open-button:hover, .simsearch-container-open-button:focus {
   border-color: transparent transparent black transparent;
 }
 

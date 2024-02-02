@@ -24,7 +24,7 @@ function RegionFilesSelect({ selected, onSelect }) {
     <div className="region-files-select">
       { setList?.length ? 
       <>
-      <select onChange={(e) => handleSelect(e.target.value)} value={selected}>
+      <select onChange={(e) => handleSelect(e.target.value)} value={selected || ""}>
         <option value="">Select a region set</option>
         {setList.map((set, index) => (
           <option key={index} value={set.name}>{set.name}</option>

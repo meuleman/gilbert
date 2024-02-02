@@ -19,11 +19,12 @@ const SelectedModalSimSearch = ({
   regionMargin=-5,
   barGap=2,
   convThresh=0,
-  svgXAdjust=200,
+  svgXAdjust=240,
   factorHeaderYHeight = 13,
   factorHeaderGap = 7,
   inSearchMinWidth = 80,
   notInSearchMinWidth = 100,
+  onZoom=()=>{}
 } = {}) => {
   let hilbert = new HilbertChromosome(selectedOrder)
   let simSearchRegions, selectedRegion, similarRegions, factors, layerFactors
@@ -302,15 +303,18 @@ const SelectedModalSimSearch = ({
       <li 
         className='selected-modal-simsearch-item' 
         key={rank}
-        onClick={() => handleClick(chrom, start, stop)}
         onMouseOver={() => handleMouseOver(chrom, start, stop, factorRanks)}
         onMouseLeave={() => handleMouseLeave()}
         style={{
           "fontSize": regionHeight + "px",
-          "margin": regionMargin + "px"
+          "margin": regionMargin + "px",
+          "font-family": "monospace"
         }}
       >
-        {label}
+        <span className="selector" style={{fontSize: regionHeight * 1.25 + "px"}} onClick={() => handleClick(chrom, start, stop)} title="Select region">🎯</span>
+        <span className="zoomer" onClick={() => onZoom({chromosome: chrom, start, end: stop})} title="Zoom to region">🧭</span> 
+        <span className="label"> {label}</span>
+        
       </li>
     )
   }
@@ -320,10 +324,9 @@ const SelectedModalSimSearch = ({
       (!hidden ?
         <div id='selected-modal-simsearch-list-container' className='selected-modal-simsearch-list-container'>
           <button 
-            className='container-close-button'
+            className='simsearch-container-close-button'
             onClick={() => handleClickForHidden()}
           />
-          
           <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-selected' style={{"fontSize": regionHeight + "px"}}>
             {selectedRegion ? (
               "Selected Region:"
@@ -344,14 +347,15 @@ const SelectedModalSimSearch = ({
           <ul id='similar-regions-list' className='selected-modal-simsearch-list'>
             {similarRegions ? (similarRegions.map(addRegion)) : null}
           </ul>
+          
         </div>
       : 
       <div
         className='selected-modal-simsearch-list-container-hidden'
       >
-        <div className='hidden-header'>Similar Regions</div>
+        <div className='simsearch-hidden-header'>Similar Regions</div>
         <button 
-            className='container-open-button'
+            className='simsearch-container-open-button'
             onClick={() => handleClickForHidden()}
           />
 
