@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import RegionTable from '../components/Regions/RegionTable';
+import GilbertLogo from '../assets/gilbert-logo.svg?react';
+import './RegionSet.css';
+
 
 const RegionSet = () => {
   const { regionset } = useParams();
@@ -33,14 +36,23 @@ const RegionSet = () => {
   }, [set]);
 
   return (
-    <div>
-      <Link to="/regions">Back to region sets</Link><br></br>
-      <Link to={`/${regionset}`}>Map this region set</Link>
-      <div>{regionset} - {meta.rows}
-        <button onClick={() => deleteSet(regionset)}>Delete</button>
+    <div className="region-set">
+      <div className="header">
+        <div className="header--brand">
+          <GilbertLogo height="50" width="auto" />
+        </div>
+        <div className="header--navigation">
+          <Link to="/regions">Back to region sets</Link><br></br>
+          <Link to={`/?regionset=${regionset}`}>Map this region set</Link>
+        </div>
       </div>
-      <div>
-        { set?.length ? <RegionTable rows={set} /> : null }
+      <div className="content">
+        <div>{regionset} - {meta.rows}
+          <button onClick={() => deleteSet(regionset)}>Delete</button>
+        </div>
+        <div>
+          { set?.length ? <RegionTable rows={set} /> : null }
+        </div>
       </div>
     </div>
   );

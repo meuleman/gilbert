@@ -1,5 +1,5 @@
 import {useEffect, useState, useRef, useCallback, useMemo} from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import Data from '../lib/data';
 import { HilbertChromosome, hilbertPosToOrder, checkRanges } from '../lib/HilbertChromosome'
@@ -7,7 +7,6 @@ import { debounceNamed, debouncerTimed } from '../lib/debounce'
 import { range } from 'd3-array'
 
 import './Home.css'
-
 
 // base component
 import HilbertGenome from '../components/HilbertGenome'
@@ -128,8 +127,13 @@ const layers = [
 const debounceTimed = debouncerTimed()
 
 function Home() {
-  const { regionset } = useParams();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialRegionset = queryParams.get('regionset');
+  const initialSelectedRegion = queryParams.get('region');
+
   const navigate = useNavigate();
+
 
   const orderDomain = useMemo(() => [4, 14])
   const zoomExtent = [0.85, 4000]
@@ -168,6 +172,18 @@ function Home() {
     }, []);
     return size;
   }
+
+  // useEffect(() => {
+  //   setRegionSet(initialRegionset)
+  // }, [initialRegionset])
+
+  const updateUrlParams = (newRegionSet, newSelected) => {
+    const params = new URLSearchParams();
+    if (newRegionSet) params.set('regionset', newRegionSet);
+    // if (newSelected) params.set('selected', newSelected);
+    console.log("update url", newRegionSet, newSelected)
+    navigate({ search: params.toString() }, { replace: true });
+  };
 
   // Zoom duration for programmatic zoom
   const [duration, setDuration] = useState(10000)
@@ -209,22 +225,24 @@ function Home() {
     setZoom(newZoom)
   }, [zoom, layerLock, layerOrder, setZoom, setLayer])
 
-  // Example Regions to project onto the Hilbert Curve
-  const possibleExampleRegions = [
-    {"label": "None", "regions": []},
-    {"label": "20kb", "regions": Domain20kbRegions},
-    {"label": "1kb", "regions": Domain1kbRegions},
-    {"label": "HBG2 DHS Distance Masked", "regions": HBG2DHSMaskedRegions}
-  ]
+  // // Example Regions to project onto the Hilbert Curve
+  // const possibleExampleRegions = [
+  //   {"label": "None", "regions": []},
+  //   {"label": "20kb", "regions": Domain20kbRegions},
+  //   {"label": "1kb", "regions": Domain1kbRegions},
+  //   {"label": "HBG2 DHS Distance Masked", "regions": HBG2DHSMaskedRegions}
+  // ]
   
-  let startingExampleRegions = possibleExampleRegions[0].regions
-  if(regionset) {
+  const [regionset, setRegionSet] = useState(initialRegionset)
+  // let startingExampleRegions = possibleExampleRegions[0].regions
+  const [exampleRegions, setExampleRegions] = useState([])
+  useEffect(() => {
     const set = getSet(regionset)
     if(set) {
-      startingExampleRegions = set
+      setExampleRegions(set)
     }
-  }
-  const [exampleRegions, setExampleRegions] = useState(startingExampleRegions)
+    updateUrlParams(regionset, selected)
+  }, [regionset])
   // console.log("domain 20kb", Domain20kbRegions)
 
   // selected powers the sidebar modal and the 1D track
@@ -763,21 +781,20 @@ function Home() {
               <input type="number" value={duration} onChange={handleChangeDuration}></input>
               Zoom duration
             </label>
-            <label>
+            {/* <label>
               <select onChange={(e) => setExampleRegions(possibleExampleRegions[e.target.value].regions)}>
                 {possibleExampleRegions.map((d, i)  => {
                   return <option value={i} key={i}>{d.label}</option>
                 })}
               </select>
               Example Regions
-            </label>
+            </label> */}
             <label>
               <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
-                navigate(`/${name}`)
                 if(set) {
-                  setExampleRegions(set)
+                  setRegionSet(name)
                 } else {
-                  setExampleRegions([])
+                  setRegionSet('')
                 }
                 }} />
             </label>

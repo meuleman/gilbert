@@ -1,9 +1,13 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { tsvParseRows } from 'd3-dsv';
 import { saveSetList, getSetList } from './localstorage';
 
 import './RegionFiles.css';
+
+import Domain20kbRegions from '../ExampleRegions/domains.samples_3517.20kb.strict_max_mi.non_overlapping.gte_HBG2.qualifyingDHS_maxMI_sorted.CT20231212.json'
+import Domain1kbRegions from '../ExampleRegions/domains.samples_3517.1kb.strict_max_mi.non_overlapping.gte_92.2per.maxMI_meanMI_sorted.CT20231212.json'
+import HBG2DHSMaskedRegions from '../ExampleRegions/top_100_HBG2_DHS_masked_regions_across_biosamples_CT20240126.json'
 
 
 function RegionFiles() {
@@ -30,7 +34,7 @@ function RegionFiles() {
     return parsedData;
   }
 
-  const saveSet = useCallback((name, data) => {
+  const saveSet = useCallback((name, data, navigateOnSave) => {
     console.log("storing the data", name)
     const stringified = JSON.stringify(data)
     console.log(`Stringified size: ${stringified.length / 1024 / 1024} MB`);
@@ -40,37 +44,36 @@ function RegionFiles() {
       console.log("error", e)
       // TODO: handle this error and show a message to the user
     }
-    const existingSetIndex = setList.findIndex(set => set.name === name);
-    console.log("existing setlist", setList)
-    console.log("existing set index", existingSetIndex)
-    if (existingSetIndex !== -1) {
-      // Update the existing set's metadata
-      const newList = setList.map((item, index) =>
-        index === existingSetIndex
-          ? { 
-              ...item, 
-              rows: data.length,
-              updatedAt: new Date().toISOString() 
-            }
-          : item
-      );
-      setSetList(newList);
+    setSetList(oldList => {
+      const existingSetIndex = oldList.findIndex(set => set.name === name);
+      let newList = oldList
+      if (existingSetIndex !== -1) {
+        newList = oldList.map((item, index) => 
+          index === existingSetIndex
+            ? { 
+                ...item, 
+                rows: data.length,
+                updatedAt: new Date().toISOString() 
+              }
+            : item
+        )
+      } else {
+        // Add new set with metadata
+        const newSet = {
+          name,
+          rows: data.length,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        newList = [...oldList, newSet]
+      }
       saveSetList(newList);
-    } else {
-      // Add new set with metadata
-      const newSet = {
-        name,
-        rows: data.length,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      const newList = [...setList, newSet];
-      setSetList(newList);
-      // save to localstorage
-      saveSetList(newList);
-    }
-    navigate(`/regions/${name}`);
-  }, [setList, navigate]);
+      if(navigateOnSave) {
+        navigate(`/regions/${name}`);
+      }
+      return newList
+    });
+  }, [navigate]);
 
   const deleteSet = useCallback((name) => {
     // Remove from local storage
@@ -88,11 +91,21 @@ function RegionFiles() {
         // Process file content into an array
         const data = processFile(content);
         // Store in local storage
-        saveSet(file.name, data)
+        saveSet(file.name, data, true)
       };
       reader.readAsText(file);
     }
   }, [saveSet]);
+
+  // // Example Regions to project onto the Hilbert Curve
+  const exampleSets = useMemo(() => [
+    {"name": "Domain 20kb", "data": Domain20kbRegions},
+    {"name": "Domain 1kb", "data": Domain1kbRegions},
+    {"name": "HBG2 DHS Distance Masked", "data": HBG2DHSMaskedRegions}
+  ], [])
+  useEffect(() => {
+    exampleSets.forEach(set =>  saveSet(set.name, set.data, false))
+  }, [exampleSets, saveSet]);
 
   return (
     <div className="region-files">
@@ -106,11 +119,11 @@ function RegionFiles() {
           <tr key={index}>
             <td>{set.name}</td>
             <td><Link to={`/regions/${set.name}`}>Details</Link></td>
-            <td><Link to={`/${set.name}`}>Map</Link></td>
+            <td><Link to={`/?regionset=${set.name}`}>Map</Link></td>
             <td> {set.rows} rows</td> 
             <td>({set.updatedAt})</td>
             <td>
-              <button onClick={() => deleteSet(set.name)}>Delete</button>
+              {exampleSets.find(d => d.name == set.name) ? "Example" : <button onClick={() => deleteSet(set.name)}>Delete</button> }
             </td>
           </tr>
         ))}
