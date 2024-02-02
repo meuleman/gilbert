@@ -1,5 +1,5 @@
-import * as Constants from "./Constants.js";
-import { showKb } from "../../lib/display.js";
+import * as Constants from "./Constants";
+import { showKb } from "../../lib/display";
 
 export const isValidChromosome = (assembly, chromosomeName) => {
   // console.log(`isValidChromosome | ${assembly} | ${chromosomeName}`);

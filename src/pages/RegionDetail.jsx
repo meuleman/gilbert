@@ -1,16 +1,28 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
-import RegionTable from '../components/Regions/RegionTable';
+import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import GilbertLogo from '../assets/gilbert-logo.svg?react';
 import { urlify, jsonify } from '../lib/regions';
+import { showKb, showPosition } from '../lib/display';
 import './RegionDetail.css';
 
 
 const RegionDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const region = jsonify(queryParams.get('region'));
+  const queryParams = useMemo(() => new URLSearchParams(location.search), [location]);
+  const region = useMemo(() => {return jsonify(queryParams.get('region'))}, [queryParams]);
+
+  const [inside, setInside] = useState([]);
+  const [outside, setOutside] = useState([]);
+  useEffect(() => {
+    if(region) {
+      console.log("region", region)
+      setInside(getGenesInCell(region, region.order))
+      setOutside(getGenesOverCell(region, region.order))
+    }
+  }, [region])
+
 
   return (
     <div className="region-detail">
@@ -26,7 +38,22 @@ const RegionDetail = () => {
         <div>Region
         </div>
         <div>
-          {JSON.stringify(region)}
+          {showPosition(region)}
+          {/* {JSON.stringify(region)} */}
+        </div>
+        <div className="genes">
+          <div>
+            Genes inside region: {inside.length}
+            {inside.length ? inside.map((d,i) => (
+              <div key={d.hgnc} className="gene">
+                <span className="hgnc">{d.hgnc}</span> &nbsp;
+                {showPosition(d)}
+              </div>)) 
+            : null }
+          </div>
+          <div>
+            Genes overlapping region: {outside.length}
+          </div>
         </div>
       </div>
     </div>

@@ -144,7 +144,7 @@ function Home() {
   const navigate = useNavigate();
 
 
-  const orderDomain = useMemo(() => [4, 14])
+  const orderDomain = useMemo(() => [4, 14], [])
   const zoomExtent = [0.85, 4000]
 
   const containerRef = useRef()
