@@ -1,24 +1,7 @@
 .lens-panel {
-  position: absolute;
-  /* right: 0px; */
-  /* top: -60px; */
-  /* bottom: 0px; */
-  /* top: 0px; */
-  /* margin: 0px 2px 0px 0px; */
-  /* height: 150px; */
-  /* text-align: center; */
-  /* flex-direction: row; */
-  /* align-items: center; */
-  /* background-color: white; */
-  /* opacity: 0.9; */
-  /* margin-left: -20px; */
-  /* border: 2px solid black; */
-  /* border-radius: 10px; */
-  /* margin-bottom: auto; */
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-  width: 100%;
 }
 
 .lens-header {

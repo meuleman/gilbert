@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from "react";
+import React, { Component } from "react";
 import { DebounceInput } from "react-debounce-input";
 import PropTypes from 'prop-types';
 import axios from "axios";
@@ -543,7 +543,7 @@ class Autocomplete extends Component {
     }
 
     return (
-      <Fragment>
+      <>
         <div className="autocomplete">
         <DebounceInput
           id="autocomplete-input"
@@ -567,7 +567,7 @@ class Autocomplete extends Component {
         />
         {suggestionsListComponent}
         </div>
-      </Fragment>
+      </>
     );
   }
 }

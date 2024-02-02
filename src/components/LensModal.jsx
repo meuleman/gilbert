@@ -196,7 +196,7 @@ const LensModal = ({
   return (
     <>
       {(
-        <div className="lens-panel" style={{top: `${-1 * Object.keys(lenses).length * 20}px`}}>
+        <div className="lens-panel">
           <div className='lens-header'>Lenses</div>
           {/* <div className={
             (layerLock) ? 

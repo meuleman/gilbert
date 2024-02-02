@@ -17,7 +17,6 @@ import CanvasBase from './CanvasBase';
 
 import './HilbertGenome.css';
 
-
 // Define the initial state
 const initialState = {
   // The transform drives pretty much everything. It is set by the d3-zoom behavior (scrolling and panning)

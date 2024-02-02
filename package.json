@@ -28,7 +28,8 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.21.3",
     "react-table": "^7.8.0",
-    "react-window": "^1.8.10"
+    "react-window": "^1.8.10",
+    "vite-plugin-svgr": "^4.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",
