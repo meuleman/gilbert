@@ -101,6 +101,7 @@ function RegionFiles() {
         <thead>
           
         </thead>
+        <tbody>
         {setList.map((set, index) => (
           <tr key={index}>
             <td>{set.name}</td>
@@ -113,6 +114,7 @@ function RegionFiles() {
             </td>
           </tr>
         ))}
+        </tbody>
       </table>
     </div>
   );
