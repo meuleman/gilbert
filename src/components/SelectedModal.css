@@ -40,3 +40,12 @@
   padding: 0px 4px;
 }
 
+.selected-modal .close {
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid lightgray;
+  cursor: pointer;
+}
+.selected-modal .close:hover {
+  background-color: lightgray;
+}

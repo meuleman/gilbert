@@ -130,7 +130,15 @@ function Home() {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const initialRegionset = queryParams.get('regionset');
-  const initialSelectedRegion = queryParams.get('region');
+  let initialSelectedRegion = queryParams.get('region');
+  const initialPosition = queryParams.get('position');
+  // if we have a position URL, overwrite the initial region
+  // this will be converted into a selected region
+  if(initialPosition) {
+    const [chrom, pos] = initialPosition.split(":")
+    const [start, end] = pos.split("-")
+    initialSelectedRegion = JSON.stringify(fromPosition(chrom, start, end))
+  }
 
 
   const navigate = useNavigate();
