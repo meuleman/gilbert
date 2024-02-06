@@ -1,9 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
-import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import GilbertLogo from '../assets/gilbert-logo.svg?react';
-import { urlify, jsonify } from '../lib/regions';
+
 import { showKb, showPosition } from '../lib/display';
+import { urlify, jsonify, parsePosition, fromPosition } from '../lib/regions';
+import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
+import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
+
+import DHS_Components_Sfc_max from '../layers/dhs_components_sfc_max'
+import Chromatin_States_Sfc_max from '../layers/chromatin_states_sfc_max';
+
+import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
+import SelectedModalSimSearch from '../components/SimSearch/SelectedModalSimSearch'
+
 import './RegionDetail.css';
 
 
@@ -15,11 +24,54 @@ const RegionDetail = () => {
 
   const [inside, setInside] = useState([]);
   const [outside, setOutside] = useState([]);
+  const [ranges, setRanges] = useState([]);
+    
+  // sim search related state
+  const [simSearchDHS, setSimSearchDHS] = useState(null)
+  const [simSearchChromatin, setSimSearchChromatin] = useState(null)
+  const [factorsDHS, setFactorsDHS] = useState([])
+  const [factorsChromatin, setFactorsChromatin] = useState([])
+  const [similarDHSRegions, setSimilarDHSRegions] = useState([])
+  const [similarChromatinRegions, setSimilarChromatinRegions] = useState([])
+  const [similarBy, setSimilarBy] = useState('dhs')
+
   useEffect(() => {
     if(region) {
       console.log("region", region)
       setInside(getGenesInCell(region, region.order))
       setOutside(getGenesOverCell(region, region.order))
+      // grab the ranges before and after this region
+      const hilbert = new HilbertChromosome(region.order)
+      const rs = hilbert.fromRange(region.chromosome, region.i - 1, region.i + 1)
+      console.log("ranges", rs)
+      setRanges(rs)
+
+      // Sim search on DHS
+      SimSearchRegion(region, region.order, DHS_Components_Sfc_max, setFactorsDHS,[]).then((result) => {
+        setSimSearchDHS(result)
+        let similarRegions = result?.simSearch
+        if(similarRegions && similarRegions.length)  {
+          const similarRanges = similarRegions.map((d) => {
+            const { chromosome, start, end } = parsePosition(d.coordinates)
+            let range = fromPosition(chromosome, start, end)
+            return range
+          })
+          console.log("similar dhs ranges", similarRanges)
+        }
+      })
+      // Sim search on Chromatin States
+      SimSearchRegion(region, region.order, Chromatin_States_Sfc_max, setFactorsChromatin, []).then((result) => {
+        setSimSearchChromatin(result)
+        let similarRegions = result?.simSearch
+        if(similarRegions && similarRegions.length)  {
+          const similarRanges = similarRegions.map((d) => {
+            const { chromosome, start, end } = parsePosition(d.coordinates)
+            let range = fromPosition(chromosome, start, end)
+            return range
+          })
+          console.log("similar chromatin ranges", similarRanges)
+        }
+      })
     }
   }, [region])
 
@@ -39,8 +91,11 @@ const RegionDetail = () => {
         </div>
         <div>
           {showPosition(region)}
+          <br/>
+          Order: {region.order}
           {/* {JSON.stringify(region)} */}
         </div>
+
         <div className="genes">
           <div>
             Genes inside region: {inside.length}
@@ -55,6 +110,40 @@ const RegionDetail = () => {
             Genes overlapping region: {outside.length}
           </div>
         </div>
+
+        <h3>Similar regions</h3>
+        <div className="radio-buttons">
+          Show similar regions based on:
+          <input type="radio" id="dhs" name="regionType" value="dhs" checked={similarBy === 'dhs'} onChange={() => setSimilarBy('dhs')}/>
+          <label htmlFor="dhs">DHS</label>
+          <input type="radio" id="chromatin" name="regionType" value="chromatin" checked={similarBy === 'chromatin'} onChange={() => setSimilarBy('chromatin')}/>
+          <label htmlFor="chromatin">Chromatin</label>
+        </div>
+        { similarBy == "dhs" ? <div className="similar-dhs-regions">
+            {simSearchDHS ? <SelectedModalSimSearch
+              simSearch={simSearchDHS}
+              searchByFactorInds={factorsDHS}
+              handleFactorClick={(factor) => {console.log("dhs factor click", factor)}}
+              onZoom={(region) => { console.log("dhs on zoom", region)}}
+              selectedOrder={region?.order}
+              setRegion={(region) => {console.log("dhs set region", region)}}
+              setHover={(region) => {console.log("dhs set hover", region)}}
+            /> : <div>No similar regions found</div>}
+        </div>
+        :
+        <div className="similar-chromatin-regions">
+            {simSearchChromatin ? <SelectedModalSimSearch
+              simSearch={simSearchChromatin}
+              searchByFactorInds={factorsChromatin}
+              handleFactorClick={(factor) => {console.log("Chromatin factor click", factor)}}
+              onZoom={(region) => { console.log("Chromatin on zoom", region)}}
+              selectedOrder={region?.order}
+              setRegion={(region) => {console.log("Chromatin set region", region)}}
+              setHover={(region) => {console.log("Chromatin set hover", region)}}
+            /> : <div>No similar regions found</div>}
+        </div>
+        }
+
       </div>
     </div>
   );
