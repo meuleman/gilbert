@@ -142,7 +142,7 @@ export default async function CrossScaleNarration(selected, pathCSN, layers) {
 
       // function to traverse the tree and find the best path
       let searchTree = (orderUpSegmentData, tree, i, parent) => { 
-        scoresThroughNode[i] = orderUpSegmentData[i].topField.value
+        scoresThroughNode[i] = Math.sqrt(orderUpSegmentData[i].topField.value)  // normalize score
         var maxScore = 0; 
         for(var child of tree[i]) { 
           // move on if no new nodes
