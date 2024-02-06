@@ -92,19 +92,20 @@ const StatusBar = ({
         )}
         </div>
         <div className="settings">
-        <label className="order-offset">
+          <label className="order-offset">
             <span>Order Offset</span>
             <input type="number" min={-2} max={2} value={orderOffset} onChange={(e) => onOrderOffset(+e.target.value)} />
             <span>effective order {zoom.order}</span>
           </label>
-          <label className="settings-button">
-            <input type="checkbox" checked={showSettings} onChange={onSettings} />
-            Settings
-          </label>
-          <label className="debug-button">
-            <input type="checkbox" checked={showDebug} onChange={onDebug} />
-            Debug
-          </label>
+          <button className={`settings-button ${showSettings ? 'active' : null}`}
+            onClick={() => onSettings(!showSettings)}>
+            {/* <input type="checkbox" checked={showSettings} onChange={onSettings} /> */}
+            ⚙️
+          </button>
+          <button className={`debug-button ${showDebug ? 'active' : null}`}
+            onClick={() => onDebug(!showDebug)}>
+            🐞
+          </button>
         </div>
       </div>
     </div>
