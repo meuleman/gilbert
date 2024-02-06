@@ -19,6 +19,7 @@ import ZoomLegend from '../components/ZoomLegend'
 import TrackPyramid from '../components/TrackPyramid'
 import LayerDropdown from '../components/LayerDropdown'
 import StatusBar from '../components/StatusBar'
+import SettingsPanel from '../components/SettingsPanel';
 //import SelectedModal from '../components/SelectedModal'
 import LensModal from '../components/LensModal'
 import LayerLegend from '../components/LayerLegend'
@@ -26,6 +27,7 @@ import SVGSelected from '../components/SVGSelected'
 import RegionMask from '../components/RegionMask'
 import SVGChromosomeNames from '../components/SVGChromosomeNames'
 // import SVGBBox from '../components/SVGBBox'
+
 // layer configurations
 import Bands from '../layers/bands'
 import GCContent from '../layers/gc_content'
@@ -61,6 +63,7 @@ import Autocomplete from '../components/Autocomplete/Autocomplete'
 // region SimSearch
 import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
 import SimSearchByFactor from '../components/SimSearch/SimSearchByFactor'
+
 import DisplaySimSearchRegions from '../components/SimSearch/DisplaySimSearchRegions'
 import DisplayedExampleRegions from '../components/ExampleRegions/DisplayExampleRegions';
 
@@ -425,6 +428,11 @@ function Home() {
   const handleChangeShowDebug = (e) => {
     setShowDebug(!showDebug)
   }
+
+  const [showSettings, setShowSettings] = useState(false)
+  const handleChangeShowSettings = (e) => {
+    setShowSettings(!showSettings)
+  }
   
   const [showGenes, setShowGenes] = useState(true)
   const handleChangeShowGenes = (e) => {
@@ -755,59 +763,36 @@ function Home() {
             hover={hover} // the information about the cell the mouse is over
             layer={layer} 
             zoom={zoom} 
+            showDebug={showDebug}
+            showSettings={showSettings}
+            orderOffset={orderOffset}
             onLayer={handleLayer}
             layers={layers} 
+            onDebug={handleChangeShowDebug}
+            onSettings={handleChangeShowSettings}
+            onOrderOffset={setOrderOffset}
           />
-        <div className="footer-panel">
-          <div className="footer-panel-left">
-            <label>
-              <input type="checkbox" checked={showDebug} onChange={handleChangeShowDebug} />
-              Debug
-            </label>
-            <label>
-              <input type="checkbox" checked={showHilbert} onChange={handleChangeShowHilbert} />
-              Show Hilbert Curve
-            </label>
-            <label>
-              <input type="checkbox" checked={showGenes} onChange={handleChangeShowGenes} />
-              Show Gene Overlays
-            </label>
-            <label>
-              <input type="checkbox" checked={showGaps} onChange={handleChangeShowGaps} />
-              Show gaps
-            </label>
-            <label>
-              <input type="number" value={duration} onChange={handleChangeDuration}></input>
-              Zoom duration
-            </label>
-            <label>
-              <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
-                if(set) {
-                  setRegionSet(name)
-                } else {
-                  setRegionSet('')
-                }
-                }} />
-            </label>
-            <label>
-              <input type='checkbox' checked={pathCSN} onChange={handleChangePathCSN} />
-              Path-Based Cross Scale Narration
-            </label>
-            {/* <label>
-              <input type="checkbox" checked={layerLock} onChange={handleChangeLayerLock} />
-              Layer lock
-            </label> */}
-          </div>
-          <div className="footer-panel-right">
-            {/* this is an input that adds or subtracts to the calculated order */}
-            <label>
-              Order Offset ({orderOffset}, effective order {zoom.order})
-              <input type="range" min={-2} max={2} value={orderOffset} onChange={(e) => setOrderOffset(+e.target.value)} />
-            </label>
-          </div>
+          { showSettings ? <SettingsPanel 
+            regionset={regionset}
+            showHilbert={showHilbert}
+            showGenes={showGenes}
+            duration={duration}
+            pathCSN={pathCSN}
+            onRegionSetChange={(name, set) => {
+              console.log("name, set", name, set)
+              if(set) {
+                setRegionSet(name)
+              } else {
+                setRegionSet('')
+              }
+            }}
+            onShowHilbertChange={handleChangeShowHilbert}
+            onShowGenesChange={handleChangeShowGenes}
+            onDurationChange={handleChangeDuration}
+            onPathCSNChange={handleChangePathCSN}
+          /> : null }
         </div>
       </div>
-        </div>
     </>
   )
 }

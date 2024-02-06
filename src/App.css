@@ -114,20 +114,7 @@
   padding: 5px;
 }
 
-.footer-panel {
-  justify-content: space-between;
-  flex-grow: 1;
-  padding: 10px;
-  box-sizing: border-box;
-  display: flex; /* Add display:flex to center content vertically */
-  flex-direction: column; /* Stack content vertically within panels */
-}
 
-
-
-.footer-panel-right {
-  justify-content: flex-end; /* Align content to the right within the right panel */
-}
 
 .footer-row {
   display: flex;

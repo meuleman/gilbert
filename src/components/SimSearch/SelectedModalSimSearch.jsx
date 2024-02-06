@@ -308,7 +308,7 @@ const SelectedModalSimSearch = ({
         style={{
           "fontSize": regionHeight + "px",
           "margin": regionMargin + "px",
-          "font-family": "monospace"
+          "fontFamily": "monospace"
         }}
       >
         <span className="selector" style={{fontSize: regionHeight * 1.25 + "px"}} onClick={() => handleClick(chrom, start, stop)} title="Select region">🎯</span>

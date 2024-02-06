@@ -10,8 +10,12 @@ const StatusBar = ({
   hover = null,
   layer,
   zoom,
-  layers = [],
-  onLayer=()=>{}
+  showDebug = false,
+  showSettings = false,
+  orderOffset,
+  onDebug=()=>{},
+  onSettings=()=>{},
+  onOrderOffset=()=>{},
 } = {}) => {
   let sample = null
   let sampleSummary = ""
@@ -56,7 +60,6 @@ const StatusBar = ({
 
   return (
     <div className="status-bar" style={{
-      width: width - 2 + "px",
     }}>
 
       <div className="status-bar-row">
@@ -73,21 +76,7 @@ const StatusBar = ({
             )}
         </div>
      
-        {/* <div className="status-bar-layer">
-          <LayerDropdown 
-            layers={layers} 
-            activeLayer={layer} 
-            onLayer={onLayer} 
-            order={zoom.order}
-            />
-        </div> */}
-        <div className="status-bar-order">
-          {zoom && (
-            <span>Order: {zoom.order}</span>
-          )}
-        </div>
-      </div> 
-      <div className="status-bar-row">
+        
         <div className="genes">
         {hover && (
           <>
@@ -101,6 +90,21 @@ const StatusBar = ({
           </span>)}
           </>
         )}
+        </div>
+        <div className="settings">
+        <label className="order-offset">
+            <span>Order Offset</span>
+            <input type="number" min={-2} max={2} value={orderOffset} onChange={(e) => onOrderOffset(+e.target.value)} />
+            <span>effective order {zoom.order}</span>
+          </label>
+          <label className="settings-button">
+            <input type="checkbox" checked={showSettings} onChange={onSettings} />
+            Settings
+          </label>
+          <label className="debug-button">
+            <input type="checkbox" checked={showDebug} onChange={onDebug} />
+            Debug
+          </label>
         </div>
       </div>
     </div>

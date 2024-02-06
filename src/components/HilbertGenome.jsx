@@ -131,6 +131,7 @@ const HilbertGenome = ({
     onClick = () => {},
     onData = () => {},
     onZooming = () => {},
+    onLoading = () => {},
     debug = false,
   }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -233,6 +234,10 @@ const HilbertGenome = ({
       loading: state.loading
     })
   }, [state.data, state.dataOrder, state.dataLayer])
+
+  useEffect(() => {
+    onLoading({ loading: state.loading })
+  }, [state.loading, onLoading])
 
   useEffect(() => {
     onZooming({ zooming: state.zooming })
@@ -613,12 +618,7 @@ const HilbertGenome = ({
         </g>
         
       </svg>
-      { debug && <div className="debug" style={{
-                     position:"fixed", 
-                     bottom:"20px", 
-                     right:"20px",
-                     fontSize: "10px"
-                  }}
+      { debug && <div className="debug"
           onClick={(evt) => {
             evt.stopPropagation()
             evt.preventDefault()

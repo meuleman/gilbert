@@ -1,8 +1,10 @@
 
 .status-bar {
-  height: 60px;
-  line-height: 25px;
-  border: 1px solid gray;
+  width: 100%;
+  height: 40px;
+  line-height: 40px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
   display: flex;
   flex-direction: column;
 
@@ -10,13 +12,17 @@
 .status-bar .status-bar-row {
   padding: 1px 5px;
   display: flex;
-  flex-direction: row;
   justify-content: space-between;
+  flex: 1;
 }
-.status-bar .status-bar-hover {
-  width: 650px;
-  max-width: 650px;
+.status-bar .status-bar-row > :nth-child(1) {
+  min-width: 650px;
 }
+.status-bar .status-bar-row > :nth-child(2) {
+  flex-grow: 1;
+  text-align: left;
+}
+
 .status-bar .status-bar-hover-point {
   font-family: 'Courier New', Courier, monospace;
   font-weight: bold;
@@ -27,6 +33,17 @@
   border: 1px solid gray;
 }
 
-.status-bar .status-bar-order {
-  padding: 0px 4px;
+.status-bar .settings {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 5px;
+}
+.status-bar .settings .order-offset {
+  border-left: 1px solid lightgray;
+  border-right: 1px solid lightgray;
+  padding: 0 5px;
+}
+.status-bar .settings .order-offset span {
+  padding: 0 6px;
 }

@@ -16,7 +16,9 @@ function RegionFilesSelect({ selected, onSelect }) {
   }
 
   const handleSelect = useCallback((name) => {
+    console.log("handle select", name)
     const set = getSet(name)
+    console.log("handle select", set)
     onSelect(name, set)
   }, [onSelect]);
 
