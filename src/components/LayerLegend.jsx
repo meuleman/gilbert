@@ -78,7 +78,7 @@ const LayerLegend = ({
       let dataToShowValues = Object.values(dataToShow)
       // if max layer, set other factors and their corresponding values to 0
       if ((dataToShowFactors.length == 2) && (dataToShowFactors[0] == "max_field") && (dataToShowFactors[1] == "max_value")) {
-        dataToShow = Object.fromEntries(fullFactorList.map((f, i) => {
+        dataToShow = Object.fromEntries(fullFactorList?.map((f, i) => {
           return [f, (fullFactorList[dataToShowValues[0]] == f) ? dataToShowValues[1] : 0]
           }
         ))
