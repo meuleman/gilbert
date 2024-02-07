@@ -193,7 +193,7 @@ const SelectedModalSimSearch = ({
               inSearchData.push({factorInd: r.factorInd, factorCount: inSearchFactorCount, yAdjusted: yAdjusted})
               inSearchFactorCount += 1
             } else if(nonZeroRank) {
-              if((layerFactors && layerFactors.includes(factors[r.factorInd].fullName)) || !layerFactors) {
+              if((layerFactors && layerFactors.includes(factors[r.factorInd]?.fullName)) || !layerFactors) {
                 notInSearchData.push({factorInd: r.factorInd, factorCount: notInSearchFactorCount, yAdjusted: yAdjusted})
                 notInSearchFactorCount += 1
               }

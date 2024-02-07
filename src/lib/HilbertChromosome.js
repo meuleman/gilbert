@@ -137,9 +137,13 @@ export function HilbertChromosome(order, {
   hilbert.fromBboxChromosome = fromBboxChromosome
 
   hilbert.fromRegion = function(chr, start, end, bbox = null) {
-    let chromosome = customOffsetsMap.get(chr)
     let hstart = hilbertPosToOrder(start, { from: 14, to: order})
     let hend = hilbertPosToOrder(end, { from: 14, to: order})
+    return fromRange(chr, hstart, hend, bbox)
+  }
+
+  function fromRange(chr, hstart, hend, bbox=null) {
+    let chromosome = customOffsetsMap.get(chr)
     let points = []
     for(let i = hstart; i <= hend; i++) {
       let h = get2D(i)
@@ -151,6 +155,7 @@ export function HilbertChromosome(order, {
         i,
         chromosome: chromosome.name,
         start: hilbertPosToOrder(i, { from: order, to: maxOrder }), // the local start position
+        end: hilbertPosToOrder(i+1, { from: order, to: maxOrder }), // the local end position
         ...h,
         // add the chromosome's offset back to get our global x, y coordinate
         x,
@@ -160,6 +165,7 @@ export function HilbertChromosome(order, {
     }
     return points;
   }
+  hilbert.fromRange = fromRange
 
   // TODO: consider making versions that are chromosome aware
   // as in they can account for the chromosome's offset

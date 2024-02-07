@@ -135,17 +135,17 @@ function Home() {
   const initialRegionset = queryParams.get('regionset');
   let initialSelectedRegion = queryParams.get('region');
   const initialPosition = queryParams.get('position');
+  // console.log("initial selected region", initialSelectedRegion)
   // if we have a position URL, overwrite the initial region
   // this will be converted into a selected region
   if(initialPosition) {
     const [chrom, pos] = initialPosition.split(":")
     const [start, end] = pos.split("-")
     initialSelectedRegion = JSON.stringify(fromPosition(chrom, start, end))
+    // console.log("initial position", initialPosition, initialSelectedRegion)
   }
 
-
   const navigate = useNavigate();
-
 
   const orderDomain = useMemo(() => [4, 14], [])
   const zoomExtent = [0.85, 4000]
@@ -245,6 +245,7 @@ function Home() {
         setSimSearch(null)
         setStations([])
       } else if(hit) {
+        console.log("setting selected from click", hit)
         setSelected(hit)
         setSelectedOrder(order)
         // Region SimSearch
@@ -284,7 +285,6 @@ function Home() {
   }, [navigate]);
 
   const [regionset, setRegionSet] = useState(initialRegionset)
-  // let startingExampleRegions = possibleExampleRegions[0].regions
   const [exampleRegions, setExampleRegions] = useState([])
   useEffect(() => {
     const set = getSet(regionset)
@@ -293,7 +293,6 @@ function Home() {
     }
     updateUrlParams(regionset, selected)
   }, [regionset, selected, setExampleRegions, updateUrlParams])
-  // console.log("domain 20kb", Domain20kbRegions)
 
 
   // change CSN method from path based to drill based
