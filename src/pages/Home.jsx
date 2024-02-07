@@ -736,6 +736,11 @@ function Home() {
                     stations={stations}
                     selected={selected || hover}
                     crossScaleNarration={crossScaleNarration}
+                    onZoom={(region) => { 
+                      setRegion(null); 
+                      const hit = fromPosition(region.chromosome, region.start, region.end)
+                      setRegion(hit)}}
+                    handleLayer={handleLayer}
                     // selected={selected}
                   />
                 )}

@@ -20,11 +20,24 @@ const ZoomLegend = ({
   lensHovering,
   stations = [],
   crossScaleNarration,
+  onZoom=()=>{},
+  handleLayer=()=>{},
 } = {}) => {
 
   const [csnView, setCsnView] = useState(false)
   const handleCSNClick = () => {
     setCsnView(!csnView)
+  }
+
+  // zoom to cross-scale narration region and change layer
+  const handleSelectStation = (d) => { 
+    const regions = crossScaleNarration.filter(n => n?.order == d.order)
+    if(regions.length == 1) {
+      const orderRegion = regions[0]
+      const region = orderRegion.region
+      onZoom({chromosome: region.chromosome, start: region.start, end: region.start + 4 ** (14 - region.order)})
+      handleLayer(orderRegion.layer)
+    }
   }
 
   let orderZoomScale = useMemo(() => {
@@ -181,13 +194,14 @@ const ZoomLegend = ({
               <div className="station" style={{
                 // color: d.color
               }}>
-                <div className="station-square" style={{
+                <div className="station-square" onClick={() => csnView && handleSelectStation(d)} style={{
                   backgroundColor: d.color,
                   marginRight: "5px",
                   width: "10px",
                   height:"10px",
                   display: "inline-block",
                   // border: "1px solid gray"
+                  cursor: `${csnView ? "pointer" : "default"}`
                 }}></div>
                 {d.field && d.field.field} 
                 {/* {d.field && d.field.value} */}
