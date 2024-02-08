@@ -15,16 +15,76 @@ const ZoomLegend = ({
   k = 1,
   selected,
   layerOrder,
+  setLayerOrder=()=>{},
   layer,
   layerLock,
   lensHovering,
   stations = [],
   crossScaleNarration,
+  onZoom=()=>{},
+  setLayer=()=>{}
 } = {}) => {
 
-  const [csnView, setCsnView] = useState(false)
+  const [CSNView, setCSNView] = useState(false)
+  const [naturalLayerOrder, setNaturalLayerOrder] = useState(null)
+
+  const setWithCSN = (newLayerOrder) => {
+    // setNaturalLayerOrder(Object.assign({}, layerOrder))
+    crossScaleNarration.forEach(d => {
+      newLayerOrder[d.order] = d.layer
+    })
+    setLayerOrder(newLayerOrder)
+    return newLayerOrder
+  }
+
+  const setWithNatural = () => {
+    let newLayerOrder = Object.assign({}, naturalLayerOrder)
+    setLayerOrder(Object.assign({}, naturalLayerOrder))
+    return newLayerOrder
+  }
+
+  const naturalCSNSwitch = () => {
+    let newLayerOrder = Object.assign({}, layerOrder)
+    if(!CSNView) {
+      setNaturalLayerOrder(Object.assign({}, layerOrder))
+      newLayerOrder = setWithCSN(newLayerOrder)
+    } else {
+      newLayerOrder = setWithNatural()
+    }
+    setLayer(newLayerOrder[effectiveOrder])
+    setCSNView(!CSNView)
+  }
+
+  const cycleCSN = () => {
+    if(CSNView) {
+      let newLayerOrder = Object.assign({}, layerOrder)
+      newLayerOrder = setWithCSN(newLayerOrder)
+      setLayer(newLayerOrder[effectiveOrder])
+    }
+  }
+
+  useEffect(() => {
+    if(crossScaleNarration.filter(n => n !== null).length > 0){
+      cycleCSN()
+    } else if(naturalLayerOrder !== null) {
+      let newLayerOrder = setWithNatural()
+      setLayer(newLayerOrder[effectiveOrder])
+      setCSNView(false)
+    }
+  }, [crossScaleNarration])
+
   const handleCSNClick = () => {
-    setCsnView(!csnView)
+    naturalCSNSwitch()
+  }
+
+  // zoom to cross-scale narration region and change layer
+  const handleSelectStation = (d) => { 
+    const regions = crossScaleNarration.filter(n => n?.order == d.order)
+    if(regions.length == 1) {
+      const orderRegion = regions[0]
+      const region = orderRegion.region
+      onZoom({chromosome: region.chromosome, start: region.start, end: region.start + 4 ** (14 - region.order)})
+    }
   }
 
   let orderZoomScale = useMemo(() => {
@@ -62,7 +122,7 @@ const ZoomLegend = ({
         if(i > 0)
           orders[i - 1].z2 = o.z
         if(i == orders.length - 1) o.z2 = zoomExtent[1]
-        if (!csnView) {
+        if (!CSNView) {
           let station = stationsMap.get(o.order)
           // console.log(station)
           if(station && station[0]) {
@@ -171,23 +231,24 @@ const ZoomLegend = ({
               <div className="basepair-size">{segmentSizeFromOrder(d.order)}</div>
               <div className="dataset-label"
                 style={{
-                  fontWeight: (d.order == effectiveOrder && !csnView) ? "bold" : "normal",
+                  fontWeight: (d.order == effectiveOrder && !CSNView) ? "bold" : "normal",
                   color: d.order == effectiveOrder ? "black" : "gray",
                 }}
               >
-                {csnView ? d.layer?.name : (layerLock && !lensHovering) ? layer?.name : layerOrder && layerOrder[d.order].name}
+                {(layerLock && !lensHovering) ? layer?.name : layerOrder && layerOrder[d.order]?.name}
               </div>
               
               <div className="station" style={{
                 // color: d.color
               }}>
-                <div className="station-square" style={{
+                <div className="station-square" onClick={() => CSNView && handleSelectStation(d)} style={{
                   backgroundColor: d.color,
                   marginRight: "5px",
                   width: "10px",
                   height:"10px",
                   display: "inline-block",
                   // border: "1px solid gray"
+                  cursor: `${CSNView ? "pointer" : "default"}`
                 }}></div>
                 {d.field && d.field.field} 
                 {/* {d.field && d.field.value} */}

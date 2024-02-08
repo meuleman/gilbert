@@ -193,8 +193,8 @@ const HilbertGenome = ({
             let datum = data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
             if(datum){
               let selected = {
-                ...zoomToRegion,
-                ...datum
+                ...datum,
+                ...zoomToRegion
               }
               // onHover(selected)
               onClick(selected, state.order, false)

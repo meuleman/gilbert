@@ -16,7 +16,7 @@
   flex: 1;
 }
 .status-bar .status-bar-row > :nth-child(1) {
-  min-width: 650px;
+  min-width: 450px;
 }
 .status-bar .status-bar-row > :nth-child(2) {
   flex-grow: 1;
@@ -46,4 +46,17 @@
 }
 .status-bar .settings .order-offset span {
   padding: 0 6px;
+}
+
+.settings-button,
+.debug-button {
+  /* border: 1px solid gray; */
+  background: #eee;
+  padding: 0px 12px;
+  height: 38px;
+}
+.settings-button.active,
+.debug-button.active {
+  background: white;
+  /* border: 1px solid blue; */
 }
