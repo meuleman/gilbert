@@ -177,8 +177,6 @@ const ZoomLegend = ({
     crossScaleNarrationFiltered.forEach(n => crossScaleNarrationPerOrder[n.order] = n)
   }
 
-  console.log(orders, layerOrder)
-
   return (
     <div className="zoom-legend">
       <div className="zoom-indicator-arrow" style={{
