@@ -15,18 +15,66 @@ const ZoomLegend = ({
   k = 1,
   selected,
   layerOrder,
+  setLayerOrder=()=>{},
   layer,
   layerLock,
   lensHovering,
   stations = [],
   crossScaleNarration,
   onZoom=()=>{},
-  handleLayer=()=>{},
+  setLayer=()=>{}
 } = {}) => {
 
-  const [csnView, setCsnView] = useState(false)
+  const [CSNView, setCSNView] = useState(false)
+  const [naturalLayerOrder, setNaturalLayerOrder] = useState(null)
+
+  const setWithCSN = (newLayerOrder) => {
+    // setNaturalLayerOrder(Object.assign({}, layerOrder))
+    crossScaleNarration.forEach(d => {
+      newLayerOrder[d.order] = d.layer
+    })
+    setLayerOrder(newLayerOrder)
+    return newLayerOrder
+  }
+
+  const setWithNatural = (newLayerOrder) => {
+    newLayerOrder = Object.assign({}, naturalLayerOrder)
+    setLayerOrder(Object.assign({}, naturalLayerOrder))
+    return newLayerOrder
+  }
+
+  const naturalCSNSwitch = () => {
+    let newLayerOrder = Object.assign({}, layerOrder)
+    if(!CSNView) {
+      setNaturalLayerOrder(Object.assign({}, layerOrder))
+      // crossScaleNarration.forEach(d => {
+      //   newLayerOrder[d.order] = d.layer
+      // })
+      // setLayerOrder(newLayerOrder)
+      newLayerOrder = setWithCSN(newLayerOrder)
+    } else {
+      // newLayerOrder = Object.assign({}, naturalLayerOrder)
+      // setLayerOrder(Object.assign({}, naturalLayerOrder))
+      newLayerOrder = setWithNatural(newLayerOrder)
+    }
+    setLayer(newLayerOrder[effectiveOrder])
+    setCSNView(!CSNView)
+  }
+
+  const cycleCSN = () => {
+    if(CSNView) {
+      let newLayerOrder = Object.assign({}, layerOrder)
+      newLayerOrder = setWithCSN(newLayerOrder)
+      setLayer(newLayerOrder[effectiveOrder])
+    }
+  }
+
+  useEffect(() => {
+    cycleCSN()
+  }, [crossScaleNarration])
+
   const handleCSNClick = () => {
-    setCsnView(!csnView)
+    naturalCSNSwitch()
   }
 
   // zoom to cross-scale narration region and change layer
@@ -36,7 +84,6 @@ const ZoomLegend = ({
       const orderRegion = regions[0]
       const region = orderRegion.region
       onZoom({chromosome: region.chromosome, start: region.start, end: region.start + 4 ** (14 - region.order)})
-      handleLayer(orderRegion.layer)
     }
   }
 
@@ -75,7 +122,7 @@ const ZoomLegend = ({
         if(i > 0)
           orders[i - 1].z2 = o.z
         if(i == orders.length - 1) o.z2 = zoomExtent[1]
-        if (!csnView) {
+        if (!CSNView) {
           let station = stationsMap.get(o.order)
           // console.log(station)
           if(station && station[0]) {
@@ -184,24 +231,24 @@ const ZoomLegend = ({
               <div className="basepair-size">{segmentSizeFromOrder(d.order)}</div>
               <div className="dataset-label"
                 style={{
-                  fontWeight: (d.order == effectiveOrder && !csnView) ? "bold" : "normal",
+                  fontWeight: (d.order == effectiveOrder && !CSNView) ? "bold" : "normal",
                   color: d.order == effectiveOrder ? "black" : "gray",
                 }}
               >
-                {csnView ? d.layer?.name : (layerLock && !lensHovering) ? layer?.name : layerOrder && layerOrder[d.order].name}
+                {CSNView ? d.layer?.name : (layerLock && !lensHovering) ? layer?.name : layerOrder && layerOrder[d.order].name}
               </div>
               
               <div className="station" style={{
                 // color: d.color
               }}>
-                <div className="station-square" onClick={() => csnView && handleSelectStation(d)} style={{
+                <div className="station-square" onClick={() => CSNView && handleSelectStation(d)} style={{
                   backgroundColor: d.color,
                   marginRight: "5px",
                   width: "10px",
                   height:"10px",
                   display: "inline-block",
                   // border: "1px solid gray"
-                  cursor: `${csnView ? "pointer" : "default"}`
+                  cursor: `${CSNView ? "pointer" : "default"}`
                 }}></div>
                 {d.field && d.field.field} 
                 {/* {d.field && d.field.value} */}
