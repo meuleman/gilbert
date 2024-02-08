@@ -37,8 +37,8 @@ const ZoomLegend = ({
     return newLayerOrder
   }
 
-  const setWithNatural = (newLayerOrder) => {
-    newLayerOrder = Object.assign({}, naturalLayerOrder)
+  const setWithNatural = () => {
+    let newLayerOrder = Object.assign({}, naturalLayerOrder)
     setLayerOrder(Object.assign({}, naturalLayerOrder))
     return newLayerOrder
   }
@@ -47,15 +47,9 @@ const ZoomLegend = ({
     let newLayerOrder = Object.assign({}, layerOrder)
     if(!CSNView) {
       setNaturalLayerOrder(Object.assign({}, layerOrder))
-      // crossScaleNarration.forEach(d => {
-      //   newLayerOrder[d.order] = d.layer
-      // })
-      // setLayerOrder(newLayerOrder)
       newLayerOrder = setWithCSN(newLayerOrder)
     } else {
-      // newLayerOrder = Object.assign({}, naturalLayerOrder)
-      // setLayerOrder(Object.assign({}, naturalLayerOrder))
-      newLayerOrder = setWithNatural(newLayerOrder)
+      newLayerOrder = setWithNatural()
     }
     setLayer(newLayerOrder[effectiveOrder])
     setCSNView(!CSNView)
@@ -70,7 +64,13 @@ const ZoomLegend = ({
   }
 
   useEffect(() => {
-    cycleCSN()
+    if(crossScaleNarration.filter(n => n !== null).length > 0){
+      cycleCSN()
+    } else if(naturalLayerOrder !== null) {
+      let newLayerOrder = setWithNatural()
+      setLayer(newLayerOrder[effectiveOrder])
+      setCSNView(false)
+    }
   }, [crossScaleNarration])
 
   const handleCSNClick = () => {
@@ -235,7 +235,7 @@ const ZoomLegend = ({
                   color: d.order == effectiveOrder ? "black" : "gray",
                 }}
               >
-                {(layerLock && !lensHovering) ? layer?.name : layerOrder && layerOrder[d.order].name}
+                {(layerLock && !lensHovering) ? layer?.name : layerOrder && layerOrder[d.order]?.name}
               </div>
               
               <div className="station" style={{
