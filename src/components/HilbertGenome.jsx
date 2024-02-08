@@ -186,19 +186,21 @@ const HilbertGenome = ({
             transform: state.transform
           } });
           if(state.zooming) {
+            // TODO: we no longer want to update the selected as we zoom, that should be determined outside the component
+            // TODO: consider if we want to emit some other event with the hit at the current order
             // if we are zooming we want to update the selected hit to be the datum at the current order
-            let pos = hilbertPosToOrder(zoomToRegion.start + (zoomToRegion.end - zoomToRegion.start)/2, { from: orderDomain[1], to: state.order })
-            let hilbert = HilbertChromosome(state.order, { padding: 2 })
-            let hit = hilbert.get2DPoint(pos, zoomToRegion.chromosome)
-            let datum = data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
-            if(datum){
-              let selected = {
-                ...datum,
-                ...zoomToRegion
-              }
-              // onHover(selected)
-              onClick(selected, state.order, false)
-            }
+            // let pos = hilbertPosToOrder(zoomToRegion.start + (zoomToRegion.end - zoomToRegion.start)/2, { from: orderDomain[1], to: state.order })
+            // let hilbert = HilbertChromosome(state.order, { padding: 2 })
+            // let hit = hilbert.get2DPoint(pos, zoomToRegion.chromosome)
+            // let datum = data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
+            // if(datum){
+            //   let selected = {
+            //     ...datum,
+            //     ...zoomToRegion
+            //   }
+            //   // onHover(selected)
+              // onClick(selected, state.order, false)
+            // }
           }
         }
         // dispatch({ type: actions.SET_LOADING, payload: { loading: false } });

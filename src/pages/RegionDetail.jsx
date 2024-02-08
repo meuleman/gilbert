@@ -6,7 +6,9 @@ import { showKb, showPosition } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition } from '../lib/regions';
 import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
+import Data from '../lib/data';
 
+import layers from '../layers'
 import DHS_Components_Sfc_max from '../layers/dhs_components_sfc_max'
 import Chromatin_States_Sfc_max from '../layers/chromatin_states_sfc_max';
 
@@ -15,12 +17,12 @@ import SelectedModalSimSearch from '../components/SimSearch/SelectedModalSimSear
 
 import './RegionDetail.css';
 
-
 const RegionDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location]);
   const region = useMemo(() => {return jsonify(queryParams.get('region'))}, [queryParams]);
+  const fetchData = useMemo(() => Data({debug: false}).fetchData, []);
 
   const [inside, setInside] = useState([]);
   const [outside, setOutside] = useState([]);
@@ -34,6 +36,7 @@ const RegionDetail = () => {
   const [similarDHSRegions, setSimilarDHSRegions] = useState([])
   const [similarChromatinRegions, setSimilarChromatinRegions] = useState([])
   const [similarBy, setSimilarBy] = useState('dhs')
+  const [layersData, setLayersData] = useState([])
 
   useEffect(() => {
     if(region) {
@@ -45,6 +48,22 @@ const RegionDetail = () => {
       const rs = hilbert.fromRange(region.chromosome, region.i - 1, region.i + 1)
       console.log("ranges", rs)
       setRanges(rs)
+
+      // fetch data for each layer
+      const matchingLayers = layers.filter(d => d.orders[0] <= region.order && d.orders[1] >= region.order)
+      const layersDataResult = Promise.all(matchingLayers.map((layer) => {
+        // console.log("layer", layer)
+        return fetchData(layer, region.order, rs)
+      }))
+      layersDataResult.then((response) => {
+        console.log("LAYERS RESPONSE", response)
+        setLayersData(response.map((d, i) => {
+          return {
+            layer: matchingLayers[i],
+            data: d
+          }
+        }))
+      })
 
       // Sim search on DHS
       SimSearchRegion(region, region.order, DHS_Components_Sfc_max, setFactorsDHS,[]).then((result) => {

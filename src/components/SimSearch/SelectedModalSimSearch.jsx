@@ -1,5 +1,5 @@
 // A component to display some information below the map when hovering over hilbert cells
-
+import { useCallback } from 'react'
 import * as d3 from 'd3'
 import './SelectedModalSimSearch.css'
 import { useEffect, useState, useMemo } from 'react'
@@ -13,7 +13,6 @@ const SelectedModalSimSearch = ({
   searchByFactorInds,
   handleFactorClick,
   selectedOrder,
-  setRegion,
   setHover,
   regionHeight=15,
   regionMargin=-5,
@@ -24,35 +23,38 @@ const SelectedModalSimSearch = ({
   factorHeaderGap = 7,
   inSearchMinWidth = 80,
   notInSearchMinWidth = 100,
+  onSelect=()=>{},
   onZoom=()=>{}
 } = {}) => {
-  let hilbert = new HilbertChromosome(selectedOrder)
   let simSearchRegions, selectedRegion, similarRegions, factors, layerFactors
+  let hilbert = useMemo(() => new HilbertChromosome(selectedOrder), [selectedOrder])
   
   const [hidden, setHidden] = useState(false)
 
-  const handleRegionClick = function (chrom, start, stop) {
+  const handleRegionClick = useCallback((chrom, start, stop) => {
     let range = hilbert.fromRegion(chrom, start, stop-1)[0]
     range.end = parseInt(stop)
-    setRegion(range)
-  }
-  const handleRegionMouseOver = function (chrom, start, stop, ranks) {
+    onSelect(range)
+  }, [onSelect, hilbert])
+
+  const handleRegionMouseOver = useCallback((chrom, start, stop, ranks) => {
     let range = hilbert.fromRegion(chrom, start, stop-1)[0]
     range.end = parseInt(stop)
 
     let hoverData = {}
-    ranks.map((r, i) => {
-      let factorName = factors[i].fullName
+    ranks.forEach((r, i) => {
+      if(!factors) return;
+      let factorName = factors[i]?.fullName
       let factorRank = r
       hoverData[factorName] = factorRank
     })
     range.data = hoverData
     setHover(range, true)
-  }
+  }, [setHover, hilbert, factors])
 
-  const handleRegionMouseLeave = function () {
+  const handleRegionMouseLeave = useCallback(() => {
     setHover(null, true)
-  }
+  }, [setHover])
 
   // function to clear the convolution svg
   const removeConvBars = () => {
@@ -288,9 +290,9 @@ const SelectedModalSimSearch = ({
     removeConvBars()
   }
 
-  const handleClick = (chrom, start, stop) => handleRegionClick(chrom, start, stop);
-  const handleMouseOver = (chrom, start, stop, factorRanks) => handleRegionMouseOver(chrom, start, stop, factorRanks);
-  const handleMouseLeave = () => handleRegionMouseLeave();
+  const handleClick = useCallback((chrom, start, stop) => handleRegionClick(chrom, start, stop), [handleRegionClick]);
+  const handleMouseOver = useCallback((chrom, start, stop, factorRanks) => handleRegionMouseOver(chrom, start, stop, factorRanks), [handleRegionMouseOver]);
+  const handleMouseLeave = useCallback(() => handleRegionMouseLeave(), [handleRegionMouseLeave]);
 
   const addRegion = (s) => {
     const [chrom, startStop] = s.coordinates.split(':')

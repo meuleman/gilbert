@@ -169,109 +169,41 @@ function Home() {
   const [selectedNarration, setSelectedNarration] = useState(null)
   const [crossScaleNarration, setCrossScaleNarration] = useState(new Array(11).fill(null))
   const [genesetEnrichment, setGenesetEnrichment] = useState(null)
-  function handleClick(hit, order, double) {
-    // console.log("app click handler", hit, order, double)
-    try {
-      if(hit === selected) {
-        setSelected(null) 
-        setSelectedOrder(null)
-        setSimSearch(null)
-        setStations([])
-      } else if(hit) {
-        console.log("setting selected from click", hit)
-        setSelected(hit)
-        setSelectedOrder(order)
-        // Region SimSearch
-        SimSearchRegion(hit, order, layer, setSearchByFactorInds, []).then((regionResult) => {
-          if(!regionResult || !regionResult.simSearch) return;
-          processSimSearchResults(regionResult)
-          GenesetEnrichment(regionResult.simSearch.slice(1), order).then((enrichmentResult) => {
-            setGenesetEnrichment(enrichmentResult)
-          })
-          setSimSearchMethod("Region")
-        })
-        NarrateRegion(hit, order).then((narrationResult) => {
-          narrationResult && setSelectedNarration(narrationResult.narrationRanks)
-        })
-        // console.log(pathCSN)
-        // CrossScaleNarration(hit, pathCSN, [
-        //   DHS_Components_Sfc_max,
-        //   Chromatin_States_Sfc_max,
-        //   TF_Motifs_Sfc_max,
-        //   Repeats_Sfc_max
-        // ]).then(crossScaleResponse => {
-        //   setCrossScaleNarration(crossScaleResponse)
-        // })
-        updateStations(hit)
-      }
-    } catch(e) {
-      console.log("caught error in click", e)
-    }
-  }
-
-  const updateUrlParams = useCallback((newRegionSet, newSelected) => {
-    const params = new URLSearchParams();
-    if (newRegionSet) params.set('regionset', newRegionSet);
-    if (newSelected) params.set('region', urlify(newSelected));
-    console.log("update url", newRegionSet, newSelected)
-    navigate({ search: params.toString() }, { replace: true });
-  }, [navigate]);
-
-  const [regionset, setRegionSet] = useState(initialRegionset)
-  const [exampleRegions, setExampleRegions] = useState([])
-  useEffect(() => {
-    const set = getSet(regionset)
-    if(set) {
-      setExampleRegions(set)
-    }
-    updateUrlParams(regionset, selected)
-  }, [regionset, selected, setExampleRegions, updateUrlParams])
-
-
-  // change CSN method from path based to drill based
-  const [pathCSN, setPathCSN] = useState(true)
-  const handleChangePathCSN = (e) => {
-    setPathCSN(!pathCSN)
-  }
-  useEffect(() => {
-    if(selected){
-      CrossScaleNarration(selected, pathCSN, [
-        DHS_Components_Sfc_max,
-        Chromatin_States_Sfc_max,
-        TF_Motifs_Sfc_max,
-        Repeats_Sfc_max
-      ]).then(crossScaleResponse => {
-        setCrossScaleNarration(crossScaleResponse)
-      })
-    }
-  }, [pathCSN, selected])
 
   const selectedRef = useRef(selected);
   useEffect(() => {
     selectedRef.current = selected;
   }, [selected]);
 
-  // the hover can be null or the data in a hilbert cell
+   // the hover can be null or the data in a hilbert cell
   const [hover, setHover] = useState(null)
   const [lastHover, setLastHover] = useState(null)
   // for when a region is hovered in the similar region list
   const [similarRegionListHover, setSimilarRegionListHover] = useState(null)
-  const handleHover = useCallback((hit, similarRegionList=false) => {
-    if(hit && !selectedRef.current) {
-      updateStations(hit)
-    }
-    if(similarRegionList) {
-      setSimilarRegionListHover(hit)
-    }
-    setHover(hit)
-    if(hit) setLastHover(hit)
-  }, [setSimilarRegionListHover])
+  // change CSN method from path based to drill based
+  const [pathCSN, setPathCSN] = useState(true)
 
+  // changing the region changes the zoom and will also highlight on the map
+  const [region, setRegion] = useState(jsonify(initialSelectedRegion))
+  // number state for orderOffset
+  const [orderOffset, setOrderOffset] = useState(0)
 
+  const [data, setData] = useState(null)
+  const dataRef = useRef(data)
+  useEffect(() => {
+    dataRef.current = data
+  }, [data])
 
-  function processSimSearchResults(result) {
+  const [trackState, setTrackState] = useState(data)
+  const [tracks, setTracks] = useState([])
+  const [tracksLoading, setTracksLoading] = useState(false)
+  const [stations, setStations] = useState([])
+
+  const [searchByFactorInds, setSearchByFactorInds] = useState([])
+
+  const processSimSearchResults = useCallback((order, result) => {
     setSimSearch(result)
-    let hilbert = HilbertChromosome(zoom.order)
+    let hilbert = HilbertChromosome(order)
     let similarRegions = result?.simSearch
     if(similarRegions && similarRegions.length)  {
       const similarRanges = similarRegions.map((d) => {
@@ -292,143 +224,7 @@ function Home() {
       setSelected(null)
       setStations([])
     }
-  }
-
- 
-  const [searchByFactorInds, setSearchByFactorInds] = useState([])
-  function handleFactorClick(newSearchByFactorInds) {
-    setSearchByFactorInds(newSearchByFactorInds)
-    if(newSearchByFactorInds.length > 0) {
-      if(simSearchMethod != "Region") {
-        SimSearchByFactor(newSearchByFactorInds, zoom.order, layer).then((SBFResult) => {
-          setSelected(null)
-          setStations([])
-          setSelectedNarration(null)
-          setSelectedOrder(zoom.order)
-          processSimSearchResults(SBFResult)
-          setSimSearchMethod("SBF")
-          GenesetEnrichment(SBFResult.simSearch, zoom.order).then((enrichmentResult) => {
-            setGenesetEnrichment(enrichmentResult)
-          })
-        })
-      } else if(simSearchMethod == "Region") {
-        SimSearchRegion(selected, zoom.order, layer, setSearchByFactorInds, newSearchByFactorInds, simSearchMethod).then((regionResult) => {
-          processSimSearchResults(regionResult)
-          GenesetEnrichment(regionResult.simSearch.slice(1), zoom.order).then((enrichmentResult) => {
-            setGenesetEnrichment(enrichmentResult)
-          })
-        })
-      }
-    } else {
-      processSimSearchResults({simSearch: null, factors: null, method: null, layer: null})
-      setSimSearchMethod(null)
-    }
-  }
-
-  // keybinding that closes the modal on escape
-  useEffect(() => {
-    function handleKeyDown(e) {
-      if(e.key === "Escape") {
-        handleModalClose()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [])
-
-  function handleModalClose() {
-    setRegion(null)
-    setSelected(null)
-    setStations([])
-    setSelectedOrder(null)
-    setSimSearch(null)
-    setSearchByFactorInds([])
-    setSimilarRegions([])
-    setSelectedNarration(null)
-    setSimSearchMethod(null)
-    setGenesetEnrichment(null)
-    setCrossScaleNarration(new Array(11).fill(null))
-  }
-
-  const [showHilbert, setShowHilbert] = useState(false)
-  const handleChangeShowHilbert = (e) => {
-    setShowHilbert(!showHilbert)
-  }
-  const [showDebug, setShowDebug] = useState(true)
-  const handleChangeShowDebug = (e) => {
-    setShowDebug(!showDebug)
-  }
-
-  const [showSettings, setShowSettings] = useState(false)
-  const handleChangeShowSettings = (e) => {
-    setShowSettings(!showSettings)
-  }
-  
-  const [showGenes, setShowGenes] = useState(true)
-  const handleChangeShowGenes = (e) => {
-    setShowGenes(!showGenes)
-  }
-
-  const [showGaps, setShowGaps] = useState(false)
-  const handleChangeShowGaps = (e) => {
-    setShowGaps(!showGaps)
-  }
-
-  // changing the region changes the zoom and will also highlight on the map
-  const [region, setRegion] = useState(jsonify(initialSelectedRegion))
-
-  function handleChangeLocationViaAutocomplete(autocompleteRegion) {
-    if (!autocompleteRegion) return
-    // console.log(`autocompleteRegion ${JSON.stringify(autocompleteRegion)}`);
-    console.log("autocomplete", autocompleteRegion)
-
-    const hit = fromPosition(autocompleteRegion.chrom, autocompleteRegion.start, autocompleteRegion.stop)
-    hit.data = {}
-    hit.type = "autocomplete" // TODO: we can use this to determine alternative rendering
-    console.log("autocomplete hilbert region", hit)
-    setRegion(hit)
-    setSelected(hit)
-    updateStations(hit)
-    
-  }
-
-  // number state for orderOffset
-  const [orderOffset, setOrderOffset] = useState(0)
-
-  const [data, setData] = useState(null)
-  const dataRef = useRef(data)
-  useEffect(() => {
-    dataRef.current = data
-  }, [data])
-
-  function onData(payload) {
-    setData(payload)
-  }
-
-  // // when in layer suggestion mode, this function will update the
-  // // layer order based on the current viewable data
-  // let LayerSuggestionMode = true
-  // useMemo(() => {
-  //   if(LayerSuggestionMode) {
-  //     LayerSuggestion(data, layerOrder, setLayerOrder, [
-  //       DHS_Components_Sfc_max,
-  //       Chromatin_States_Sfc_max,
-  //       TF_Motifs_Sfc_max,
-  //       Repeats_Sfc_max
-  //     ])
-  //   }
-  // }, [data])
-
-
-  const [trackState, setTrackState] = useState(data)
-  const [tracks, setTracks] = useState([])
-  const [tracksLoading, setTracksLoading] = useState(false)
-  const [stations, setStations] = useState([])
-  // setter for tracks array
-
-  // console.log("tracks?", trackMinus1, trackPlus1)
+  }, [setSimSearch, setSimilarRegions, setSelected, setStations])
 
   // this debounced function fetches the data and updates the state
   const fetchLayerData = useMemo(() => {
@@ -454,28 +250,6 @@ function Home() {
       debounceNamed(myPromise, myCallback, 50, key+":"+layer.name+":"+order) // layer.name + order makes unique call 
     }
   }, []);
-
-  // When data or selected changes, we want to update the tracks
-  useEffect(() => {
-    if(!dataRef.current) return
-    if(isZooming) return;
-    const minOrder = Math.max(layerRef.current.orders[0], dataRef.current.order - 5)
-    let promises = range(minOrder, dataRef.current.order).map(order => {
-      return new Promise((resolve) => {
-        fetchLayerData(layerRef.current, order, dataRef.current.bbox, "pyramid", (response) => {
-          resolve(response)
-        })
-      })
-    })
-    // if(isZooming) setTracksLoading(true)
-    Promise.all(promises).then((responses) => {
-      setTrackState(dataRef.current)
-      setTracks(responses)
-      setTracksLoading(false)
-    })
-  // make sure this updates only when the data changes
-  // the pyramid will lag behind a little bit but wont make too many requests
-  }, [zoom, data, isZooming, fetchLayerData]) 
 
   // When data or selected changes, we want to update the zoom legend
   let updateStations = useCallback((hit) => {
@@ -511,6 +285,241 @@ function Home() {
       return Promise.all(promises)
     }, (responses) => setStations(responses), 150)
   }, [dataRef, setStations, fetchLayerData, orderDomain])
+
+  const handleClick = useCallback((hit, order, double) => {
+    // console.log("app click handler", hit, order, double)
+    try {
+      if(hit === selected) {
+        setSelected(null) 
+        setSelectedOrder(null)
+        setSimSearch(null)
+        setStations([])
+      } else if(hit) {
+        console.log("setting selected from click", hit)
+        setSelected(hit)
+        setSelectedOrder(order)
+        updateStations(hit)
+      }
+    } catch(e) {
+      console.log("caught error in click", e)
+    }
+  }, [selected, setSelected, setSelectedOrder, setSimSearch, setStations, updateStations])
+
+  // do a sim search if selected changes
+  useEffect(() => {
+    if(selected){
+      console.log("selected changed", selected)
+      SimSearchRegion(selected, selected.order, layer, setSearchByFactorInds, []).then((regionResult) => {
+        if(!regionResult || !regionResult.simSearch) return;
+        processSimSearchResults(selected.order, regionResult)
+        GenesetEnrichment(regionResult.simSearch.slice(1), selected.order).then((enrichmentResult) => {
+          setGenesetEnrichment(enrichmentResult)
+        })
+        setSimSearchMethod("Region")
+      })
+      NarrateRegion(selected, selected.order).then((narrationResult) => {
+        narrationResult && setSelectedNarration(narrationResult.narrationRanks)
+      })
+    }
+  }, [selected, layer, setSearchByFactorInds, processSimSearchResults, setGenesetEnrichment, setSimSearchMethod, setSelectedNarration, updateStations])
+
+  
+
+  const updateUrlParams = useCallback((newRegionSet, newSelected) => {
+    const params = new URLSearchParams();
+    if (newRegionSet) params.set('regionset', newRegionSet);
+    if (newSelected) params.set('region', urlify(newSelected));
+    console.log("update url", newRegionSet, newSelected)
+    navigate({ search: params.toString() }, { replace: true });
+  }, [navigate]);
+
+  const [regionset, setRegionSet] = useState(initialRegionset)
+  const [exampleRegions, setExampleRegions] = useState([])
+  useEffect(() => {
+    const set = getSet(regionset)
+    if(set) {
+      setExampleRegions(set)
+    }
+    updateUrlParams(regionset, selected)
+  }, [regionset, selected, setExampleRegions, updateUrlParams])
+
+
+  const handleChangePathCSN = (e) => {
+    setPathCSN(!pathCSN)
+  }
+  useEffect(() => {
+    if(selected){
+      CrossScaleNarration(selected, pathCSN, [
+        DHS_Components_Sfc_max,
+        Chromatin_States_Sfc_max,
+        TF_Motifs_Sfc_max,
+        Repeats_Sfc_max
+      ]).then(crossScaleResponse => {
+        setCrossScaleNarration(crossScaleResponse)
+      })
+    }
+  }, [pathCSN, selected])
+
+  
+  const handleHover = useCallback((hit, similarRegionList=false) => {
+    if(hit && !selectedRef.current) {
+      updateStations(hit)
+    }
+    if(similarRegionList) {
+      setSimilarRegionListHover(hit)
+    }
+    setHover(hit)
+    if(hit) setLastHover(hit)
+  }, [setSimilarRegionListHover, setHover, updateStations])
+
+
+ 
+  const handleFactorClick = useCallback((newSearchByFactorInds) => {
+    setSearchByFactorInds(newSearchByFactorInds)
+    if(newSearchByFactorInds.length > 0) {
+      if(simSearchMethod != "Region") {
+        SimSearchByFactor(newSearchByFactorInds, zoom.order, layer).then((SBFResult) => {
+          setSelected(null)
+          setStations([])
+          setSelectedNarration(null)
+          setSelectedOrder(zoom.order)
+          processSimSearchResults(zoom.order, SBFResult)
+          setSimSearchMethod("SBF")
+          GenesetEnrichment(SBFResult.simSearch, zoom.order).then((enrichmentResult) => {
+            setGenesetEnrichment(enrichmentResult)
+          })
+        })
+      } else if(simSearchMethod == "Region") {
+        SimSearchRegion(selected, selected.order, layer, setSearchByFactorInds, newSearchByFactorInds, simSearchMethod).then((regionResult) => {
+          processSimSearchResults(selected.order, regionResult)
+          GenesetEnrichment(regionResult.simSearch.slice(1), zoom.order).then((enrichmentResult) => {
+            setGenesetEnrichment(enrichmentResult)
+          })
+        })
+      }
+    } else {
+      processSimSearchResults(zoom.order, {simSearch: null, factors: null, method: null, layer: null})
+      setSimSearchMethod(null)
+    }
+  }, [selected, zoom, setSearchByFactorInds, processSimSearchResults, setGenesetEnrichment, simSearchMethod, setSelected, setStations, setSelectedNarration, setSelectedOrder, layer])
+
+  const handleModalClose = useCallback(() => {
+    setRegion(null)
+    setSelected(null)
+    setStations([])
+    setSelectedOrder(null)
+    setSimSearch(null)
+    setSearchByFactorInds([])
+    setSimilarRegions([])
+    setSelectedNarration(null)
+    setSimSearchMethod(null)
+    setGenesetEnrichment(null)
+    setCrossScaleNarration(new Array(11).fill(null))
+  }, [setRegion, setSelected, setStations, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setCrossScaleNarration])
+
+  // keybinding that closes the modal on escape
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if(e.key === "Escape") {
+        handleModalClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [handleModalClose])
+
+  
+  const [showHilbert, setShowHilbert] = useState(false)
+  const handleChangeShowHilbert = (e) => {
+    setShowHilbert(!showHilbert)
+  }
+  const [showDebug, setShowDebug] = useState(true)
+  const handleChangeShowDebug = (e) => {
+    setShowDebug(!showDebug)
+  }
+
+  const [showSettings, setShowSettings] = useState(false)
+  const handleChangeShowSettings = (e) => {
+    setShowSettings(!showSettings)
+  }
+  
+  const [showGenes, setShowGenes] = useState(true)
+  const handleChangeShowGenes = (e) => {
+    setShowGenes(!showGenes)
+  }
+
+  const [showGaps, setShowGaps] = useState(false)
+  const handleChangeShowGaps = (e) => {
+    setShowGaps(!showGaps)
+  }
+
+  
+
+  const handleChangeLocationViaAutocomplete = useCallback((autocompleteRegion) => {
+    if (!autocompleteRegion) return
+    // console.log(`autocompleteRegion ${JSON.stringify(autocompleteRegion)}`);
+    console.log("autocomplete", autocompleteRegion)
+
+    const hit = fromPosition(autocompleteRegion.chrom, autocompleteRegion.start, autocompleteRegion.stop)
+    hit.data = {}
+    hit.type = "autocomplete" // TODO: we can use this to determine alternative rendering
+    console.log("autocomplete hilbert region", hit)
+    setRegion(hit)
+    setSelected(hit)
+    updateStations(hit)
+  }, [setRegion, setSelected, updateStations])
+
+  
+  const onData = useCallback((payload) => {
+    setData(payload)
+  }, [setData])
+
+  // // when in layer suggestion mode, this function will update the
+  // // layer order based on the current viewable data
+  // let LayerSuggestionMode = true
+  // useMemo(() => {
+  //   if(LayerSuggestionMode) {
+  //     LayerSuggestion(data, layerOrder, setLayerOrder, [
+  //       DHS_Components_Sfc_max,
+  //       Chromatin_States_Sfc_max,
+  //       TF_Motifs_Sfc_max,
+  //       Repeats_Sfc_max
+  //     ])
+  //   }
+  // }, [data])
+
+
+ // setter for tracks array
+
+  // console.log("tracks?", trackMinus1, trackPlus1)
+
+  
+
+
+
+  // When data or selected changes, we want to update the tracks
+  useEffect(() => {
+    if(!dataRef.current) return
+    if(isZooming) return;
+    const minOrder = Math.max(layerRef.current.orders[0], dataRef.current.order - 5)
+    let promises = range(minOrder, dataRef.current.order).map(order => {
+      return new Promise((resolve) => {
+        fetchLayerData(layerRef.current, order, dataRef.current.bbox, "pyramid", (response) => {
+          resolve(response)
+        })
+      })
+    })
+    // if(isZooming) setTracksLoading(true)
+    Promise.all(promises).then((responses) => {
+      setTrackState(dataRef.current)
+      setTracks(responses)
+      setTracksLoading(false)
+    })
+  // make sure this updates only when the data changes
+  // the pyramid will lag behind a little bit but wont make too many requests
+  }, [zoom, data, isZooming, fetchLayerData]) 
 
   useEffect(() => {
     updateStations(selected)
@@ -580,6 +589,11 @@ function Home() {
               simSearch={simSearch}
               searchByFactorInds={searchByFactorInds}
               handleFactorClick={handleFactorClick}
+              onSelect={(region) => {
+                setRegion(null);
+                setRegion(region);
+                setSelected(region);
+              }}
               onZoom={(region) => { 
                 setRegion(null); 
                 const hit = fromPosition(region.chromosome, region.start, region.end)
@@ -671,7 +685,9 @@ function Home() {
                     onZoom={(region) => { 
                       setRegion(null); 
                       const hit = fromPosition(region.chromosome, region.start, region.end)
-                      setRegion(hit)}}
+                      setRegion(hit)
+                      setSelected(hit)
+                    }}
                     setLayer={setLayer}
                     setLayerOrder={setLayerOrder}
                   />
