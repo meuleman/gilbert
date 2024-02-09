@@ -31,3 +31,16 @@
 }
 
 
+.region-detail .content .section {
+  border: 1px solid #e0e0e0;
+}
+
+.region-detail .content .section .section-content {
+  padding: 14px;
+}
+
+.region-detail .content .section h3 {
+  padding: 4px 14px;
+  margin: 0;
+  background: #f0f0f0;
+}

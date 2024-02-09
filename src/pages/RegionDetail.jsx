@@ -9,11 +9,13 @@ import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome"
 import Data from '../lib/data';
 
 import layers from '../layers'
+
 import DHS_Components_Sfc_max from '../layers/dhs_components_sfc_max'
 import Chromatin_States_Sfc_max from '../layers/chromatin_states_sfc_max';
 
 import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
 import SelectedModalSimSearch from '../components/SimSearch/SelectedModalSimSearch'
+import CrossScaleNarration from '../components/Narration/CrossScaleNarration'
 
 import './RegionDetail.css';
 
@@ -37,6 +39,7 @@ const RegionDetail = () => {
   const [similarChromatinRegions, setSimilarChromatinRegions] = useState([])
   const [similarBy, setSimilarBy] = useState('dhs')
   const [layersData, setLayersData] = useState([])
+  const [crossScaleNarration, setCrossScaleNarration] = useState([])
 
   useEffect(() => {
     if(region) {
@@ -56,11 +59,21 @@ const RegionDetail = () => {
         return fetchData(layer, region.order, rs)
       }))
       layersDataResult.then((response) => {
-        console.log("LAYERS RESPONSE", response)
         setLayersData(response.map((d, i) => {
+          const layer = matchingLayers[i]
+          let data = d.map(r => {
+            const field = layer.fieldChoice(r)
+            return {
+              ...r,
+              field: field,
+              color: layer.fieldColor(field.field)
+            }
+          })
           return {
-            layer: matchingLayers[i],
-            data: d
+            layer,
+            data,
+            meta: d.metas[0],
+            order: d.order
           }
         }))
       })
@@ -91,8 +104,18 @@ const RegionDetail = () => {
           console.log("similar chromatin ranges", similarRanges)
         }
       })
+
+      CrossScaleNarration(region, true, [
+        layers.find(d => d.name == "DHS Components"),
+        layers.find(d => d.name == "Chromatin States"),
+        layers.find(d => d.name == "TF Motifs"),
+        layers.find(d => d.name == "Repeats"),
+      ]).then(crossScaleResponse => {
+        console.log("crossScaleResponse", crossScaleResponse)
+        setCrossScaleNarration(crossScaleResponse)
+      })
     }
-  }, [region])
+  }, [region, fetchData])
 
 
   return (
@@ -106,62 +129,103 @@ const RegionDetail = () => {
         </div>
       </div>
       <div className="content">
-        <div>Region
-        </div>
-        <div>
-          {showPosition(region)}
-          <br/>
-          Order: {region.order}
-          {/* {JSON.stringify(region)} */}
-        </div>
-
-        <div className="genes">
-          <div>
-            Genes inside region: {inside.length}
-            {inside.length ? inside.map((d,i) => (
-              <div key={d.hgnc} className="gene">
-                <span className="hgnc">{d.hgnc}</span> &nbsp;
-                {showPosition(d)}
-              </div>)) 
-            : null }
-          </div>
-          <div>
-            Genes overlapping region: {outside.length}
+        <div className="section">
+          <h3>
+            {showPosition(region)}
+          </h3>
+          <div className="section-content">
+            Order: {region.order}
+            {/* {JSON.stringify(region)} */}
           </div>
         </div>
 
-        <h3>Similar regions</h3>
-        <div className="radio-buttons">
-          Show similar regions based on:
-          <input type="radio" id="dhs" name="regionType" value="dhs" checked={similarBy === 'dhs'} onChange={() => setSimilarBy('dhs')}/>
-          <label htmlFor="dhs">DHS</label>
-          <input type="radio" id="chromatin" name="regionType" value="chromatin" checked={similarBy === 'chromatin'} onChange={() => setSimilarBy('chromatin')}/>
-          <label htmlFor="chromatin">Chromatin</label>
+        <div className="section csn">
+          <h3>Cross-Scale Narration</h3>
+          <div className="section-content">
+            {crossScaleNarration.length ? crossScaleNarration.map((d, i) => {
+              return (<div key={i} className="layer">
+                <b>Order {d.order}:</b>&nbsp;
+                {d.layer.name} 
+                <div className="region">
+                  <span style={{color: d.layer.fieldColor(d.field.field)}}>{d.field.field}</span> - {d.field.value}
+                </div>
+              </div> )
+            }) : null}
+          </div>
         </div>
-        { similarBy == "dhs" ? <div className="similar-dhs-regions">
-            {simSearchDHS ? <SelectedModalSimSearch
-              simSearch={simSearchDHS}
-              searchByFactorInds={factorsDHS}
-              handleFactorClick={(factor) => {console.log("dhs factor click", factor)}}
-              onZoom={(region) => { console.log("dhs on zoom", region)}}
-              selectedOrder={region?.order}
-              setRegion={(region) => {console.log("dhs set region", region)}}
-              setHover={(region) => {console.log("dhs set hover", region)}}
-            /> : <div>No similar regions found</div>}
+
+        <div className="section genes">
+          <h3>Genes</h3>
+          <div className="section-content">
+            <div>
+              Genes inside region: {inside.length}
+              {inside.length ? inside.map((d,i) => (
+                <div key={d.hgnc} className="gene">
+                  <span className="hgnc">{d.hgnc}</span> &nbsp;
+                  {showPosition(d)}
+                </div>)) 
+              : null }
+            </div>
+            <div>
+              Genes overlapping region: {outside.length}
+            </div>
+          </div>
         </div>
-        :
-        <div className="similar-chromatin-regions">
-            {simSearchChromatin ? <SelectedModalSimSearch
-              simSearch={simSearchChromatin}
-              searchByFactorInds={factorsChromatin}
-              handleFactorClick={(factor) => {console.log("Chromatin factor click", factor)}}
-              onZoom={(region) => { console.log("Chromatin on zoom", region)}}
-              selectedOrder={region?.order}
-              setRegion={(region) => {console.log("Chromatin set region", region)}}
-              setHover={(region) => {console.log("Chromatin set hover", region)}}
-            /> : <div>No similar regions found</div>}
+
+        <div className="section similar">
+          <h3>Similar regions</h3>
+          <div className="section-content">
+            <div className="radio-buttons">
+              Show similar regions based on:
+              <input type="radio" id="dhs" name="regionType" value="dhs" checked={similarBy === 'dhs'} onChange={() => setSimilarBy('dhs')}/>
+              <label htmlFor="dhs">DHS</label>
+              <input type="radio" id="chromatin" name="regionType" value="chromatin" checked={similarBy === 'chromatin'} onChange={() => setSimilarBy('chromatin')}/>
+              <label htmlFor="chromatin">Chromatin</label>
+            </div>
+            { similarBy == "dhs" ? <div className="similar-dhs-regions">
+                {simSearchDHS ? <SelectedModalSimSearch
+                  simSearch={simSearchDHS}
+                  searchByFactorInds={factorsDHS}
+                  handleFactorClick={(factor) => {console.log("dhs factor click", factor)}}
+                  onZoom={(region) => { console.log("dhs on zoom", region)}}
+                  selectedOrder={region?.order}
+                  setRegion={(region) => {console.log("dhs set region", region)}}
+                  setHover={(region) => {console.log("dhs set hover", region)}}
+                /> : <div>No similar regions found</div>}
+            </div>
+            :
+            <div className="similar-chromatin-regions">
+                {simSearchChromatin ? <SelectedModalSimSearch
+                  simSearch={simSearchChromatin}
+                  searchByFactorInds={factorsChromatin}
+                  handleFactorClick={(factor) => {console.log("Chromatin factor click", factor)}}
+                  onZoom={(region) => { console.log("Chromatin on zoom", region)}}
+                  selectedOrder={region?.order}
+                  setRegion={(region) => {console.log("Chromatin set region", region)}}
+                  setHover={(region) => {console.log("Chromatin set hover", region)}}
+                /> : <div>No similar regions found</div>}
+            </div>
+            }
+          </div>
         </div>
-        }
+        
+        <div className="section layers">
+          <h3>Data Layers at order {region.order}</h3>
+          <div className="section-content">
+            {layersData.length ? layersData.map((d, i) => {
+              return (<div key={i} className="layer">
+                <b>{d.layer.name}</b>
+                {d.data.map((r, j) => {
+                  return j == 1 ? (<div key={j} className="region">
+                    {/* {showPosition(r)} -  */}
+                    <span style={{color: r.color}}>{r.field.field}</span> - {r.field.value}
+                  </div>) : null
+                })}
+              </div> )
+            }) : null}
+          </div>
+        </div>
+
 
       </div>
     </div>
