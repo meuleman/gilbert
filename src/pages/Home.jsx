@@ -582,11 +582,12 @@ function Home() {
           {selected ? 
               <SelectedModal 
                 selected={selected} 
-                onZoom={() => { setRegion(null); setRegion(selected)}}
+                onZoom={(region) => { setRegion(null); setRegion(region)}}
                 onClose={handleModalClose}
                 >
             <SelectedModalSimSearch
               simSearch={simSearch}
+              zoomRegion={region}
               searchByFactorInds={searchByFactorInds}
               handleFactorClick={handleFactorClick}
               onSelect={(region) => {
@@ -595,11 +596,10 @@ function Home() {
                 setSelected(region);
               }}
               onZoom={(region) => { 
-                setRegion(null); 
                 const hit = fromPosition(region.chromosome, region.start, region.end)
+                setRegion(null); 
                 setRegion(hit)}}
               selectedOrder={selectedOrder}
-              setRegion={setRegion}
               setHover={setHover}
             />
             </SelectedModal> : null}

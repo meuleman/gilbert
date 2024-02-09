@@ -18,12 +18,22 @@
   filter: grayscale(0%);
   opacity: 1
 }
+
+#selected-list .selected-modal-simsearch-item .selector {
+  filter: grayscale(0%);
+  opacity: 1
+}
+
 .selected-modal-simsearch-item .zoomer {
   filter: grayscale(100%);
   cursor: pointer;
   opacity: 0.5;
 }
 .selected-modal-simsearch-item .zoomer:hover {
+  filter: grayscale(0%);
+  opacity: 1
+}
+.selected-modal-simsearch-item .zoomed {
   filter: grayscale(0%);
   opacity: 1
 }

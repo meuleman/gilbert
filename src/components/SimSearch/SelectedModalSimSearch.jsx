@@ -10,6 +10,7 @@ import simSearchFactors from './SimSearchFactors.json'
 
 const SelectedModalSimSearch = ({
   simSearch,
+  zoomRegion,
   searchByFactorInds,
   handleFactorClick,
   selectedOrder,
@@ -314,7 +315,7 @@ const SelectedModalSimSearch = ({
         }}
       >
         <span className="selector" style={{fontSize: regionHeight * 1.25 + "px"}} onClick={() => handleClick(chrom, start, stop)} title="Select region">🎯</span>
-        <span className="zoomer" onClick={() => onZoom({chromosome: chrom, start, end: stop})} title="Zoom to region">🧭</span> 
+        <span className={`zoomer ${zoomRegion && zoomRegion.chromosome == chrom && zoomRegion.start == start ? 'zoomed' : ''}`} onClick={() => onZoom({chromosome: chrom, start, end: stop})} title="Zoom to region">🧭</span> 
         <span className="label"> {label}</span>
         
       </li>
