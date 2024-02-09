@@ -212,11 +212,13 @@ const RegionDetail = () => {
         <div className="section layers">
           <h3>Data Layers at order {region.order}</h3>
           <div className="section-content">
+            <span>{ranges.map(r => <>{showPosition(r)}<br/></>)}</span>
+
             {layersData.length ? layersData.map((d, i) => {
               return (<div key={i} className="layer">
                 <b>{d.layer.name}</b>
                 {d.data.map((r, j) => {
-                  return j == 1 ? (<div key={j} className="region">
+                  return j >= 0 ? (<div key={j} className="region">
                     {/* {showPosition(r)} -  */}
                     <span style={{color: r.color}}>{r.field.field}</span> - {r.field.value}
                   </div>) : null
