@@ -80,7 +80,7 @@ const RegionDetail = () => {
       })
 
       // Sim search on DHS
-      SimSearchRegion(region, region.order, DHS_Components_Sfc_max, setFactorsDHS,[]).then((result) => {
+      SimSearchRegion(rs[1], region.order, DHS_Components_Sfc_max, setFactorsDHS,[]).then((result) => {
         setSimSearchDHS(result)
         let similarRegions = result?.simSearch
         if(similarRegions && similarRegions.length)  {
@@ -93,7 +93,7 @@ const RegionDetail = () => {
         }
       })
       // Sim search on Chromatin States
-      SimSearchRegion(region, region.order, Chromatin_States_Sfc_max, setFactorsChromatin, []).then((result) => {
+      SimSearchRegion(rs[1], region.order, Chromatin_States_Sfc_max, setFactorsChromatin, []).then((result) => {
         setSimSearchChromatin(result)
         let similarRegions = result?.simSearch
         if(similarRegions && similarRegions.length)  {
@@ -107,7 +107,7 @@ const RegionDetail = () => {
       })
 
 
-      CrossScaleNarration(region, true, [
+      CrossScaleNarration(rs[1], true, [
         layers.find(d => d.name == "DHS Components"),
         layers.find(d => d.name == "Chromatin States"),
         layers.find(d => d.name == "TF Motifs"),
