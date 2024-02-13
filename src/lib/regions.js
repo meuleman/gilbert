@@ -69,3 +69,10 @@ export function jsonify(region) {
   }
   return null
 }
+
+export function sameHilbertRegion(a, b) {
+  // compare (hilber) regions
+  if(a.chromosome !== b.chromosome) return false
+  if(a.i !== b.i) return false
+  return true
+}

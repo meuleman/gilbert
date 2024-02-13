@@ -314,8 +314,8 @@ const SelectedModalSimSearch = ({
           "fontFamily": "monospace"
         }}
       >
-        <span className="selector" style={{fontSize: regionHeight * 1.25 + "px"}} onClick={() => handleClick(chrom, start, stop)} title="Select region">🎯</span>
-        <span className={`zoomer ${zoomRegion && zoomRegion.chromosome == chrom && zoomRegion.start == start ? 'zoomed' : ''}`} onClick={() => onZoom({chromosome: chrom, start, end: stop})} title="Zoom to region">🧭</span> 
+        {/* <span className="selector" style={{fontSize: regionHeight * 1.25 + "px"}} onClick={() => handleClick(chrom, start, stop)} title="Select region">🎯</span> */}
+        <span className={`zoomer ${zoomRegion && zoomRegion.chromosome == chrom && zoomRegion.start == start ? 'zoomed' : ''}`} onClick={() => onZoom({chromosome: chrom, start, end: stop})} title="Zoom to region">🔍</span> 
         <span className="label"> {label}</span>
         
       </li>

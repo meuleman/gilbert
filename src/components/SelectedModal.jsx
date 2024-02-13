@@ -17,8 +17,8 @@ const SelectedModal = ({
     {selected && (
     <div className="selected-modal">
       <div className="header">
-        <Link to={`/region?region=${urlify(selected)}`} target="_blank">Details ↗️</Link>
-        <Link onClick={() => onZoom(selected)} alt="Zoom to region">🧭 Zoom to region</Link>         
+        <Link to={`/region?region=${urlify(selected)}`} target="_blank">📄 Details ↗️</Link>
+        <Link onClick={() => onZoom(selected)} alt="Zoom to region">🔍 Zoom to region</Link>         
         <div className="close" onClick={onClose}>x</div>
       </div>
       <div className="selected-modal-selected">

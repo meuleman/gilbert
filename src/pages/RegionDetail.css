@@ -51,31 +51,42 @@
 }
 .region-detail .csn .section-content {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 .region-detail .csn .csn-layer {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: space-between;
   text-align: left;
   border: 1px solid #e0e0e0;
   margin: 6px;
   padding: 6px;
+  max-width: 220px;
 }
+.region-detail .csn .csn-layer.active {
+  border: 3px solid black;
+}
+.region-detail .csn .csn-layer-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  max-width: 210px;
+  gap: 6px;
+}
+
 .region-detail .csn .csn-order-layer {
   font-weight: bold;
-  width: 300px;
+  /* width: 300px; */
 }
 .region-detail .csn .csn-layer a {
-  width: 450px;
 }
 .region-detail .csn .csn-region {
 }
-.region-detail .csn .csn-field{
-  width: 200px;
+.region-detail .csn .csn-field {
+  padding: 0 6px; 
 }
 .region-detail .csn .csn-value {
-  width: 100px;
 }
 .region-detail .csn .region-thumb {
   padding: 6px;

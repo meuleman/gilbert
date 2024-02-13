@@ -686,7 +686,7 @@ function Home() {
                       setRegion(null); 
                       const hit = fromPosition(region.chromosome, region.start, region.end)
                       setRegion(hit)
-                      setSelected(hit)
+                      // setSelected(hit)
                     }}
                     setLayer={setLayer}
                     setLayerOrder={setLayerOrder}

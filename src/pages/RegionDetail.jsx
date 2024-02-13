@@ -3,7 +3,7 @@ import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import GilbertLogo from '../assets/gilbert-logo.svg?react';
 
 import { showFloat, showPosition } from '../lib/display';
-import { urlify, jsonify, parsePosition, fromPosition } from '../lib/regions';
+import { urlify, jsonify, parsePosition, fromPosition, sameHilbertRegion } from '../lib/regions';
 import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
 import Data from '../lib/data';
@@ -126,14 +126,14 @@ const RegionDetail = () => {
         <div className="header--brand">
           <GilbertLogo height="50" width="auto" />
         </div>
-        <div className="header--navigation">
+        {/* <div className="header--navigation">
           <Link to={`/?region=${urlify(region)}`}>Back to map</Link>
-        </div>
+        </div> */}
       </div>
       <div className="content">
         <div className="section">
           <h3>
-            {showPosition(region)}
+            {showPosition(region)} <Link to={`/?region=${urlify(region)}`}>🗺️</Link>
           </h3>
           <div className="section-content">
             Order: {region.order}
@@ -145,14 +145,21 @@ const RegionDetail = () => {
           <h3>Cross-Scale Narration</h3>
           <div className="section-content">
             {crossScaleNarration.length ? crossScaleNarration.map((d, i) => {
-              return (<div key={i} className="csn-layer">
-                <span className="csn-order-layer">
-                  Order {d.order}: {d.layer.name} 
-                </span>
+              return (<div key={i} className={`csn-layer ${region.order == d.region.order ? "active" : ""}`}>
+                <div className="csn-layer-header">
+                  <span className="csn-order-layer">
+                    {d.order}: {d.layer.name} 
+                  </span>
+                  <span className="csn-layer-links">
+                    <Link to={`/?region=${urlify(d.region)}`}> 🗺️ </Link>
+                    <Link to={`/region?region=${urlify(d.region)}`}> 📄 </Link>
+                  </span>
+                </div>
+                <div className="csn-field-value">
                   <span className="csn-field" style={{color: d.layer.fieldColor(d.field.field)}}>{d.field.field}</span>  
                   <span className="csn-value">{showFloat(d.field.value)}</span>
-                <Link to={`/region?region=${urlify(d.region)}`}> {showPosition(d.region)}</Link><br/>
-                <RegionThumb region={d.region} layer={d.layer} width={200} height={200} />
+                </div>
+                <RegionThumb region={d.region} highlights={crossScaleNarration.map(n => n.region)} layer={d.layer} width={200} height={200} />
               </div> )
             }) : null}
 
