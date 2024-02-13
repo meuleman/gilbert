@@ -61,7 +61,8 @@ function RegionThumb({ region, layer, width, height }) {
     let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
     if(pinnedOrder) {
       scale = orderZoomScale.invert(Math.pow(2,(pinnedOrder - orderDomain[0] + 0.99))) * scaleMultiplier
-      transform = zoomIdentity.translate(-tx * scale + xw/2, -ty * scale + xw/2).scale(scale)
+      // TODO: still dont know why these magic numbers are needed
+      transform = zoomIdentity.translate(-tx * scale + xw*0.36, -ty * scale + xw*0.64).scale(scale)
     }
     return transform
   }, [xScale, yScale, sizeScale, orderZoomScale, orderDomain, width, height])
@@ -94,9 +95,9 @@ function RegionThumb({ region, layer, width, height }) {
     const hilbert = new HilbertChromosome(region.order)
     const step = hilbert.step
     const transform = zoomToBox(region.x, region.y, region.x + step, region.y + step, region.order, scaler)
-    console.log("REGION", region)
-    console.log("transform", transform)
-    console.log("data", data)
+    // console.log("REGION", region)
+    // console.log("transform", transform)
+    // console.log("data", data)
     if(data && layer) {
       CanvasBase({ 
         scales, 
@@ -124,6 +125,21 @@ function RegionThumb({ region, layer, width, height }) {
         layer, 
         canvasRef 
       })
+
+      // render region
+      const ctx = canvasRef.current.getContext('2d');
+      let t = {...transform}
+      // if the data's order doesn't match the current order we render it more transparently
+      ctx.globalAlpha = 1 //order == dataOrder ? 1 : 0.85
+      ctx.strokeStyle = "black" 
+      ctx.lineWidth = 3;
+
+      const x = t.x + scales.xScale(region.x) * t.k
+      const y = t.y + scales.yScale(region.y) * t.k
+      let rw = scales.sizeScale(step) * t.k
+
+      ctx.strokeRect(x - rw/2, y - rw/2, rw, rw)
+
     }
   }, [region, points, data, layer, scales, zoomToBox])
 
