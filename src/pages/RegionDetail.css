@@ -44,3 +44,39 @@
   margin: 0;
   background: #f0f0f0;
 }
+
+/* .................................... CSN ................................ */
+.region-detail .csn {
+
+}
+.region-detail .csn .section-content {
+  display: flex;
+  flex-direction: column;
+}
+.region-detail .csn .csn-layer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  text-align: left;
+  border: 1px solid #e0e0e0;
+  margin: 6px;
+  padding: 6px;
+}
+.region-detail .csn .csn-order-layer {
+  font-weight: bold;
+  width: 300px;
+}
+.region-detail .csn .csn-layer a {
+  width: 450px;
+}
+.region-detail .csn .csn-region {
+}
+.region-detail .csn .csn-field{
+  width: 200px;
+}
+.region-detail .csn .csn-value {
+  width: 100px;
+}
+.region-detail .csn .region-thumb {
+  padding: 6px;
+}

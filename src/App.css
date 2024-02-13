@@ -158,3 +158,10 @@
   position: relative;
   overflow: hidden;
 }
+
+/* ........................ GLOBAL STYLES FOR POSITIONS ........................ */
+
+.position {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}

@@ -632,6 +632,7 @@ const HilbertGenome = ({
         <div className="debug-item">layer: {layer?.name}</div>
         <div className="debug-item">loading: {state.loading ? "LOADING" : "DONE"}</div>
         <div className="debug-item">points: {state.points.length}</div>
+        <div className="debug-item">zoom: {state.transform.k}</div>
       </div>}
     </div>
     

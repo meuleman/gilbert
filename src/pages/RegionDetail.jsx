@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import GilbertLogo from '../assets/gilbert-logo.svg?react';
 
-import { showKb, showPosition } from '../lib/display';
+import { showFloat, showPosition } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition } from '../lib/regions';
 import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
@@ -16,6 +16,7 @@ import Chromatin_States_Sfc_max from '../layers/chromatin_states_sfc_max';
 import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
 import SelectedModalSimSearch from '../components/SimSearch/SelectedModalSimSearch'
 import CrossScaleNarration from '../components/Narration/CrossScaleNarration'
+import RegionThumb from '../components/RegionThumb';
 
 import './RegionDetail.css';
 
@@ -105,6 +106,7 @@ const RegionDetail = () => {
         }
       })
 
+
       CrossScaleNarration(region, true, [
         layers.find(d => d.name == "DHS Components"),
         layers.find(d => d.name == "Chromatin States"),
@@ -143,14 +145,20 @@ const RegionDetail = () => {
           <h3>Cross-Scale Narration</h3>
           <div className="section-content">
             {crossScaleNarration.length ? crossScaleNarration.map((d, i) => {
-              return (<div key={i} className="layer">
-                <b>Order {d.order}:</b>&nbsp;
-                {d.layer.name} 
-                <div className="region">
-                  <span style={{color: d.layer.fieldColor(d.field.field)}}>{d.field.field}</span> - {d.field.value}
-                </div>
+              return (<div key={i} className="csn-layer">
+                <span className="csn-order-layer">
+                  Order {d.order}: {d.layer.name} 
+                </span>
+                  <span className="csn-field" style={{color: d.layer.fieldColor(d.field.field)}}>{d.field.field}</span>  
+                  <span className="csn-value">{showFloat(d.field.value)}</span>
+                <Link to={`/region?region=${urlify(d.region)}`}> {showPosition(d.region)}</Link><br/>
+                <RegionThumb region={d.region} layer={d.layer} width={200} height={200} />
               </div> )
             }) : null}
+
+            {/* { crossScaleNarration.length ? 
+              <RegionThumb region={crossScaleNarration[1].region} layer={crossScaleNarration[1].layer} width={200} height={200} />
+              : null } */}
           </div>
         </div>
 
