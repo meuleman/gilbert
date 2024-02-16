@@ -57,6 +57,7 @@ import SelectedModalNarration from '../components/Narration/SelectedModalNarrati
 import GenesetEnrichment from '../components/SimSearch/GenesetEnrichment';
 // import Spectrum from '../components/Spectrum';
 
+import RegionStrip from '../components/RegionStrip'
 
 
 // declare globally so it isn't recreated on every render
@@ -698,6 +699,7 @@ function Home() {
         <div className='footer'>
           <div className='footer-row'>
             <div className='linear-tracks'>
+              {(selected || hover) && <RegionStrip region={selected || hover} layer={layer} width={width} height={40} /> }
               <TrackPyramid
                 state={trackState} 
                 tracks={tracks}

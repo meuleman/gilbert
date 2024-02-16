@@ -87,6 +87,12 @@ function RegionThumb({ region, highlights, layer, width, height }) {
     // console.log("transform", transform)
     // console.log("data", data)
     if(data && layer) {
+      const ctx = canvasRef.current.getContext('2d');
+      let t = {...transform}
+
+      // ctx.fillStyle = "white"
+      // ctx.fillRect(0, 0, width, height)
+
       CanvasBase({ 
         scales, 
         state: { 
@@ -115,8 +121,6 @@ function RegionThumb({ region, highlights, layer, width, height }) {
       })
 
       // render region
-      const ctx = canvasRef.current.getContext('2d');
-      let t = {...transform}
       
       // render the highlighted regions
       if(highlights && highlights.length) {

@@ -17,6 +17,7 @@ import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
 import SelectedModalSimSearch from '../components/SimSearch/SelectedModalSimSearch'
 import CrossScaleNarration from '../components/Narration/CrossScaleNarration'
 import RegionThumb from '../components/RegionThumb';
+import RegionStrip from '../components/RegionStrip';
 
 import './RegionDetail.css';
 
@@ -41,6 +42,17 @@ const RegionDetail = () => {
   const [similarBy, setSimilarBy] = useState('dhs')
   const [layersData, setLayersData] = useState([])
   const [crossScaleNarration, setCrossScaleNarration] = useState([])
+
+  const [stripsWidth, setStripsWidth] = useState(0);
+  useEffect(() => {
+    const handleResize = () => {
+      const stripsElement = document.querySelector('#strips');
+      if (stripsElement)  setStripsWidth(stripsElement.offsetWidth)
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if(region) {
@@ -144,7 +156,28 @@ const RegionDetail = () => {
         <div className="section csn">
           <h3>Cross-Scale Narration</h3>
           <div className="section-content">
-            {crossScaleNarration.length ? crossScaleNarration.map((d, i) => {
+            <div className="thumbs">
+              {crossScaleNarration.length ? crossScaleNarration.map((d, i) => {
+                return (<div key={i} className={`csn-layer ${region.order == d.region.order ? "active" : ""}`}>
+                  <div className="csn-layer-header">
+                    <span className="csn-order-layer">
+                      {d.order}: {d.layer.name} 
+                    </span>
+                    <span className="csn-layer-links">
+                      <Link to={`/?region=${urlify(d.region)}`}> 🗺️ </Link>
+                      <Link to={`/region?region=${urlify(d.region)}`}> 📄 </Link>
+                    </span>
+                  </div>
+                  <div className="csn-field-value">
+                    <span className="csn-field" style={{color: d.layer.fieldColor(d.field.field)}}>{d.field.field}</span>  
+                    <span className="csn-value">{showFloat(d.field.value)}</span>
+                  </div>
+                  <RegionThumb region={d.region} highlights={crossScaleNarration.map(n => n.region)} layer={d.layer} width={200} height={200} />
+                </div> )
+              }) : null}
+            </div>
+            <div className="strips" id="strips">
+              {crossScaleNarration.length ? crossScaleNarration.map((d, i) => {
               return (<div key={i} className={`csn-layer ${region.order == d.region.order ? "active" : ""}`}>
                 <div className="csn-layer-header">
                   <span className="csn-order-layer">
@@ -154,14 +187,15 @@ const RegionDetail = () => {
                     <Link to={`/?region=${urlify(d.region)}`}> 🗺️ </Link>
                     <Link to={`/region?region=${urlify(d.region)}`}> 📄 </Link>
                   </span>
+                  <div className="csn-field-value">
+                    <span className="csn-field" style={{color: d.layer.fieldColor(d.field.field)}}>{d.field.field}</span>  
+                    <span className="csn-value">{showFloat(d.field.value)}</span>
+                  </div>
                 </div>
-                <div className="csn-field-value">
-                  <span className="csn-field" style={{color: d.layer.fieldColor(d.field.field)}}>{d.field.field}</span>  
-                  <span className="csn-value">{showFloat(d.field.value)}</span>
-                </div>
-                <RegionThumb region={d.region} highlights={crossScaleNarration.map(n => n.region)} layer={d.layer} width={200} height={200} />
+                <RegionStrip region={d.region} highlights={crossScaleNarration.map(n => n.region)} layer={d.layer} width={stripsWidth - 500} height={40} />
               </div> )
             }) : null}
+            </div>
 
             {/* { crossScaleNarration.length ? 
               <RegionThumb region={crossScaleNarration[1].region} layer={crossScaleNarration[1].layer} width={200} height={200} />

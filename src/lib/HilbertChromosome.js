@@ -147,6 +147,7 @@ export function HilbertChromosome(order, {
     let points = []
     for(let i = hstart; i <= hend; i++) {
       let h = get2D(i)
+      if(!h) continue;
       let x = h.hx + chromosome.x
       let y = h.hy + chromosome.y
       // if the user supplied a bbox, lets filter the points to only those in the bbox
@@ -170,10 +171,14 @@ export function HilbertChromosome(order, {
   // TODO: consider making versions that are chromosome aware
   // as in they can account for the chromosome's offset
   function get2D(pos) {
-    let h = curve.getXyAtVal(pos);
-    return {
-      hx: h[0] / sidescale - offset,
-      hy: h[1] / sidescale - offset,
+    try {
+      let h = curve.getXyAtVal(pos);
+      return {
+        hx: h[0] / sidescale - offset,
+        hy: h[1] / sidescale - offset,
+      }
+    } catch(e) {
+      return null
     }
   }
   hilbert.get2D = get2D
