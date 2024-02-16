@@ -54,6 +54,7 @@ import SelectedModalSimSearch from '../components/SimSearch/SelectedModalSimSear
 import NarrateRegion from '../components/Narration/NarrateRegion'
 import CrossScaleNarration from '../components/Narration/CrossScaleNarration'
 import SelectedModalNarration from '../components/Narration/SelectedModalNarration'
+import CSNSentence from '../components/Narration/CSNSentence'
 import GenesetEnrichment from '../components/SimSearch/GenesetEnrichment';
 // import Spectrum from '../components/Spectrum';
 
@@ -535,8 +536,12 @@ function Home() {
             <GilbertLogo height="50" width="auto" />
           </div>
           <div className="header--narration">
-            <SelectedModalNarration
+            {/* <SelectedModalNarration
               selectedNarration={selectedNarration}
+            /> */}
+            <CSNSentence
+              crossScaleNarration={crossScaleNarration}
+              order={zoom.order}
             />
           </div>
           <div className="header--search">
