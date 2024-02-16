@@ -304,7 +304,7 @@ const SelectedModalSimSearch = ({
 
     return (
       <li 
-        className='selected-modal-simsearch-item' 
+        className={`selected-modal-simsearch-item ${zoomRegion && zoomRegion.chromosome == chrom && zoomRegion.start == start ? 'zoomed' : ''}`}
         key={rank}
         onMouseOver={() => handleMouseOver(chrom, start, stop, factorRanks)}
         onMouseLeave={() => handleMouseLeave()}

@@ -30,10 +30,9 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
   const [points, setPoints] = useState(null)
 
   const render = useCallback((region, data) => {
-    if(region && data && layer) {
+    if(region && data && layer && data[0] && canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
       ctx.clearRect(0, 0, width, height)
-
 
       const bpbw = data[0].end - data[0].start
       let xExtent = extent(data, d => d.start)
@@ -75,15 +74,14 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
             .range([height,0])
 
           ctx.fillStyle = layer.fieldColor(sample.field)
-
           const x = xScale(d.start)
           const y = yScale(sample.value)
           const w = bw
           const h = height - yScale(sample.value)
           ctx.fillRect(x, y, w, h)
-          if(d.i == region.i){
-            ctx.strokeRect(x, 1, w, height-1)
-          }
+        }
+        if(d.i == region.i){
+          ctx.strokeRect(xScale(d.start), 1, bw, height-1)
         }
       })
 

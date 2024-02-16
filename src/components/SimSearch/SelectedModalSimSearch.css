@@ -7,6 +7,7 @@
 
 .selected-modal-simsearch-item {
   /* height: 5%; */
+  /* padding: 1px 3px; */
 }
 .selected-modal-simsearch-item .selector {
   padding-right: 4px;
@@ -36,6 +37,9 @@
 .selected-modal-simsearch-item .zoomed {
   filter: grayscale(0%);
   opacity: 1
+}
+.selected-modal-simsearch-item.zoomed {
+  background-color: #f0f0f0;
 }
 
 .selected-modal-simsearch-list-container, .selected-modal-simsearch-list-container-hidden {

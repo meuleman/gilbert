@@ -699,7 +699,8 @@ function Home() {
         <div className='footer'>
           <div className='footer-row'>
             <div className='linear-tracks'>
-              {(selected || hover) && <RegionStrip region={selected || hover} layer={layer} width={width} height={40} /> }
+              {selected  && <RegionStrip region={selected} segments={100} layer={layer} width={width} height={40} /> }
+              {hover && <RegionStrip region={hover} segments={100} layer={layer} width={width} height={40} /> }
               {/* <TrackPyramid
                 state={trackState} 
                 tracks={tracks}
