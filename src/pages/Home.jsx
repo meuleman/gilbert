@@ -700,7 +700,7 @@ function Home() {
           <div className='footer-row'>
             <div className='linear-tracks'>
               {(selected || hover) && <RegionStrip region={selected || hover} layer={layer} width={width} height={40} /> }
-              <TrackPyramid
+              {/* <TrackPyramid
                 state={trackState} 
                 tracks={tracks}
                 tracksLoading={isZooming || tracksLoading}
@@ -710,7 +710,7 @@ function Home() {
                 hovered={lastHover} 
                 selected={selected} 
                 setHovered={handleHover} 
-              ></TrackPyramid>
+              ></TrackPyramid> */}
             </div>
           </div>
           <StatusBar 
