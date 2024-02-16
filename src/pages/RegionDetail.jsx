@@ -26,6 +26,7 @@ const RegionDetail = () => {
   const location = useLocation();
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location]);
   const region = useMemo(() => {return jsonify(queryParams.get('region'))}, [queryParams]);
+  useEffect(() => { document.title = `Gilbert | Region Detail: ${region.chromosome}:${region.start}` }, [region]);
   const fetchData = useMemo(() => Data({debug: false}).fetchData, []);
 
   const [inside, setInside] = useState([]);
@@ -261,15 +262,17 @@ const RegionDetail = () => {
         <div className="section layers">
           <h3>Data Layers at order {region.order}</h3>
           <div className="section-content">
-            <span>{ranges.map(r => <>{showPosition(r)}<br/></>)}</span>
+            {/* <span>{ranges.map(r => <>{showPosition(r)}<br/></>)}</span> */}
+            <span>{showPosition(region)}</span>
 
             {layersData.length ? layersData.map((d, i) => {
               return (<div key={i} className="layer">
                 <b>{d.layer.name}</b>
+                <RegionStrip region={region} segments={100} layer={d.layer} width={stripsWidth - 500} height={40} />
                 {d.data.map((r, j) => {
                   return j >= 0 ? (<div key={j} className="region">
                     {/* {showPosition(r)} -  */}
-                    <span style={{color: r.color}}>{r.field.field}</span> - {r.field.value}
+                    {/* <span style={{color: r.color}}>{r.field.field}</span> - {r.field.value} */}
                   </div>) : null
                 })}
               </div> )
