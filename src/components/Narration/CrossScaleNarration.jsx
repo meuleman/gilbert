@@ -227,23 +227,26 @@ export default async function CrossScaleNarration(selected, layers, pathCSN=true
       let leafScoresSorted = leafScores.sort((a, b) => b.score - a.score).slice(0, numPaths)
 
       // collect the features for each leaf path
-      let topLeafPaths = new Array(leafScoresSorted.length).fill(null).map(d => [...orderDownSegmentData])
-      let collectFeatures = (node, i) => {
-        let nodeFeature = orderUpSegmentData[node]
-        let field = nodeFeature.topField
+      let refactorFeature = (d) => {
+        let field = d.topField
         // only keep stations with significant scores
         if(field.value !== null) {
-          field.color = nodeFeature.layer.fieldColor(field.field)
-          let nodeFeaturesReorg = {
-            region: nodeFeature,
-            order: nodeFeature.order,
-            layer: nodeFeature.layer,
+          field.color = d.layer.fieldColor(field.field)
+          let dReorg = {
+            region: d,
+            order: d.order,
+            layer: d.layer,
             field: field,
           }
-          topLeafPaths[i].push(nodeFeaturesReorg)
+          return dReorg
         } else {
-          topLeafPaths[i].push(null)
+          return null
         }
+      }
+      let topLeafPaths = new Array(leafScoresSorted.length).fill(null).map(d => [...orderDownSegmentData.map(d => refactorFeature(d))])
+      let collectFeatures = (node, i) => {
+        let nodeFeature = orderUpSegmentData[node]
+        topLeafPaths[i].push(refactorFeature(nodeFeature))
         if(node != 0) {
           let parent = tree[node][0]
           collectFeatures(parent, i)
