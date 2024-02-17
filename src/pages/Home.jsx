@@ -349,6 +349,7 @@ function Home() {
     setCrossScaleNarrationIndex(e.target.value)
   }
   useEffect(() => {
+    setCrossScaleNarrationIndex(0)
     if(selected){
       CrossScaleNarration(selected, [
         DHS_Components_Sfc_max,
