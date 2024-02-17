@@ -416,6 +416,7 @@ function Home() {
     setSelectedNarration(null)
     setSimSearchMethod(null)
     setGenesetEnrichment(null)
+    setCrossScaleNarrationIndex(0)
     setCrossScaleNarration(new Array(1).fill(new Array(11).fill(null)))
   }, [setRegion, setSelected, setStations, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setCrossScaleNarration])
 
