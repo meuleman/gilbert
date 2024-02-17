@@ -169,7 +169,8 @@ function Home() {
   // const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(null)
   const [simSearchMethod, setSimSearchMethod] = useState(null)
   const [selectedNarration, setSelectedNarration] = useState(null)
-  const [crossScaleNarration, setCrossScaleNarration] = useState(new Array(11).fill(null))
+  const [crossScaleNarration, setCrossScaleNarration] = useState(new Array(1).fill(new Array(11).fill(null)))
+  const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
   const [genesetEnrichment, setGenesetEnrichment] = useState(null)
 
   const selectedRef = useRef(selected);
@@ -182,8 +183,6 @@ function Home() {
   const [lastHover, setLastHover] = useState(null)
   // for when a region is hovered in the similar region list
   const [similarRegionListHover, setSimilarRegionListHover] = useState(null)
-  // change CSN method from path based to drill based
-  const [pathCSN, setPathCSN] = useState(true)
 
   // changing the region changes the zoom and will also highlight on the map
   const [region, setRegion] = useState(jsonify(initialSelectedRegion))
@@ -346,12 +345,12 @@ function Home() {
   }, [regionset, selected, setExampleRegions, updateUrlParams])
 
 
-  const handleChangePathCSN = (e) => {
-    setPathCSN(!pathCSN)
+  const handleChangeCSNIndex = (e) => {
+    setCrossScaleNarrationIndex(e.target.value)
   }
   useEffect(() => {
     if(selected){
-      CrossScaleNarration(selected, pathCSN, [
+      CrossScaleNarration(selected, [
         DHS_Components_Sfc_max,
         Chromatin_States_Sfc_max,
         TF_Motifs_Sfc_max,
@@ -360,7 +359,7 @@ function Home() {
         setCrossScaleNarration(crossScaleResponse)
       })
     }
-  }, [pathCSN, selected])
+  }, [selected])
 
   
   const handleHover = useCallback((hit, similarRegionList=false) => {
@@ -416,7 +415,7 @@ function Home() {
     setSelectedNarration(null)
     setSimSearchMethod(null)
     setGenesetEnrichment(null)
-    setCrossScaleNarration(new Array(11).fill(null))
+    setCrossScaleNarration(new Array(1).fill(new Array(11).fill(null)))
   }, [setRegion, setSelected, setStations, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setCrossScaleNarration])
 
   // keybinding that closes the modal on escape
@@ -540,7 +539,7 @@ function Home() {
               selectedNarration={selectedNarration}
             /> */}
             <CSNSentence
-              crossScaleNarration={crossScaleNarration}
+              crossScaleNarration={crossScaleNarration[crossScaleNarrationIndex]}
               order={zoom.order}
             />
           </div>
@@ -687,7 +686,7 @@ function Home() {
                     lensHovering={lensHovering}
                     stations={stations}
                     selected={selected || hover}
-                    crossScaleNarration={crossScaleNarration}
+                    crossScaleNarration={crossScaleNarration[crossScaleNarrationIndex]}
                     onZoom={(region) => { 
                       setRegion(null); 
                       const hit = fromPosition(region.chromosome, region.start, region.end)
@@ -738,7 +737,6 @@ function Home() {
             showHilbert={showHilbert}
             showGenes={showGenes}
             duration={duration}
-            pathCSN={pathCSN}
             onRegionSetChange={(name, set) => {
               console.log("name, set", name, set)
               if(set) {
@@ -750,7 +748,9 @@ function Home() {
             onShowHilbertChange={handleChangeShowHilbert}
             onShowGenesChange={handleChangeShowGenes}
             onDurationChange={handleChangeDuration}
-            onPathCSNChange={handleChangePathCSN}
+            handleChangeCSNIndex={handleChangeCSNIndex}
+            maxCSNIndex={crossScaleNarration.length - 1}
+            crossScaleNarrationIndex={crossScaleNarrationIndex}
           /> : null }
         </div>
       </div>

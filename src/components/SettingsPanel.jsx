@@ -12,8 +12,9 @@ const SettingsPanel = ({
   onShowGapsChange=()=>{},
   duration,
   onDurationChange=()=>{},
-  pathCSN,
-  onPathCSNChange=()=>{},
+  crossScaleNarrationIndex=0,
+  maxCSNIndex,
+  handleChangeCSNIndex=()=>{},
 } = {}) => {
   return (
     <div className="settings-panel">
@@ -39,8 +40,8 @@ const SettingsPanel = ({
         </label>
         
         <label>
-          <input type='checkbox' checked={pathCSN} onChange={onPathCSNChange} />
-          Path-Based Cross Scale Narration
+          <input type='range' min={0} max={maxCSNIndex} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
+          Cross Scale Narration
         </label>
       </div>
     </div>

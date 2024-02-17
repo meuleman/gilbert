@@ -31,7 +31,7 @@ const ZoomLegend = ({
   const setWithCSN = (newLayerOrder) => {
     // setNaturalLayerOrder(Object.assign({}, layerOrder))
     crossScaleNarration.forEach(d => {
-      newLayerOrder[d.order] = d.layer
+      newLayerOrder[d?.order] = d?.layer
     })
     setLayerOrder(newLayerOrder)
     return newLayerOrder
