@@ -325,12 +325,7 @@ const SelectedModalSimSearch = ({
 
   return (
     (simSearch?.simSearch && 
-      (!hidden ?
         <div id='selected-modal-simsearch-list-container' className='selected-modal-simsearch-list-container'>
-          <button 
-            className='simsearch-container-close-button'
-            onClick={() => handleClickForHidden()}
-          />
           <span className='selected-modal-simsearch-label' id='selected-modal-simsearch-label-selected' style={{"fontSize": regionHeight + "px"}}>
             {selectedRegion ? (
               "Selected Region:"
@@ -353,17 +348,6 @@ const SelectedModalSimSearch = ({
           </ul>
           
         </div>
-      : 
-      <div
-        className='selected-modal-simsearch-list-container-hidden'
-      >
-        <div className='simsearch-hidden-header'>Similar Regions</div>
-        <button 
-            className='simsearch-container-open-button'
-            onClick={() => handleClickForHidden()}
-          />
-
-      </div>)
     )
   )
 }

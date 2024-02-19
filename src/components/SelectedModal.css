@@ -1,29 +1,37 @@
 
 .selected-modal {
   position: absolute;
-  top: 2px;
+  top: 0px;
   right: 2px;
-  background-color: rgba(255, 255, 255, 0.8);
-  border: solid black 2px;
-  padding: 5px 5px 10px 5px;
-  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-left: 1px solid lightgray;
+  border-right: 1px solid lightgray;
+  border-bottom: 1px solid lightgray;
+  padding: 6px 6px 12px 6px;
   max-width: 460px;
+  width: 460px;
   height: auto;
   z-index: 1;
 }
 .selected-modal {
-
   display: flex;
   flex-direction: column;
   /* justify-content: space-between; */
   padding: 5px;
 }
-.selected-modal .header {
-
+.selected-modal .minimized {
+  display: none;
 }
-
+.selected-modal .header {
+  padding: 6px;
+}
+.selected-modal .controls {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  padding: 6px;
+}
 .selected-modal .selected-modal-selected {
-  padding-left: 12px;
 }
 
 .selected-modal .selected-modal-selected-point {
@@ -41,13 +49,22 @@
   padding: 0px 4px;
 }
 
-.selected-modal .close {
+.selected-modal .header-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  user-select: none;
+}
+.selected-modal .close, .selected-modal .minimize{
   padding: 3px 8px;
   border-radius: 5px;
   border: 1px solid lightgray;
   cursor: pointer;
 }
-.selected-modal .close:hover {
+.selected-modal  .minimize.active{
+  background-color: #efefef;
+}
+.selected-modal .close:hover, .selected-modal .minimize:hover{
   background-color: lightgray;
 }
 

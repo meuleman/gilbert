@@ -56,7 +56,8 @@ export function urlify(region) {
       i: region.i,
       order: region.order,
       x: region.x,
-      y: region.y
+      y: region.y,
+      description: region.description
     }
     return encodeURIComponent(JSON.stringify(json))
   }

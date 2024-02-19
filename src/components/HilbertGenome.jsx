@@ -363,9 +363,9 @@ const HilbertGenome = ({
       dispatch({ type: actions.ZOOM, payload })
 
       // update hover with the mouse event
-      if(event.sourceEvent){
-        handleMouseMove(event.sourceEvent)
-      }
+      // if(event.sourceEvent){
+      //   handleMouseMove(event.sourceEvent)
+      // }
       
       // update the parent component
       onZoom(payload)

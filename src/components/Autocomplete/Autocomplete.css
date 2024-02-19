@@ -7,7 +7,7 @@
   border-radius: 1px;
   border: none;
   height: 28px !important;
-  width: 230px !important;
+  width: 450px !important;
   padding-left: 26px;
   box-shadow: 0 2px 2px 0 rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.08);
   margin:auto;
@@ -58,7 +58,7 @@
   position: absolute;
   top: 100%;
   left: 0px;
-  width: 230px;
+  width: 450px;
   max-height: 250px;
   border: 1px solid #222;
   border-top-width: 1px;

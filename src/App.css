@@ -47,9 +47,9 @@
   flex: 0 0 auto;
 }
 
-.header--narration {
+/* .header--narration {
   flex: 1 0 auto;
-}
+} */
 
 .primary-grid {
   display: grid;

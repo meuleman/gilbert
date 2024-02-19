@@ -17,7 +17,7 @@ RegionStrip.propTypes = {
   region: PropTypes.object.isRequired,
   segments: PropTypes.number,
   highlights: PropTypes.array,
-  layer: PropTypes.string.isRequired,
+  layer: PropTypes.object.isRequired,
   width: PropTypes.number.isRequired,
   height: PropTypes.number.isRequired,
 };

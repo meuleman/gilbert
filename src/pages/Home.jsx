@@ -475,7 +475,10 @@ function Home() {
 
     const hit = fromPosition(autocompleteRegion.chrom, autocompleteRegion.start, autocompleteRegion.stop)
     hit.data = {}
-    hit.type = "autocomplete" // TODO: we can use this to determine alternative rendering
+    hit.description = {
+      type: autocompleteRegion.type,
+      name: autocompleteRegion.name
+    }
     console.log("autocomplete hilbert region", hit)
     setRegion(hit)
     setSelected(hit)
@@ -543,15 +546,6 @@ function Home() {
         <div className="header">
           <div className="header--brand">
             <GilbertLogo height="50" width="auto" />
-          </div>
-          <div className="header--narration">
-            {/* <SelectedModalNarration
-              selectedNarration={selectedNarration}
-            /> */}
-            <CSNSentence
-              crossScaleNarration={csn}
-              order={zoom.order}
-            />
           </div>
           <div className="header--search">
             <Autocomplete

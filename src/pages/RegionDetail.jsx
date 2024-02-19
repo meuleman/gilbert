@@ -143,6 +143,23 @@ const RegionDetail = () => {
     }
   }, [crossScaleNarrationIndex, crossScaleNarration])
 
+  const [zoomedRegion, setZoomedRegion] = useState(null)
+  const [similarZoomedRegion, setSimilarZoomedRegion] = useState(null)
+  function zoomARegion(region) {
+    let order = region.order + 2
+    if(order > 14) order = 14
+    const hilbert = new HilbertChromosome(order)
+    const range = hilbert.fromRegion(region.chromosome, region.start, region.end)
+    const zr = range[Math.round(range.length / 2)]
+    return zr
+  }
+
+  useEffect(() => {
+    const zr = zoomARegion(region)
+    console.log("ZR", zr)
+    setZoomedRegion(zr)
+  }, [region])
+
   const handleChangeCSNIndex = (e) => {
     setCrossScaleNarrationIndex(e.target.value)
   }
@@ -197,6 +214,7 @@ const RegionDetail = () => {
                     <span className="csn-value">{showFloat(d.field.value)}</span>
                   </div>
                   <RegionThumb region={d.region} highlights={csn.map(n => n.region)} layer={d.layer} width={200} height={200} />
+                  {/* { layersData?.length && <RegionThumb region={d.region} highlights={csn.map(n => n.region)} layer={layersData[5].layer} width={200} height={200} />} */}
                 </div> )
               }) : null}
             </div>
@@ -263,7 +281,7 @@ const RegionDetail = () => {
                   onZoom={(region) => { console.log("dhs on zoom", region)}}
                   selectedOrder={region?.order}
                   setRegion={(region) => {console.log("dhs set region", region)}}
-                  setHover={(region) => {console.log("dhs set hover", region)}}
+                  onHover={(region) => {setSimilarZoomedRegion(zoomARegion(region))}}
                 /> : <div>No similar regions found</div>}
             </div>
             :
@@ -275,11 +293,19 @@ const RegionDetail = () => {
                   onZoom={(region) => { console.log("Chromatin on zoom", region)}}
                   selectedOrder={region?.order}
                   setRegion={(region) => {console.log("Chromatin set region", region)}}
-                  setHover={(region) => {console.log("Chromatin set hover", region)}}
+                  onHover={(region) => {setSimilarZoomedRegion(zoomARegion(region))}}
                 /> : <div>No similar regions found</div>}
             </div>
             }
           </div>
+          {layersData && layersData.length && <div className="zoomed-region">
+            Region zoomed to order {zoomedRegion?.order}
+            {zoomedRegion && region && similarBy == "dhs" && <RegionStrip region={zoomedRegion} segments={100} layer={layersData[5].layer} width={500} height={40} /> }
+            {zoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={zoomedRegion} segments={100} layer={layersData[9].layer} width={500} height={40} /> }
+            Hovered similar region zoomed to order {similarZoomedRegion?.order}
+            {similarZoomedRegion && region && similarBy == "dhs" && <RegionStrip region={similarZoomedRegion} segments={100} layer={layersData[5].layer} width={500} height={40} /> }
+            {similarZoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={similarZoomedRegion} segments={100} layer={layersData[9].layer} width={500} height={40} /> }
+          </div>}
         </div>
         
         <div className="section layers">
