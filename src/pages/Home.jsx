@@ -163,7 +163,7 @@ function Home() {
 
     // selected powers the sidebar modal and the 1D track
   const [selected, setSelected] = useState(jsonify(initialSelectedRegion))
-  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [selectedOrder, setSelectedOrder] = useState(selected?.order)
   const [simSearch, setSimSearch] = useState(null)
   const [similarRegions, setSimilarRegions] = useState([])
   // const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(null)
@@ -597,26 +597,27 @@ function Home() {
           {selected ? 
               <SelectedModal 
                 selected={selected} 
+                csn={csn}
                 onZoom={(region) => { setRegion(null); setRegion(region)}}
                 onClose={handleModalClose}
                 >
-            <SelectedModalSimSearch
-              simSearch={simSearch}
-              zoomRegion={region}
-              searchByFactorInds={searchByFactorInds}
-              handleFactorClick={handleFactorClick}
-              onSelect={(region) => {
-                setRegion(null);
-                setRegion(region);
-                setSelected(region);
-              }}
-              onZoom={(region) => { 
-                const hit = fromPosition(region.chromosome, region.start, region.end)
-                setRegion(null); 
-                setRegion(hit)}}
-              selectedOrder={selectedOrder}
-              setHover={setHover}
-            />
+                  <SelectedModalSimSearch
+                    simSearch={simSearch}
+                    zoomRegion={region}
+                    searchByFactorInds={searchByFactorInds}
+                    selectedOrder={selectedOrder}
+                    handleFactorClick={handleFactorClick}
+                    onSelect={(region) => {
+                      setRegion(null);
+                      setRegion(region);
+                      setSelected(region);
+                    }}
+                    onZoom={(region) => { 
+                      const hit = fromPosition(region.chromosome, region.start, region.end)
+                      setRegion(null); 
+                      setRegion(hit)}}
+                    onHover={setHover}
+                  />
             </SelectedModal> : null}
             <div ref={containerRef} className="hilbert-container">
               {containerRef.current && ( 

@@ -1,12 +1,13 @@
 
 .selected-modal {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
-  background-color: white;
+  top: 2px;
+  right: 2px;
+  background-color: rgba(255, 255, 255, 0.8);
   border: solid black 2px;
   padding: 5px 5px 10px 5px;
   border-radius: 5px;
+  max-width: 460px;
   height: auto;
   z-index: 1;
 }
@@ -48,4 +49,11 @@
 }
 .selected-modal .close:hover {
   background-color: lightgray;
+}
+
+.selected-modal .csn .narration-sentence {
+  padding: 4px 4px;
+  border: 1px solid gray;
+  margin: 4px 0px;
+  border-radius: 5px;
 }

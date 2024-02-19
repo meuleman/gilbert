@@ -2,11 +2,13 @@
 import { urlify } from '../lib/regions'
 import { Link } from 'react-router-dom'
 import { showKb } from '../lib/display'
+import CSNSentence from './Narration/CSNSentence'
 
 import './SelectedModal.css'
 
 const SelectedModal = ({
   selected = null,
+  csn = [],
   onClose=()=>{},
   onZoom=()=>{},
   children=null
@@ -23,6 +25,12 @@ const SelectedModal = ({
       </div>
       <div className="selected-modal-selected">
         🎯 {selected.chromosome}:{selected.start} - {selected.end} ({showKb(selected.end - selected.start)})
+      </div>
+      <div className="csn">
+        <CSNSentence
+          crossScaleNarration={csn}
+          order={selected.order}
+        />
       </div>
       <div className="selected-modal-children">
         {children}

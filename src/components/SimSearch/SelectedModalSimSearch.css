@@ -6,6 +6,7 @@
 }
 
 .selected-modal-simsearch-item {
+  cursor: default;
   /* height: 5%; */
   /* padding: 1px 3px; */
 }

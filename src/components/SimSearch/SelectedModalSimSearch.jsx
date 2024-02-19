@@ -14,7 +14,6 @@ const SelectedModalSimSearch = ({
   searchByFactorInds,
   handleFactorClick,
   selectedOrder,
-  setHover,
   regionHeight=15,
   regionMargin=-5,
   barGap=2,
@@ -24,6 +23,7 @@ const SelectedModalSimSearch = ({
   factorHeaderGap = 7,
   inSearchMinWidth = 80,
   notInSearchMinWidth = 100,
+  onHover=()=>{},
   onSelect=()=>{},
   onZoom=()=>{}
 } = {}) => {
@@ -39,7 +39,8 @@ const SelectedModalSimSearch = ({
   }, [onSelect, hilbert])
 
   const handleRegionMouseOver = useCallback((chrom, start, stop, ranks) => {
-    let range = hilbert.fromRegion(chrom, start, stop-1)[0]
+    let ranges = hilbert.fromRegion(chrom, +start, +stop)
+    let range = ranges[0]
     range.end = parseInt(stop)
 
     let hoverData = {}
@@ -50,12 +51,12 @@ const SelectedModalSimSearch = ({
       hoverData[factorName] = factorRank
     })
     range.data = hoverData
-    setHover(range, true)
-  }, [setHover, hilbert, factors])
+    onHover(range, true)
+  }, [onHover, hilbert, factors])
 
   const handleRegionMouseLeave = useCallback(() => {
-    setHover(null, true)
-  }, [setHover])
+    onHover(null, true)
+  }, [onHover])
 
   // function to clear the convolution svg
   const removeConvBars = () => {
