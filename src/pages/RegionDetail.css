@@ -46,6 +46,7 @@
 }
 
 /* .................................... CSN ................................ */
+
 .region-detail .csn {
 
 }
@@ -54,6 +55,14 @@
   flex-direction: column;
   flex-wrap: wrap;
 }
+
+.region-detail .csn .narration-slider {
+  padding: 6px 6px;
+}
+.region-detail .csn #narration-sentence {
+  padding: 6px 6px;
+}
+
 .region-detail .csn .section-content .thumbs {
   display: flex;
   flex-direction: row;

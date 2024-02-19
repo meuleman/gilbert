@@ -362,6 +362,14 @@ function Home() {
     }
   }, [selected])
 
+  const [csn, setCsn] = useState([])
+  useEffect(() => {
+    if(crossScaleNarration?.length) {
+      // console.log("crossScaleNarrationIndex", crossScaleNarrationIndex, crossScaleNarration[crossScaleNarrationIndex])
+      setCsn(crossScaleNarration[crossScaleNarrationIndex].filter(d => !!d).sort((a,b) => a.order - b.order))
+    }
+  }, [crossScaleNarrationIndex, crossScaleNarration])
+
   
   const handleHover = useCallback((hit, similarRegionList=false) => {
     if(hit && !selectedRef.current) {
@@ -541,7 +549,7 @@ function Home() {
               selectedNarration={selectedNarration}
             /> */}
             <CSNSentence
-              crossScaleNarration={crossScaleNarration[crossScaleNarrationIndex]}
+              crossScaleNarration={csn}
               order={zoom.order}
             />
           </div>
@@ -688,7 +696,7 @@ function Home() {
                     lensHovering={lensHovering}
                     stations={stations}
                     selected={selected || hover}
-                    crossScaleNarration={crossScaleNarration[crossScaleNarrationIndex]}
+                    crossScaleNarration={csn}
                     onZoom={(region) => { 
                       setRegion(null); 
                       const hit = fromPosition(region.chromosome, region.start, region.end)

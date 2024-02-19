@@ -16,6 +16,7 @@ import Chromatin_States_Sfc_max from '../layers/chromatin_states_sfc_max';
 import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
 import SelectedModalSimSearch from '../components/SimSearch/SelectedModalSimSearch'
 import CrossScaleNarration from '../components/Narration/CrossScaleNarration'
+import CSNSentence from '../components/Narration/CSNSentence'
 import RegionThumb from '../components/RegionThumb';
 import RegionStrip from '../components/RegionStrip';
 
@@ -43,6 +44,8 @@ const RegionDetail = () => {
   const [similarBy, setSimilarBy] = useState('dhs')
   const [layersData, setLayersData] = useState([])
   const [crossScaleNarration, setCrossScaleNarration] = useState([])
+  const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
+  
 
   const [stripsWidth, setStripsWidth] = useState(0);
   useEffect(() => {
@@ -120,7 +123,7 @@ const RegionDetail = () => {
       })
 
 
-      CrossScaleNarration(rs[1], true, [
+      CrossScaleNarration(rs[1], [
         layers.find(d => d.name == "DHS Components"),
         layers.find(d => d.name == "Chromatin States"),
         layers.find(d => d.name == "TF Motifs"),
@@ -132,6 +135,17 @@ const RegionDetail = () => {
     }
   }, [region, fetchData])
 
+  const [csn, setCsn] = useState([])
+  useEffect(() => {
+    if(crossScaleNarration?.length) {
+      // console.log("crossScaleNarrationIndex", crossScaleNarrationIndex, crossScaleNarration[crossScaleNarrationIndex])
+      setCsn(crossScaleNarration[crossScaleNarrationIndex].filter(d => !!d).sort((a,b) => a.order - b.order))
+    }
+  }, [crossScaleNarrationIndex, crossScaleNarration])
+
+  const handleChangeCSNIndex = (e) => {
+    setCrossScaleNarrationIndex(e.target.value)
+  }
 
   return (
     <div className="region-detail">
@@ -156,9 +170,18 @@ const RegionDetail = () => {
 
         <div className="section csn">
           <h3>Cross-Scale Narration</h3>
+          
           <div className="section-content">
+            <div className="narration-slider">
+              <input id="csn-slider" type='range' min={0} max={crossScaleNarration.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
+              <label htmlFor="csn-slider">Narration: {crossScaleNarrationIndex}</label>
+            </div>
+            <CSNSentence
+              crossScaleNarration={csn}
+              order={region.order}
+            />
             <div className="thumbs">
-              {crossScaleNarration.length ? crossScaleNarration.map((d, i) => {
+              {csn.length ? csn.map((d, i) => {
                 return (<div key={i} className={`csn-layer ${region.order == d.region.order ? "active" : ""}`}>
                   <div className="csn-layer-header">
                     <span className="csn-order-layer">
@@ -173,12 +196,12 @@ const RegionDetail = () => {
                     <span className="csn-field" style={{color: d.layer.fieldColor(d.field.field)}}>{d.field.field}</span>  
                     <span className="csn-value">{showFloat(d.field.value)}</span>
                   </div>
-                  <RegionThumb region={d.region} highlights={crossScaleNarration.map(n => n.region)} layer={d.layer} width={200} height={200} />
+                  <RegionThumb region={d.region} highlights={csn.map(n => n.region)} layer={d.layer} width={200} height={200} />
                 </div> )
               }) : null}
             </div>
             <div className="strips" id="strips">
-              {crossScaleNarration.length ? crossScaleNarration.map((d, i) => {
+              {csn.length ? csn.map((d, i) => {
               return (<div key={i} className={`csn-layer ${region.order == d.region.order ? "active" : ""}`}>
                 <div className="csn-layer-header">
                   <span className="csn-order-layer">
@@ -193,7 +216,7 @@ const RegionDetail = () => {
                     <span className="csn-value">{showFloat(d.field.value)}</span>
                   </div>
                 </div>
-                <RegionStrip region={d.region} highlights={crossScaleNarration.map(n => n.region)} layer={d.layer} width={stripsWidth - 500} height={40} />
+                <RegionStrip region={d.region} highlights={csn.map(n => n.region)} layer={d.layer} width={stripsWidth - 500} height={40} />
               </div> )
             }) : null}
             </div>

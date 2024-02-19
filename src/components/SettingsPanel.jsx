@@ -41,7 +41,7 @@ const SettingsPanel = ({
         
         <label>
           <input type='range' min={0} max={maxCSNIndex} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
-          Cross Scale Narration
+          Cross Scale Narration {crossScaleNarrationIndex}
         </label>
       </div>
     </div>
