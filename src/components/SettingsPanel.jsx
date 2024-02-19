@@ -2,8 +2,8 @@ import './SettingsPanel.css'
 import RegionFilesSelect from './Regions/RegionFilesSelect'
 
 const SettingsPanel = ({
-  regionset,
-  onRegionSetChange=()=>{},
+  // regionset,
+  // onRegionSetChange=()=>{},
   showHilbert,
   onShowHilbertChange=()=>{},
   showGenes,
@@ -19,9 +19,9 @@ const SettingsPanel = ({
   return (
     <div className="settings-panel">
       <div className="settings-panel-left">
-        <label>
+        {/* <label>
           <RegionFilesSelect selected={regionset} onSelect={(a,b) => {console.log("a,b", a,b); onRegionSetChange(a,b)}} />
-        </label>
+        </label> */}
         <label>
           <input type="checkbox" checked={showHilbert} onChange={onShowHilbertChange} />
           Show Hilbert Curve

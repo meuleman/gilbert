@@ -36,10 +36,11 @@ import Chromatin_States_Sfc_max from '../layers/chromatin_states_sfc_max';
 import TF_Motifs_Sfc_max from '../layers/tf_motifs_sfc_max'
 import Repeats_Sfc_max from '../layers/repeats_sfc_max'
 
+import GilbertLogo from '../assets/gilbert-logo.svg?react'
+import RegionFilesSelect from '../components/Regions/RegionFilesSelect'
 // autocomplete
 import Autocomplete from '../components/Autocomplete/Autocomplete'
 
-import GilbertLogo from '../assets/gilbert-logo.svg?react'
 
 // region SimSearch
 import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
@@ -87,8 +88,15 @@ function Home() {
 
   const containerRef = useRef()
 
+  const [layerOrderNatural, setLayerOrderNatural] = useState(null)
   const [layerOrder, setLayerOrder] = useState(null)
   const layerOrderRef = useRef(layerOrder)
+  useEffect(() => {
+    console.log("layer order natural", layerOrderNatural)
+    if(layerOrderNatural)
+    setLayerOrder(layerOrderNatural)
+    layerOrderRef.current = layerOrderNatural
+  }, [layerOrderNatural])
   useEffect(() => {
     layerOrderRef.current = layerOrder
   }, [layerOrder])
@@ -158,7 +166,7 @@ function Home() {
       setLayer(layerOrderRef.current[newZoom.order])
     }  
     setZoom(newZoom)
-  }, [zoom, layerLock, layerOrder, setZoom, setLayer])
+  }, [setZoom, setLayer])
 
 
     // selected powers the sidebar modal and the 1D track
@@ -198,7 +206,6 @@ function Home() {
   const [trackState, setTrackState] = useState(data)
   const [tracks, setTracks] = useState([])
   const [tracksLoading, setTracksLoading] = useState(false)
-  const [stations, setStations] = useState([])
 
   const [searchByFactorInds, setSearchByFactorInds] = useState([])
 
@@ -223,9 +230,8 @@ function Home() {
     } else {
       setSimilarRegions([])
       setSelected(null)
-      setStations([])
     }
-  }, [setSimSearch, setSimilarRegions, setSelected, setStations])
+  }, [setSimSearch, setSimilarRegions, setSelected])
 
   // this debounced function fetches the data and updates the state
   const fetchLayerData = useMemo(() => {
@@ -252,40 +258,6 @@ function Home() {
     }
   }, []);
 
-  // When data or selected changes, we want to update the zoom legend
-  let updateStations = useCallback((hit) => {
-    // console.log("updating stations", dataRef.current, hit)
-    if(!dataRef.current) return
-    if(!hit) return
-    debounceTimed(() => { 
-      // console.log("actually updating", layerLockRef.current, layerRef.current)
-      let promises = range(4, dataRef.current.order).map(order => {
-        return new Promise((resolve) => {
-          // get the layer at this order
-          let orderLayer = layerLockRef.current ? layerRef.current : layerOrderRef.current[order]
-          // calculate the bbox from the selected hilbert cell that would fetch just the cell for the region
-          let hilbert = HilbertChromosome(order, { padding: 2 })
-          let step = hilbert.step
-          let bbox = {
-            x: hit.x - step/2,
-            y: hit.y - step/2,
-            width: step*2,
-            height: step*2
-          }
-          // console.log("bbox", bbox)
-          fetchLayerData(orderLayer, order, bbox, "station", (response) => {
-            // get the appropriate datum by looking at the corresponding hilbert pos from the selected.start
-            let pos = hilbertPosToOrder(hit.start, { from: orderDomain[1], to: order })
-            let point = hilbert.get2DPoint(pos, hit.chromosome)
-            let datum = response.data.find(d => d.i == point.i)
-            // console.log("pos", pos, "point", point, "datum", datum)
-            resolve({ layer: orderLayer, station: datum })
-          })
-        })
-      })
-      return Promise.all(promises)
-    }, (responses) => setStations(responses), 150)
-  }, [dataRef, setStations, fetchLayerData, orderDomain])
 
   const handleClick = useCallback((hit, order, double) => {
     // console.log("app click handler", hit, order, double)
@@ -294,17 +266,15 @@ function Home() {
         setSelected(null) 
         setSelectedOrder(null)
         setSimSearch(null)
-        setStations([])
       } else if(hit) {
         console.log("setting selected from click", hit)
         setSelected(hit)
         setSelectedOrder(order)
-        updateStations(hit)
       }
     } catch(e) {
       console.log("caught error in click", e)
     }
-  }, [selected, setSelected, setSelectedOrder, setSimSearch, setStations, updateStations])
+  }, [selected, setSelected, setSelectedOrder, setSimSearch])
 
   // do a sim search if selected changes
   useEffect(() => {
@@ -322,7 +292,7 @@ function Home() {
         narrationResult && setSelectedNarration(narrationResult.narrationRanks)
       })
     }
-  }, [selected, layer, setSearchByFactorInds, processSimSearchResults, setGenesetEnrichment, setSimSearchMethod, setSelectedNarration, updateStations])
+  }, [selected, layer, setSearchByFactorInds, processSimSearchResults, setGenesetEnrichment, setSimSearchMethod, setSelectedNarration])
 
   
 
@@ -351,6 +321,7 @@ function Home() {
   useEffect(() => {
     setCrossScaleNarrationIndex(0)
     if(selected){
+      console.log("updating CSN in home")
       CrossScaleNarration(selected, [
         DHS_Components_Sfc_max,
         Chromatin_States_Sfc_max,
@@ -359,28 +330,43 @@ function Home() {
       ]).then(crossScaleResponse => {
         setCrossScaleNarration(crossScaleResponse)
       })
+    } else {
+      // we set the layer order back to non-CSN if no selected region
+      if(layerOrderNatural && layerOrderNatural[zoomRef.current.order]) {
+        setLayerOrder(layerOrderNatural)
+        setLayer(layerOrderNatural[zoomRef.current.order])
+      }
     }
-  }, [selected])
+  }, [selected, layerOrderNatural])
 
   const [csn, setCsn] = useState([])
   useEffect(() => {
     if(crossScaleNarration?.length) {
       // console.log("crossScaleNarrationIndex", crossScaleNarrationIndex, crossScaleNarration[crossScaleNarrationIndex])
-      setCsn(crossScaleNarration[crossScaleNarrationIndex].filter(d => !!d).sort((a,b) => a.order - b.order))
+      let newCsn = crossScaleNarration[crossScaleNarrationIndex].filter(d => !!d).sort((a,b) => a.order - b.order)
+      setCsn(newCsn)
+      // we update the layer order and layer
+      if(selected) {
+        let newLayerOrder = Object.assign({}, layerOrderRef.current)
+        newCsn.forEach(d => {
+          newLayerOrder[d?.order] = d?.layer
+        })
+        console.log("new layer order", newLayerOrder)
+        setLayerOrder(newLayerOrder)
+        setLayer(newLayerOrder[selected.order])
+      }
     }
-  }, [crossScaleNarrationIndex, crossScaleNarration])
+  }, [selected, crossScaleNarrationIndex, crossScaleNarration])
 
   
   const handleHover = useCallback((hit, similarRegionList=false) => {
-    if(hit && !selectedRef.current) {
-      updateStations(hit)
-    }
+    // if(hit && !selectedRef.current) {}
     if(similarRegionList) {
       setSimilarRegionListHover(hit)
     }
     setHover(hit)
     if(hit) setLastHover(hit)
-  }, [setSimilarRegionListHover, setHover, updateStations])
+  }, [setSimilarRegionListHover, setHover])
 
 
  
@@ -390,7 +376,6 @@ function Home() {
       if(simSearchMethod != "Region") {
         SimSearchByFactor(newSearchByFactorInds, zoom.order, layer).then((SBFResult) => {
           setSelected(null)
-          setStations([])
           setSelectedNarration(null)
           setSelectedOrder(zoom.order)
           processSimSearchResults(zoom.order, SBFResult)
@@ -411,12 +396,11 @@ function Home() {
       processSimSearchResults(zoom.order, {simSearch: null, factors: null, method: null, layer: null})
       setSimSearchMethod(null)
     }
-  }, [selected, zoom, setSearchByFactorInds, processSimSearchResults, setGenesetEnrichment, simSearchMethod, setSelected, setStations, setSelectedNarration, setSelectedOrder, layer])
+  }, [selected, zoom, setSearchByFactorInds, processSimSearchResults, setGenesetEnrichment, simSearchMethod, setSelected, setSelectedNarration, setSelectedOrder, layer])
 
   const handleModalClose = useCallback(() => {
     setRegion(null)
     setSelected(null)
-    setStations([])
     setSelectedOrder(null)
     setSimSearch(null)
     setSearchByFactorInds([])
@@ -426,7 +410,7 @@ function Home() {
     setGenesetEnrichment(null)
     setCrossScaleNarrationIndex(0)
     setCrossScaleNarration(new Array(1).fill(new Array(11).fill(null)))
-  }, [setRegion, setSelected, setStations, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setCrossScaleNarration])
+  }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setCrossScaleNarration])
 
   // keybinding that closes the modal on escape
   useEffect(() => {
@@ -482,8 +466,7 @@ function Home() {
     console.log("autocomplete hilbert region", hit)
     setRegion(hit)
     setSelected(hit)
-    updateStations(hit)
-  }, [setRegion, setSelected, updateStations])
+  }, [setRegion, setSelected])
 
   
   const onData = useCallback((payload) => {
@@ -535,10 +518,6 @@ function Home() {
   // the pyramid will lag behind a little bit but wont make too many requests
   }, [zoom, data, isZooming, fetchLayerData]) 
 
-  useEffect(() => {
-    updateStations(selected)
-  }, [updateStations, selected, data]) 
-
   return (
     <>
       <div className="primary-grid">
@@ -546,6 +525,11 @@ function Home() {
         <div className="header">
           <div className="header--brand">
             <GilbertLogo height="50" width="auto" />
+          </div>
+          <div className="header--region-list">
+            <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
+              if(set) { setRegionSet(name) } else { setRegionSet('') }
+            }} />
           </div>
           <div className="header--search">
             <Autocomplete
@@ -557,7 +541,11 @@ function Home() {
           <LensModal
               layers={layers}
               currentLayer={layer}
-              setLayerOrder={setLayerOrder}
+              // setLayerOrder={(lo) => { setLayerOrder(lo); setLayerOrderNatural(lo) }}
+              setLayerOrder={useCallback((lo) => {
+                // console.log("LO WTF", lo)
+                setLayerOrderNatural(lo)
+              }, [setLayerOrderNatural])}
               setLayer={setLayer}
               setLayerLock={setLayerLock}
               layerLock={layerLock}
@@ -689,8 +677,8 @@ function Home() {
                     layer={layer}
                     layerLock={layerLock}
                     lensHovering={lensHovering}
-                    stations={stations}
-                    selected={selected || hover}
+                    selected={selected}
+                    hovered={hover}
                     crossScaleNarration={csn}
                     onZoom={(region) => { 
                       setRegion(null); 
@@ -698,8 +686,6 @@ function Home() {
                       setRegion(hit)
                       // setSelected(hit)
                     }}
-                    setLayer={setLayer}
-                    setLayerOrder={setLayerOrder}
                   />
                 )}
             </div>
@@ -738,18 +724,9 @@ function Home() {
             onOrderOffset={setOrderOffset}
           />
           { showSettings ? <SettingsPanel 
-            regionset={regionset}
             showHilbert={showHilbert}
             showGenes={showGenes}
             duration={duration}
-            onRegionSetChange={(name, set) => {
-              console.log("name, set", name, set)
-              if(set) {
-                setRegionSet(name)
-              } else {
-                setRegionSet('')
-              }
-            }}
             onShowHilbertChange={handleChangeShowHilbert}
             onShowGenesChange={handleChangeShowGenes}
             onDurationChange={handleChangeDuration}
