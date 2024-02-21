@@ -107,7 +107,7 @@ export default async function CrossScaleNarration(selected, layers, numPaths=100
       // sort paths
       let leafIndexOffset = numSegments - numLeaves
       let leafScores = scoresThroughNode.slice(-numLeaves).map((s, i) => ({score: s, i: i + leafIndexOffset}))
-      let leafScoresSorted = leafScores.sort((a, b) => b.score - a.score).slice(0, numPaths)
+      let leafScoresSorted = leafScores.sort((a, b) => b.score - a.score)
 
       // collect the features for each leaf path
       let refactorFeature = (d) => {
@@ -132,7 +132,24 @@ export default async function CrossScaleNarration(selected, layers, numPaths=100
         }
       }
       leafScoresSorted.forEach((d, i) => collectFeatures(d.i, i))
-      return topLeafPaths
+      
+      // subset our results to just unique paths
+      function findUniquePaths(paths) {
+        const uniquePaths = []
+        const seenPaths = new Map()
+      
+        paths.forEach(path => {
+          // Convert path to a string to use as a map key
+          const pathKey = JSON.stringify(path.filter(d => d !== null).sort((a, b) => a.order - b.order).map(d => d.field.field))
+          if (!seenPaths.has(pathKey)) {
+            uniquePaths.push(path)
+            seenPaths.set(pathKey, true)
+          }
+        })
+        return uniquePaths
+      }
+      let uniquePaths = findUniquePaths(topLeafPaths)
+      return uniquePaths.slice(0, numPaths)
     })
     return bestPaths
   }
