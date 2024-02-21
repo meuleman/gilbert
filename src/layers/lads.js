@@ -12,7 +12,7 @@ export default {
   fieldChoice: bandsValue,
   fieldColor: scaleOrdinal()
     .domain(["Constitutive", "Constitutive_Inter", "Facultative"])
-    .range(["blue", "#D82A2A", "#A0A0A0"])
+    .range(["#D82A2A", "blue", "#A0A0A0"])
     .unknown("white"),
   // used for the base canvas rendering
   strokeWidthMultiplier: 0.05,
