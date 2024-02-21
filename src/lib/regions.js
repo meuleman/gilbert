@@ -11,6 +11,11 @@ export function parsePosition(coords) {
   return { chromosome, start, end }
 }
 
+export function fromCoordinates(coords) {
+  const parsed = parsePosition(coords)
+  return fromPosition(parsed.chromosome, parsed.start, parsed.end)
+}
+
 // convert a genome region to a gilbert region
 // This will calculate the nearest order 
 // {

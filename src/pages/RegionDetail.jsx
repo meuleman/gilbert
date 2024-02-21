@@ -15,6 +15,7 @@ import Chromatin_States_Sfc_max from '../layers/chromatin_states_sfc_max';
 
 import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
 import SelectedModalSimSearch from '../components/SimSearch/SelectedModalSimSearch'
+import SimSearchResultList from '../components/SimSearch/ResultList'
 import CrossScaleNarration from '../components/Narration/CrossScaleNarration'
 import CSNSentence from '../components/Narration/CSNSentence'
 import RegionThumb from '../components/RegionThumb';
@@ -146,6 +147,7 @@ const RegionDetail = () => {
   const [zoomedRegion, setZoomedRegion] = useState(null)
   const [similarZoomedRegion, setSimilarZoomedRegion] = useState(null)
   function zoomARegion(region) {
+    if(!region) return null
     let order = region.order + 2
     if(order > 14) order = 14
     const hilbert = new HilbertChromosome(order)
@@ -274,7 +276,7 @@ const RegionDetail = () => {
               <label htmlFor="chromatin">Chromatin</label>
             </div>
             { similarBy == "dhs" ? <div className="similar-dhs-regions">
-                {simSearchDHS ? <SelectedModalSimSearch
+                <>{simSearchDHS ? <SelectedModalSimSearch
                   simSearch={simSearchDHS}
                   searchByFactorInds={factorsDHS}
                   handleFactorClick={(factor) => {console.log("dhs factor click", factor)}}
@@ -283,6 +285,16 @@ const RegionDetail = () => {
                   setRegion={(region) => {console.log("dhs set region", region)}}
                   onHover={(region) => {setSimilarZoomedRegion(zoomARegion(region))}}
                 /> : <div>No similar regions found</div>}
+                {simSearchDHS ? <SimSearchResultList
+                  simSearch={simSearchDHS}
+                  searchByFactorInds={factorsDHS}
+                  handleFactorClick={(factor) => {console.log("dhs factor click", factor)}}
+                  onZoom={(region) => { console.log("dhs on zoom", region)}}
+                  selectedOrder={region?.order}
+                  setRegion={(region) => {console.log("dhs set region", region)}}
+                  onHover={(region) => {setSimilarZoomedRegion(zoomARegion(region))}}
+                /> : <div>No similar regions found</div>}
+                </>
             </div>
             :
             <div className="similar-chromatin-regions">

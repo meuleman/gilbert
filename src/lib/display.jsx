@@ -30,15 +30,17 @@ function showFloat(num) {
 }
 
 
-function showPosition(d) {
+function showPosition(d, full=true) {
   return (
     <span className="position">
       <span className="chromosome">{d.chromosome}</span>
       <span className="colon">:</span>
       <span className="start">{d.start}</span>
-      <span className="divider"> - </span>
-      <span className="end">{d.end}</span>
-      <span className="kb">({showKb(d.end - d.start)})</span>
+      {full && <>
+        <span className="divider"> - </span>
+        <span className="end">{d.end}</span>
+        <span className="kb">({showKb(d.end - d.start)})</span>
+      </>}
     </span>
   )
 }

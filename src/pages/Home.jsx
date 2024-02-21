@@ -52,6 +52,7 @@ import DisplayedExampleRegions from '../components/ExampleRegions/DisplayExample
 import { getSet } from '../components/Regions/localstorage'
 import SelectedModal from '../components/SelectedModal'
 import SelectedModalSimSearch from '../components/SimSearch/SelectedModalSimSearch'
+import SimSearchResultList from '../components/SimSearch/ResultList'
 import NarrateRegion from '../components/Narration/NarrateRegion'
 import CrossScaleNarration from '../components/Narration/CrossScaleNarration'
 import SelectedModalNarration from '../components/Narration/SelectedModalNarration'
@@ -585,17 +586,11 @@ function Home() {
                 onZoom={(region) => { setRegion(null); setRegion(region)}}
                 onClose={handleModalClose}
                 >
-                  <SelectedModalSimSearch
+                  <SimSearchResultList
                     simSearch={simSearch}
                     zoomRegion={region}
                     searchByFactorInds={searchByFactorInds}
-                    selectedOrder={selectedOrder}
                     handleFactorClick={handleFactorClick}
-                    onSelect={(region) => {
-                      setRegion(null);
-                      setRegion(region);
-                      setSelected(region);
-                    }}
                     onZoom={(region) => { 
                       const hit = fromPosition(region.chromosome, region.start, region.end)
                       setRegion(null); 
