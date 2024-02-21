@@ -374,6 +374,7 @@ function Home() {
 
  
   const handleFactorClick = useCallback((newSearchByFactorInds) => {
+    console.log("HANDLE FACTOR CLICK", newSearchByFactorInds, simSearchMethod)
     setSearchByFactorInds(newSearchByFactorInds)
     if(newSearchByFactorInds.length > 0) {
       if(simSearchMethod != "Region") {
@@ -396,6 +397,7 @@ function Home() {
         })
       }
     } else {
+      console.log("setting null")
       processSimSearchResults(zoom.order, {simSearch: null, factors: null, method: null, layer: null})
       setSimSearchMethod(null)
     }

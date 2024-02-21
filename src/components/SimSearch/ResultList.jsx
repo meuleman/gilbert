@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { fromCoordinates } from '../../lib/regions'
 import { showPosition } from '../../lib/display'
 
@@ -15,6 +16,17 @@ const ResultList = ({
   onSelect=()=>{},
   onZoom=()=>{}
 } = {}) => {
+
+  const onClick = useCallback((factorInfo) => {
+    const factorInd = factorInfo.ind
+    let newSearchByFactorArr = [...searchByFactorInds]
+    if(searchByFactorInds.includes(factorInd)) {
+      newSearchByFactorArr = newSearchByFactorArr.filter(i => i !== factorInd)
+    } else {
+      newSearchByFactorArr.push(factorInd)
+    }
+    handleFactorClick(newSearchByFactorArr)
+  }, [searchByFactorInds, handleFactorClick])
 
   if(!simSearch || !simSearch.simSearch) return (<div></div>)
 
@@ -71,7 +83,7 @@ const ResultList = ({
       
     })
   }
-  console.log("REGIONS", regions)
+
 
   return (
     <div className='sim-search-result-list'>
@@ -109,7 +121,7 @@ const ResultList = ({
                       key={j} 
                       title={d.factor.fullName} 
                       style={{backgroundColor:d.factor.color}}
-                      onClick={() => handleFactorClick(d.factor)}
+                      onClick={() => onClick(d.factor)}
                     ></div>
                 })}
               </div>

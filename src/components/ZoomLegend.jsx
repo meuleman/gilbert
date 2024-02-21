@@ -74,7 +74,7 @@ const ZoomLegend = ({
   // When data or selected changes, we want to update the zoom legend
   let updateStations = useCallback((hit) => {
     // console.log("updating stations", hit)
-    if(!hit) return
+    if(!hit || !layerOrder) return
     debounceTimed(() => { 
       // console.log("actually updating", layerLockRef.current, layerRef.current)
       let promises = range(4, hit.order).map(order => {
