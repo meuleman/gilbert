@@ -132,7 +132,7 @@ const LayerLegend = ({
           factorElement.style.textShadow = '1px 0px 0px black';
         if(SBFFactorNames) {
           const SBFFactorInd = SBFFactorInds[SBFFactorNames.indexOf(f)]
-          if(searchByFactorInds.includes(SBFFactorInd)) {
+          if(searchByFactorInds?.includes && searchByFactorInds.includes(SBFFactorInd)) {
             factorElement.style.setProperty('--checkmark', `'\\2713'`)
           }
         }
