@@ -247,6 +247,7 @@ const HilbertGenome = ({
 
   useEffect(() => {
     if (layer) {
+      console.log("LAYER", layer)
       const dataClient = Data({ 
         // debug
       })

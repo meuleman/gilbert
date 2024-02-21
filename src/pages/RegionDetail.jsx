@@ -300,11 +300,11 @@ const RegionDetail = () => {
           </div>
           {layersData && layersData.length && <div className="zoomed-region">
             Region zoomed to order {zoomedRegion?.order}
-            {zoomedRegion && region && similarBy == "dhs" && <RegionStrip region={zoomedRegion} segments={100} layer={layersData[5].layer} width={500} height={40} /> }
-            {zoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={zoomedRegion} segments={100} layer={layersData[9].layer} width={500} height={40} /> }
+            {zoomedRegion && region && similarBy == "dhs" && <RegionStrip region={zoomedRegion} segments={32} layer={layersData[5].layer} width={500} height={40} /> }
+            {zoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={zoomedRegion} segments={32} layer={layersData[9].layer} width={500} height={40} /> }
             Hovered similar region zoomed to order {similarZoomedRegion?.order}
-            {similarZoomedRegion && region && similarBy == "dhs" && <RegionStrip region={similarZoomedRegion} segments={100} layer={layersData[5].layer} width={500} height={40} /> }
-            {similarZoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={similarZoomedRegion} segments={100} layer={layersData[9].layer} width={500} height={40} /> }
+            {similarZoomedRegion && region && similarBy == "dhs" && <RegionStrip region={similarZoomedRegion} segments={32} layer={layersData[5].layer} width={500} height={40} /> }
+            {similarZoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={similarZoomedRegion} segments={32} layer={layersData[9].layer} width={500} height={40} /> }
           </div>}
         </div>
         

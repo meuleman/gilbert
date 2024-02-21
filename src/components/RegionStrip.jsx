@@ -136,8 +136,9 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
     }
   }, [region, layer, segments, render])
 
-
-
+  const handleClick = useCallback(() => {
+    console.log("clicked region strip", region, data, layer)
+  }, [region, data, layer])
 
   return (
     <div 
@@ -151,6 +152,7 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
         width={width + "px"}
         height={height + "px"}
         ref={canvasRef}
+        onClick={handleClick}
       />
     </div>
   );

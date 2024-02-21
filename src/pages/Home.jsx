@@ -16,7 +16,7 @@ import SVGHilbertPaths from '../components/SVGHilbertPaths'
 import SVGGenePaths from '../components/SVGGenePaths'
 import ZoomLegend from '../components/ZoomLegend'
 // import LinearTracks from '../components/LinearTracks'
-import TrackPyramid from '../components/TrackPyramid'
+// import TrackPyramid from '../components/TrackPyramid'
 import LayerDropdown from '../components/LayerDropdown'
 import StatusBar from '../components/StatusBar'
 import SettingsPanel from '../components/SettingsPanel';
@@ -321,7 +321,6 @@ function Home() {
   useEffect(() => {
     setCrossScaleNarrationIndex(0)
     if(selected){
-      console.log("updating CSN in home")
       CrossScaleNarration(selected, [
         DHS_Components_Sfc_max,
         Chromatin_States_Sfc_max,
@@ -351,9 +350,12 @@ function Home() {
         newCsn.forEach(d => {
           newLayerOrder[d?.order] = d?.layer
         })
-        console.log("new layer order", newLayerOrder)
-        setLayerOrder(newLayerOrder)
-        setLayer(newLayerOrder[selected.order])
+        // console.log("new layer order from csn", newLayerOrder)
+        // console.log("new layer", newLayerOrder[selected.order])
+        if(newLayerOrder[selected.order]){
+          setLayerOrder(newLayerOrder)
+          setLayer(newLayerOrder[selected.order])
+        }
       }
     }
   }, [selected, crossScaleNarrationIndex, crossScaleNarration])
@@ -717,7 +719,6 @@ function Home() {
             showDebug={showDebug}
             showSettings={showSettings}
             orderOffset={orderOffset}
-            onLayer={handleLayer}
             layers={layers} 
             onDebug={handleChangeShowDebug}
             onSettings={handleChangeShowSettings}
