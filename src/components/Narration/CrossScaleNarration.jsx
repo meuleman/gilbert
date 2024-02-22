@@ -2,8 +2,7 @@
 import Data from '../../lib/data';
 import { HilbertChromosome, hilbertPosToOrder, checkRanges } from '../../lib/HilbertChromosome'
 
-export default async function CrossScaleNarration(selected, layers, pathCSN=true, numPaths=100) {
-  // console.log(pathCSN)
+export default async function CrossScaleNarration(selected, layers, numPaths=100) {
   const fetchData = Data({debug: false}).fetchData;
   
   let orders = Array.from({length: 11}, (a, i) => i + 4);
@@ -18,60 +17,8 @@ export default async function CrossScaleNarration(selected, layers, pathCSN=true
     return range
   }
 
-  // if(selected && !pathCSN) {
-  //   // get the top field within each order
-  //   let topFieldsAcrossOrders = Promise.all(orders.map((order) => {
-  //     // get the top field within each layer for all overlapping segments
-  //     let topFieldsAcrossLayers = Promise.all(layers.map((layer) => {
-  //       // if the layer includes current order
-  //       if((layer.orders[0] <= order) && (layer.orders[1] >= order)) {
-  //         // get hilbert ranges
-  //         const orderRange = getRange(selected, order)
-  //         // fetch data for collected hilbert segments
-  //         return fetchData(layer, order, orderRange)
-  //           .then((response) => {
-  //             // top field per segment
-  //             const topFields = response.map(d => {
-  //               layer.fieldChoice(d)
-  //               return {region: d, field: layer.fieldChoice(d)}
-  //             })
-  //             // top field across segments
-  //             const topField = topFields.sort((a,b) => {return b.field.value - a.field.value})[0]
-  //             if(topField.field.value !== null) {
-  //               // color for subway station
-  //               topField.field.color = layer.fieldColor(topField.field.field)
-  //               return {field: topField.field, layer: layer, region: topField.region}
-  //             } else {
-  //               return null
-  //             }
-  //           })
-  //           .catch((error) => {
-  //             console.error(`Error fetching CSN data: ${error}`);
-  //             return null
-  //           })
-  //       } else {
-  //         return Promise.resolve(null)
-  //       }
-  //     }))
-  //     return topFieldsAcrossLayers.then((response) => {
-  //       // remove layers with no significant data
-  //       let fields = response.filter(d => d !== null)
-  //       if(fields.length > 0) {
-  //         // compare fields across layers for order
-  //         const topField = fields.sort((a,b) => {return b.field.value - a.field.value})[0]
-  //         topField.order = order
-  //         return topField
-  //       } else {
-  //         return null
-  //         // return {field: {field: null, value: null, color: null}, region: null, order: order, layer: null}
-  //       }
-  //     })
-  //   }))
-  //   return topFieldsAcrossOrders
-  // }
-
   // path based approach where the each suggested segment is within the one an order below it
-  if(selected && pathCSN) {
+  if(selected) {
     // track the orders we collect layer data from
     let maxOrderHit = Math.min(...orders)
     // get the top field within each layer for all overlapping segments
@@ -127,68 +74,6 @@ export default async function CrossScaleNarration(selected, layers, pathCSN=true
       return topFieldsAcrossLayers
     })
 
-    // console.time('bestPathTree')
-    // let bestPath = topFieldsAcrossLayers.then((response) => {
-    //   // from order of selected segment to 14...
-    //   let ordersUp = orders.slice(selected.order - Math.min(...orders))
-    //   let orderUpSegmentData = response.filter(d => ordersUp.includes(d.order))
-    //   let orderDownSegmentData = response.filter(d => !ordersUp.includes(d.order))
-
-    //   // create tree for orderUp data
-    //   let numSegments = orderUpSegmentData.length
-    //   let tree = new Array(numSegments).fill(null).map(d => [])
-    //   let scoresThroughNode = new Array(numSegments).fill(0)
-    //   let bestPathThroughNode = new Array(numSegments).fill(null).map(d => [])
-    //   for(let c = 1; c < numSegments; c++) {
-    //     let p = Math.floor((c - 1) / 4)
-    //     tree[p].push(c)
-    //     tree[c].push(p)
-    //   }
-
-    //   // function to traverse the tree and find the best path
-    //   let searchTree = (orderUpSegmentData, tree, i, parent) => { 
-    //     scoresThroughNode[i] = Math.sqrt(orderUpSegmentData[i].topField.value)  // normalize score
-    //     var maxScore = 0; 
-    //     for(var child of tree[i]) { 
-    //       // move on if no new nodes
-    //       if (child == parent){
-    //         continue
-    //       }
-    //       // go deeper into the tree 
-    //       searchTree(orderUpSegmentData, tree, child, i)
-    //       // update max score and path
-    //       if(scoresThroughNode[child] > maxScore) {
-    //         maxScore = scoresThroughNode[child]
-    //         if(bestPathThroughNode[child].length == 0) {
-    //           bestPathThroughNode[child].push(orderUpSegmentData[child])
-    //         }
-    //         bestPathThroughNode[i] = [orderUpSegmentData[i], ...bestPathThroughNode[child]]
-    //       }
-    //     } 
-    //     // add score through current node
-    //     scoresThroughNode[i] += maxScore
-    //   }
-    //   // find best path
-    //   searchTree(orderUpSegmentData, tree, 0, -1)
-    //   let bestPath = [...orderDownSegmentData, ...bestPathThroughNode[0]]
-    //   console.log("best path", bestPath)
-    //   let bestPathReorg = bestPath.map(d => {
-    //     let field = d.topField
-    //     // only keep stations with significant scores
-    //     if(field.value !== null) {
-    //       field.color = d.layer.fieldColor(field.field)
-    //       return {
-    //         region: d,
-    //         order: d.order,
-    //         layer: d.layer,
-    //         field: field,
-    //       }
-    //     } else {
-    //       return null
-    //     }
-    //   })
-    //   console.timeEnd('bestPathTree')
-
     let bestPaths = topFieldsAcrossLayers.then((response) => {
       // from order of selected segment to 14...
       let ordersUp = orders.slice(selected.order - Math.min(...orders))
@@ -201,8 +86,6 @@ export default async function CrossScaleNarration(selected, layers, pathCSN=true
       let scoresThroughNode = new Array(numSegments).fill(0)
       // store scores through each path/leaf
       let numLeaves = 4 ** (maxOrderHit - Math.min(...ordersUp))
-      // let leafScores = new Array(numLeaves).fill(0)
-      // let bestPathThroughNode = new Array(numSegments).fill(null).map(d => [])
       for(let c = 1; c < numSegments; c++) {
         let p = Math.floor((c - 1) / 4)
         tree[p].push(c)
@@ -224,7 +107,7 @@ export default async function CrossScaleNarration(selected, layers, pathCSN=true
       // sort paths
       let leafIndexOffset = numSegments - numLeaves
       let leafScores = scoresThroughNode.slice(-numLeaves).map((s, i) => ({score: s, i: i + leafIndexOffset}))
-      let leafScoresSorted = leafScores.sort((a, b) => b.score - a.score).slice(0, numPaths)
+      let leafScoresSorted = leafScores.sort((a, b) => b.score - a.score)
 
       // collect the features for each leaf path
       let refactorFeature = (d) => {
@@ -232,18 +115,14 @@ export default async function CrossScaleNarration(selected, layers, pathCSN=true
         // only keep stations with significant scores
         if(field.value !== null) {
           field.color = d.layer.fieldColor(field.field)
-          let dReorg = {
-            region: d,
-            order: d.order,
-            layer: d.layer,
-            field: field,
+          return { 
+            region: d, order: d.order, layer: d.layer, field: field,
           }
-          return dReorg
-        } else {
-          return null
-        }
+        } else return null
       }
+      // refactor orders below selected and add to each path
       let topLeafPaths = new Array(leafScoresSorted.length).fill(null).map(d => [...orderDownSegmentData.map(d => refactorFeature(d))])
+      // function to move through the tree and collect features for each segment
       let collectFeatures = (node, i) => {
         let nodeFeature = orderUpSegmentData[node]
         topLeafPaths[i].push(refactorFeature(nodeFeature))
@@ -253,7 +132,33 @@ export default async function CrossScaleNarration(selected, layers, pathCSN=true
         }
       }
       leafScoresSorted.forEach((d, i) => collectFeatures(d.i, i))
-      return topLeafPaths
+      
+      // subset our results to just unique paths
+      function findUniquePaths(paths) {
+        const uniquePaths = []
+        const seenPaths = new Map()
+
+        // create a null object for each order
+        let initialEmptyPathObj = {}
+        for (let i = orders[0]; i <= orders[1]; i++) {
+          initialEmptyPathObj[i] = null;
+        }
+        
+        // filter paths
+        paths.forEach(path => {
+          // Convert path to a string to use as a map key
+          let pathStripped = { ...initialEmptyPathObj }
+          path.forEach((d) => {if(d !== null) pathStripped[d.order] = d.field.field})
+          const pathKey = JSON.stringify(pathStripped)
+          if (!seenPaths.has(pathKey)) {
+            uniquePaths.push(path)
+            seenPaths.set(pathKey, true)
+          }
+        })
+        return uniquePaths
+      }
+      let uniquePaths = findUniquePaths(topLeafPaths)
+      return uniquePaths.slice(0, numPaths)
     })
     return bestPaths
   }
