@@ -20,12 +20,13 @@ export default function SVGBBox({
   return function SVGBBoxComponent({ state, scales }) {
     if(!hit) return null
 
-    const { dataOrder, bbox } = state
+    let { dataOrder, order } = state
     const { xScale, yScale, sizeScale } = scales
 
+    let stateOrder = order
 
-    let order = hit.order
-    if(type == "hover") order = dataOrder
+    order = hit.order
+    if(type == "hover") order = stateOrder
 
     let loading = false
     if(type == "hover" && state.loading) loading = true

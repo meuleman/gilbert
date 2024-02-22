@@ -110,7 +110,7 @@ const LayerLegend = ({
   if(hover?.data) {
     let hoverData = hover.data
     let hoverKeys = Object.keys(hoverData)
-    if ((hoverKeys.length == 2) && (hoverKeys[0] == "max_field") && (hoverKeys[1] == "max_value")) {
+    if ((hoverKeys.length == 2) && (hoverKeys[0] == "max_field") && (hoverKeys[1] == "max_value") && fullFactorList) {
       let factorName = fullFactorList[hover.data?.max_field]
       hoverData = {[factorName]: hover.data.max_value}
     }

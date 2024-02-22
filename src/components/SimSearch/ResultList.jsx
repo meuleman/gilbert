@@ -100,7 +100,7 @@ const ResultList = ({
           {searched &&
             <div className="result-row">
                 <div className="result-region">
-                  <span className={`zoomer ${zoomRegion && zoomRegion.chromosome == searched.chromosome && zoomRegion.start == searched.start ? 'zoomed' : ''}`} onClick={() => onZoom(region)} title="Zoom to region">🔍</span> 
+                  <span className={`zoomer ${zoomRegion && zoomRegion.chromosome == searched.chromosome && zoomRegion.start == searched.start ? 'zoomed' : ''}`} onClick={() => onZoom(searched)} title="Zoom to region">🔍</span> 
                   <span className="label"> {showPosition(searched, false)}</span>
                 </div>
                 <div className="result-in-search">
@@ -133,7 +133,7 @@ const ResultList = ({
               onMouseLeave={() => onHover(null)}
               >
               <div className="result-region">
-                <span className={`zoomer ${zoomRegion && zoomRegion.chromosome == region.chromosome && zoomRegion.start == region.start ? 'zoomed' : ''}`} onClick={() => onZoom(d)} title="Zoom to region">🔍</span> 
+                <span className={`zoomer ${zoomRegion && zoomRegion.chromosome == region.chromosome && zoomRegion.start == region.start ? 'zoomed' : ''}`} onClick={() => onZoom(region)} title="Zoom to region">🔍</span> 
                 <span className="label"> {i+1 < 10 ? "0" : ""}{i+1}: {showPosition(region, false)}</span>
               </div>
               <div className="result-in-search">

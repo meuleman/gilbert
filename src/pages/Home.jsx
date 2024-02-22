@@ -288,6 +288,10 @@ function Home() {
           setGenesetEnrichment(enrichmentResult)
         })
         setSimSearchMethod("Region")
+      }).catch(e => {
+        console.log("caught error in sim search", e)
+        setSimSearch(null)
+        setSimilarRegions([])
       })
       NarrateRegion(selected, selected.order).then((narrationResult) => {
         narrationResult && setSelectedNarration(narrationResult.narrationRanks)
@@ -353,7 +357,7 @@ function Home() {
         })
         // console.log("new layer order from csn", newLayerOrder)
         // console.log("new layer", newLayerOrder[selected.order])
-        if(newLayerOrder[selected.order]){
+        if(newLayerOrder[selected.order] && !layerLockRef.current){
           setLayerOrder(newLayerOrder)
           setLayer(newLayerOrder[selected.order])
         }
@@ -397,7 +401,7 @@ function Home() {
         })
       }
     } else {
-      console.log("setting null")
+      // clear the sim search
       processSimSearchResults(zoom.order, {simSearch: null, factors: null, method: null, layer: null})
       setSimSearchMethod(null)
     }
@@ -626,7 +630,7 @@ function Home() {
                     SVGChromosomeNames({ }),
                     showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
                     RegionMask({ regions: [selected, ...similarRegions]}),
-                    SVGSelected({ hit: hover, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
+                    SVGSelected({ hit: hover, dataOrder: zoom.order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
                     (
                       (checkRanges(selected, similarRegionListHover)) ? 
                       SVGSelected({ hit: selected, stroke: "darkgold", strokeWidthMultiplier: 0.05, showGenes: false })

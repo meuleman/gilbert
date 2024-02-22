@@ -68,8 +68,9 @@ export default function SimSearchRegion(selected, order, layer, setSearchByFacto
         }
       })
       .catch((err) => {
-        console.error(`error:     ${JSON.stringify(err)}`);
-        console.error(`post body: ${JSON.stringify(postBody)}`);
+        // console.error(`error:     ${JSON.stringify(err)}`);
+        // console.error(`post body: ${JSON.stringify(postBody)}`);
+        throw(err)
         // alert('Query Failed: Try another region.');
       });
 
