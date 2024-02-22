@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
-import GilbertLogo from '../assets/gilbert-logo.svg?react';
 
 import { showFloat, showPosition } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition, sameHilbertRegion } from '../lib/regions';
@@ -13,6 +12,7 @@ import layers from '../layers'
 import DHS_Components_Sfc_max from '../layers/dhs_components_sfc_max'
 import Chromatin_States_Sfc_max from '../layers/chromatin_states_sfc_max';
 
+import LogoNav from '../components/LogoNav';
 import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
 import SelectedModalSimSearch from '../components/SimSearch/SelectedModalSimSearch'
 import SimSearchResultList from '../components/SimSearch/ResultList'
@@ -170,7 +170,7 @@ const RegionDetail = () => {
     <div className="region-detail">
       <div className="header">
         <div className="header--brand">
-          <GilbertLogo height="50" width="auto" />
+          <LogoNav />
         </div>
         {/* <div className="header--navigation">
           <Link to={`/?region=${urlify(region)}`}>Back to map</Link>
@@ -288,7 +288,7 @@ const RegionDetail = () => {
                 {simSearchDHS ? <SimSearchResultList
                   simSearch={simSearchDHS}
                   searchByFactorInds={factorsDHS}
-                  handleFactorClick={(factor) => {console.log("dhs factor click", factor)}}
+                  onFactorClick={(factor) => {console.log("dhs factor click", factor)}}
                   onZoom={(region) => { console.log("dhs on zoom", region)}}
                   selectedOrder={region?.order}
                   setRegion={(region) => {console.log("dhs set region", region)}}

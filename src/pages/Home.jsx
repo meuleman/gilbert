@@ -9,6 +9,7 @@ import { range } from 'd3-array'
 
 import './Home.css'
 
+import LogoNav from '../components/LogoNav';
 // base component
 import HilbertGenome from '../components/HilbertGenome'
 // rendering components
@@ -36,7 +37,6 @@ import Chromatin_States_Sfc_max from '../layers/chromatin_states_sfc_max';
 import TF_Motifs_Sfc_max from '../layers/tf_motifs_sfc_max'
 import Repeats_Sfc_max from '../layers/repeats_sfc_max'
 
-import GilbertLogo from '../assets/gilbert-logo.svg?react'
 import RegionFilesSelect from '../components/Regions/RegionFilesSelect'
 // autocomplete
 import Autocomplete from '../components/Autocomplete/Autocomplete'
@@ -417,11 +417,17 @@ function Home() {
     setCrossScaleNarration(new Array(1).fill(new Array(11).fill(null)))
   }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setCrossScaleNarration])
 
+  const autocompleteRef = useRef(null)
   // keybinding that closes the modal on escape
   useEffect(() => {
     function handleKeyDown(e) {
       if(e.key === "Escape") {
         handleModalClose()
+      }
+      if(e.key == "/") {
+        if(autocompleteRef.current) {
+          autocompleteRef.current.applyFocus()
+        }
       }
     }
     window.addEventListener('keydown', handleKeyDown);
@@ -529,7 +535,7 @@ function Home() {
         {/* header row */}
         <div className="header">
           <div className="header--brand">
-            <GilbertLogo height="50" width="auto" />
+            <LogoNav/>
           </div>
           <div className="header--region-list">
             <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
@@ -538,6 +544,7 @@ function Home() {
           </div>
           <div className="header--search">
             <Autocomplete
+              ref={autocompleteRef}
               onChangeLocation={handleChangeLocationViaAutocomplete}
             />
           </div>
@@ -592,7 +599,7 @@ function Home() {
                     simSearch={simSearch}
                     zoomRegion={region}
                     searchByFactorInds={searchByFactorInds}
-                    handleFactorClick={handleFactorClick}
+                    onFactorClick={handleFactorClick}
                     onZoom={(region) => { 
                       const hit = fromPosition(region.chromosome, region.start, region.end)
                       setRegion(null); 

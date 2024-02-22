@@ -470,6 +470,7 @@ class Autocomplete extends Component {
         }
         break;
       }
+
     }
   };
 

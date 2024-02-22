@@ -11,22 +11,23 @@ const ResultList = ({
   zoomRegion,
   searchByFactorInds,
   selectedOrder,
-  handleFactorClick,
+  onFactorClick=()=>{},
   onHover=()=>{},
   onSelect=()=>{},
   onZoom=()=>{}
 } = {}) => {
 
-  const onClick = useCallback((factorInfo) => {
+  const handleFactorClick = useCallback((factorInfo) => {
     const factorInd = factorInfo.ind
     let newSearchByFactorArr = [...searchByFactorInds]
+    console.log("onclick factor", factorInfo, factorInd, newSearchByFactorArr)
     if(searchByFactorInds.includes(factorInd)) {
       newSearchByFactorArr = newSearchByFactorArr.filter(i => i !== factorInd)
     } else {
       newSearchByFactorArr.push(factorInd)
     }
-    handleFactorClick(newSearchByFactorArr)
-  }, [searchByFactorInds, handleFactorClick])
+    onFactorClick(newSearchByFactorArr)
+  }, [searchByFactorInds, onFactorClick])
 
   if(!simSearch || !simSearch.simSearch) return (<div></div>)
 
@@ -102,31 +103,51 @@ const ResultList = ({
                   <span className={`zoomer ${zoomRegion && zoomRegion.chromosome == searched.chromosome && zoomRegion.start == searched.start ? 'zoomed' : ''}`} onClick={() => onZoom(region)} title="Zoom to region">🔍</span> 
                   <span className="label"> {showPosition(searched, false)}</span>
                 </div>
-            </div> }
-          <div className="result-row">
-            <div>Similar Regions:</div>
-          </div>
-          {similar.map((d,i) => {
-            return <div key={i} className="result-row" 
-              onMouseEnter={() => onHover(d)} 
-              onMouseLeave={() => onHover(null)}
-              >
-              <div className="result-region">
-                <span className={`zoomer ${zoomRegion && zoomRegion.chromosome == d.chromosome && zoomRegion.start == d.start ? 'zoomed' : ''}`} onClick={() => onZoom(d)} title="Zoom to region">🔍</span> 
-                <span className="label"> {i+1 < 10 ? "0" : ""}{i+1}: {showPosition(d, false)}</span>
-              </div>
-              <div className="result-in-search">
-                {d.inSearchData.map((d, j) => {
+                <div className="result-in-search">
+                {searched.inSearchData.map((d, j) => {
                   return <div className="result-factor" 
                       key={j} 
                       title={d.factor.fullName} 
                       style={{backgroundColor:d.factor.color}}
-                      onClick={() => onClick(d.factor)}
+                      onClick={() => handleFactorClick(d.factor)}
                     ></div>
                 })}
               </div>
               <div className="result-not-in-search">
-                {d.notInSearchData.map((d, j) => {
+                {searched.notInSearchData.map((d, j) => {
+                  return <div className="result-factor" 
+                      key={j} 
+                      title={d.factor.fullName} 
+                      style={{backgroundColor:d.factor.color}}
+                      onClick={() => handleFactorClick(d.factor)}
+                    ></div>
+                })}
+              </div>
+            </div> }
+          <div className="result-row">
+            <div>Similar Regions:</div>
+          </div>
+          {similar.map((region,i) => {
+            return <div key={i} className="result-row" 
+              onMouseEnter={() => onHover(region)} 
+              onMouseLeave={() => onHover(null)}
+              >
+              <div className="result-region">
+                <span className={`zoomer ${zoomRegion && zoomRegion.chromosome == region.chromosome && zoomRegion.start == region.start ? 'zoomed' : ''}`} onClick={() => onZoom(d)} title="Zoom to region">🔍</span> 
+                <span className="label"> {i+1 < 10 ? "0" : ""}{i+1}: {showPosition(region, false)}</span>
+              </div>
+              <div className="result-in-search">
+                {region.inSearchData.map((d, j) => {
+                  return <div className="result-factor" 
+                      key={j} 
+                      title={d.factor.fullName} 
+                      style={{backgroundColor:d.factor.color}}
+                      onClick={() => handleFactorClick(d.factor)}
+                    ></div>
+                })}
+              </div>
+              <div className="result-not-in-search">
+                {region.notInSearchData.map((d, j) => {
                   return <div className="result-factor" 
                       key={j} 
                       title={d.factor.fullName} 

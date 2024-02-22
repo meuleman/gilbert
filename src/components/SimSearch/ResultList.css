@@ -47,15 +47,32 @@
   min-width: 80px;
   gap: 1px;
 }
+.sim-search-result-list .result-row .result-in-search .result-factor:hover::after {
+  content: 'x';
+}
 .sim-search-result-list .result-row .result-not-in-search {
   display: flex;
   flex-direction: row;
   min-width: 80px;
   gap: 1px;
 }
+.sim-search-result-list .result-row .result-not-in-search .result-factor:hover::after {
+  content: '+'
+}
 .sim-search-result-list .result-factor {
   margin-top: 1.5px;
   width: 7px;
   height: 18px;
   border: 0.5px solid black;
+}
+.sim-search-result-list .result-factor::after {
+  color: black;
+  text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+  font-size: 11px;
+  line-height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  pointer-events: none;
 }
