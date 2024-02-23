@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { range } from 'd3-array';
+import { sankey, sankeyJustify, sankeyCenter, sankeyLinkHorizontal } from 'd3-sankey';
 
 import { showFloat, showPosition } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition, sameHilbertRegion } from '../lib/regions';
@@ -152,6 +153,7 @@ const RegionDetail = () => {
 
   const [csn, setCsn] = useState([])
   const [csnTree, setCsnTree] = useState([])
+  const [sank, setSank] = useState(null)
   useEffect(() => {
     if(crossScaleNarration && crossScaleNarration.paths) {
       console.log("csn!!!", crossScaleNarration)
@@ -160,7 +162,38 @@ const RegionDetail = () => {
       const path = paths[crossScaleNarrationIndex]
       // const filtered = path.filter(d => !!d).sort((a,b) => a.order - b.order)
       setCsn(path)
-      setCsnTree(crossScaleNarration.tree)
+      const tree = crossScaleNarration.tree
+      setCsnTree(tree)
+
+      // we can setup our tree and sankey data here too
+      // walk the tree for each path
+      const trunks = paths.map(p => {
+        return { trunk: walkTree(tree, p.node, []), score: p.score }
+      })
+      const nodes = Array.from(new Set(trunks.flatMap(t => t.trunk)))
+        .map(i => ({ id:i}))
+      console.log("nodes", nodes)
+      // create source target pairs
+      const links = trunks.flatMap(t => {
+        return t.trunk.map((b,i) => {
+          if(i == t.trunk.length - 1) return null
+          return { source: b, target: t.trunk[i + 1], value: t.score}
+        }).filter(d => !!d)
+      })
+      console.log("links", links)
+
+      const s = sankey()
+        .nodeId(d => d.id)
+        .nodeWidth(15)
+        .nodePadding(1)
+        // .nodeAlign(sankeyJustify)
+        .nodeAlign(sankeyCenter)
+        // .nodeSort((a,b) => b.value - a.value)
+        .extent([[0, 0], [800, 500]])
+        ({ nodes, links })
+      console.log("sank", s)
+      setSank(s)
+
     }
   }, [crossScaleNarrationIndex, crossScaleNarration])
 
@@ -271,9 +304,38 @@ const RegionDetail = () => {
               <div onClick={() => {
                 console.log(csn, csnTree[csn.node]);
                 console.log(walkTree(csnTree, csn.node, []))
+                console.log("sankey", sank)
               }}>
                 node: {csn?.node} | score: {csn?.score} <br/>
                 path: {JSON.stringify(walkTree(csnTree, csn.node, []))}
+                <br></br>
+                {sank ? <svg width="800" height="500" style={{border:"1px solid gray"}}>
+                  <g className="nodes">
+                    {sank.nodes.map(node => {
+                      return <rect 
+                        key={node.id} 
+                          x={node.x0} 
+                          y={node.y0} 
+                          width={node.x1 - node.x0} 
+                          height={node.y1 - node.y0} 
+                          fill="blue" 
+                          stroke="black"
+                          fillOpacity="0.75"
+                          />
+                    })}
+                  </g>
+                  <g className="links">
+                    {sank.links.map(link => {
+                      return <path 
+                        key={link.index} 
+                        d={sankeyLinkHorizontal()(link)}
+                        fill="lightgray"
+                        stroke="black"
+                        />
+                    })}
+                  </g>
+
+                </svg> : null}
               </div>
             </div>
 
