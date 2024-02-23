@@ -251,7 +251,7 @@ const ZoomLegend = ({
             o.color = o.layer.fieldColor(o.field.field)
           }
         } else {
-          const scaleNarration = crossScaleNarration.filter(n => n?.order == o.order)
+          const scaleNarration = crossScaleNarration.path.filter(n => n?.order == o.order)
           if(scaleNarration.length == 1) {
             o.layer = scaleNarration[0].layer
             o.field = scaleNarration[0].field
@@ -272,7 +272,7 @@ const ZoomLegend = ({
 
   const [csnPerOrder, setCSNPerOrder] = useState({})
   useEffect(() => {
-    let csnf = crossScaleNarration?.filter(n => n !== null)
+    let csnf = crossScaleNarration.path?.filter(n => n !== null)
     let csnp = {}
     if(csnf?.length > 0) {
       csnf.forEach(n => csnp[n.order] = n)

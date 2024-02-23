@@ -121,17 +121,21 @@ export default async function CrossScaleNarration(selected, layers, numPaths=100
         } else return null
       }
       // refactor orders below selected and add to each path
-      let topLeafPaths = new Array(leafScoresSorted.length).fill(null).map(d => [...orderDownSegmentData.map(d => refactorFeature(d))])
+      let topLeafPaths = new Array(leafScoresSorted.length).fill(null).map(d => {return {'path': [...orderDownSegmentData.map(d => refactorFeature(d))]}})
       // function to move through the tree and collect features for each segment
       let collectFeatures = (node, i) => {
         let nodeFeature = orderUpSegmentData[node]
-        topLeafPaths[i].push(refactorFeature(nodeFeature))
+        topLeafPaths[i].path.push(refactorFeature(nodeFeature))
         if(node != 0) {
           let parent = tree[node][0]
           collectFeatures(parent, i)
         }
       }
-      leafScoresSorted.forEach((d, i) => collectFeatures(d.i, i))
+      leafScoresSorted.forEach((d, i) => {
+        topLeafPaths[i]['score'] = d.score
+        topLeafPaths[i]['node'] = d.i
+        collectFeatures(d.i, i)
+      })
       
       // subset our results to just unique paths
       function findUniquePaths(paths) {
@@ -148,7 +152,7 @@ export default async function CrossScaleNarration(selected, layers, numPaths=100
         paths.forEach(path => {
           // Convert path to a string to use as a map key
           let pathStripped = { ...initialEmptyPathObj }
-          path.forEach((d) => {if(d !== null) pathStripped[d.order] = d.field.field})
+          path.path.forEach((d) => {if(d !== null) pathStripped[d.order] = d.field.field})
           const pathKey = JSON.stringify(pathStripped)
           if (!seenPaths.has(pathKey)) {
             uniquePaths.push(path)

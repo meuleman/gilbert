@@ -178,7 +178,7 @@ function Home() {
   // const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(null)
   const [simSearchMethod, setSimSearchMethod] = useState(null)
   const [selectedNarration, setSelectedNarration] = useState(null)
-  const [crossScaleNarration, setCrossScaleNarration] = useState(new Array(1).fill(new Array(11).fill(null)))
+  const [crossScaleNarration, setCrossScaleNarration] = useState(new Array(1).fill({'path': []}))
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
   const [genesetEnrichment, setGenesetEnrichment] = useState(null)
 
@@ -346,13 +346,13 @@ function Home() {
   const [csn, setCsn] = useState([])
   useEffect(() => {
     if(crossScaleNarration?.length) {
-      // console.log("crossScaleNarrationIndex", crossScaleNarrationIndex, crossScaleNarration[crossScaleNarrationIndex])
-      let newCsn = crossScaleNarration[crossScaleNarrationIndex].filter(d => !!d).sort((a,b) => a.order - b.order)
+      let newCsn = crossScaleNarration[crossScaleNarrationIndex]
+      newCsn.path = newCsn.path.filter(d => !!d).sort((a,b) => a.order - b.order)
       setCsn(newCsn)
       // we update the layer order and layer
       if(selected) {
         let newLayerOrder = Object.assign({}, layerOrderRef.current)
-        newCsn.forEach(d => {
+        newCsn.path.forEach(d => {
           newLayerOrder[d?.order] = d?.layer
         })
         // console.log("new layer order from csn", newLayerOrder)
@@ -418,7 +418,7 @@ function Home() {
     setSimSearchMethod(null)
     setGenesetEnrichment(null)
     setCrossScaleNarrationIndex(0)
-    setCrossScaleNarration(new Array(1).fill(new Array(11).fill(null)))
+    setCrossScaleNarration(new Array(1).fill({'path': []}))
   }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setCrossScaleNarration])
 
   const autocompleteRef = useRef(null)

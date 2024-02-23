@@ -10,11 +10,12 @@ const SelectedModalNarration = ({
 } = {}) => {
   const [narration, setNarration] = useState("")
   useEffect(() => {
-    if(crossScaleNarration.filter(d => !!d).length > 0) {
+    let csnPath = crossScaleNarration.path
+    if(csnPath?.filter(d => !!d).length > 0) {
       let sentence = "This region"
-      let orderFeature = crossScaleNarration.filter(n => n?.order === order)
-      let orderUpFeatures = crossScaleNarration.filter(n => n?.order > order)
-      let orderDownFeatures = crossScaleNarration.filter(n => n?.order < order)
+      let orderFeature = csnPath.filter(n => n?.order === order)
+      let orderUpFeatures = csnPath.filter(n => n?.order > order)
+      let orderDownFeatures = csnPath.filter(n => n?.order < order)
 
       if(orderFeature.length == 1) {
         sentence += ` is best characterized by ${orderFeature[0].field.field} ${orderFeature[0].layer.name}`
