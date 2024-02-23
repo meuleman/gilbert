@@ -156,6 +156,7 @@ const RegionDetail = () => {
   }, [region, fetchData])
 
   const [csn, setCsn] = useState([])
+  const [csnPath, setCsnPath] = useState([])
   const [csnTree, setCsnTree] = useState([])
   const [sank, setSank] = useState(null)
   useEffect(() => {
@@ -169,6 +170,7 @@ const RegionDetail = () => {
       const tree = crossScaleNarration.tree
       setCsnTree(tree)
 
+      setCsnPath(walkTree(tree, path.node, []))
       // we can setup our tree and sankey data here too
       // walk the tree for each path
       const trunks = paths.map(p => {
@@ -322,7 +324,7 @@ const RegionDetail = () => {
                           y={node.y0} 
                           width={node.x1 - node.x0} 
                           height={node.y1 - node.y0} 
-                          fill="blue" 
+                          fill={ csnPath.indexOf(node.id) >= 0 ? "orange": "gray" }
                           stroke="black"
                           fillOpacity="0.75"
                           />
