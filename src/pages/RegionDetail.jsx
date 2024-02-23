@@ -24,6 +24,19 @@ import RegionStrip from '../components/RegionStrip';
 
 import './RegionDetail.css';
 
+function walkTree(tree, node, path=[]) {
+  if (node === undefined || node === null || tree === undefined || tree.length === 0) {
+      return path;
+  }
+  path.unshift(node); // Add the current node to the beginning of the path
+  const parentNodeIndex = tree[node][0]; // Get the parent node index
+  // console.log("parent", parentNodeIndex, "path", path)
+  if (parentNodeIndex) {
+      return walkTree(tree, parentNodeIndex, path); // Recursively walk up the tree
+  }
+  return path; // Return the accumulated path when the root is reached or if there's no parent
+}
+
 const RegionDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -143,14 +156,11 @@ const RegionDetail = () => {
     if(crossScaleNarration && crossScaleNarration.paths) {
       console.log("csn!!!", crossScaleNarration)
       // console.log("crossScaleNarrationIndex", crossScaleNarrationIndex, crossScaleNarration[crossScaleNarrationIndex])
-      try {
-        const paths = crossScaleNarration.paths
-        const path = paths[crossScaleNarrationIndex]?.path
-        const filtered = path.filter(d => !!d).sort((a,b) => a.order - b.order)
-        setCsn(filtered)
-        setCsnTree(crossScaleNarration.tree)
-
-      } catch(e) {console.error(e)}
+      const paths = crossScaleNarration.paths
+      const path = paths[crossScaleNarrationIndex]
+      // const filtered = path.filter(d => !!d).sort((a,b) => a.order - b.order)
+      setCsn(path)
+      setCsnTree(crossScaleNarration.tree)
     }
   }, [crossScaleNarrationIndex, crossScaleNarration])
 
@@ -210,7 +220,8 @@ const RegionDetail = () => {
             />
             <div className="thumbs">
               {range(4, 13).map((order, i) => {
-                const d = csn.find(d => d.order == order)
+                let d;
+                if(csn && csn.path) d = csn.path.find(d => d?.order == order)
                 return (<div key={i} className={`csn-layer ${region.order == order ? "active" : ""}`}>
                   <div className="csn-layer-header">
                     <span className="csn-order-layer">
@@ -225,7 +236,7 @@ const RegionDetail = () => {
                     <span className="csn-field" style={{color: d.layer.fieldColor(d.field.field)}}>{d.field.field}</span>  
                     <span className="csn-value">{showFloat(d.field.value)}</span>
                   </div> : null }
-                  { d ? <RegionThumb region={d.region} highlights={csn.map(n => n.region)} layer={d.layer} width={200} height={200} />
+                  { d ? <RegionThumb region={d.region} highlights={csn.path.filter(d => !!d).map(n => n.region)} layer={d.layer} width={200} height={200} />
                   : <RegionThumb region={({})} layer="" width={200} height={200} />}
                   {/* { layersData?.length && <RegionThumb region={d.region} highlights={csn.map(n => n.region)} layer={layersData[5].layer} width={200} height={200} />} */}
                 </div> )
@@ -233,7 +244,8 @@ const RegionDetail = () => {
             </div>
             <div className="strips" id="strips">
               {range(4, 13).map((order, i) => {
-                const d = csn.find(d => d.order == order)
+                let d
+                if(csn && csn.path) d = csn.path.find(d => d?.order == order)
                 return (<div key={i} className={`csn-layer ${region.order == order ? "active" : ""}`}>
                   <div className="csn-layer-header">
                     <span className="csn-order-layer">
@@ -248,11 +260,23 @@ const RegionDetail = () => {
                       <span className="csn-value">{showFloat(d.field.value)}</span>
                     </div> : null }
                   </div>
-                  { d ? <RegionStrip region={d.region} highlights={csn.map(n => n.region)} layer={d.layer} width={stripsWidth - 500} height={40} />
-                  : <RegionStrip region={({})} layer="" width={stripsWidth - 500} height={40} /> }
+                  { d ? <RegionStrip region={d.region} highlights={csn.path.filter(d => !!d).map(n => n?.region)} layer={d.layer} width={stripsWidth - 500} height={40} />
+                  : <div className="region-strip" style={{height: "40px"}}></div>}
                 </div> )
             }) }
             </div>
+
+            <div>
+              <h3>Tree / Sankey</h3>
+              <div onClick={() => {
+                console.log(csn, csnTree[csn.node]);
+                console.log(walkTree(csnTree, csn.node, []))
+              }}>
+                node: {csn?.node} | score: {csn?.score} <br/>
+                path: {JSON.stringify(walkTree(csnTree, csn.node, []))}
+              </div>
+            </div>
+
 
             {/* { crossScaleNarration.length ? 
               <RegionThumb region={crossScaleNarration[1].region} layer={crossScaleNarration[1].layer} width={200} height={200} />
