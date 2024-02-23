@@ -46,6 +46,10 @@ const RegionDetail = () => {
   useEffect(() => { document.title = `Gilbert | Region Detail: ${region.chromosome}:${region.start}` }, [region]);
   const fetchData = useMemo(() => Data({debug: false}).fetchData, []);
 
+
+  const sankeyWidth = 800
+  const sankeyHeight = 800
+
   const [inside, setInside] = useState([]);
   const [outside, setOutside] = useState([]);
   const [ranges, setRanges] = useState([]);
@@ -189,7 +193,7 @@ const RegionDetail = () => {
         // .nodeAlign(sankeyJustify)
         .nodeAlign(sankeyCenter)
         // .nodeSort((a,b) => b.value - a.value)
-        .extent([[0, 0], [800, 500]])
+        .extent([[0, 0], [sankeyWidth, sankeyHeight]])
         ({ nodes, links })
       console.log("sank", s)
       setSank(s)
@@ -309,7 +313,7 @@ const RegionDetail = () => {
                 node: {csn?.node} | score: {csn?.score} <br/>
                 path: {JSON.stringify(walkTree(csnTree, csn.node, []))}
                 <br></br>
-                {sank ? <svg width="800" height="500" style={{border:"1px solid gray"}}>
+                {sank ? <svg width={sankeyWidth} height={sankeyHeight} style={{border:"1px solid gray"}}>
                   <g className="nodes">
                     {sank.nodes.map(node => {
                       return <rect 
