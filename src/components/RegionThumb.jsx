@@ -86,8 +86,9 @@ function RegionThumb({ region, highlights, layer, width, height }) {
     // console.log("REGION", region)
     // console.log("transform", transform)
     // console.log("data", data)
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.clearRect(0, 0, width, height)
     if(data && layer) {
-      const ctx = canvasRef.current.getContext('2d');
       let t = {...transform}
 
       // ctx.fillStyle = "white"

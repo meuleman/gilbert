@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
+import { range } from 'd3-array';
 
 import { showFloat, showPosition } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition, sameHilbertRegion } from '../lib/regions';
@@ -137,10 +138,19 @@ const RegionDetail = () => {
   }, [region, fetchData])
 
   const [csn, setCsn] = useState([])
+  const [csnTree, setCsnTree] = useState([])
   useEffect(() => {
-    if(crossScaleNarration?.length) {
+    if(crossScaleNarration && crossScaleNarration.paths) {
+      console.log("csn!!!", crossScaleNarration)
       // console.log("crossScaleNarrationIndex", crossScaleNarrationIndex, crossScaleNarration[crossScaleNarrationIndex])
-      setCsn(crossScaleNarration[crossScaleNarrationIndex].filter(d => !!d).sort((a,b) => a.order - b.order))
+      try {
+        const paths = crossScaleNarration.paths
+        const path = paths[crossScaleNarrationIndex]?.path
+        const filtered = path.filter(d => !!d).sort((a,b) => a.order - b.order)
+        setCsn(filtered)
+        setCsnTree(crossScaleNarration.tree)
+
+      } catch(e) {console.error(e)}
     }
   }, [crossScaleNarrationIndex, crossScaleNarration])
 
@@ -158,7 +168,6 @@ const RegionDetail = () => {
 
   useEffect(() => {
     const zr = zoomARegion(region)
-    console.log("ZR", zr)
     setZoomedRegion(zr)
   }, [region])
 
@@ -192,7 +201,7 @@ const RegionDetail = () => {
           
           <div className="section-content">
             <div className="narration-slider">
-              <input id="csn-slider" type='range' min={0} max={crossScaleNarration.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
+              <input id="csn-slider" type='range' min={0} max={crossScaleNarration?.paths?.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
               <label htmlFor="csn-slider">Narration: {crossScaleNarrationIndex}</label>
             </div>
             <CSNSentence
@@ -200,45 +209,49 @@ const RegionDetail = () => {
               order={region.order}
             />
             <div className="thumbs">
-              {csn.length ? csn.map((d, i) => {
-                return (<div key={i} className={`csn-layer ${region.order == d.region.order ? "active" : ""}`}>
+              {range(4, 13).map((order, i) => {
+                const d = csn.find(d => d.order == order)
+                return (<div key={i} className={`csn-layer ${region.order == order ? "active" : ""}`}>
                   <div className="csn-layer-header">
                     <span className="csn-order-layer">
-                      {d.order}: {d.layer.name} 
+                      {order}: {d ? d.layer.name : ""} 
                     </span>
-                    <span className="csn-layer-links">
+                    {d ? <span className="csn-layer-links">
                       <Link to={`/?region=${urlify(d.region)}`}> 🗺️ </Link>
                       <Link to={`/region?region=${urlify(d.region)}`}> 📄 </Link>
-                    </span>
+                    </span> : null}
                   </div>
-                  <div className="csn-field-value">
+                  { d ? <div className="csn-field-value">
                     <span className="csn-field" style={{color: d.layer.fieldColor(d.field.field)}}>{d.field.field}</span>  
                     <span className="csn-value">{showFloat(d.field.value)}</span>
-                  </div>
-                  <RegionThumb region={d.region} highlights={csn.map(n => n.region)} layer={d.layer} width={200} height={200} />
+                  </div> : null }
+                  { d ? <RegionThumb region={d.region} highlights={csn.map(n => n.region)} layer={d.layer} width={200} height={200} />
+                  : <RegionThumb region={({})} layer="" width={200} height={200} />}
                   {/* { layersData?.length && <RegionThumb region={d.region} highlights={csn.map(n => n.region)} layer={layersData[5].layer} width={200} height={200} />} */}
                 </div> )
-              }) : null}
+              })}
             </div>
             <div className="strips" id="strips">
-              {csn.length ? csn.map((d, i) => {
-              return (<div key={i} className={`csn-layer ${region.order == d.region.order ? "active" : ""}`}>
-                <div className="csn-layer-header">
-                  <span className="csn-order-layer">
-                    {d.order}: {d.layer.name} 
-                  </span>
-                  <span className="csn-layer-links">
-                    <Link to={`/?region=${urlify(d.region)}`}> 🗺️ </Link>
-                    <Link to={`/region?region=${urlify(d.region)}`}> 📄 </Link>
-                  </span>
-                  <div className="csn-field-value">
-                    <span className="csn-field" style={{color: d.layer.fieldColor(d.field.field)}}>{d.field.field}</span>  
-                    <span className="csn-value">{showFloat(d.field.value)}</span>
+              {range(4, 13).map((order, i) => {
+                const d = csn.find(d => d.order == order)
+                return (<div key={i} className={`csn-layer ${region.order == order ? "active" : ""}`}>
+                  <div className="csn-layer-header">
+                    <span className="csn-order-layer">
+                      {order}: {d ? d.layer.name : ""} 
+                    </span>
+                    { d ? <span className="csn-layer-links">
+                      <Link to={`/?region=${urlify(d.region)}`}> 🗺️ </Link>
+                      <Link to={`/region?region=${urlify(d.region)}`}> 📄 </Link>
+                    </span> : null }
+                    { d ? <div className="csn-field-value">
+                      <span className="csn-field" style={{color: d.layer.fieldColor(d.field.field)}}>{d.field.field}</span>  
+                      <span className="csn-value">{showFloat(d.field.value)}</span>
+                    </div> : null }
                   </div>
-                </div>
-                <RegionStrip region={d.region} highlights={csn.map(n => n.region)} layer={d.layer} width={stripsWidth - 500} height={40} />
-              </div> )
-            }) : null}
+                  { d ? <RegionStrip region={d.region} highlights={csn.map(n => n.region)} layer={d.layer} width={stripsWidth - 500} height={40} />
+                  : <RegionStrip region={({})} layer="" width={stripsWidth - 500} height={40} /> }
+                </div> )
+            }) }
             </div>
 
             {/* { crossScaleNarration.length ? 

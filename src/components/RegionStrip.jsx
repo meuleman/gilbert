@@ -30,9 +30,9 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
   const [points, setPoints] = useState(null)
 
   const render = useCallback((region, data) => {
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.clearRect(0, 0, width, height)
     if(region && data && layer && data[0] && canvasRef.current) {
-      const ctx = canvasRef.current.getContext('2d');
-      ctx.clearRect(0, 0, width, height)
 
       const bpbw = data[0].end - data[0].start
       let xExtent = extent(data, d => d.start)
