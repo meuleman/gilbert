@@ -197,8 +197,10 @@ const RegionDetail = () => {
       // console.log("crossScaleNarrationIndex", crossScaleNarrationIndex, crossScaleNarration[crossScaleNarrationIndex])
       const paths = crossScaleNarration.paths
       // const filteredPaths = crossScaleNarration.filteredPaths
+      // filter our included paths to just the unique ones
       const filteredPaths = findUniquePaths(paths.slice(0, csnSlice))
       setCrossScaleNarrationFiltered(filteredPaths)
+      // adjust the index if it's out of bounds (ie if we've filtered down to less paths than the index)
       let newCSNIndex = Math.min(crossScaleNarrationIndex, filteredPaths.length - 1)
       setCrossScaleNarrationIndex(newCSNIndex)
       const path = filteredPaths[newCSNIndex]
