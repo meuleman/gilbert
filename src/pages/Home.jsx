@@ -319,9 +319,32 @@ function Home() {
     updateUrlParams(regionset, selected)
   }, [regionset, selected, setExampleRegions, updateUrlParams])
 
-
+  // cross scale narration
   const handleChangeCSNIndex = (e) => {
     setCrossScaleNarrationIndex(e.target.value)
+  }
+  // function to subset our CSN results to just unique paths
+  function findUniquePaths(paths) {
+    const uniquePaths = []
+    const seenPaths = new Map()
+
+    // initialize each order to null
+    let initialEmptyPathObj = {}
+    const orders = [4, 14]
+    for (let i = orders[0]; i <= orders[1]; i++) initialEmptyPathObj[i] = null;
+    
+    // filter paths
+    paths.forEach(path => {
+      // Convert path to a string to use as a map key
+      let pathStripped = { ...initialEmptyPathObj }
+      path.path.forEach((d) => {if(d !== null) pathStripped[d.order] = d.field.field})
+      const pathKey = JSON.stringify(pathStripped)
+      if (!seenPaths.has(pathKey)) {
+        uniquePaths.push(path)
+        seenPaths.set(pathKey, true)
+      }
+    })
+    return uniquePaths
   }
   useEffect(() => {
     setCrossScaleNarrationIndex(0)
@@ -332,7 +355,9 @@ function Home() {
         TF_Motifs_Sfc_max,
         Repeats_Sfc_max
       ]).then(crossScaleResponse => {
-        setCrossScaleNarration(crossScaleResponse.filteredPaths)
+        // filter to just unique paths
+        const filteredPaths = findUniquePaths(crossScaleResponse.paths).slice(0, 100)
+        setCrossScaleNarration(filteredPaths)
       })
     } else {
       // we set the layer order back to non-CSN if no selected region

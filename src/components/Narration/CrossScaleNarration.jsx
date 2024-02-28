@@ -136,33 +136,7 @@ export default async function CrossScaleNarration(selected, layers, numPaths=100
         topLeafPaths[i]['node'] = d.i
         collectFeatures(d.i, i)
       })
-      
-      // subset our results to just unique paths
-      function findUniquePaths(paths) {
-        const uniquePaths = []
-        const seenPaths = new Map()
-
-        // create a null object for each order
-        let initialEmptyPathObj = {}
-        for (let i = orders[0]; i <= orders[1]; i++) {
-          initialEmptyPathObj[i] = null;
-        }
-        
-        // filter paths
-        paths.forEach(path => {
-          // Convert path to a string to use as a map key
-          let pathStripped = { ...initialEmptyPathObj }
-          path.path.forEach((d) => {if(d !== null) pathStripped[d.order] = d.field.field})
-          const pathKey = JSON.stringify(pathStripped)
-          if (!seenPaths.has(pathKey)) {
-            uniquePaths.push(path)
-            seenPaths.set(pathKey, true)
-          }
-        })
-        return uniquePaths
-      }
-      let uniquePaths = findUniquePaths(topLeafPaths)
-      return {'paths': topLeafPaths, 'filteredPaths': uniquePaths.slice(0, numPaths), 'tree': tree}
+      return {'paths': topLeafPaths, 'tree': tree}
     })
     return bestPaths
   }
