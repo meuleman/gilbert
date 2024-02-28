@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { range, max } from 'd3-array';
+import { path as d3path } from 'd3-path';
 import { sankey, sankeyJustify, sankeyCenter, sankeyLinkHorizontal } from 'd3-sankey';
 
 import { showFloat, showPosition } from '../lib/display';
@@ -162,13 +163,16 @@ const RegionDetail = () => {
   const [csn, setCsn] = useState([])
   const [csnPath, setCsnPath] = useState([])
   const [csnTree, setCsnTree] = useState([])
+  const [csnSlice, setCsnSlice] = useState(100)
+  const [csnThreshold, setCsnThreshold] = useState(0)
   const [sank, setSank] = useState(null)
   useEffect(() => {
     if(crossScaleNarration && crossScaleNarration.paths) {
       console.log("csn!!!", crossScaleNarration)
       // console.log("crossScaleNarrationIndex", crossScaleNarrationIndex, crossScaleNarration[crossScaleNarrationIndex])
       const paths = crossScaleNarration.paths
-      const path = paths[crossScaleNarrationIndex]
+      const filteredPaths = crossScaleNarration.filteredPaths
+      const path = filteredPaths[crossScaleNarrationIndex]
       // const filtered = path.filter(d => !!d).sort((a,b) => a.order - b.order)
       setCsn(path)
       const tree = crossScaleNarration.tree
@@ -177,7 +181,7 @@ const RegionDetail = () => {
       setCsnPath(walkTree(tree, path.node, []))
       // we can setup our tree and sankey data here too
       // walk the tree for each path
-      const trunks = paths.map(p => {
+      const trunks = paths.slice(0, csnSlice).map(p => {
         return { trunk: walkTree(tree, p.node, []), score: p.score, path: p.path.filter(d => !!d).sort((a, b) => a.order - b.order) }
       })
       console.log("trunks", trunks)
@@ -194,8 +198,8 @@ const RegionDetail = () => {
           // get the corresponding path element for this trunk node based on the order
           let p = t.path.find(d => d.order == baseOrder + i)
           // if no path, lets still place an empty node, these will acumulate
-          if(!p) {
-            p = { order: baseOrder + i, layer: { name: "None" }, field: { field: "None", value: 0 } }
+          if(!p || p.field.value < csnThreshold) {
+            p = { order: baseOrder + i, layer: { name: "ZNone" }, field: { field: "None", value: 0, color: "lightgray" } }
           }
           let node = {
             id: `${p.order}-${p.field.field}`,
@@ -207,6 +211,7 @@ const RegionDetail = () => {
             field: p.field.field,
             color: p.field.color,
             values: [p.field.value],
+            fieldValue: p.field.value
           }
           if(nodesMap[node.id]) {
             // lets save the field just in case
@@ -222,52 +227,93 @@ const RegionDetail = () => {
           let source = ns[i-1]
           let target = n
           if(linksMap[linkId(source, target)]) {
-            linksMap[linkId(source, target)].value += t.score
+            // linksMap[linkId(source, target)].value += t.score
+            linksMap[linkId(source, target)].value += 1//t.score
+            // linksMap[linkId(source, target)].value += target.fieldValue
           } else {
             linksMap[linkId(source, target)] = {
               source: source.id,
               target: target.id,
-              value: t.score
+              value: 1,
+              // value: t.score
+              // value: target.fieldValue
             }
           }
         })
         return ns
       })
 
-      // const nodes2 = Array.from(new Set(trunks.flatMap(t => t.trunk)))
-      //   .map(i => ({ id: i }))
-
       const nodes = Object.values(nodesMap).sort((a,b) => a.order - b.order)
       const links = Object.values(linksMap)
 
       console.log("nodes", nodes)
-      // create source target pairs
-      // const links2 = trunks.flatMap(t => {
-      //   return t.trunk.map((b,i) => {
-      //     if(i == t.trunk.length - 1) return null
-      //     return { source: b, target: t.trunk[i + 1], value: t.score}
-      //   }).filter(d => !!d)
-      // })
       console.log("links", links)
 
       const depth = 12 - region.order
       const spacing = stripsWidth/(depth + 1)
       const sankeyWidth = stripsWidth - spacing
-      console.log("spacing", spacing, depth)
       const s = sankey()
         .nodeId(d => d.id)
         .nodeWidth(15)
         .nodePadding(5)
-        // .nodeAlign(sankeyJustify)
-        .nodeAlign(sankeyCenter)
+        .nodeAlign(sankeyJustify)
+        // .nodeAlign(sankeyCenter)
         // .nodeSort((a,b) => b.value - a.value)
+        .nodeSort((a,b) => a.dataLayer.name.localeCompare(b.dataLayer.name))
         .extent([[0, 20], [sankeyWidth, sankeyHeight - 20]])
         ({ nodes, links })
       console.log("sank", s)
+
+      // artificially shrink the None nodes
+      // s.nodes.forEach(n => {
+      //   if(n.dataLayer.name == "ZNone") {
+      //     n.y0 = n.y1  - 10
+      //   }
+      // })
+      // s.links.forEach(l => {
+      //   if(l.source.dataLayer.name == "ZNone") {
+      //     l.y0 = l.source.y1 - 5
+      //   }
+      //   if(l.target.dataLayer.name == "ZNone") {
+      //     l.y1 = l.target.y1 - 5
+      //   }
+      // })
+
       setSank(s)
 
     }
-  }, [crossScaleNarrationIndex, crossScaleNarration, stripsWidth, region])
+  }, [crossScaleNarrationIndex, crossScaleNarration, stripsWidth, region, csnSlice, csnThreshold])
+
+  function sankeyLinkPath(link, offset=0) {
+    // this is a drop in replacement for d3.sankeyLinkHorizontal()
+    // well, without the accessors/options
+    let sx = link.source.x1
+    let tx = link.target.x0 + 1
+    let sy0 = link.y0 - link.width/2
+    let sy1 = link.y0 + link.width/2
+    let ty0 = link.y1 - link.width/2
+    let ty1 = link.y1 + link.width/2
+    
+    let halfx = (tx - sx)/2
+  
+    let path = d3path()  
+    path.moveTo(sx, sy0)
+  
+    let cpx1 = sx + halfx
+    let cpy1 = sy0 + offset
+    let cpx2 = sx + halfx
+    let cpy2 = ty0 - offset
+    path.bezierCurveTo(cpx1, cpy1, cpx2, cpy2, tx, ty0)
+    path.lineTo(tx, ty1)
+  
+    cpx1 = sx + halfx
+    cpy1 = ty1 - offset
+    cpx2 = sx + halfx
+    cpy2 = sy1 + offset
+    path.bezierCurveTo(cpx1, cpy1, cpx2, cpy2, sx, sy1)
+    path.lineTo(sx, sy0)
+    return path.toString()
+  }
 
   const [zoomedRegion, setZoomedRegion] = useState(null)
   const [similarZoomedRegion, setSimilarZoomedRegion] = useState(null)
@@ -289,6 +335,15 @@ const RegionDetail = () => {
   const handleChangeCSNIndex = (e) => {
     setCrossScaleNarrationIndex(e.target.value)
   }
+
+  const handleChangeCSNSlice = (e) => {
+    setCsnSlice(e.target.value)
+  }
+  const handleChangeCSNThreshold = (e) => {
+    setCsnThreshold(e.target.value)
+  }
+
+
 
   return (
     <div className="region-detail">
@@ -315,14 +370,85 @@ const RegionDetail = () => {
           <h3>Cross-Scale Narration</h3>
           
           <div className="section-content">
+            <div className="csn-sankey">
+              <div onClick={() => {
+                console.log(csn, csnTree[csn.node]);
+                console.log(walkTree(csnTree, csn.node, []))
+                console.log("sankey", sank)
+              }}>
+                {sank ? <svg className="path-sankey" width={stripsWidth - 10} height={sankeyHeight}>
+                  <g className="orders">
+                    {range(region.order+1, 13).map((order, i) => {
+                      let x = sank.nodes.find(d => d.order == order)?.x0
+                      return <text key={i} x={x} y={10} dy={".35em"}>Order: {order}</text>
+                    })
+                    }
+                  </g>
+                  <g className="links">
+                    {sank.links.map(link => {
+                      return <path 
+                        key={link.index} 
+                        d={sankeyLinkHorizontal()(link)}
+                        // d={sankeyLinkPath(link)}
+                        fill="none"
+                        stroke="#aaa"
+                        strokeWidth={Math.max(1, link.width)}
+                        strokeOpacity={0.5}
+                        />
+                    })}
+                  </g>
+                  <g className="nodes">
+                    {sank.nodes.map(node => {
+                      return <rect 
+                        key={node.id} 
+                          x={node.x0} 
+                          y={node.y0} 
+                          width={node.x1 - node.x0} 
+                          height={node.y1 - node.y0} 
+                          // fill={ csnPath.indexOf(node.id) >= 0 ? "orange": "gray" }
+                          fill={ node.color }
+                          stroke="black"
+                          fillOpacity="0.75"
+                          />
+                    })}
+                  </g>
+                  <g className="node-labels">
+                    {sank.nodes.map(node => {
+                      return <text
+                        key={node.id} 
+                          x={node.x1 + 10} 
+                          y={node.y0 + (node.y1 - node.y0)/2} 
+                          dy={".35em"}
+                          // fill={ csnPath.indexOf(node.id) >= 0 ? "orange": "gray" }
+                          fill={ node.color }
+                          stroke="black"
+                          strokeWidth="1"
+                          paintOrder="stroke"
+                          >
+                            {node.field} ({node.dataLayer.name})
+                      </text>
+                    })}
+                  </g>
+                </svg> : null}
+                
+                <input id="csn-slice-slider" type='range' min={1} max={crossScaleNarration?.paths?.length - 1} value={csnSlice} onChange={handleChangeCSNSlice} />
+                <label htmlFor="csn-slice-slider">Top {csnSlice} paths</label>
+
+                <input id="csn-threshold-slider" type='range' min={0} max={3} step="0.1" value={csnThreshold} onChange={handleChangeCSNThreshold} />
+                <label htmlFor="csn-threshold-slider">Factor score threshold: {csnThreshold}</label>
+              </div>
+            </div>
+
+            <h3>Narration</h3>
             <div className="narration-slider">
-              <input id="csn-slider" type='range' min={0} max={crossScaleNarration?.paths?.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
+              <input id="csn-slider" type='range' min={0} max={crossScaleNarration?.filteredPaths?.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
               <label htmlFor="csn-slider">Narration: {crossScaleNarrationIndex}</label>
             </div>
             <CSNSentence
               crossScaleNarration={csn}
               order={region.order}
             />
+
             <div className="thumbs">
               {range(4, 13).map((order, i) => {
                 let d;
@@ -371,70 +497,8 @@ const RegionDetail = () => {
             }) }
             </div>
 
-            <div className="csn-sankey">
-              <h3>Path Sankey</h3>
-              <div onClick={() => {
-                console.log(csn, csnTree[csn.node]);
-                console.log(walkTree(csnTree, csn.node, []))
-                console.log("sankey", sank)
-              }}>
-                {sank ? <svg className="path-sankey" width={stripsWidth - 10} height={sankeyHeight}>
-                  <g className="orders">
-                    {range(region.order+1, 13).map((order, i) => {
-                      let x = sank.nodes.find(d => d.order == order)?.x0
-                      return <text key={i} x={x} y={10} dy={".35em"}>Order: {order}</text>
-                    })
-                    }
-                  </g>
-                  <g className="links">
-                    {sank.links.map(link => {
-                      return <path 
-                        key={link.index} 
-                        d={sankeyLinkHorizontal()(link)}
-                        fill="none"
-                        stroke="#aaa"
-                        strokeWidth={Math.max(1, link.width)}
-                        strokeOpacity={0.5}
-                        />
-                    })}
-                  </g>
-                  <g className="nodes">
-                    {sank.nodes.map(node => {
-                      return <rect 
-                        key={node.id} 
-                          x={node.x0} 
-                          y={node.y0} 
-                          width={node.x1 - node.x0} 
-                          height={node.y1 - node.y0} 
-                          // fill={ csnPath.indexOf(node.id) >= 0 ? "orange": "gray" }
-                          fill={ node.color }
-                          stroke="black"
-                          fillOpacity="0.75"
-                          />
-                    })}
-                  </g>
-                  <g className="node-labels">
-                    {sank.nodes.map(node => {
-                      return <text
-                        key={node.id} 
-                          x={node.x1 + 10} 
-                          y={node.y0 + (node.y1 - node.y0)/2} 
-                          dy={".35em"}
-                          // fill={ csnPath.indexOf(node.id) >= 0 ? "orange": "gray" }
-                          fill={ node.color }
-                          stroke="black"
-                          strokeWidth="0.5"
-                          paintOrder="stroke"
-                          >
-                            {node.field} ({node.dataLayer.name})
-                      </text>
-                    })}
-                  </g>
-                  
-
-                </svg> : null}
-              </div>
-            </div>
+            
+            
 
 
             {/* { crossScaleNarration.length ? 
