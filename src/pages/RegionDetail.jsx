@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
-import { range } from 'd3-array';
+import { range, max } from 'd3-array';
 import { sankey, sankeyJustify, sankeyCenter, sankeyLinkHorizontal } from 'd3-sankey';
 
 import { showFloat, showPosition } from '../lib/display';
@@ -47,7 +47,6 @@ const RegionDetail = () => {
   const fetchData = useMemo(() => Data({debug: false}).fetchData, []);
 
 
-  const sankeyWidth = 800
   const sankeyHeight = 800
 
   const [inside, setInside] = useState([]);
@@ -174,34 +173,96 @@ const RegionDetail = () => {
       // we can setup our tree and sankey data here too
       // walk the tree for each path
       const trunks = paths.map(p => {
-        return { trunk: walkTree(tree, p.node, []), score: p.score }
+        return { trunk: walkTree(tree, p.node, []), score: p.score, path: p.path.filter(d => !!d).sort((a, b) => a.order - b.order) }
       })
-      const nodes = Array.from(new Set(trunks.flatMap(t => t.trunk)))
-        .map(i => ({ id:i}))
+      console.log("trunks", trunks)
+
+      // the trunk array are the nodes of the tree starting at region.order + 1 and going till 12
+      // the paths array contains the factor from order 4 to 12 unless the path is shorter
+      // we want nodes that have the order and factor as the id and link to other nodes via the trunk indices
+      const baseOrder = region.order + 1
+      const linkId = (a,b) => `${a.id}=>${b.id}`
+      let nodesMap = {}
+      let linksMap = {}
+      trunks.forEach(t => {
+        let ns = t.trunk.map((b,i) => {
+          // get the corresponding path element for this trunk node based on the order
+          let p = t.path.find(d => d.order == baseOrder + i)
+          // if no path, lets still place an empty node, these will acumulate
+          if(!p) {
+            p = { order: baseOrder + i, layer: { name: "None" }, field: { field: "None", value: 0 } }
+          }
+          let node = {
+            id: `${p.order}-${p.field.field}`,
+            // do we include "b" which is essentially the region id within the order?
+            // id: `${b}-${p.order}-${p.field.field}`,
+            node: b,
+            order: p.order,
+            dataLayer: p.layer,
+            field: p.field.field,
+            color: p.field.color,
+            values: [p.field.value],
+          }
+          if(nodesMap[node.id]) {
+            // lets save the field just in case
+            nodesMap[node.id].values.push(p.field.value)
+          } else {
+            nodesMap[node.id] = node
+          }
+          return node
+        })
+        // create link to parent for each node we just made
+        ns.forEach((n,i) => {
+          if(i == 0) return
+          let source = ns[i-1]
+          let target = n
+          if(linksMap[linkId(source, target)]) {
+            linksMap[linkId(source, target)].value += t.score
+          } else {
+            linksMap[linkId(source, target)] = {
+              source: source.id,
+              target: target.id,
+              value: t.score
+            }
+          }
+        })
+        return ns
+      })
+
+      // const nodes2 = Array.from(new Set(trunks.flatMap(t => t.trunk)))
+      //   .map(i => ({ id: i }))
+
+      const nodes = Object.values(nodesMap).sort((a,b) => a.order - b.order)
+      const links = Object.values(linksMap)
+
       console.log("nodes", nodes)
       // create source target pairs
-      const links = trunks.flatMap(t => {
-        return t.trunk.map((b,i) => {
-          if(i == t.trunk.length - 1) return null
-          return { source: b, target: t.trunk[i + 1], value: t.score}
-        }).filter(d => !!d)
-      })
+      // const links2 = trunks.flatMap(t => {
+      //   return t.trunk.map((b,i) => {
+      //     if(i == t.trunk.length - 1) return null
+      //     return { source: b, target: t.trunk[i + 1], value: t.score}
+      //   }).filter(d => !!d)
+      // })
       console.log("links", links)
 
+      const depth = 12 - region.order
+      const spacing = stripsWidth/(depth + 1)
+      const sankeyWidth = stripsWidth - spacing
+      console.log("spacing", spacing, depth)
       const s = sankey()
         .nodeId(d => d.id)
         .nodeWidth(15)
-        .nodePadding(1)
+        .nodePadding(5)
         // .nodeAlign(sankeyJustify)
         .nodeAlign(sankeyCenter)
         // .nodeSort((a,b) => b.value - a.value)
-        .extent([[0, 0], [sankeyWidth, sankeyHeight]])
+        .extent([[0, 20], [sankeyWidth, sankeyHeight - 20]])
         ({ nodes, links })
       console.log("sank", s)
       setSank(s)
 
     }
-  }, [crossScaleNarrationIndex, crossScaleNarration])
+  }, [crossScaleNarrationIndex, crossScaleNarration, stripsWidth, region])
 
   const [zoomedRegion, setZoomedRegion] = useState(null)
   const [similarZoomedRegion, setSimilarZoomedRegion] = useState(null)
@@ -305,17 +366,21 @@ const RegionDetail = () => {
             }) }
             </div>
 
-            <div>
-              <h3>Tree / Sankey</h3>
+            <div className="csn-sankey">
+              <h3>Path Sankey</h3>
               <div onClick={() => {
                 console.log(csn, csnTree[csn.node]);
                 console.log(walkTree(csnTree, csn.node, []))
                 console.log("sankey", sank)
               }}>
-                node: {csn?.node} | score: {csn?.score} <br/>
-                path: {JSON.stringify(walkTree(csnTree, csn.node, []))}
-                <br></br>
-                {sank ? <svg width={sankeyWidth} height={sankeyHeight} style={{border:"1px solid gray"}}>
+                {sank ? <svg className="path-sankey" width={stripsWidth - 10} height={sankeyHeight}>
+                  <g className="orders">
+                    {range(region.order+1, 13).map((order, i) => {
+                      let x = sank.nodes.find(d => d.order == order)?.x0
+                      return <text key={i} x={x} y={10} dy={".35em"}>Order: {order}</text>
+                    })
+                    }
+                  </g>
                   <g className="nodes">
                     {sank.nodes.map(node => {
                       return <rect 
@@ -324,10 +389,25 @@ const RegionDetail = () => {
                           y={node.y0} 
                           width={node.x1 - node.x0} 
                           height={node.y1 - node.y0} 
-                          fill={ csnPath.indexOf(node.id) >= 0 ? "orange": "gray" }
+                          // fill={ csnPath.indexOf(node.id) >= 0 ? "orange": "gray" }
+                          fill={ node.color }
                           stroke="black"
                           fillOpacity="0.75"
                           />
+                    })}
+                  </g>
+                  <g className="node-labels">
+                    {sank.nodes.map(node => {
+                      return <text
+                        key={node.id} 
+                          x={node.x1 + 10} 
+                          y={node.y0 + (node.y1 - node.y0)/2} 
+                          dy={".35em"}
+                          // fill={ csnPath.indexOf(node.id) >= 0 ? "orange": "gray" }
+                          fill={ node.color }
+                          >
+                            {node.field} ({node.dataLayer.name})
+                      </text>
                     })}
                   </g>
                   <g className="links">
@@ -335,8 +415,10 @@ const RegionDetail = () => {
                       return <path 
                         key={link.index} 
                         d={sankeyLinkHorizontal()(link)}
-                        fill="lightgray"
-                        stroke="black"
+                        fill="none"
+                        stroke="#aaa"
+                        strokeWidth={Math.max(1, link.width)}
+                        strokeOpacity={0.5}
                         />
                     })}
                   </g>

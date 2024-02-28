@@ -127,3 +127,7 @@
 .region-detail .csn .region-thumb {
   padding: 6px;
 }
+
+.region-detail .csn-sankey svg {
+  padding: 5px;
+}
