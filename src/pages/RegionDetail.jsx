@@ -70,6 +70,7 @@ const RegionDetail = () => {
   useEffect(() => {
     const handleResize = () => {
       const stripsElement = document.querySelector('#strips');
+      console.log("width", stripsElement.offsetWidth, stripsElement)
       if (stripsElement)  setStripsWidth(stripsElement.offsetWidth)
     };
     handleResize();
@@ -381,6 +382,18 @@ const RegionDetail = () => {
                     })
                     }
                   </g>
+                  <g className="links">
+                    {sank.links.map(link => {
+                      return <path 
+                        key={link.index} 
+                        d={sankeyLinkHorizontal()(link)}
+                        fill="none"
+                        stroke="#aaa"
+                        strokeWidth={Math.max(1, link.width)}
+                        strokeOpacity={0.5}
+                        />
+                    })}
+                  </g>
                   <g className="nodes">
                     {sank.nodes.map(node => {
                       return <rect 
@@ -405,23 +418,15 @@ const RegionDetail = () => {
                           dy={".35em"}
                           // fill={ csnPath.indexOf(node.id) >= 0 ? "orange": "gray" }
                           fill={ node.color }
+                          stroke="black"
+                          strokeWidth="0.5"
+                          paintOrder="stroke"
                           >
                             {node.field} ({node.dataLayer.name})
                       </text>
                     })}
                   </g>
-                  <g className="links">
-                    {sank.links.map(link => {
-                      return <path 
-                        key={link.index} 
-                        d={sankeyLinkHorizontal()(link)}
-                        fill="none"
-                        stroke="#aaa"
-                        strokeWidth={Math.max(1, link.width)}
-                        strokeOpacity={0.5}
-                        />
-                    })}
-                  </g>
+                  
 
                 </svg> : null}
               </div>
