@@ -332,7 +332,7 @@ function Home() {
         TF_Motifs_Sfc_max,
         Repeats_Sfc_max
       ]).then(crossScaleResponse => {
-        setCrossScaleNarration(crossScaleResponse.paths)
+        setCrossScaleNarration(crossScaleResponse.filteredPaths)
       })
     } else {
       // we set the layer order back to non-CSN if no selected region

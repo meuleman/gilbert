@@ -162,7 +162,7 @@ export default async function CrossScaleNarration(selected, layers, numPaths=100
         return uniquePaths
       }
       let uniquePaths = findUniquePaths(topLeafPaths)
-      return {'paths': uniquePaths.slice(0, numPaths), 'tree': tree}
+      return {'paths': topLeafPaths, 'filteredPaths': uniquePaths.slice(0, numPaths), 'tree': tree}
     })
     return bestPaths
   }
