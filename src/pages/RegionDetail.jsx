@@ -69,9 +69,13 @@ const RegionDetail = () => {
   const [stripsWidth, setStripsWidth] = useState(0);
   useEffect(() => {
     const handleResize = () => {
-      const stripsElement = document.querySelector('#strips');
-      console.log("width", stripsElement.offsetWidth, stripsElement)
-      if (stripsElement)  setStripsWidth(stripsElement.offsetWidth)
+      // const stripsElement = document.querySelector('#strips');
+      const stripsElement = document.querySelector('.region-detail');
+      if(stripsElement) {
+      const { height, width } = stripsElement.getBoundingClientRect()
+      console.log("width", stripsElement.offsetWidth, stripsElement.width)
+      setStripsWidth(width)
+      }
     };
     handleResize();
     window.addEventListener('resize', handleResize);
