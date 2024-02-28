@@ -39,6 +39,30 @@ function walkTree(tree, node, path=[]) {
   return path; // Return the accumulated path when the root is reached or if there's no parent
 }
 
+// subset our CSN results to just unique paths
+function findUniquePaths(paths) {
+  const uniquePaths = []
+  const seenPaths = new Map()
+
+  // initialize each order to null
+  let initialEmptyPathObj = {}
+  const orders = [4, 14]
+  for (let i = orders[0]; i <= orders[1]; i++) initialEmptyPathObj[i] = null;
+  
+  // filter paths
+  paths.forEach(path => {
+    // Convert path to a string to use as a map key
+    let pathStripped = { ...initialEmptyPathObj }
+    path.path.forEach((d) => {if(d !== null) pathStripped[d.order] = d.field.field})
+    const pathKey = JSON.stringify(pathStripped)
+    if (!seenPaths.has(pathKey)) {
+      uniquePaths.push(path)
+      seenPaths.set(pathKey, true)
+    }
+  })
+  return uniquePaths
+}
+
 const RegionDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -64,6 +88,7 @@ const RegionDetail = () => {
   const [similarBy, setSimilarBy] = useState('dhs')
   const [layersData, setLayersData] = useState([])
   const [crossScaleNarration, setCrossScaleNarration] = useState([])
+  const [crossScaleNarrationFiltered, setCrossScaleNarrationFiltered] = useState([])
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
   
 
@@ -171,8 +196,12 @@ const RegionDetail = () => {
       console.log("csn!!!", crossScaleNarration)
       // console.log("crossScaleNarrationIndex", crossScaleNarrationIndex, crossScaleNarration[crossScaleNarrationIndex])
       const paths = crossScaleNarration.paths
-      const filteredPaths = crossScaleNarration.filteredPaths
-      const path = filteredPaths[crossScaleNarrationIndex]
+      // const filteredPaths = crossScaleNarration.filteredPaths
+      const filteredPaths = findUniquePaths(paths.slice(0, csnSlice))
+      setCrossScaleNarrationFiltered(filteredPaths)
+      let newCSNIndex = Math.min(crossScaleNarrationIndex, filteredPaths.length - 1)
+      setCrossScaleNarrationIndex(newCSNIndex)
+      const path = filteredPaths[newCSNIndex]
       // const filtered = path.filter(d => !!d).sort((a,b) => a.order - b.order)
       setCsn(path)
       const tree = crossScaleNarration.tree
@@ -441,7 +470,7 @@ const RegionDetail = () => {
 
             <h3>Narration</h3>
             <div className="narration-slider">
-              <input id="csn-slider" type='range' min={0} max={crossScaleNarration?.filteredPaths?.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
+              <input id="csn-slider" type='range' min={0} max={crossScaleNarrationFiltered?.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
               <label htmlFor="csn-slider">Narration: {crossScaleNarrationIndex}</label>
             </div>
             <CSNSentence
