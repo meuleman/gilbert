@@ -77,7 +77,6 @@ function walkTree(tree, node, path=[]) {
 
 // subset our CSN results to just unique paths
 function findUniquePaths(paths) {
-  console.log("PATHS", paths)
   let uniquePaths = []
   const seenPaths = new Map()
 
@@ -97,7 +96,6 @@ function findUniquePaths(paths) {
       seenPaths.set(pathKey, true)
     }
   })
-  console.log("unique paths!", uniquePaths)
   if(uniquePaths.length < 1) uniquePaths = paths
   return uniquePaths
 }
@@ -232,7 +230,7 @@ const RegionDetail = () => {
   const [sank, setSank] = useState(null)
   useEffect(() => {
     if(crossScaleNarration && crossScaleNarration.paths) {
-      console.log("csn!!!", crossScaleNarration)
+      // console.log("csn!!!", crossScaleNarration)
       // console.log("crossScaleNarrationIndex", crossScaleNarrationIndex, crossScaleNarration[crossScaleNarrationIndex])
       const paths = crossScaleNarration.paths
       // const filteredPaths = crossScaleNarration.filteredPaths
@@ -254,7 +252,7 @@ const RegionDetail = () => {
       const trunks = paths.slice(0, csnSlice).map(p => {
         return { trunk: walkTree(tree, p.node, []), score: p.score, path: p.path.filter(d => !!d).sort((a, b) => a.order - b.order) }
       })
-      console.log("trunks", trunks)
+      // console.log("trunks", trunks)
 
       // the trunk array are the nodes of the tree starting at region.order + 1 and going till 12
       // the paths array contains the factor from order 4 to 12 unless the path is shorter
@@ -313,11 +311,37 @@ const RegionDetail = () => {
         return ns
       })
 
+      // manually add nodes and links for the orders above and including the region
+      range(region.order, 3, -1).forEach(order => {
+        // we use the currently selected CSN path, since all paths will have the higher order objects we need
+        let factor = filtered.find(d => d.order == order)
+        if(!factor) console.log("uh oh", order, filtered)
+        let n = {
+          id: `${order}-${factor.field.field}`,
+          order: order,
+          dataLayer: { name: factor.layer.name },
+          field: factor.field.field,
+          color: factor.field.color,
+          values: [factor.field.value],
+          fieldValue: factor.field.value
+        }
+        nodesMap[n.id] = n
+        // find all the nodes in the next higher order
+        let tolink = Object.values(nodesMap).filter(d => d.order == order+1)
+        tolink.forEach(t => {
+          linksMap[linkId(n,t)] = {
+            source: n.id,
+            target: t.id,
+            value: trunks.length / tolink.length
+          }
+        })
+      })
+
       const nodes = Object.values(nodesMap).sort((a,b) => a.order - b.order)
       const links = Object.values(linksMap)
 
-      console.log("nodes", nodes)
-      console.log("links", links)
+      // console.log("nodes", nodes)
+      // console.log("links", links)
 
       const depth = 12 - region.order
       const spacing = stripsWidth/(depth + 1)
@@ -332,7 +356,7 @@ const RegionDetail = () => {
         .nodeSort((a,b) => a.dataLayer.name.localeCompare(b.dataLayer.name))
         .extent([[0, 20], [sankeyWidth, sankeyHeight - 20]])
         ({ nodes, links })
-      console.log("sank", s)
+      // console.log("sank", s)
 
       // artificially shrink the None nodes
       s.nodes.forEach(n => {
@@ -431,10 +455,20 @@ const RegionDetail = () => {
                       // check if link connects nodes in the csn
                       let highlight = false
                       let sn = csn.path.find(d => d.order == link.source.order && d.field.field == link.source.field)
+                      if(link.source.field == "None") {
+                        if(csn.path.filter(d => d.order == link.source.order).length < 1)
+                          sn = true
+                      }
                       let tn = csn.path.find(d => d.order == link.target.order && d.field.field == link.target.field)
+                      if(link.target.field == "None") {
+                        if(csn.path.filter(d => d.order == link.target.order).length < 1)
+                          tn = true
+                      }
                       if(tn && sn) {
                         highlight = true
-                      }
+                      } 
+                      
+                      
                       return <path 
                         key={link.index} 
                         // d={sankeyLinkHorizontal()(link)}
