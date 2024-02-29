@@ -26,6 +26,42 @@ import RegionStrip from '../components/RegionStrip';
 
 import './RegionDetail.css';
 
+function sankeyLinkPath(link, offset=0) {
+  // this is a drop in replacement for d3.sankeyLinkHorizontal()
+  // well, without the accessors/options
+  let sx = link.source.x1
+  let tx = link.target.x0 + 1
+  let lw2 = link.width/2
+  let sw2 = (link.source.y1 - link.source.y0)/2
+  let tw2 = (link.target.y1 - link.target.y0)/2
+  let slw2 = sw2 < lw2 ? sw2 : lw2
+  let tlw2 = tw2 < lw2 ? tw2 : lw2
+  let sy0 = link.y0 - slw2
+  let sy1 = link.y0 + slw2
+  let ty0 = link.y1 - tlw2
+  let ty1 = link.y1 + tlw2
+  
+  let halfx = (tx - sx)/2
+
+  let path = d3path()  
+  path.moveTo(sx, sy0)
+
+  let cpx1 = sx + halfx
+  let cpy1 = sy0 + offset
+  let cpx2 = sx + halfx
+  let cpy2 = ty0 - offset
+  path.bezierCurveTo(cpx1, cpy1, cpx2, cpy2, tx, ty0)
+  path.lineTo(tx, ty1)
+
+  cpx1 = sx + halfx
+  cpy1 = ty1 - offset
+  cpx2 = sx + halfx
+  cpy2 = sy1 + offset
+  path.bezierCurveTo(cpx1, cpy1, cpx2, cpy2, sx, sy1)
+  path.lineTo(sx, sy0)
+  return path.toString()
+}
+
 function walkTree(tree, node, path=[]) {
   if (node === undefined || node === null || tree === undefined || tree.length === 0) {
       return path;
@@ -204,8 +240,8 @@ const RegionDetail = () => {
       let newCSNIndex = Math.min(crossScaleNarrationIndex, filteredPaths.length - 1)
       setCrossScaleNarrationIndex(newCSNIndex)
       const path = filteredPaths[newCSNIndex]
-      // const filtered = path.filter(d => !!d).sort((a,b) => a.order - b.order)
-      setCsn(path)
+      const filtered = path.path.filter(d => !!d).sort((a,b) => a.order - b.order)
+      setCsn({...path, path: filtered})
       const tree = crossScaleNarration.tree
       setCsnTree(tree)
 
@@ -296,55 +332,27 @@ const RegionDetail = () => {
       console.log("sank", s)
 
       // artificially shrink the None nodes
-      // s.nodes.forEach(n => {
-      //   if(n.dataLayer.name == "ZNone") {
-      //     n.y0 = n.y1  - 10
-      //   }
-      // })
-      // s.links.forEach(l => {
-      //   if(l.source.dataLayer.name == "ZNone") {
-      //     l.y0 = l.source.y1 - 5
-      //   }
-      //   if(l.target.dataLayer.name == "ZNone") {
-      //     l.y1 = l.target.y1 - 5
-      //   }
-      // })
+      s.nodes.forEach(n => {
+        if(n.dataLayer.name == "ZNone") {
+          n.y0 = n.y1  - 10
+        }
+      })
+      s.links.forEach(l => {
+        if(l.source.dataLayer.name == "ZNone") {
+          l.y0 = l.source.y1 - 5
+          // l.y1 = l.target.y1 - 15
+        }
+        if(l.target.dataLayer.name == "ZNone") {
+          // l.y0 = l.target.y1 - 15
+          l.y1 = l.target.y1 - 5
+        }
+      })
 
       setSank(s)
 
     }
   }, [crossScaleNarrationIndex, crossScaleNarration, stripsWidth, region, csnSlice, csnThreshold])
 
-  function sankeyLinkPath(link, offset=0) {
-    // this is a drop in replacement for d3.sankeyLinkHorizontal()
-    // well, without the accessors/options
-    let sx = link.source.x1
-    let tx = link.target.x0 + 1
-    let sy0 = link.y0 - link.width/2
-    let sy1 = link.y0 + link.width/2
-    let ty0 = link.y1 - link.width/2
-    let ty1 = link.y1 + link.width/2
-    
-    let halfx = (tx - sx)/2
-  
-    let path = d3path()  
-    path.moveTo(sx, sy0)
-  
-    let cpx1 = sx + halfx
-    let cpy1 = sy0 + offset
-    let cpx2 = sx + halfx
-    let cpy2 = ty0 - offset
-    path.bezierCurveTo(cpx1, cpy1, cpx2, cpy2, tx, ty0)
-    path.lineTo(tx, ty1)
-  
-    cpx1 = sx + halfx
-    cpy1 = ty1 - offset
-    cpx2 = sx + halfx
-    cpy2 = sy1 + offset
-    path.bezierCurveTo(cpx1, cpy1, cpx2, cpy2, sx, sy1)
-    path.lineTo(sx, sy0)
-    return path.toString()
-  }
 
   const [zoomedRegion, setZoomedRegion] = useState(null)
   const [similarZoomedRegion, setSimilarZoomedRegion] = useState(null)
@@ -417,14 +425,23 @@ const RegionDetail = () => {
                   </g>
                   <g className="links">
                     {sank.links.map(link => {
+                      // check if link connects nodes in the csn
+                      let highlight = false
+                      let sn = csn.path.find(d => d.order == link.source.order && d.field.field == link.source.field)
+                      let tn = csn.path.find(d => d.order == link.target.order && d.field.field == link.target.field)
+                      if(tn && sn) {
+                        highlight = true
+                      }
                       return <path 
                         key={link.index} 
-                        d={sankeyLinkHorizontal()(link)}
-                        // d={sankeyLinkPath(link)}
-                        fill="none"
-                        stroke="#aaa"
-                        strokeWidth={Math.max(1, link.width)}
-                        strokeOpacity={0.5}
+                        // d={sankeyLinkHorizontal()(link)}
+                        // fill="none"
+                        // stroke="#aaa"
+                        // strokeWidth={Math.max(1, link.width)}
+                        // strokeOpacity={0.5}
+                        d={sankeyLinkPath(link)}
+                        fill="#aaa"
+                        fillOpacity={highlight ? 1: 0.5}
                         />
                     })}
                   </g>
