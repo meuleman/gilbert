@@ -134,3 +134,6 @@
 .region-detail .csn-sankey svg {
   padding: 5px;
 }
+.region-detail #csn-slice-slider {
+  width: 80%;
+}
