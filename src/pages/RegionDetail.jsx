@@ -26,7 +26,7 @@ import RegionStrip from '../components/RegionStrip';
 
 import './RegionDetail.css';
 
-function sankeyLinkPath(link, offset=0) {
+function sankeyLinkPath(link, offset=0, debug=false) {
   // this is a drop in replacement for d3.sankeyLinkHorizontal()
   // well, without the accessors/options
   let sx = link.source.x1
@@ -36,6 +36,7 @@ function sankeyLinkPath(link, offset=0) {
   let tw2 = (link.target.y1 - link.target.y0)/2
   let slw2 = sw2 < lw2 ? sw2 : lw2
   let tlw2 = tw2 < lw2 ? tw2 : lw2
+  if(debug) console.log("lw2", lw2, "sw2", sw2, "tw2", tw2, "slw2", slw2, "tlw2", tlw2)
   let sy0 = link.y0 - slw2
   let sy1 = link.y0 + slw2
   let ty0 = link.y1 - tlw2
@@ -228,6 +229,11 @@ const RegionDetail = () => {
   const [csnSlice, setCsnSlice] = useState(100)
   const [csnThreshold, setCsnThreshold] = useState(0)
   const [sank, setSank] = useState(null)
+
+  const [removeNone, setRemoveNone] = useState(false)
+  const [shrinkNone, setShrinkNone] = useState(true)
+  const [useHorizontal, setUseHorizontal] = useState(false)
+
   useEffect(() => {
     if(crossScaleNarration && crossScaleNarration.paths) {
       // console.log("csn!!!", crossScaleNarration)
@@ -327,12 +333,22 @@ const RegionDetail = () => {
         }
         nodesMap[n.id] = n
         // find all the nodes in the next higher order
-        let tolink = Object.values(nodesMap).filter(d => d.order == order+1)
+        // let tolinkNodes = Object.values(nodesMap).filter(d => d.order == order+1)
+        let tolink = Object.values(linksMap).filter(d => nodesMap[d.source].order == order+1)
+        // count up the number of each source
+        let counts = {}
         tolink.forEach(t => {
-          linksMap[linkId(n,t)] = {
+          if(counts[t.source]) {
+            counts[t.source] += t.value
+          } else {
+            counts[t.source] = t.value
+          }
+        })
+        Object.keys(counts).forEach(t => {
+          linksMap[linkId(n,{id:t})] = {
             source: n.id,
-            target: t.id,
-            value: trunks.length / tolink.length
+            target: t,
+            value: counts[t]
           }
         })
       })
@@ -358,27 +374,29 @@ const RegionDetail = () => {
         ({ nodes, links })
       // console.log("sank", s)
 
-      // artificially shrink the None nodes
-      s.nodes.forEach(n => {
-        if(n.dataLayer.name == "ZNone") {
-          n.y0 = n.y1  - 10
-        }
-      })
-      s.links.forEach(l => {
-        if(l.source.dataLayer.name == "ZNone") {
-          l.y0 = l.source.y1 - 5
-          // l.y1 = l.target.y1 - 15
-        }
-        if(l.target.dataLayer.name == "ZNone") {
-          // l.y0 = l.target.y1 - 15
-          l.y1 = l.target.y1 - 5
-        }
-      })
+      if(shrinkNone) {
+        // artificially shrink the None nodes
+        s.nodes.forEach(n => {
+          if(n.field == "None") {
+            n.y0 = n.y1  - 10
+          }
+        })
+        s.links.forEach(l => {
+          if(l.source.field == "None") {
+            l.y0 = l.source.y1 - 5
+            // l.y1 = l.target.y1 - 15
+          }
+          if(l.target.field == "None") {
+            // l.y0 = l.target.y1 - 15
+            l.y1 = l.target.y1 - 5
+          }
+        })
+      }
 
       setSank(s)
 
     }
-  }, [crossScaleNarrationIndex, crossScaleNarration, stripsWidth, region, csnSlice, csnThreshold])
+  }, [crossScaleNarrationIndex, crossScaleNarration, stripsWidth, region, csnSlice, csnThreshold, shrinkNone])
 
 
   const [zoomedRegion, setZoomedRegion] = useState(null)
@@ -402,12 +420,13 @@ const RegionDetail = () => {
     setCrossScaleNarrationIndex(e.target.value)
   }
 
-  const handleChangeCSNSlice = (e) => {
+  const handleChangeCSNSlice = useCallback((e) => {
     setCsnSlice(e.target.value)
-  }
-  const handleChangeCSNThreshold = (e) => {
+  }, [setCsnSlice])
+
+  const handleChangeCSNThreshold = useCallback((e) => {
     setCsnThreshold(e.target.value)
-  }
+  }, [setCsnThreshold])
 
 
 
@@ -437,12 +456,26 @@ const RegionDetail = () => {
           
           <div className="section-content">
             <div className="csn-sankey">
-              <div onClick={() => {
-                console.log(csn, csnTree[csn.node]);
-                console.log(walkTree(csnTree, csn.node, []))
-                console.log("sankey", sank)
-              }}>
-                {sank ? <svg className="path-sankey" width={stripsWidth - 10} height={sankeyHeight}>
+              <div >
+                <div className="sankey-editorial-controls">
+                  <div className="checkboxes">
+                    <input type="checkbox" checked={shrinkNone} onChange={e => setShrinkNone(e.target.checked)} />
+                    <label htmlFor="shrinkNone">Shrink "None" nodes</label>
+                    <input type="checkbox" checked={useHorizontal} onChange={e => setUseHorizontal(e.target.checked)} />
+                    <label htmlFor="useHorizontal">Use horizontal links</label>
+                  </div>
+                  <input id="csn-slice-slider" type='range' min={1} max={crossScaleNarration?.paths?.length - 1} value={csnSlice} onChange={handleChangeCSNSlice} />
+                  <label htmlFor="csn-slice-slider">Top {csnSlice} paths</label>
+                  <br></br>
+                  <input id="csn-threshold-slider" type='range' min={0} max={3} step="0.1" value={csnThreshold} onChange={handleChangeCSNThreshold} />
+                  <label htmlFor="csn-threshold-slider">Factor score threshold: {csnThreshold}</label>
+                  <br></br>
+                </div>
+                {sank ? <svg className="path-sankey" width={stripsWidth - 10} height={sankeyHeight} onClick={() => {
+                    console.log(csn, csnTree[csn.node]);
+                    console.log(walkTree(csnTree, csn.node, []))
+                    console.log("sankey", sank)
+                  }}>
                   <g className="orders">
                     {range(region.order+1, 13).map((order, i) => {
                       let x = sank.nodes.find(d => d.order == order)?.x0
@@ -471,14 +504,12 @@ const RegionDetail = () => {
                       
                       return <path 
                         key={link.index} 
-                        // d={sankeyLinkHorizontal()(link)}
-                        // fill="none"
-                        // stroke="#aaa"
-                        // strokeWidth={Math.max(1, link.width)}
-                        // strokeOpacity={0.5}
-                        d={sankeyLinkPath(link)}
-                        fill="#aaa"
-                        fillOpacity={highlight ? 1: 0.5}
+                        onClick={() => console.log("LINK", link, sankeyLinkPath(link, 0, true))}
+                        d={useHorizontal ? sankeyLinkHorizontal()(link) : sankeyLinkPath(link)}
+                        fill={useHorizontal ? "none" : "#aaa" }
+                        stroke={useHorizontal ? "#aaa" : "none"}
+                        strokeWidth={useHorizontal ? Math.max(1, link.width) : 0 }
+                        opacity={highlight ? 1: 0.5}
                         />
                     })}
                   </g>
@@ -516,12 +547,7 @@ const RegionDetail = () => {
                   </g>
                 </svg> : null}
                 
-                <input id="csn-slice-slider" type='range' min={1} max={crossScaleNarration?.paths?.length - 1} value={csnSlice} onChange={handleChangeCSNSlice} />
-                <label htmlFor="csn-slice-slider">Top {csnSlice} paths</label>
-                <br></br>
-                <input id="csn-threshold-slider" type='range' min={0} max={3} step="0.1" value={csnThreshold} onChange={handleChangeCSNThreshold} />
-                <label htmlFor="csn-threshold-slider">Factor score threshold: {csnThreshold}</label>
-                <br></br>
+                
               </div>
             </div>
             {/* <h3>Narration</h3> */}
