@@ -1,25 +1,25 @@
+
 import { scaleOrdinal } from "d3-scale";
-import CanvasScaledValue from "../components/CanvasScaledValue";
+import CanvasSimpleValue from "../components/CanvasSimpleValue";
 import * as constants from "../lib/constants";
 
 export default {
-  name: "DHS Components (Full)",
-  datasetName: "dhs_sfc",
+  name: "LADs (NEW)",
+  datasetName: "LADs_fract_map_named",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseURLPrefix}/20240223`,
-  orders: [4,13],
-  renderer: CanvasScaledValue,
+  orders: [4,11],
+  renderer: CanvasSimpleValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
-    .domain(["Placental / trophoblast","Lymphoid","Myeloid / erythroid","Cardiac","Musculoskeletal","Vascular / endothelial","Primitive / embryonic","Neural","Digestive","Stromal A","Stromal B","Renal / cancer","Cancer / epithelial","Pulmonary devel.","Organ devel. / renal","Tissue invariant"])
-    .range(["#ffe500","#fe8102","#ff0000","#07af00","#4c7d14","#414613","#05c1d9","#0467fd","#009588","#bb2dd4","#7a00ff","#4a6876","#08245b","#b9461d","#692108","#c3c3c3"])
-    .unknown("#eee"),
+    .domain(["Constitutive", "Constitutive_Inter", "Facultative"])
+    .range(["#D82A2A", "blue", "#A0A0A0"])
+    .unknown("white"),
   // used for the base canvas rendering
   strokeWidthMultiplier: 0.05,
   stroke: "gray",
   fill: "white"
 }
-
 
 // this function chooses the top value for a data point
 function topValue(d) {

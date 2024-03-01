@@ -9,8 +9,8 @@ const repeatsColors = [ "#FF0000",  "#FF0000",  "#00FF00",  "#0000FF",  "#0000FF
 export default {
   name: "Repeats (Full)",
   datasetName: "repeats_sfc",
-  baseURL: `${constants.baseURLPrefix}/20230720`,
-  orders: [4,11],
+  baseURL: `${constants.baseURLPrefix}/20240223`,
+  orders: [4,13],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()

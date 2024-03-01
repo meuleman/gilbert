@@ -7,8 +7,8 @@ export default {
   name: "Chromatin States (Full)",
   datasetName: "cs_sfc",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseURLPrefix}/20230622`,
-  orders: [4,11],
+  baseURL: `${constants.baseURLPrefix}/20240223`,
+  orders: [4,13],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()

@@ -7,10 +7,10 @@ const dhsColors = ["#ffe500","#fe8102","#ff0000","#07af00","#4c7d14","#414613","
 
 export default {
   name: "DHS Components",
-  datasetName: "dhs_offset0_sfc_max",
+  datasetName: "dhs_sfc_max",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseURLPrefix}/20231020`,
-  orders: [4,10],
+  baseURL: `${constants.baseURLPrefix}/20240223`,
+  orders: [4,13],
   renderer: CanvasScaledValue,
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()

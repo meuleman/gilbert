@@ -10,7 +10,7 @@ export default {
   name: "TF Motifs",
   datasetName: "tf_sfc_max",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseURLPrefix}/20230622`,
+  baseURL: `${constants.baseURLPrefix}/20240223`,
   orders: [4,12],
   renderer: CanvasScaledValue,
   fieldChoice: decodeValue,

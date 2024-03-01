@@ -24,6 +24,7 @@ import ENCSR000EOT from './encode_ENCSR000EOT_max'
 import CD3 from './encode_CD3_D2_Stim_AG90658_output_2.5.1_max'
 import CD3Fiberseq from './fiberseq_CD3_HAP1d2stim_mean'
 import LADs from './lads'
+import LADs_new from './lads_new'
 
 
 export default [
@@ -56,4 +57,5 @@ export default [
   CD3,
   CD3Fiberseq,
   LADs,
+  LADs_new,
 ]
