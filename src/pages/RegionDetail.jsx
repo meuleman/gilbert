@@ -234,6 +234,8 @@ const RegionDetail = () => {
   const [shrinkNone, setShrinkNone] = useState(true)
   const [useHorizontal, setUseHorizontal] = useState(false)
 
+  const [nodeFilter, setNodeFilter] = useState([])
+
   useEffect(() => {
     if(crossScaleNarration && crossScaleNarration.paths) {
       // console.log("csn!!!", crossScaleNarration)
@@ -241,19 +243,39 @@ const RegionDetail = () => {
       const paths = crossScaleNarration.paths
       // const filteredPaths = crossScaleNarration.filteredPaths
       // filter our included paths to just the unique ones
-      const filteredPaths = findUniquePaths(paths.slice(0, csnSlice))
-      setCrossScaleNarrationFiltered(filteredPaths)
+      console.log("node filter", nodeFilter)
+      let filteredPaths = paths
+        .slice(0, csnSlice)
+        .filter(d => d.path.filter(p => !!p).filter(p => p.field.value > csnThreshold).length === d.path.filter(p => !!p).length)
+        // we want to filter to only paths that match the nodeFilter if it has nodes in it
+        // the nodeFilter can have 1 or more nodes. the nodes define an order and a field
+        // we only let paths through if they have the field at that order
+      if(nodeFilter.length) {
+        filteredPaths = filteredPaths.filter(d => d.path.filter(p => !!p).filter(p => nodeFilter.find(n => n.order == p.order && n.field == p.field.field)).length === nodeFilter.length)
+      } 
+      const uniquePaths =  findUniquePaths(filteredPaths)
+      console.log("uniquePaths", uniquePaths)
+      setCrossScaleNarrationFiltered(uniquePaths)
       // adjust the index if it's out of bounds (ie if we've filtered down to less paths than the index)
       let newCSNIndex = Math.min(crossScaleNarrationIndex, filteredPaths.length - 1)
       setCrossScaleNarrationIndex(newCSNIndex)
-      const path = filteredPaths[newCSNIndex]
-      const filtered = path.path.filter(d => !!d).sort((a,b) => a.order - b.order)
-      setCsn({...path, path: filtered})
-      const tree = crossScaleNarration.tree
-      setCsnTree(tree)
+      const path = uniquePaths[newCSNIndex]
+      if(!path) {
+        console.log("NO PATH?")
+      } else {
+        const filtered = path.path.filter(d => !!d).sort((a,b) => a.order - b.order)
+        setCsn({...path, path: filtered})
+        const tree = crossScaleNarration.tree
+        setCsnTree(tree)
+        setCsnPath(walkTree(tree, path.node, []))
+      }
+    }
+  }, [crossScaleNarrationIndex, crossScaleNarration, csnSlice, csnThreshold, nodeFilter])
 
-      setCsnPath(walkTree(tree, path.node, []))
-      // we can setup our tree and sankey data here too
+  useEffect(() => {
+    if(crossScaleNarration && crossScaleNarration.paths && csnSlice) {
+      let paths = crossScaleNarration.paths
+      let tree = crossScaleNarration.tree
       // walk the tree for each path
       const trunks = paths.slice(0, csnSlice).map(p => {
         return { trunk: walkTree(tree, p.node, []), score: p.score, path: p.path.filter(d => !!d).sort((a, b) => a.order - b.order) }
@@ -317,6 +339,8 @@ const RegionDetail = () => {
         return ns
       })
 
+
+      const filtered = paths[0].path.filter(d => !!d).sort((a,b) => a.order - b.order)
       // manually add nodes and links for the orders above and including the region
       range(region.order, 3, -1).forEach(order => {
         // we use the currently selected CSN path, since all paths will have the higher order objects we need
@@ -394,9 +418,8 @@ const RegionDetail = () => {
       }
 
       setSank(s)
-
     }
-  }, [crossScaleNarrationIndex, crossScaleNarration, stripsWidth, region, csnSlice, csnThreshold, shrinkNone])
+  }, [ crossScaleNarration, stripsWidth, region, csnSlice, csnThreshold, shrinkNone])
 
 
   const [zoomedRegion, setZoomedRegion] = useState(null)
@@ -428,6 +451,17 @@ const RegionDetail = () => {
     setCsnThreshold(e.target.value)
   }, [setCsnThreshold])
 
+  const handleNodeFilter = useCallback((node) => {
+    setNodeFilter((oldNodeFilter) => {
+      if(oldNodeFilter.find(n => n.order == node.order && n.field.field == node.field.field)) {
+        const filtered = oldNodeFilter.filter(n => n.order != node.order && n.field.field != node.field.field)
+        console.log("filtering out", filtered)
+        return [...filtered]
+      } else {
+        return [...oldNodeFilter, node]
+      }
+    })
+  }, [setNodeFilter])
 
 
   return (
@@ -525,6 +559,7 @@ const RegionDetail = () => {
                           fill={ node.color }
                           stroke="black"
                           fillOpacity="0.75"
+                          onClick={() => handleNodeFilter(node)}
                           />
                     })}
                   </g>
@@ -552,7 +587,7 @@ const RegionDetail = () => {
             </div>
             {/* <h3>Narration</h3> */}
             <div>
-              <b>Explore narrations of {crossScaleNarrationFiltered?.length} top paths:</b>
+              <b>Explore narrations of {crossScaleNarrationFiltered?.length} unique top paths:</b>
             </div>
             <div className="narration-slider">
               <input id="csn-slider" type='range' min={0} max={crossScaleNarrationFiltered?.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
