@@ -8,7 +8,7 @@ export default {
   datasetName: "LADs_fract_map_named",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseURLPrefix}/20240223`,
-  orders: [4,11],
+  orders: [4,12],
   renderer: CanvasSimpleValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
