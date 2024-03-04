@@ -79,7 +79,7 @@ function walkTree(tree, node, path=[]) {
 // subset our CSN results to just unique paths
 function findUniquePaths(paths) {
   let uniquePaths = []
-  let uniquePathNodes = []
+  let uniquePathMemberships = []
   const seenPaths = new Map()
 
   // initialize each order to null
@@ -94,19 +94,19 @@ function findUniquePaths(paths) {
     path.path.forEach((d) => {if(d !== null) pathStripped[d.order] = d.field.field})
     const pathKey = JSON.stringify(pathStripped)
     if (!seenPaths.has(pathKey)) {
-      seenPaths.set(pathKey, uniquePathNodes.length)
+      seenPaths.set(pathKey, uniquePaths.length)
       uniquePaths.push(path)
-      uniquePathNodes.push([path.node])
+      uniquePathMemberships.push([path])
     } else {
       let pathInd = seenPaths.get(pathKey)
-      uniquePathNodes[pathInd].push(path.node)
+      uniquePathMemberships[pathInd].push(path)
     }
   })
   if(uniquePaths.length < 1) {
     uniquePaths = paths
-    uniquePathNodes = paths.map(d => [d.node])
+    uniquePathMemberships = paths.map(d => [d])
   }
-  return {'uniquePaths': uniquePaths, 'uniquePathNodes': uniquePathNodes}
+  return {'uniquePaths': uniquePaths, 'uniquePathMemberships': uniquePathMemberships}
 }
 
 const RegionDetail = () => {
@@ -249,13 +249,10 @@ const RegionDetail = () => {
   const [nodeFilter, setNodeFilter] = useState([])
 
   useEffect(() => {
-    if(crossScaleNarration && crossScaleNarration.paths && crossScaleNarrationUnique?.uniquePaths && crossScaleNarrationUnique?.uniquePathNodes) {
-      const paths = crossScaleNarration.paths
-
+    if(crossScaleNarration && crossScaleNarration.paths && crossScaleNarrationUnique?.uniquePaths && crossScaleNarrationUnique?.uniquePathMemberships) {
       // filter our full set of paths to just ones that map to a top unique path
-      const includedNodes = crossScaleNarrationUnique.uniquePathNodes.slice(0, csnSlice).flat()
-      let filteredPaths = paths
-        .filter(d => includedNodes.includes(d.node))
+      let filteredPaths = crossScaleNarrationUnique.uniquePathMemberships
+        .slice(0, csnSlice).flat()
         .filter(d => d.path.filter(p => !!p).filter(p => p.field.value > csnThreshold).length === d.path.filter(p => !!p).length)
         // we want to filter to only paths that match the nodeFilter if it has nodes in it
         // the nodeFilter can have 1 or more nodes. the nodes define an order and a field
