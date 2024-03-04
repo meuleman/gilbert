@@ -227,6 +227,9 @@ const RegionDetail = () => {
         layers.find(d => d.name == "Repeats"),
       ]).then(crossScaleResponse => {
         setCrossScaleNarration(crossScaleResponse)
+        // find the unique paths
+        let uniquePaths = findUniquePaths(crossScaleResponse.paths)
+        setCrossScaleNarrationUnique(uniquePaths)
       })
     }
   }, [region, fetchData])
@@ -248,12 +251,8 @@ const RegionDetail = () => {
     if(crossScaleNarration && crossScaleNarration.paths) {
       const paths = crossScaleNarration.paths
 
-      // find the unique paths
-      let uniquePaths = findUniquePaths(paths)
-      setCrossScaleNarrationUnique(uniquePaths.uniquePaths)
-
       // filter our full set of paths to just ones that map to a top unique path
-      const includedNodes = uniquePaths.uniquePathNodes.slice(0, csnSlice).flat()
+      const includedNodes = crossScaleNarrationUnique.uniquePathNodes.slice(0, csnSlice).flat()
       let filteredPaths = paths
         .filter(d => includedNodes.includes(d.node))
         .filter(d => d.path.filter(p => !!p).filter(p => p.field.value > csnThreshold).length === d.path.filter(p => !!p).length)
@@ -267,7 +266,7 @@ const RegionDetail = () => {
       // adjust the index if it's out of bounds (ie if we've reduced down to less paths than the index)
       let newCSNIndex = Math.min(crossScaleNarrationIndex, csnSlice - 1)
       setCrossScaleNarrationIndex(newCSNIndex)
-      const path = uniquePaths.uniquePaths.slice(0, csnSlice)[newCSNIndex]
+      const path = crossScaleNarrationUnique.uniquePaths.slice(0, csnSlice)[newCSNIndex]
       if(!path) {
         console.log("NO PATH?")
       } else {
@@ -508,7 +507,7 @@ const RegionDetail = () => {
                     <input type="checkbox" checked={useHorizontal} onChange={e => setUseHorizontal(e.target.checked)} />
                     <label htmlFor="useHorizontal">Use horizontal links</label>
                   </div>
-                  <input id="csn-slice-slider" type='range' min={1} max={crossScaleNarrationUnique?.length - 1} value={csnSlice} onChange={handleChangeCSNSlice} />
+                  <input id="csn-slice-slider" type='range' min={1} max={crossScaleNarrationUnique?.uniquePaths?.length - 1} value={csnSlice} onChange={handleChangeCSNSlice} />
                   <label htmlFor="csn-slice-slider">Top {csnSlice} paths</label>
                   <br></br>
                   <input id="csn-threshold-slider" type='range' min={0} max={3} step="0.1" value={csnThreshold} onChange={handleChangeCSNThreshold} />
