@@ -237,6 +237,7 @@ const RegionDetail = () => {
   const [csn, setCsn] = useState([])
   const [csnPath, setCsnPath] = useState([])
   const [csnTree, setCsnTree] = useState([])
+  const [csnMaxOrder, setCsnMaxOrder] = useState(14)
   const [csnSlice, setCsnSlice] = useState(100)
   const [csnThreshold, setCsnThreshold] = useState(0)
   const [sank, setSank] = useState(null)
@@ -291,10 +292,12 @@ const RegionDetail = () => {
       })
       // console.log("trunks", trunks)
 
-      // the trunk array are the nodes of the tree starting at region.order + 1 and going till 12
-      // the paths array contains the factor from order 4 to 12 unless the path is shorter
+      // the trunk array are the nodes of the tree starting at region.order + 1 and going till maxOrder
+      // the paths array contains the factor from order 4 to maxOrder unless the path is shorter
       // we want nodes that have the order and factor as the id and link to other nodes via the trunk indices
       const baseOrder = region.order + 1
+      const maxOrder = Math.max(...paths[0].path?.map(d => d.order))
+      setCsnMaxOrder(maxOrder)
       const linkId = (a,b) => `${a.id}=>${b.id}`
       let nodesMap = {}
       let linksMap = {}
@@ -392,7 +395,7 @@ const RegionDetail = () => {
       // console.log("nodes", nodes)
       // console.log("links", links)
 
-      const depth = 12 - region.order
+      const depth = maxOrder - region.order
       const spacing = stripsWidth/(depth + 1)
       const sankeyWidth = stripsWidth - spacing
       const s = sankey()
@@ -520,7 +523,7 @@ const RegionDetail = () => {
                     console.log("sankey", sank)
                   }}>
                   <g className="orders">
-                    {range(region.order+1, 13).map((order, i) => {
+                    {range(region.order+1, csnMaxOrder + 1).map((order, i) => {
                       let x = sank.nodes.find(d => d.order == order)?.x0
                       return <text key={i} x={x} y={10} dy={".35em"}>Order: {order}</text>
                     })
@@ -608,7 +611,7 @@ const RegionDetail = () => {
             />
 
             <div className="thumbs">
-              {range(4, 13).map((order, i) => {
+              {range(4, csnMaxOrder + 1).map((order, i) => {
                 let d;
                 if(csn && csn.path) d = csn.path.find(d => d?.order == order)
                 return (<div key={i} className={`csn-layer ${region.order == order ? "active" : ""}`}>
@@ -632,7 +635,7 @@ const RegionDetail = () => {
               })}
             </div>
             <div className="strips" id="strips">
-              {range(4, 13).map((order, i) => {
+              {range(4, csnMaxOrder + 1).map((order, i) => {
                 let d
                 if(csn && csn.path) d = csn.path.find(d => d?.order == order)
                 return (<div key={i} className={`csn-layer ${region.order == order ? "active" : ""}`}>
