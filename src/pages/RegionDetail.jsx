@@ -249,7 +249,7 @@ const RegionDetail = () => {
   const [nodeFilter, setNodeFilter] = useState([])
 
   useEffect(() => {
-    if(crossScaleNarration && crossScaleNarration.paths && crossScaleNarrationUnique?.uniquePaths && crossScaleNarrationUnique?.uniquePathMemberships) {
+    if(crossScaleNarration && crossScaleNarrationUnique?.uniquePaths && crossScaleNarrationUnique?.uniquePathMemberships) {
       // filter our full set of paths to just ones that map to a top unique path
       let filteredPaths = crossScaleNarrationUnique.uniquePathMemberships
         .slice(0, csnSlice).flat()
