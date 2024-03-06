@@ -158,7 +158,6 @@ const RegionDetail = () => {
 
   const [removeNone, setRemoveNone] = useState(false)
   const [shrinkNone, setShrinkNone] = useState(true)
-  const [useHorizontal, setUseHorizontal] = useState(false)
 
   const [nodeFilter, setNodeFilter] = useState([])
 
@@ -277,8 +276,6 @@ const RegionDetail = () => {
                   <div className="checkboxes">
                     <input type="checkbox" checked={shrinkNone} onChange={e => setShrinkNone(e.target.checked)} />
                     <label htmlFor="shrinkNone">Shrink "None" nodes</label>
-                    <input type="checkbox" checked={useHorizontal} onChange={e => setUseHorizontal(e.target.checked)} />
-                    <label htmlFor="useHorizontal">Use horizontal links</label>
                   </div>
                   <input id="csn-slice-slider" type='range' min={1} max={maxUniquePaths - 1} value={csnSlice} onChange={handleChangeCSNSlice} />
                   <label htmlFor="csn-slice-slider">Top {csnSlice} paths</label>
