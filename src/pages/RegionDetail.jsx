@@ -1,14 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { range, max } from 'd3-array';
-import { path as d3path } from 'd3-path';
-import { sankey, sankeyJustify, sankeyCenter, sankeyLinkHorizontal } from 'd3-sankey';
 
 import { showFloat, showPosition } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition, sameHilbertRegion } from '../lib/regions';
 import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
-import { calculateCrossScaleNarration } from '../lib/csn';
+import { calculateCrossScaleNarration, walkTree, findUniquePaths } from '../lib/csn';
 import Data from '../lib/data';
 
 import layers from '../layers'
@@ -23,91 +21,10 @@ import SimSearchResultList from '../components/SimSearch/ResultList'
 import CSNSentence from '../components/Narration/Sentence'
 import RegionThumb from '../components/RegionThumb';
 import RegionStrip from '../components/RegionStrip';
+import Sankey from '../components/Narration/Sankey';
 
 import './RegionDetail.css';
 
-function sankeyLinkPath(link, offset=0, debug=false) {
-  // this is a drop in replacement for d3.sankeyLinkHorizontal()
-  // well, without the accessors/options
-  let sx = link.source.x1
-  let tx = link.target.x0 + 1
-  let lw2 = link.width/2
-  let sw2 = (link.source.y1 - link.source.y0)/2
-  let tw2 = (link.target.y1 - link.target.y0)/2
-  let slw2 = sw2 < lw2 ? sw2 : lw2
-  let tlw2 = tw2 < lw2 ? tw2 : lw2
-  if(debug) console.log("lw2", lw2, "sw2", sw2, "tw2", tw2, "slw2", slw2, "tlw2", tlw2)
-  let sy0 = link.y0 - slw2
-  let sy1 = link.y0 + slw2
-  let ty0 = link.y1 - tlw2
-  let ty1 = link.y1 + tlw2
-  
-  let halfx = (tx - sx)/2
-
-  let path = d3path()  
-  path.moveTo(sx, sy0)
-
-  let cpx1 = sx + halfx
-  let cpy1 = sy0 + offset
-  let cpx2 = sx + halfx
-  let cpy2 = ty0 - offset
-  path.bezierCurveTo(cpx1, cpy1, cpx2, cpy2, tx, ty0)
-  path.lineTo(tx, ty1)
-
-  cpx1 = sx + halfx
-  cpy1 = ty1 - offset
-  cpx2 = sx + halfx
-  cpy2 = sy1 + offset
-  path.bezierCurveTo(cpx1, cpy1, cpx2, cpy2, sx, sy1)
-  path.lineTo(sx, sy0)
-  return path.toString()
-}
-
-function walkTree(tree, node, path=[]) {
-  if (node === undefined || node === null || tree === undefined || tree.length === 0) {
-      return path;
-  }
-  path.unshift(node); // Add the current node to the beginning of the path
-  const parentNodeIndex = tree[node][0]; // Get the parent node index
-  // console.log("parent", parentNodeIndex, "path", path)
-  if (parentNodeIndex) {
-      return walkTree(tree, parentNodeIndex, path); // Recursively walk up the tree
-  }
-  return path; // Return the accumulated path when the root is reached or if there's no parent
-}
-
-// subset our CSN results to just unique paths
-function findUniquePaths(paths) {
-  let uniquePaths = []
-  let uniquePathMemberships = []
-  const seenPaths = new Map()
-
-  // initialize each order to null
-  let initialEmptyPathObj = {}
-  const orders = [4, 14]
-  for (let i = orders[0]; i <= orders[1]; i++) initialEmptyPathObj[i] = null;
-  
-  // filter paths
-  paths.forEach(path => {
-    // Convert path to a string to use as a map key
-    let pathStripped = { ...initialEmptyPathObj }
-    path.path.forEach((d) => {if(d !== null) pathStripped[d.order] = d.field.field})
-    const pathKey = JSON.stringify(pathStripped)
-    if (!seenPaths.has(pathKey)) {
-      seenPaths.set(pathKey, uniquePaths.length)
-      uniquePaths.push(path)
-      uniquePathMemberships.push([path])
-    } else {
-      let pathInd = seenPaths.get(pathKey)
-      uniquePathMemberships[pathInd].push(path)
-    }
-  })
-  if(uniquePaths.length < 1) {
-    uniquePaths = paths
-    uniquePathMemberships = paths.map(d => [d])
-  }
-  return {'uniquePaths': uniquePaths, 'uniquePathMemberships': uniquePathMemberships}
-}
 
 const RegionDetail = () => {
   const navigate = useNavigate();
@@ -116,9 +33,6 @@ const RegionDetail = () => {
   const region = useMemo(() => {return jsonify(queryParams.get('region'))}, [queryParams]);
   useEffect(() => { document.title = `Gilbert | Region Detail: ${region.chromosome}:${region.start}` }, [region]);
   const fetchData = useMemo(() => Data({debug: false}).fetchData, []);
-
-
-  const sankeyHeight = 800
 
   const [inside, setInside] = useState([]);
   const [outside, setOutside] = useState([]);
@@ -235,7 +149,7 @@ const RegionDetail = () => {
     }
   }, [region, fetchData])
 
-  const [csn, setCsn] = useState([])
+  const [csn, setCsn] = useState({})
   const [topUniquePaths, setTopUniquePaths] = useState([])
   const [maxUniquePaths, setMaxUniquePaths] = useState(0)
   const [csnMaxOrder, setCsnMaxOrder] = useState(14)
@@ -265,7 +179,10 @@ const RegionDetail = () => {
         filteredPaths = filteredPaths.filter(d => d.path.filter(p => !!p).filter(p => nodeFilter.find(n => n.order == p.order && n.field == p.field.field)).length === nodeFilter.length)
       } 
       setCrossScaleNarrationFiltered(filteredPaths)
-      const topUniques = uniquePaths.slice(0, csnSlice)
+      let topUniques = uniquePaths.slice(0, csnSlice)
+      if(nodeFilter.length) {
+        topUniques = topUniques.filter(d => d.path.filter(p => !!p).filter(p => nodeFilter.find(n => n.order == p.order && n.field == p.field.field)).length === nodeFilter.length)
+      }
       // console.log("top uniques", topUniques)
       setTopUniquePaths(topUniques)
     }
@@ -285,160 +202,6 @@ const RegionDetail = () => {
       }
     }
   }, [crossScaleNarrationIndex, crossScaleNarration, topUniquePaths])
-
-  useEffect(() => {
-    if(crossScaleNarration && crossScaleNarration.paths && csnSlice && crossScaleNarrationFiltered.length) {
-      // let paths = crossScaleNarration.paths
-      let paths = crossScaleNarrationFiltered
-      let tree = crossScaleNarration.tree
-      // walk the tree for each path
-      // const trunks = paths.slice(0, csnSlice).map(p => {
-      const trunks = paths.map(p => {
-        return { trunk: walkTree(tree, p.node, []), score: p.score, path: p.path.filter(d => !!d).sort((a, b) => a.order - b.order) }
-      })
-      // console.log("trunks", trunks)
-
-      // the trunk array are the nodes of the tree starting at region.order + 1 and going till maxOrder
-      // the paths array contains the factor from order 4 to maxOrder unless the path is shorter
-      // we want nodes that have the order and factor as the id and link to other nodes via the trunk indices
-      const baseOrder = region.order + 1
-      const firstPath = paths[0].path || [] // TODO this should never be empty
-      const maxOrder = Math.max(...firstPath.filter(d => !!d).map(d => d?.order))
-      setCsnMaxOrder(maxOrder)
-      const linkId = (a,b) => `${a.id}=>${b.id}`
-      let nodesMap = {}
-      let linksMap = {}
-      trunks.forEach(t => {
-        let ns = t.trunk.map((b,i) => {
-          // get the corresponding path element for this trunk node based on the order
-          let p = t.path.find(d => d.order == baseOrder + i)
-          // if no path, lets still place an empty node, these will acumulate
-          if(!p || p.field.value < csnThreshold) {
-            p = { order: baseOrder + i, layer: { name: "ZNone" }, field: { field: "None", value: 0, color: "lightgray" } }
-          }
-          let node = {
-            id: `${p.order}-${p.field.field}`,
-            // do we include "b" which is essentially the region id within the order?
-            // id: `${b}-${p.order}-${p.field.field}`,
-            node: b,
-            order: p.order,
-            dataLayer: p.layer,
-            field: p.field.field,
-            color: p.field.color,
-            values: [p.field.value],
-            fieldValue: p.field.value
-          }
-          if(nodesMap[node.id]) {
-            // lets save the field just in case
-            nodesMap[node.id].values.push(p.field.value)
-          } else {
-            nodesMap[node.id] = node
-          }
-          return node
-        })
-        // create link to parent for each node we just made
-        ns.forEach((n,i) => {
-          if(i == 0) return
-          let source = ns[i-1]
-          let target = n
-          if(linksMap[linkId(source, target)]) {
-            // linksMap[linkId(source, target)].value += t.score
-            linksMap[linkId(source, target)].value += 1//t.score
-            // linksMap[linkId(source, target)].value += target.fieldValue
-          } else {
-            linksMap[linkId(source, target)] = {
-              source: source.id,
-              target: target.id,
-              value: 1,
-              // value: t.score
-              // value: target.fieldValue
-            }
-          }
-        })
-        return ns
-      })
-
-
-      const filtered = paths[0].path.filter(d => !!d).sort((a,b) => a.order - b.order)
-      // manually add nodes and links for the orders above and including the region
-      range(region.order, 3, -1).forEach(order => {
-        // we use the currently selected CSN path, since all paths will have the higher order objects we need
-        let factor = filtered.find(d => d.order == order)
-        if(!factor) console.log("uh oh", order, filtered)
-        let n = {
-          id: `${order}-${factor.field.field}`,
-          order: order,
-          dataLayer: { name: factor.layer.name },
-          field: factor.field.field,
-          color: factor.field.color,
-          values: [factor.field.value],
-          fieldValue: factor.field.value
-        }
-        nodesMap[n.id] = n
-        // find all the nodes in the next higher order
-        // let tolinkNodes = Object.values(nodesMap).filter(d => d.order == order+1)
-        let tolink = Object.values(linksMap).filter(d => nodesMap[d.source].order == order+1)
-        // count up the number of each source
-        let counts = {}
-        tolink.forEach(t => {
-          if(counts[t.source]) {
-            counts[t.source] += t.value
-          } else {
-            counts[t.source] = t.value
-          }
-        })
-        Object.keys(counts).forEach(t => {
-          linksMap[linkId(n,{id:t})] = {
-            source: n.id,
-            target: t,
-            value: counts[t]
-          }
-        })
-      })
-
-      const nodes = Object.values(nodesMap).sort((a,b) => a.order - b.order)
-      const links = Object.values(linksMap)
-
-      // console.log("nodes", nodes)
-      // console.log("links", links)
-
-      const depth = maxOrder - region.order
-      const spacing = stripsWidth/(depth + 1)
-      const sankeyWidth = stripsWidth - spacing
-      const s = sankey()
-        .nodeId(d => d.id)
-        .nodeWidth(15)
-        .nodePadding(5)
-        .nodeAlign(sankeyJustify)
-        // .nodeAlign(sankeyCenter)
-        // .nodeSort((a,b) => b.value - a.value)
-        .nodeSort((a,b) => a.dataLayer.name.localeCompare(b.dataLayer.name))
-        .extent([[0, 20], [sankeyWidth, sankeyHeight - 20]])
-        ({ nodes, links })
-      // console.log("sank", s)
-
-      if(shrinkNone) {
-        // artificially shrink the None nodes
-        s.nodes.forEach(n => {
-          if(n.field == "None") {
-            n.y0 = n.y1  - 10
-          }
-        })
-        s.links.forEach(l => {
-          if(l.source.field == "None") {
-            l.y0 = l.source.y1 - 5
-            // l.y1 = l.target.y1 - 15
-          }
-          if(l.target.field == "None") {
-            // l.y0 = l.target.y1 - 15
-            l.y1 = l.target.y1 - 5
-          }
-        })
-      }
-
-      setSank(s)
-    }
-  }, [ crossScaleNarration, stripsWidth, region, csnSlice, csnThreshold, shrinkNone, crossScaleNarrationFiltered])
 
 
   const [zoomedRegion, setZoomedRegion] = useState(null)
@@ -524,88 +287,25 @@ const RegionDetail = () => {
                   <label htmlFor="csn-threshold-slider">Factor score threshold: {csnThreshold}</label>
                   <br></br>
                 </div>
-                {sank ? <svg className="path-sankey" width={stripsWidth - 10} height={sankeyHeight} onClick={() => {
-                    console.log("sankey", sank)
-                  }}>
-                  <g className="orders">
-                    {range(region.order+1, csnMaxOrder + 1).map((order, i) => {
-                      let x = sank.nodes.find(d => d.order == order)?.x0
-                      return <text key={i} x={x} y={10} dy={".35em"}>Order: {order}</text>
-                    })
-                    }
-                  </g>
-                  <g className="links">
-                    {sank.links.map(link => {
-                      // check if link connects nodes in the csn
-                      let highlight = false
-                      let sn = csn.path.find(d => d.order == link.source.order && d.field.field == link.source.field)
-                      if(link.source.field == "None") {
-                        if(csn.path.filter(d => d.order == link.source.order).length < 1)
-                          sn = true
-                      }
-                      let tn = csn.path.find(d => d.order == link.target.order && d.field.field == link.target.field)
-                      if(link.target.field == "None") {
-                        if(csn.path.filter(d => d.order == link.target.order).length < 1)
-                          tn = true
-                      }
-                      if(tn && sn) {
-                        highlight = true
-                      } 
-                      
-                      
-                      return <path 
-                        key={link.index} 
-                        onClick={() => console.log("LINK", link, sankeyLinkPath(link, 0, true))}
-                        d={useHorizontal ? sankeyLinkHorizontal()(link) : sankeyLinkPath(link)}
-                        fill={useHorizontal ? "none" : "#aaa" }
-                        stroke={useHorizontal ? "#aaa" : "none"}
-                        strokeWidth={useHorizontal ? Math.max(1, link.width) : 0 }
-                        opacity={highlight ? 1: 0.5}
-                        />
-                    })}
-                  </g>
-                  <g className="nodes">
-                    {sank.nodes.map(node => {
-                      return <rect 
-                        key={node.id} 
-                          x={node.x0} 
-                          y={node.y0} 
-                          width={node.x1 - node.x0} 
-                          height={node.y1 - node.y0} 
-                          fill={ node.color }
-                          stroke="black"
-                          fillOpacity="0.75"
-                          onClick={() => handleNodeFilter(node)}
-                          />
-                    })}
-                  </g>
-                  <g className="node-labels">
-                    {sank.nodes.map(node => {
-                      return <text
-                        key={node.id} 
-                          x={node.x1 + 10} 
-                          y={node.y0 + (node.y1 - node.y0)/2} 
-                          dy={".35em"}
-                          fill={ node.color }
-                          stroke="black"
-                          strokeWidth="1"
-                          paintOrder="stroke"
-                          >
-                            {node.field} ({node.dataLayer.name})
-                      </text>
-                    })}
-                  </g>
-                </svg> : null}
-                
-                
+                <Sankey 
+                  width={stripsWidth}
+                  height={800}
+                  order={region.order}
+                  paths={crossScaleNarrationFiltered}
+                  tree={crossScaleNarration?.tree}
+                  csn={csn}
+                  csnThreshold={csnThreshold}
+                  shrinkNone={shrinkNone}
+                  onFilter={setNodeFilter} />
+
               </div>
             </div>
             {/* <h3>Narration</h3> */}
             <div>
-              <b>Explore narrations of {csnSlice} unique top paths:</b>
+              <b>Explore narrations of {topUniquePaths.length} unique top paths:</b>
             </div>
             <div className="narration-slider">
-              <input id="csn-slider" type='range' min={0} max={csnSlice - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
+              <input id="csn-slider" type='range' min={0} max={topUniquePaths.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
               <label htmlFor="csn-slider">Narration: {crossScaleNarrationIndex}</label>
             </div>
             <CSNSentence

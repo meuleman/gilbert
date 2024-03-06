@@ -230,8 +230,56 @@ export default async function layerSuggestion(data, layers) {
   return null
 }
 
+function walkTree(tree, node, path=[]) {
+  if (node === undefined || node === null || tree === undefined || tree.length === 0) {
+      return path;
+  }
+  path.unshift(node); // Add the current node to the beginning of the path
+  const parentNodeIndex = tree[node][0]; // Get the parent node index
+  // console.log("parent", parentNodeIndex, "path", path)
+  if (parentNodeIndex) {
+      return walkTree(tree, parentNodeIndex, path); // Recursively walk up the tree
+  }
+  return path; // Return the accumulated path when the root is reached or if there's no parent
+}
+
+// subset our CSN results to just unique paths
+function findUniquePaths(paths) {
+  let uniquePaths = []
+  let uniquePathMemberships = []
+  const seenPaths = new Map()
+
+  // initialize each order to null
+  let initialEmptyPathObj = {}
+  const orders = [4, 14]
+  for (let i = orders[0]; i <= orders[1]; i++) initialEmptyPathObj[i] = null;
+  
+  // filter paths
+  paths.forEach(path => {
+    // Convert path to a string to use as a map key
+    let pathStripped = { ...initialEmptyPathObj }
+    path.path.forEach((d) => {if(d !== null) pathStripped[d.order] = d.field.field})
+    const pathKey = JSON.stringify(pathStripped)
+    if (!seenPaths.has(pathKey)) {
+      seenPaths.set(pathKey, uniquePaths.length)
+      uniquePaths.push(path)
+      uniquePathMemberships.push([path])
+    } else {
+      let pathInd = seenPaths.get(pathKey)
+      uniquePathMemberships[pathInd].push(path)
+    }
+  })
+  if(uniquePaths.length < 1) {
+    uniquePaths = paths
+    uniquePathMemberships = paths.map(d => [d])
+  }
+  return {'uniquePaths': uniquePaths, 'uniquePathMemberships': uniquePathMemberships}
+}
+
 export {
   calculateCrossScaleNarration,
   narrateRegion,
-  layerSuggestion
+  layerSuggestion,
+  walkTree,
+  findUniquePaths
 }
