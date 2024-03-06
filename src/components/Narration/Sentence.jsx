@@ -1,10 +1,8 @@
 // A component to display narration when clicking over hilbert cells
 
 import { useState, useEffect } from 'react'
-// import factors from './NarrationFactors.json'
-//import './SelectedModalNarration.css'
 
-const SelectedModalNarration = ({
+const Sentence = ({
   crossScaleNarration = null,
   order = null
 } = {}) => {
@@ -47,4 +45,4 @@ const SelectedModalNarration = ({
     <div className='narration-sentence'>{narration}</div>
   )
 }
-export default SelectedModalNarration
+export default Sentence

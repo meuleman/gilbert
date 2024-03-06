@@ -14,7 +14,7 @@ import PropTypes from 'prop-types';
 RegionThumb.propTypes = {
   region: PropTypes.object.isRequired,
   highlights: PropTypes.array,
-  layer: PropTypes.string.isRequired,
+  layer: PropTypes.object,
   width: PropTypes.number.isRequired,
   height: PropTypes.number.isRequired,
 };

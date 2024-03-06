@@ -30,75 +30,77 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
   const [points, setPoints] = useState(null)
 
   const render = useCallback((region, data) => {
-    const ctx = canvasRef.current.getContext('2d');
-    ctx.clearRect(0, 0, width, height)
-    if(region && data && layer && data[0] && canvasRef.current) {
+    if(canvasRef.current){
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.clearRect(0, 0, width, height)
+      if(region && data && layer && data[0] && canvasRef.current) {
 
-      const bpbw = data[0].end - data[0].start
-      let xExtent = extent(data, d => d.start)
-      xExtent[1] += bpbw
-      const xScale = scaleLinear()
-        .domain(xExtent)
-        .range([0, width])
-      const bw = xScale(data[0].end) - xScale(data[0].start)
+        const bpbw = data[0].end - data[0].start
+        let xExtent = extent(data, d => d.start)
+        xExtent[1] += bpbw
+        const xScale = scaleLinear()
+          .domain(xExtent)
+          .range([0, width])
+        const bw = xScale(data[0].end) - xScale(data[0].start)
 
-      // render the region
-      ctx.globalAlpha = 1 
-      ctx.strokeStyle = "black" 
-      ctx.lineWidth = 2;
-
-      const meta = data.metas.find((meta) => meta.chromosome === region.chromosome)
-      // console.log("meta", meta)
-      // the min and max for scaling
-      let nonzero_min = meta["nonzero_min"]
-      let fields, max, min
-      if ((meta["fields"].length == 2) && (meta["fields"][0] == "max_field") && (meta["fields"][1] == "max_value")) {
-        fields = meta["full_fields"]
-        max = meta["full_max"]
-        min = nonzero_min ? nonzero_min : meta["full_min"]
-      } else {
-        fields = meta["fields"]
-        max = meta["max"]
-        min = nonzero_min ? nonzero_min : meta["min"]
-      }
-      if(!min.length && min < 0) min = 0;
-
-      data.map(d => {
-        const sample = layer.fieldChoice(d);
-        if(sample && sample.field){
-          // console.log("sample", sample, yScale(sample.value))
-          let fi = fields.indexOf(sample.field)
-          let domain = [min[fi] < 0 ? 0 : min[fi], max[fi]]
-          const yScale = scaleLinear()
-            .domain(domain)
-            .range([height,0])
-
-          ctx.fillStyle = layer.fieldColor(sample.field)
-          const x = xScale(d.start)
-          const y = yScale(sample.value)
-          const w = bw
-          const h = height - yScale(sample.value)
-          ctx.fillRect(x, y, w, h)
-        }
-        if(d.i == region.i){
-          ctx.strokeRect(xScale(d.start), 1, bw, height-1)
-        }
-      })
-
-      // render the highlighted regions
-      if(highlights && highlights.length) {
+        // render the region
+        ctx.globalAlpha = 1 
         ctx.strokeStyle = "black" 
-        ctx.globalAlpha = 0.5
-        ctx.lineWidth = 1;
-        highlights.forEach(d => {
-          if(d.order == region.order - 1) {
+        ctx.lineWidth = 2;
+
+        const meta = data.metas.find((meta) => meta.chromosome === region.chromosome)
+        // console.log("meta", meta)
+        // the min and max for scaling
+        let nonzero_min = meta["nonzero_min"]
+        let fields, max, min
+        if ((meta["fields"].length == 2) && (meta["fields"][0] == "max_field") && (meta["fields"][1] == "max_value")) {
+          fields = meta["full_fields"]
+          max = meta["full_max"]
+          min = nonzero_min ? nonzero_min : meta["full_min"]
+        } else {
+          fields = meta["fields"]
+          max = meta["max"]
+          min = nonzero_min ? nonzero_min : meta["min"]
+        }
+        if(!min.length && min < 0) min = 0;
+
+        data.map(d => {
+          const sample = layer.fieldChoice(d);
+          if(sample && sample.field){
+            // console.log("sample", sample, yScale(sample.value))
+            let fi = fields.indexOf(sample.field)
+            let domain = [min[fi] < 0 ? 0 : min[fi], max[fi]]
+            const yScale = scaleLinear()
+              .domain(domain)
+              .range([height,0])
+
+            ctx.fillStyle = layer.fieldColor(sample.field)
             const x = xScale(d.start)
-            const y = 0
-            const w = bw * 4
-            const h = height
-            ctx.strokeRect(x, y, w, h)
+            const y = yScale(sample.value)
+            const w = bw
+            const h = height - yScale(sample.value)
+            ctx.fillRect(x, y, w, h)
+          }
+          if(d.i == region.i){
+            ctx.strokeRect(xScale(d.start), 1, bw, height-1)
           }
         })
+
+        // render the highlighted regions
+        if(highlights && highlights.length) {
+          ctx.strokeStyle = "black" 
+          ctx.globalAlpha = 0.5
+          ctx.lineWidth = 1;
+          highlights.forEach(d => {
+            if(d.order == region.order - 1) {
+              const x = xScale(d.start)
+              const y = 0
+              const w = bw * 4
+              const h = height
+              ctx.strokeRect(x, y, w, h)
+            }
+          })
+        }
       }
     }
   }, [layer, highlights, width, height])

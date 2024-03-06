@@ -8,6 +8,7 @@ import { showFloat, showPosition } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition, sameHilbertRegion } from '../lib/regions';
 import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
+import { calculateCrossScaleNarration } from '../lib/csn';
 import Data from '../lib/data';
 
 import layers from '../layers'
@@ -19,8 +20,7 @@ import LogoNav from '../components/LogoNav';
 import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
 import SelectedModalSimSearch from '../components/SimSearch/SelectedModalSimSearch'
 import SimSearchResultList from '../components/SimSearch/ResultList'
-import CrossScaleNarration from '../components/Narration/CrossScaleNarration'
-import CSNSentence from '../components/Narration/CSNSentence'
+import CSNSentence from '../components/Narration/Sentence'
 import RegionThumb from '../components/RegionThumb';
 import RegionStrip from '../components/RegionStrip';
 
@@ -133,10 +133,11 @@ const RegionDetail = () => {
   const [similarChromatinRegions, setSimilarChromatinRegions] = useState([])
   const [similarBy, setSimilarBy] = useState('dhs')
   const [layersData, setLayersData] = useState([])
-  const [crossScaleNarration, setCrossScaleNarration] = useState([])
-  const [crossScaleNarrationUnique, setCrossScaleNarrationUnique] = useState([])
+  const [crossScaleNarration, setCrossScaleNarration] = useState(null)
+  const [crossScaleNarrationUnique, setCrossScaleNarrationUnique] = useState(null)
   const [crossScaleNarrationFiltered, setCrossScaleNarrationFiltered] = useState([])
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
+  const [csnSlice, setCsnSlice] = useState(100)
   
 
   const [stripsWidth, setStripsWidth] = useState(0);
@@ -202,7 +203,7 @@ const RegionDetail = () => {
             let range = fromPosition(chromosome, start, end)
             return range
           })
-          console.log("similar dhs ranges", similarRanges)
+          // console.log("similar dhs ranges", similarRanges)
         }
       })
       // Sim search on Chromatin States
@@ -215,30 +216,29 @@ const RegionDetail = () => {
             let range = fromPosition(chromosome, start, end)
             return range
           })
-          console.log("similar chromatin ranges", similarRanges)
+          // console.log("similar chromatin ranges", similarRanges)
         }
       })
 
 
-      CrossScaleNarration(rs[1], [
+      calculateCrossScaleNarration(rs[1], [
         layers.find(d => d.name == "DHS Components"),
         layers.find(d => d.name == "Chromatin States"),
         layers.find(d => d.name == "TF Motifs"),
         layers.find(d => d.name == "Repeats"),
       ]).then(crossScaleResponse => {
         setCrossScaleNarration(crossScaleResponse)
-        // find the unique paths
-        let uniquePaths = findUniquePaths(crossScaleResponse.paths)
-        setCrossScaleNarrationUnique(uniquePaths)
+        let uniques = findUniquePaths(crossScaleResponse.paths)
+        setCrossScaleNarrationUnique(uniques)
+        setMaxUniquePaths(uniques.uniquePaths.length)
       })
     }
   }, [region, fetchData])
 
   const [csn, setCsn] = useState([])
-  const [csnPath, setCsnPath] = useState([])
-  const [csnTree, setCsnTree] = useState([])
+  const [topUniquePaths, setTopUniquePaths] = useState([])
+  const [maxUniquePaths, setMaxUniquePaths] = useState(0)
   const [csnMaxOrder, setCsnMaxOrder] = useState(14)
-  const [csnSlice, setCsnSlice] = useState(100)
   const [csnThreshold, setCsnThreshold] = useState(0)
   const [sank, setSank] = useState(null)
 
@@ -249,9 +249,13 @@ const RegionDetail = () => {
   const [nodeFilter, setNodeFilter] = useState([])
 
   useEffect(() => {
-    if(crossScaleNarration && crossScaleNarrationUnique?.uniquePaths && crossScaleNarrationUnique?.uniquePathMemberships) {
+    if(crossScaleNarrationUnique) {
       // filter our full set of paths to just ones that map to a top unique path
-      let filteredPaths = crossScaleNarrationUnique.uniquePathMemberships
+      // console.log("NARRATION", crossScaleNarration)
+      const members = crossScaleNarrationUnique.uniquePathMemberships
+      const uniquePaths = crossScaleNarrationUnique.uniquePaths
+      if(uniquePaths.length < csnSlice) setCsnSlice(uniquePaths.length)
+      let filteredPaths = members
         .slice(0, csnSlice).flat()
         .filter(d => d.path.filter(p => !!p).filter(p => p.field.value > csnThreshold).length === d.path.filter(p => !!p).length)
         // we want to filter to only paths that match the nodeFilter if it has nodes in it
@@ -261,21 +265,26 @@ const RegionDetail = () => {
         filteredPaths = filteredPaths.filter(d => d.path.filter(p => !!p).filter(p => nodeFilter.find(n => n.order == p.order && n.field == p.field.field)).length === nodeFilter.length)
       } 
       setCrossScaleNarrationFiltered(filteredPaths)
+      const topUniques = uniquePaths.slice(0, csnSlice)
+      // console.log("top uniques", topUniques)
+      setTopUniquePaths(topUniques)
+    }
+  }, [crossScaleNarrationUnique, csnSlice, csnThreshold, nodeFilter])
+
+  useEffect(() => {
+    if(crossScaleNarration && topUniquePaths.length) {
       // adjust the index if it's out of bounds (ie if we've reduced down to less paths than the index)
-      let newCSNIndex = Math.min(crossScaleNarrationIndex, csnSlice - 1)
-      setCrossScaleNarrationIndex(newCSNIndex)
-      const path = crossScaleNarrationUnique.uniquePaths.slice(0, csnSlice)[newCSNIndex]
+      const newCSNIndex = Math.min(crossScaleNarrationIndex, topUniquePaths.length - 1)
+      // setCrossScaleNarrationIndex(newCSNIndex)
+      const path = topUniquePaths[newCSNIndex]
       if(!path) {
         console.log("NO PATH?")
       } else {
         const filtered = path.path.filter(d => !!d).sort((a,b) => a.order - b.order)
         setCsn({...path, path: filtered})
-        const tree = crossScaleNarration.tree
-        setCsnTree(tree)
-        setCsnPath(walkTree(tree, path.node, []))
       }
     }
-  }, [crossScaleNarrationIndex, crossScaleNarration, csnSlice, csnThreshold, nodeFilter])
+  }, [crossScaleNarrationIndex, crossScaleNarration, topUniquePaths])
 
   useEffect(() => {
     if(crossScaleNarration && crossScaleNarration.paths && csnSlice && crossScaleNarrationFiltered.length) {
@@ -293,7 +302,8 @@ const RegionDetail = () => {
       // the paths array contains the factor from order 4 to maxOrder unless the path is shorter
       // we want nodes that have the order and factor as the id and link to other nodes via the trunk indices
       const baseOrder = region.order + 1
-      const maxOrder = Math.max(...paths[0].path?.map(d => d.order))
+      const firstPath = paths[0].path || [] // TODO this should never be empty
+      const maxOrder = Math.max(...firstPath.filter(d => !!d).map(d => d?.order))
       setCsnMaxOrder(maxOrder)
       const linkId = (a,b) => `${a.id}=>${b.id}`
       let nodesMap = {}
@@ -507,7 +517,7 @@ const RegionDetail = () => {
                     <input type="checkbox" checked={useHorizontal} onChange={e => setUseHorizontal(e.target.checked)} />
                     <label htmlFor="useHorizontal">Use horizontal links</label>
                   </div>
-                  <input id="csn-slice-slider" type='range' min={1} max={crossScaleNarrationUnique?.uniquePaths?.length - 1} value={csnSlice} onChange={handleChangeCSNSlice} />
+                  <input id="csn-slice-slider" type='range' min={1} max={maxUniquePaths - 1} value={csnSlice} onChange={handleChangeCSNSlice} />
                   <label htmlFor="csn-slice-slider">Top {csnSlice} paths</label>
                   <br></br>
                   <input id="csn-threshold-slider" type='range' min={0} max={3} step="0.1" value={csnThreshold} onChange={handleChangeCSNThreshold} />
@@ -515,8 +525,6 @@ const RegionDetail = () => {
                   <br></br>
                 </div>
                 {sank ? <svg className="path-sankey" width={stripsWidth - 10} height={sankeyHeight} onClick={() => {
-                    console.log(csn, csnTree[csn.node]);
-                    console.log(walkTree(csnTree, csn.node, []))
                     console.log("sankey", sank)
                   }}>
                   <g className="orders">
@@ -564,7 +572,6 @@ const RegionDetail = () => {
                           y={node.y0} 
                           width={node.x1 - node.x0} 
                           height={node.y1 - node.y0} 
-                          // fill={ csnPath.indexOf(node.id) >= 0 ? "orange": "gray" }
                           fill={ node.color }
                           stroke="black"
                           fillOpacity="0.75"
@@ -579,7 +586,6 @@ const RegionDetail = () => {
                           x={node.x1 + 10} 
                           y={node.y0 + (node.y1 - node.y0)/2} 
                           dy={".35em"}
-                          // fill={ csnPath.indexOf(node.id) >= 0 ? "orange": "gray" }
                           fill={ node.color }
                           stroke="black"
                           strokeWidth="1"
@@ -626,7 +632,7 @@ const RegionDetail = () => {
                     <span className="csn-value">{showFloat(d.field.value)}</span>
                   </div> : null }
                   { d ? <RegionThumb region={d.region} highlights={csn.path.filter(d => !!d).map(n => n.region)} layer={d.layer} width={200} height={200} />
-                  : <RegionThumb region={({})} layer="" width={200} height={200} />}
+                  : <RegionThumb region={({})} layer={null} width={200} height={200} />}
                   {/* { layersData?.length && <RegionThumb region={d.region} highlights={csn.map(n => n.region)} layer={layersData[5].layer} width={200} height={200} />} */}
                 </div> )
               })}
@@ -694,7 +700,7 @@ const RegionDetail = () => {
               <label htmlFor="chromatin">Chromatin</label>
             </div>
             { similarBy == "dhs" ? <div className="similar-dhs-regions">
-                <>{simSearchDHS ? <SelectedModalSimSearch
+                {/* <>{simSearchDHS ? <SelectedModalSimSearch
                   simSearch={simSearchDHS}
                   searchByFactorInds={factorsDHS}
                   handleFactorClick={(factor) => {console.log("dhs factor click", factor)}}
@@ -702,7 +708,7 @@ const RegionDetail = () => {
                   selectedOrder={region?.order}
                   setRegion={(region) => {console.log("dhs set region", region)}}
                   onHover={(region) => {setSimilarZoomedRegion(zoomARegion(region))}}
-                /> : <div>No similar regions found</div>}
+                /> : <div>No similar regions found</div>} */}
                 {simSearchDHS ? <SimSearchResultList
                   simSearch={simSearchDHS}
                   searchByFactorInds={factorsDHS}
@@ -712,7 +718,7 @@ const RegionDetail = () => {
                   setRegion={(region) => {console.log("dhs set region", region)}}
                   onHover={(region) => {setSimilarZoomedRegion(zoomARegion(region))}}
                 /> : <div>No similar regions found</div>}
-                </>
+                {/* </> */}
             </div>
             :
             <div className="similar-chromatin-regions">

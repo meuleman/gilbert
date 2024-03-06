@@ -3,8 +3,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import Data from '../lib/data';
 import { urlify, jsonify, fromPosition } from '../lib/regions'
-import { HilbertChromosome, hilbertPosToOrder, checkRanges } from '../lib/HilbertChromosome'
+import { HilbertChromosome, checkRanges } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
+import { calculateCrossScaleNarration, narrateRegion } from '../lib/csn'
 import { range } from 'd3-array'
 
 import './Home.css'
@@ -51,12 +52,7 @@ import DisplayedExampleRegions from '../components/ExampleRegions/DisplayExample
 
 import { getSet } from '../components/Regions/localstorage'
 import SelectedModal from '../components/SelectedModal'
-import SelectedModalSimSearch from '../components/SimSearch/SelectedModalSimSearch'
 import SimSearchResultList from '../components/SimSearch/ResultList'
-import NarrateRegion from '../components/Narration/NarrateRegion'
-import CrossScaleNarration from '../components/Narration/CrossScaleNarration'
-import SelectedModalNarration from '../components/Narration/SelectedModalNarration'
-import CSNSentence from '../components/Narration/CSNSentence'
 import GenesetEnrichment from '../components/SimSearch/GenesetEnrichment';
 // import Spectrum from '../components/Spectrum';
 
@@ -293,7 +289,7 @@ function Home() {
         setSimSearch(null)
         setSimilarRegions([])
       })
-      NarrateRegion(selected, selected.order).then((narrationResult) => {
+      narrateRegion(selected, selected.order).then((narrationResult) => {
         narrationResult && setSelectedNarration(narrationResult.narrationRanks)
       })
     }
@@ -349,7 +345,7 @@ function Home() {
   useEffect(() => {
     setCrossScaleNarrationIndex(0)
     if(selected){
-      CrossScaleNarration(selected, [
+      calculateCrossScaleNarration(selected, [
         DHS_Components_Sfc_max,
         Chromatin_States_Sfc_max,
         TF_Motifs_Sfc_max,

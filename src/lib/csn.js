@@ -1,8 +1,9 @@
-// function to generate cross scale narrations for a provided region.
-import Data from '../../lib/data';
-import { HilbertChromosome, hilbertPosToOrder, checkRanges } from '../../lib/HilbertChromosome'
+import axios from "axios";
+import Data from './data';
+import { HilbertChromosome, } from './HilbertChromosome'
 
-export default async function CrossScaleNarration(selected, layers, numPaths=100) {
+// function to generate cross scale narrations for a provided region.
+async function calculateCrossScaleNarration(selected, layers) {
   const fetchData = Data({debug: false}).fetchData;
   
   let orders = Array.from({length: 11}, (a, i) => i + 4);
@@ -140,4 +141,97 @@ export default async function CrossScaleNarration(selected, layers, numPaths=100
     })
     return bestPaths
   }
+}
+
+
+// function to generate narration results for a provided region with Genomic Narration tool. 
+function narrateRegion(selected, order) {
+  const maxSimSearchOrder = 11
+  if(selected) {
+    if(order <= maxSimSearchOrder) {
+      const regionMethod = 'hilbert_sfc'
+      let url = "https://explore.altius.org:5001/narration"
+
+      const chromosome = selected.chromosome
+      const start = selected.start
+      const stop = start + 1
+
+      const postBody = {
+        location: `${chromosome}:${start}-${stop}`,
+        scale: order,
+        regionMethod: regionMethod,
+      };
+
+      const narration = axios({
+        method: 'POST',
+        url: url,
+        data: postBody
+      }).then((response) => {
+        const data = response.data[0];
+        return {narrationRanks: data.percentiles, coordinates: data.coordinates}
+      })
+      .catch((err) => {
+        console.error(`error:     ${JSON.stringify(err)}`);
+        console.error(`post body: ${JSON.stringify(postBody)}`);
+        // alert('Query Failed: Try another region.');
+        return null
+      });
+
+      return narration
+    } else {
+      const narration = {narrationRanks: null, coordinates: null}
+      return Promise.resolve(narration)
+    }
+  }
+}
+
+
+export default async function layerSuggestion(data, layers) {
+  const fetchData = Data({debug: false}).fetchData;
+  let orderRange = [4, 14]
+
+  // get hilbert ranges for the genomic region
+  const getRange = (segment, order) => {
+    const hilbert = HilbertChromosome(order)
+    const chrm = segment.chromosome
+    const start = segment.start
+    const stop = start + 4 ** (14 - segment.order)
+    let range = hilbert.fromRegion(chrm, start, stop-1)
+    return range
+  }
+
+  const inViewData = data?.data.filter(d => d.inview)
+  if(inViewData?.length > 0) {
+    const dataOrder = inViewData[0].order
+    const orderUp = Math.min(dataOrder + 1, orderRange[1])
+    const dataRangesUp = inViewData.map(d => {
+      const rangeUp = getRange(d, orderUp)
+      return rangeUp
+    }).flat()
+    
+    let layerUp = Promise.all(layers.map((layer) => {
+      return fetchData(layer, orderUp, dataRangesUp)
+        .then((response) => {
+          const topFields = response.map(d => layer.fieldChoice(d)).filter(d => typeof d.value === 'number')
+          const topFieldSums = topFields.reduce((a, b) => a + b.value, 0)
+          return {layer: layer, value: topFieldSums}
+        })
+        .catch((error) => {
+          console.error(`Error fetching Layer Suggestion data: ${error}`);
+          return null
+        })
+    }))
+    return await layerUp.then((response) => {
+      const topUpLayer = response.sort((a,b) => {return b.value - a.value})[0]
+      console.log("TOP UP LAYER", topUpLayer.layer)
+      return topUpLayer
+    })
+  }
+  return null
+}
+
+export {
+  calculateCrossScaleNarration,
+  narrateRegion,
+  layerSuggestion
 }

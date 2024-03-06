@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
 import { showKb } from '../lib/display'
-import CSNSentence from './Narration/CSNSentence'
+import CSNSentence from './Narration/Sentence'
 
 import './SelectedModal.css'
 
