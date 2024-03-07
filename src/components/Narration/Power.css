@@ -1,0 +1,12 @@
+
+.power {
+  display: flex;
+  flex-direction: column;
+  width: auto;
+}
+.power-canvas {
+  border: 1px solid lightgray;
+}
+.power input {
+  width: 100%;
+}

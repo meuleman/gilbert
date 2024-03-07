@@ -33,8 +33,8 @@ export default function CanvasBaseComponent({ canvasRef, state, scales, layer })
     ctx.clearRect(0, 0, width, height);
     // if the data's order doesn't match the current order we render it more transparently
     ctx.globalAlpha = 1 //order == dataOrder ? 1 : 0.85
-    ctx.strokeStyle = "lightgray" 
-    // ctx.strokeStyle = "black" 
+    // ctx.strokeStyle = "lightgray" 
+    ctx.strokeStyle = "black" 
     ctx.fillStyle = "white"
     // ctx.fillStyle = "lightgray"
     ctx.lineWidth = 0.5;
@@ -61,12 +61,12 @@ export default function CanvasBaseComponent({ canvasRef, state, scales, layer })
     //   // scale and transform the coordinates
     //   xx = t.x + xScale(d.x) * t.k
     //   yy = t.y + yScale(d.y) * t.k
-    //   ctx.globalAlpha = i/points.length // indicate the direction of the hilbert curve
+    //   // ctx.globalAlpha = i/points.length // indicate the direction of the hilbert curve
     //   // ctx.globalAlpha = 0.7
-    //   ctx.fillRect(xx - rw/2, yy - rw/2, rw, rw)
-    //   // ctx.globalAlpha = 1
-    //   // ctx.lineWidth = 0.5 + i/points.length
-    //   // ctx.strokeRect(xx - rw/2, yy - rw/2, rw, rw)
+    //   // ctx.fillRect(xx - rw/2, yy - rw/2, rw, rw)
+    //   ctx.globalAlpha = 1
+    //   ctx.lineWidth = 0.5 + i/points.length
+    //   ctx.strokeRect(xx - rw/2, yy - rw/2, rw, rw)
     // }
   }
 }

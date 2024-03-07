@@ -23,6 +23,7 @@ import RegionThumb from '../components/RegionThumb';
 import RegionStrip from '../components/RegionStrip';
 import Sankey from '../components/Narration/Sankey';
 import CSNLine from '../components/Narration/Line';
+import Power from '../components/Narration/Power';
 
 import './RegionDetail.css';
 
@@ -310,6 +311,7 @@ const RegionDetail = () => {
               crossScaleNarration={csn}
               order={region.order}
             />
+            <Power csn={csn} width={300} height={300} />
 
             <div className="thumbs">
               {range(4, csnMaxOrder + 1).map((order, i) => {

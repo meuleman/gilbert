@@ -78,11 +78,13 @@ function RegionThumb({ region, highlights, layer, width, height }) {
     })
   }, [region, layer])
 
+  const [transform, setTransform] = useState(null)
   useEffect(() => {
     // setup the transform to be zoomed in to our region
     const hilbert = new HilbertChromosome(region.order)
     const step = hilbert.step
     const transform = zoomToBox(region.x, region.y, region.x + step, region.y + step, region.order, scaler)
+    setTransform(transform)
     // console.log("REGION", region)
     // console.log("transform", transform)
     // console.log("data", data)
@@ -162,6 +164,7 @@ function RegionThumb({ region, highlights, layer, width, height }) {
         width={width + "px"}
         height={height + "px"}
         ref={canvasRef}
+        onClick={() => console.log("transform", transform, region)}
       />
     </div>
   );
