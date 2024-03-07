@@ -273,6 +273,9 @@ function findUniquePaths(paths) {
     uniquePaths = paths
     uniquePathMemberships = paths.map(d => [d])
   }
+  uniquePathMemberships.forEach((u,i) => {
+    uniquePaths[i].members = u.length
+  })
   return {'uniquePaths': uniquePaths, 'uniquePathMemberships': uniquePathMemberships}
 }
 

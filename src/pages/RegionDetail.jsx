@@ -22,6 +22,7 @@ import CSNSentence from '../components/Narration/Sentence'
 import RegionThumb from '../components/RegionThumb';
 import RegionStrip from '../components/RegionStrip';
 import Sankey from '../components/Narration/Sankey';
+import CSNLine from '../components/Narration/Line';
 
 import './RegionDetail.css';
 
@@ -51,7 +52,7 @@ const RegionDetail = () => {
   const [crossScaleNarrationUnique, setCrossScaleNarrationUnique] = useState(null)
   const [crossScaleNarrationFiltered, setCrossScaleNarrationFiltered] = useState([])
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
-  const [csnSlice, setCsnSlice] = useState(100)
+  const [csnSlice, setCsnSlice] = useState(20)
   
 
   const [stripsWidth, setStripsWidth] = useState(0);
@@ -61,7 +62,7 @@ const RegionDetail = () => {
       const stripsElement = document.querySelector('.region-detail');
       if(stripsElement) {
       const { height, width } = stripsElement.getBoundingClientRect()
-      console.log("width", stripsElement.offsetWidth, stripsElement.width)
+      // console.log("width", stripsElement.offsetWidth, stripsElement.width)
       setStripsWidth(width)
       }
     };
@@ -78,7 +79,7 @@ const RegionDetail = () => {
       // grab the ranges before and after this region
       const hilbert = new HilbertChromosome(region.order)
       const rs = hilbert.fromRange(region.chromosome, region.i - 1, region.i + 1)
-      console.log("ranges", rs)
+      // console.log("ranges", rs)
       setRanges(rs)
 
       // fetch data for each layer
@@ -229,7 +230,7 @@ const RegionDetail = () => {
   }, [setCsnSlice])
 
   const handleChangeCSNThreshold = useCallback((e) => {
-    setCsnThreshold(e.target.value)
+    setCsnThreshold(+e.target.value)
   }, [setCsnThreshold])
 
   const handleNodeFilter = useCallback((node) => {
@@ -309,6 +310,20 @@ const RegionDetail = () => {
               crossScaleNarration={csn}
               order={region.order}
             />
+
+            <div className="lines">
+              {topUniquePaths.map((d, i) => {
+                return <CSNLine 
+                  key={i} 
+                  csn={d} 
+                  order={region.order} 
+                  highlight={i == crossScaleNarrationIndex} 
+                  width={stripsWidth} 
+                  height={40} 
+                  onHover={(c) => setCrossScaleNarrationIndex(topUniquePaths.findIndex(d => d == c))}
+                  />
+              })}
+            </div>
 
             <div className="thumbs">
               {range(4, csnMaxOrder + 1).map((order, i) => {

@@ -178,6 +178,43 @@ export default function CSNSankey({
           }
         })
       })
+      // check if order 13 and 14 are present. if no nodes for those orders we make them
+      range(13, 15).forEach(order => {
+        let hasOrder = Object.values(nodesMap).filter(d => d.order == order)
+        console.log("has order", order, hasOrder)
+        if(hasOrder.length) return;
+        // we use the currently selected CSN path, since all paths will have the higher order objects we need
+        let n = {
+          id: `${order}-None`,
+          order: order,
+          dataLayer: { name: "ZNone" }, 
+          field: "None",
+          color: "lightgray",
+          values: [0],
+          fieldValue: 0
+        }
+        console.log("N", n)
+        nodesMap[n.id] = n
+        // find all the nodes in the next higher order
+        // let tolinkNodes = Object.values(nodesMap).filter(d => d.order == order+1)
+        let tolink = Object.values(linksMap).filter(d => nodesMap[d.target].order == order-1)
+        // count up the number of each source
+        let counts = {}
+        tolink.forEach(t => {
+          if(counts[t.target]) {
+            counts[t.target] += t.value
+          } else {
+            counts[t.target] = t.value
+          }
+        })
+        Object.keys(counts).forEach(t => {
+          linksMap[linkId({id:t},n)] = {
+            target: n.id,
+            source: t,
+            value: counts[t]
+          }
+        })
+      })
 
       const nodes = Object.values(nodesMap).sort((a,b) => a.order - b.order)
       const links = Object.values(linksMap)
@@ -185,7 +222,8 @@ export default function CSNSankey({
       // console.log("nodes", nodes)
       // console.log("links", links)
 
-      const depth = maxOrder - order
+      // const depth = maxOrder - order
+      const depth = 14 - 4
       const spacing = width/(depth + 1)
       const sankeyWidth = width - spacing
       const s = sankey()
@@ -224,6 +262,7 @@ export default function CSNSankey({
   }, [ paths, tree, order, csnThreshold, shrinkNone, width, height])
 
   const handleNodeFilter = useCallback((node) => {
+    console.log("handling filter", node)
     onFilter((oldNodeFilter) => {
       if(oldNodeFilter.find(n => n.order == node.order && n.field.field == node.field.field)) {
         const filtered = oldNodeFilter.filter(n => n.order != node.order && n.field.field != node.field.field)
@@ -242,7 +281,7 @@ export default function CSNSankey({
         console.log("sankey", sank)
       }}>
       <g className="orders">
-        {range(order+1, maxOrder + 1).map((order, i) => {
+        {range(4, 15).map((order, i) => {
           let x = sank.nodes.find(d => d.order == order)?.x0
           return <text key={i} x={x} y={10} dy={".35em"}>Order: {order}</text>
         })
@@ -265,7 +304,6 @@ export default function CSNSankey({
           if(tn && sn) {
             highlight = true
           } 
-          
           
           return <path 
             key={link.index} 
@@ -308,7 +346,7 @@ export default function CSNSankey({
               strokeWidth="1"
               paintOrder="stroke"
               >
-                {node.field} ({node.dataLayer.name})
+                {node.field} {node.field == "None" ? "" : `(${node.dataLayer.name})`}
           </text>
         })}
       </g>

@@ -1,0 +1,10 @@
+.csn-line {
+  display: flex;
+  flex-direction: row;
+}
+
+.line-info {
+  width: 140px;
+  font-family: 'Courier', monospace;
+  line-height: 40px;
+}
