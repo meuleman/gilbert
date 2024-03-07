@@ -362,7 +362,7 @@ function Home() {
         setLayer(layerOrderNatural[zoomRef.current.order])
       }
     }
-  }, [selected, layerOrderNatural])
+  }, [selected])  // layerOrderNatural
 
   const [csn, setCsn] = useState([])
   useEffect(() => {
