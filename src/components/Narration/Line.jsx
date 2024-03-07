@@ -39,8 +39,8 @@ export default function Line({
 
   const depth = 14 - 4
   const spacing = width/(depth + 1)
-  const w = width - spacing
-  const xScale = useMemo(() => scaleLinear().domain([4, 14]).range([0, w]), [width])
+  const w = width - spacing*2
+  const xScale = useMemo(() => scaleLinear().domain([4, 14]).range([0, w]), [w])
   useEffect(() => {
     setRw(height/3)
   }, [width, height])
@@ -51,7 +51,7 @@ export default function Line({
       <svg width={width} height={height}>
         <line 
           x1={xScale(4)} 
-          x2={xScale(14)+rw} 
+          x2={xScale(15)+rw} 
           y1={height/2+rw/2} 
           y2={height/2+rw/2} 
           stroke={highlight ? "black" : "lightgray" }
@@ -85,8 +85,8 @@ export default function Line({
           })}
           
         </g> : null }
-        <text x={xScale(14) + 20} y={height/2 - rw/2} dy=".35em" fontSize="12" fontFamily="monospace" fill="black">Score: {showFloat(csn?.score)}</text>
-        <text x={xScale(14) + 20} y={height/2 + rw/2} dy=".35em" fontSize="12" fontFamily="monospace" fill="black">Paths: {csn.members}</text>
+        <text x={xScale(15) + 20} y={height/2 - rw/2} dy=".35em" fontSize="12" fontFamily="monospace" fill="black">Score: {showFloat(csn?.score)}</text>
+        <text x={xScale(15) + 20} y={height/2 + rw/2} dy=".35em" fontSize="12" fontFamily="monospace" fill="black">Paths: {csn.members}</text>
       </svg>
     </div>
   )

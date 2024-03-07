@@ -181,7 +181,6 @@ export default function CSNSankey({
       // check if order 13 and 14 are present. if no nodes for those orders we make them
       range(13, 15).forEach(order => {
         let hasOrder = Object.values(nodesMap).filter(d => d.order == order)
-        console.log("has order", order, hasOrder)
         if(hasOrder.length) return;
         // we use the currently selected CSN path, since all paths will have the higher order objects we need
         let n = {
@@ -193,7 +192,6 @@ export default function CSNSankey({
           values: [0],
           fieldValue: 0
         }
-        console.log("N", n)
         nodesMap[n.id] = n
         // find all the nodes in the next higher order
         // let tolinkNodes = Object.values(nodesMap).filter(d => d.order == order+1)
@@ -223,9 +221,9 @@ export default function CSNSankey({
       // console.log("links", links)
 
       // const depth = maxOrder - order
-      const depth = 14 - 4
+      const depth = 15 - 4
       const spacing = width/(depth + 1)
-      const sankeyWidth = width - spacing
+      const sankeyWidth = width - spacing*2
       const s = sankey()
         .nodeId(d => d.id)
         .nodeWidth(15)

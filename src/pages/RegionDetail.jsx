@@ -311,6 +311,33 @@ const RegionDetail = () => {
               order={region.order}
             />
 
+            <div className="thumbs">
+              {range(4, csnMaxOrder + 1).map((order, i) => {
+                let d;
+                let thumbSize = stripsWidth/12 - 48
+                if(csn && csn.path) d = csn.path.find(d => d?.order == order)
+                return (
+                <div key={i} className={`csn-layer ${region.order == order ? "active" : ""}`} style={{width: (thumbSize+19) + "px", maxWidth: (thumbSize+19) + "px"}}>
+                  <div className="csn-layer-header">
+                    <span className="csn-order-layer">
+                      {order}:<br></br> {d ? d.layer.name : ""} 
+                    </span>
+                    {/* {d ? <span className="csn-layer-links">
+                      <Link to={`/?region=${urlify(d.region)}`}> 🗺️ </Link>
+                      <Link to={`/region?region=${urlify(d.region)}`}> 📄 </Link>
+                    </span> : null} */}
+                  </div>
+                  { d ? <div className="csn-field-value">
+                    <span className="csn-field" style={{color: d.layer.fieldColor(d.field.field)}}>{d.field.field}</span>  
+                    {/* <span className="csn-value">{showFloat(d.field.value)}</span> */}
+                  </div> : null }
+                  { d ? <RegionThumb region={d.region} highlights={csn.path.filter(d => !!d).map(n => n.region)} layer={d.layer} width={thumbSize} height={thumbSize} />
+                  : <RegionThumb region={({})} layer={null} width={thumbSize} height={thumbSize} />}
+                  {/* { layersData?.length && <RegionThumb region={d.region} highlights={csn.map(n => n.region)} layer={layersData[5].layer} width={200} height={200} />} */}
+                </div> )
+              })}
+            </div>
+
             <div className="lines">
               {topUniquePaths.map((d, i) => {
                 return <CSNLine 
@@ -325,31 +352,8 @@ const RegionDetail = () => {
               })}
             </div>
 
-            <div className="thumbs">
-              {range(4, csnMaxOrder + 1).map((order, i) => {
-                let d;
-                if(csn && csn.path) d = csn.path.find(d => d?.order == order)
-                return (<div key={i} className={`csn-layer ${region.order == order ? "active" : ""}`}>
-                  <div className="csn-layer-header">
-                    <span className="csn-order-layer">
-                      {order}: {d ? d.layer.name : ""} 
-                    </span>
-                    {d ? <span className="csn-layer-links">
-                      <Link to={`/?region=${urlify(d.region)}`}> 🗺️ </Link>
-                      <Link to={`/region?region=${urlify(d.region)}`}> 📄 </Link>
-                    </span> : null}
-                  </div>
-                  { d ? <div className="csn-field-value">
-                    <span className="csn-field" style={{color: d.layer.fieldColor(d.field.field)}}>{d.field.field}</span>  
-                    <span className="csn-value">{showFloat(d.field.value)}</span>
-                  </div> : null }
-                  { d ? <RegionThumb region={d.region} highlights={csn.path.filter(d => !!d).map(n => n.region)} layer={d.layer} width={200} height={200} />
-                  : <RegionThumb region={({})} layer={null} width={200} height={200} />}
-                  {/* { layersData?.length && <RegionThumb region={d.region} highlights={csn.map(n => n.region)} layer={layersData[5].layer} width={200} height={200} />} */}
-                </div> )
-              })}
-            </div>
-            <div className="strips" id="strips">
+
+            {/* <div className="strips" id="strips">
               {range(4, csnMaxOrder + 1).map((order, i) => {
                 let d
                 if(csn && csn.path) d = csn.path.find(d => d?.order == order)
@@ -372,11 +376,8 @@ const RegionDetail = () => {
                 </div> )
             }) }
             </div>
-
+ */}
             
-            
-
-
             {/* { crossScaleNarration.length ? 
               <RegionThumb region={crossScaleNarration[1].region} layer={crossScaleNarration[1].layer} width={200} height={200} />
               : null } */}
