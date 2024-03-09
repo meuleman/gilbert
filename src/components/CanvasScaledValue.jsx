@@ -1,5 +1,9 @@
 import { scaleLinear } from "d3-scale";
 import { getOffsets } from "../lib/segments"
+import { line } from "d3-shape";
+
+// const f = Math.floor
+const f = (x) => x//Math.round(x) + 0.5
 
 // A canvas rendering function that renders a single colored rectangle for each data point
 // with opacity scaled to the max of the order
@@ -46,7 +50,7 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
     // make sure to render with the data's order
     const step = Math.pow(0.5, order)
     const sw = step * 1//(1 - strokeWidthMultiplier);
-    const rw = sizeScale(sw) * t.k // - 1
+    const rw = f(sizeScale(sw) * t.k) // - 1
 
     let domain = [min, max]
     let alphaScale = scaleLinear()
@@ -55,6 +59,11 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
     let shrinkScale = scaleLinear()
       .domain(domain)
       .range([0.1, 1]) 
+
+    let linef = line()
+      .x(d => d.x)
+      .y(d => d.y)
+      .context(ctx)
     
     for(i = 0; i < data.length; i++) {
       d = data[i];
@@ -74,23 +83,42 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
             shrinkScale.domain(domain)
           }
           // let a = alphaScale(sample.value)
-          let srw = rw * shrinkScale(sample.value)
+          let srw = f(rw * shrinkScale(sample.value))
           // ctx.globalAlpha = a < 0 ? 0 : a
           ctx.fillStyle = fieldColor(sample.field)
           ctx.strokeStyle = fieldColor(sample.field)
-          ctx.fillRect(xx - srw/2, yy - srw/2, srw, srw)
-          ctx.strokeRect(xx - srw/2, yy - srw/2, srw, srw)
+          // ctx.fillRect(f(xx - srw/2), f(yy - srw/2), srw, srw)
+          // ctx.strokeRect(f(xx - srw/2), f(yy - srw/2), srw, srw)
           
+          // if(dm1) {
+          //   let { xoff, yoff, w, h } = getOffsets(d, dm1, rw, srw)
+          //   ctx.fillRect(f(xx + xoff), f(yy + yoff), w, h)
+          //   ctx.strokeRect(f(xx + xoff), f(yy + yoff), w, h)
+          // }
+          // if(dp1) {
+          //   let { xoff, yoff, w, h } = getOffsets(d, dp1, rw, srw)
+          //   ctx.fillRect(f(xx + xoff), f(yy + yoff), w, h)
+          //   ctx.strokeRect(f(xx + xoff), f(yy + yoff), w, h)
+          // }
+
+          let points = []
           if(dm1) {
             let { xoff, yoff, w, h } = getOffsets(d, dm1, rw, srw)
-            ctx.fillRect(xx  + xoff, yy + yoff, w, h)
-            ctx.strokeRect(xx  + xoff, yy + yoff, w, h)
+            points.push({x: xx + xoff, y: yy + yoff})
           }
+          points.push({x: xx, y: yy})
           if(dp1) {
             let { xoff, yoff, w, h } = getOffsets(d, dp1, rw, srw)
-            ctx.fillRect(xx  + xoff, yy + yoff, w, h)
-            ctx.strokeRect(xx  + xoff, yy + yoff, w, h)
+            points.push({x: xx + xoff, y: yy + yoff})
           }
+
+          ctx.lineWidth = srw
+          ctx.beginPath()
+          linef(points)
+          ctx.stroke()
+
+
+
         }
       }
     }

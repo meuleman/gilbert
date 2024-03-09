@@ -1,4 +1,5 @@
 import { getOffsets } from "../lib/segments"
+import { line } from "d3-shape";
 // A canvas rendering function that renders a letter with a single colored rectangle for each data point
 
 export default function CanvasTextValueComponent({ canvasRef, state, scales, layer }) {
@@ -20,6 +21,11 @@ export default function CanvasTextValueComponent({ canvasRef, state, scales, lay
     let t = {...transform}
 
     ctx.textAlign = "center";
+    let linef = line()
+      .x(d => d.x)
+      .y(d => d.y)
+      .context(ctx)
+
     let i,d,dm1,dp1,xx,yy; 
     // make sure to render with the data's order
     const step = Math.pow(0.5, order)
@@ -38,18 +44,33 @@ export default function CanvasTextValueComponent({ canvasRef, state, scales, lay
       if(text) {
         ctx.fillStyle = fieldColor(text.value)
         ctx.strokeStyle = fieldColor(text.value)
-        ctx.fillRect(xx - srw/2, yy - srw/2, srw, srw)
-        ctx.strokeRect(xx - srw/2, yy - srw/2, srw, srw)
+        // ctx.fillRect(xx - srw/2, yy - srw/2, srw, srw)
+        // ctx.strokeRect(xx - srw/2, yy - srw/2, srw, srw)
+        // if(dm1) {
+        //   let { xoff, yoff, w, h } = getOffsets(d, dm1, rw, srw)
+        //   ctx.fillRect(xx  + xoff, yy + yoff, w, h)
+        //   ctx.strokeRect(xx  + xoff, yy + yoff, w, h)
+        // }
+        // if(dp1) {
+        //   let { xoff, yoff, w, h } = getOffsets(d, dp1, rw, srw)
+        //   ctx.fillRect(xx  + xoff, yy + yoff, w, h)
+        //   ctx.strokeRect(xx  + xoff, yy + yoff, w, h)
+        // }
+        let points = []
         if(dm1) {
           let { xoff, yoff, w, h } = getOffsets(d, dm1, rw, srw)
-          ctx.fillRect(xx  + xoff, yy + yoff, w, h)
-          ctx.strokeRect(xx  + xoff, yy + yoff, w, h)
+          points.push({x: xx + xoff, y: yy + yoff})
         }
+        points.push({x: xx, y: yy})
         if(dp1) {
           let { xoff, yoff, w, h } = getOffsets(d, dp1, rw, srw)
-          ctx.fillRect(xx  + xoff, yy + yoff, w, h)
-          ctx.strokeRect(xx  + xoff, yy + yoff, w, h)
+          points.push({x: xx + xoff, y: yy + yoff})
         }
+
+        ctx.lineWidth = srw
+        ctx.beginPath()
+        linef(points)
+        ctx.stroke()
 
         ctx.fillStyle = 'white'
         ctx.font = `${rw/1.75}px monospace`;

@@ -58,6 +58,12 @@ export function joinSegments(segments, segmentThreshold = 100) {
 }
 
 
+// const f = Math.floor
+// const c = Math.ceil
+// const f = (x) => Math.round(x)//+0.5
+// const c = (x) => Math.round(x)//+0.5
+const f = (x) => x
+const c = (x) => x
 
 export function getOffsets(d, p, rw, srw) {
   // figure out which of the 4 directions the previous point is from this one
@@ -73,28 +79,37 @@ export function getOffsets(d, p, rw, srw) {
   let yoff = 0
   let w = 0
   let h = 0
+  let rw2 = rw/2
+  let srw2 = srw/2
+  let rwsrw2 = (rw-srw)/2
   if(dir == 1) { // previous point to the left
-    xoff = -rw/2
-    yoff = -srw/2
-    w = (rw-srw)/2
+    xoff = -rw2
+    // yoff = -srw2
+    yoff = 0
+    w = rwsrw2
     h = srw
   }
   if(dir == 2) { // previous point to the right
-    xoff = srw/2
-    yoff = -srw/2
-    w = (rw-srw)/2
+    // xoff = srw2
+    xoff = rw2
+    // yoff = -srw2
+    yoff = 0
+    w = rwsrw2
     h = srw
   }
   if(dir == 3) { // previous point above
-    xoff = -srw/2
-    yoff = -rw/2
-    h = (rw-srw)/2
+    // xoff = -srw2
+    xoff = 0
+    yoff = -rw2
+    h = rwsrw2
     w = srw
   }
   if(dir == 4) { // previous point below
-    xoff = -srw/2
-    yoff = srw/2
-    h = (rw-srw)/2
+    // xoff = -srw2
+    xoff = 0
+    // yoff = srw2
+    yoff = rw2
+    h = rwsrw2
     w = srw
   }
   return { xoff, yoff, h, w }

@@ -7,6 +7,8 @@ import { interpolateObject } from 'd3-interpolate';
 import { HilbertChromosome } from '../../lib/HilbertChromosome';
 import Data from '../../lib/data';
 import { showKb, showPosition } from '../../lib/display'
+import scaleCanvas from '../../lib/canvas'
+
 
 import CanvasBase from '../CanvasBase';
 
@@ -63,6 +65,10 @@ function Power({ csn, width, height }) {
     let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
     return transform
   }, [xScale, yScale, sizeScale])
+
+  useEffect(() => {
+    scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
+  }, [canvasRef, width, height])
 
   useEffect(() => {
     
@@ -194,13 +200,13 @@ function Power({ csn, width, height }) {
         // render squares outlining the current order squares
         ctx.strokeStyle = "gray"
         ctx.lineWidth = 0.5
-        renderSquares(ctx, d.points, transform, o, scales);
+        // renderSquares(ctx, d.points, transform, o, scales);
         // render the previous layer faded out
         if(o > 4) {
           let pd = data.find(d => d.order === o - 1)
           ctx.lineWidth = 0.5
           ctx.globalAlpha = oscale(or - o)
-          renderSquares(ctx, pd.points, transform, o-1, scales);
+          // renderSquares(ctx, pd.points, transform, o-1, scales);
           if(pd.layer){
             pd.layer.renderer({ 
               scales, 
@@ -225,7 +231,7 @@ function Power({ csn, width, height }) {
         ctx.globalAlpha = 1
         ctx.lineWidth = 2
         ctx.strokeStyle = "black"
-        console.log(r, d, o)
+        // console.log(r, d, o)
         renderSquares(ctx, [r], transform, o, scales);
       }
 
