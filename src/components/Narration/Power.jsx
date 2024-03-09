@@ -6,6 +6,7 @@ import { interpolateObject } from 'd3-interpolate';
 
 import { HilbertChromosome } from '../../lib/HilbertChromosome';
 import Data from '../../lib/data';
+import { showKb, showPosition } from '../../lib/display'
 
 import CanvasBase from '../CanvasBase';
 
@@ -95,6 +96,8 @@ function Power({ csn, width, height }) {
         return {
           order: o,
           layer: p?.layer,
+          region,
+          p,
           points
         }
       })
@@ -106,6 +109,8 @@ function Power({ csn, width, height }) {
               order: orderPoints[i].order,
               layer: orderPoints[i].layer,
               points: orderPoints[i].points,
+              region: orderPoints[i].region,
+              p: orderPoints[i].p,
               data: d
             }
           }))
@@ -114,7 +119,9 @@ function Power({ csn, width, height }) {
   }, [csn])
 
 
-  const oscale = scaleLinear().domain([0, 0.5]).range([1, 0]).clamp(true)
+  const oscale = useMemo(() => scaleLinear().domain([0, 0.5]).range([1, 0]).clamp(true), [])
+  const scrollScale = useMemo(() => scaleLinear().domain([0.8, 1]).range([0, 1]).clamp(true), [])
+  const nextScrollScale = useMemo(() => scaleLinear().domain([0.5, 1]).range([1, 0]).clamp(true), [])
   function renderSquares(ctx, points, t, o, scales) {
     let i,d,xx,yy; 
     let step = Math.pow(0.5, o)
@@ -155,7 +162,7 @@ function Power({ csn, width, height }) {
           const t = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, 0.75)
           const nt = zoomToBox(nr.x, nr.y, nr.x + nstep, nr.y + nstep, no, 0.75)
           transform = interpolateObject(t, nt)(or - o)
-          console.log("transform", transform, t, nt, or - o)
+          // console.log("transform", transform, t, nt, or - o)
         } else {
           const scaler = 1 + (or - o) * 1.5
           transform = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, scaler)
@@ -165,21 +172,8 @@ function Power({ csn, width, height }) {
         ctx.clearRect(0, 0, width, height)
 
         const d = data.find(d => d.order === o)
-        // console.log("d", d)
 
-        // CanvasBase({ 
-        //   scales, 
-        //   state: { 
-        //     data: d.data,
-        //     loading: false,
-        //     points: d.points, 
-        //     order: o, 
-        //     transform
-        //   }, 
-        //   layer: d.layer, 
-        //   canvasRef 
-        // })
-
+        // render the current layer
         ctx.globalAlpha = 1
         if(d.layer){
           d.layer.renderer({ 
@@ -197,9 +191,11 @@ function Power({ csn, width, height }) {
           })
         }
 
+        // render squares outlining the current order squares
         ctx.strokeStyle = "gray"
         ctx.lineWidth = 0.5
         renderSquares(ctx, d.points, transform, o, scales);
+        // render the previous layer faded out
         if(o > 4) {
           let pd = data.find(d => d.order === o - 1)
           ctx.lineWidth = 0.5
@@ -225,31 +221,63 @@ function Power({ csn, width, height }) {
           ctx.strokeStyle = "black"
           lr && renderSquares(ctx, [lr.region], transform, o-1, scales);
         }
+        // if we are closer to the next order (and less than 14) lets preview it
         ctx.globalAlpha = 1
         ctx.lineWidth = 2
         ctx.strokeStyle = "black"
         console.log(r, d, o)
         renderSquares(ctx, [r], transform, o, scales);
-
-
-        // if we are closer to the next order (and less than 14) lets preview it
       }
 
     }
-  }, [percent, percentScale, csn, data, width, height, zoomToBox, scales])
+  }, [percent, percentScale, csn, data, oscale, width, height, zoomToBox, scales])
 
 
   return (
     <div className="power">
-      <canvas 
-        className="power-canvas"
-        width={width + "px"}
-        height={height + "px"}
-        style={{width: width + "px", height: height + "px"}}
-        ref={canvasRef}
-      />
+      <div className="power-container">
+        <canvas 
+          className="power-canvas"
+          width={width + "px"}
+          height={height + "px"}
+          style={{width: width + "px", height: height + "px"}}
+          ref={canvasRef}
+        />
+        <div className="power-scroll" style={{width: width + "px", height: height + "px"}}>
+          {data && data.map((d) => {
+            const or = percentScale(percent)
+            const o = Math.floor(or)
+            const t = scrollScale(or - o)
+            const tn = nextScrollScale(or - o)
+            let offset = 0;
+            if(d.order == o) {
+              offset = -t * 100 // TODO: this is a magic number based on height of info we show
+
+            } else if(d.order == o + 1) {
+              offset = tn * height
+
+            } else if(d.order < o) {
+              offset = -height
+
+            } else if(d.order > o + 1) {
+              offset = height
+
+            }
+            let field = d.p?.field
+            return (<div className="power-order" key={d.order} style={{top: offset + "px"}}>
+              {/* ({showKb(4 ** (14 - d.order))})<br/> */}
+              {showPosition(d.region)}<br/>
+              Order {d.order} <br/> 
+              {d.layer?.name}<br/>
+              <span style={{color: field?.color}}>{field?.field} </span>
+              {/* {field?.value}<br/> */}
+              {/* {t} {or} */}
+            </div>)
+          })}
+        </div>
+      </div>
       <label>
-        <input style={{width: width + "px"}} type="range" min={1} max={100} value={percent} onChange={(e) => setPercent(e.target.value)}></input>
+        <input style={{width: (width*1) + "px"}} type="range" min={1} max={100} value={percent} onChange={(e) => setPercent(e.target.value)}></input>
         {order}
       </label>
     </div>

@@ -4,8 +4,22 @@
   flex-direction: column;
   width: auto;
 }
+
+.power-container {
+  display: flex;
+  flex-direction: row;
+}
 .power-canvas {
   border: 1px solid lightgray;
+}
+.power-scroll {
+  margin-left: 24px;
+  overflow-y: hidden;
+  position: relative;
+  flex-grow: 1;
+}
+.power-order {
+  position: absolute;
 }
 .power input {
   width: 100%;
