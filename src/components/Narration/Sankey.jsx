@@ -240,6 +240,7 @@ export default function CSNSankey({
         // artificially shrink the None nodes
         s.nodes.forEach(n => {
           if(n.field == "None") {
+            n.originalHeight = n.y1 - n.y0
             n.y0 = n.y1  - 10
           }
         })
@@ -251,6 +252,29 @@ export default function CSNSankey({
           if(l.target.field == "None") {
             // l.y0 = l.target.y1 - 15
             l.y1 = l.target.y1 - 5
+          }
+        })
+        // rearrange the nodes to spread out and fill the space left by the None node
+        // loop through the nodes at each order where there is a none node
+        range(4, 15).forEach(order => {
+          let none = s.nodes.find(d => d.order == order && d.field == "None")
+          if(none) {
+            let nodes = s.nodes.filter(d => d.order == order && d.field != "None")
+            // console.log("space out", nodes, y0, y1)
+            let dy = none.originalHeight/nodes.length
+            console.log("dy", none, dy)
+            nodes.forEach((n,i) => {
+              n.y0 = n.y0 + i*dy
+              n.y1 = n.y1 + i*dy
+              s.links.forEach(l => {
+                if(l.source == n) {
+                  l.y0 = l.y0 + i*dy
+                }
+                if(l.target == n) {
+                  l.y1 = l.y1 + i*dy
+                }
+              })
+            })
           }
         })
       }
