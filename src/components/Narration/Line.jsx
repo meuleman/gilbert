@@ -76,9 +76,11 @@ export default function Line({
                 dy=".35em"
                 fontSize="12"
                 fontFamily="monospace"
-                fill={ p ? p.field.color : "white"}
-                stroke={ p ? "black" : "lightgray"}
-                paintOrder="stroke">
+                fill="#333"
+                // fill={ p ? p.field.color : "white"}
+                // stroke={ p ? "black" : "lightgray"}
+                // paintOrder="stroke"
+                >
                   { p ? p.field.field : null}
                 </text>
               </g>
