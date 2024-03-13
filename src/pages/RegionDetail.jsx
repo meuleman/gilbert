@@ -280,7 +280,8 @@ const RegionDetail = () => {
                     <label htmlFor="shrinkNone">Shrink "None" nodes</label>
                   </div>
                   <input id="csn-slice-slider" type='range' min={1} max={maxUniquePaths - 1} value={csnSlice} onChange={handleChangeCSNSlice} />
-                  <label htmlFor="csn-slice-slider">Top {csnSlice} paths</label>
+                  <label htmlFor="csn-slice-slider">{crossScaleNarrationFiltered.length} paths ({csnSlice} unique)</label>
+
                   <br></br>
                   <input id="csn-threshold-slider" type='range' min={0} max={3} step="0.1" value={csnThreshold} onChange={handleChangeCSNThreshold} />
                   <label htmlFor="csn-threshold-slider">Factor score threshold: {csnThreshold}</label>

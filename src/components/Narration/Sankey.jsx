@@ -363,12 +363,15 @@ export default function CSNSankey({
               x={node.x1 + 10} 
               y={node.y0 + (node.y1 - node.y0)/2} 
               dy={".35em"}
-              fill={ node.color }
-              stroke="black"
-              strokeWidth="1"
-              paintOrder="stroke"
+              fill="#333"
+              // fill={ node.color }
+              // stroke="black"
+              // strokeWidth="1"
+              // paintOrder="stroke"
               >
-                {node.field} {node.field == "None" ? "" : `(${node.dataLayer.name})`}
+                {node.field} 
+                {node.y1 - node.y0 > 30 ? <tspan dy="1.05em" x={node.x1 + 10}>{node.value} paths</tspan> :null }
+                {node.y1 - node.y0 > 50 ? <tspan dy="1.05em" x={node.x1 + 10}>{node.field == "None" ? "" : `${node.dataLayer.name}`}</tspan> :null }
           </text>
         })}
       </g>
