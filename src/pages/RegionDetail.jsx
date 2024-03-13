@@ -301,6 +301,22 @@ const RegionDetail = () => {
               </div>
             </div>
             {/* <h3>Narration</h3> */}
+            
+
+            <div className="lines">
+              {topUniquePaths.map((d, i) => {
+                return <CSNLine 
+                  key={i} 
+                  csn={d} 
+                  order={region.order} 
+                  highlight={i == crossScaleNarrationIndex} 
+                  width={stripsWidth} 
+                  height={40} 
+                  onHover={(c) => setCrossScaleNarrationIndex(topUniquePaths.findIndex(d => d == c))}
+                  />
+              })}
+            </div>
+            
             <div>
               <b>Explore narrations of {topUniquePaths.length} unique top paths:</b>
             </div>
@@ -308,12 +324,6 @@ const RegionDetail = () => {
               <input id="csn-slider" type='range' min={0} max={topUniquePaths.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
               <label htmlFor="csn-slider">Narration: {crossScaleNarrationIndex}</label>
             </div>
-            <CSNSentence
-              crossScaleNarration={csn}
-              order={region.order}
-            />
-            <Power csn={csn} width={300} height={300} />
-
             <div className="thumbs">
               {range(4, csnMaxOrder + 1).map((order, i) => {
                 let d;
@@ -340,20 +350,13 @@ const RegionDetail = () => {
                 </div> )
               })}
             </div>
+            <CSNSentence
+              crossScaleNarration={csn}
+              order={region.order}
+            />
+            <Power csn={csn} width={300} height={300} />
 
-            <div className="lines">
-              {topUniquePaths.map((d, i) => {
-                return <CSNLine 
-                  key={i} 
-                  csn={d} 
-                  order={region.order} 
-                  highlight={i == crossScaleNarrationIndex} 
-                  width={stripsWidth} 
-                  height={40} 
-                  onHover={(c) => setCrossScaleNarrationIndex(topUniquePaths.findIndex(d => d == c))}
-                  />
-              })}
-            </div>
+            
 
 
             {/* <div className="strips" id="strips">
