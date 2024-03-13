@@ -52,8 +52,10 @@ export default function Line({
         <line 
           x1={xScale(4)} 
           x2={xScale(15)+rw} 
-          y1={height/2+rw/2} 
-          y2={height/2+rw/2} 
+          // y1={height/2+rw/2} 
+          // y2={height/2+rw/2} 
+          y1={height-4}
+          y2={height-4}
           stroke={highlight ? "black" : "lightgray" }
           strokeWidth={highlight ? 2 : 1} />
 
@@ -63,9 +65,10 @@ export default function Line({
             return <g key={o}>
               <rect
                 x={xScale(o)}
-                y={height/2 - rw/2}
+                // y={height/2 - rw/2}
+                y={0}
                 width={rw}
-                height={rw}
+                height={height-4}
                 fill={ p ? p.field.color : "white"}
                 stroke={ highlight ? "black" : "lightgray"}
               />
@@ -73,7 +76,7 @@ export default function Line({
                 x={xScale(o) + rw/2}
                 y={height/2}
                 dx={rw}
-                dy=".35em"
+                dy=".2em"
                 fontSize="12"
                 fontFamily="monospace"
                 fill="#333"
@@ -87,8 +90,8 @@ export default function Line({
           })}
           
         </g> : null }
-        <text x={xScale(15) + 20} y={height/2 - rw/2} dy=".35em" fontSize="12" fontFamily="monospace" fill="black">Score: {showFloat(csn?.score)}</text>
-        <text x={xScale(15) + 20} y={height/2 + rw/2} dy=".35em" fontSize="12" fontFamily="monospace" fill="black">Paths: {csn.members}</text>
+        <text x={xScale(15) + 20} y={height/2 - rw} dy=".35em" fontSize="10" fontFamily="monospace" fill="black">Score: {showFloat(csn?.score)}</text>
+        <text x={xScale(15) + 20} y={height/2} dy=".4em" fontSize="10" fontFamily="monospace" fill="black">Paths: {csn.members}</text>
       </svg>
     </div>
   )

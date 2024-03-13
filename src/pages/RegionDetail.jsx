@@ -311,7 +311,7 @@ const RegionDetail = () => {
                   order={region.order} 
                   highlight={i == crossScaleNarrationIndex} 
                   width={stripsWidth} 
-                  height={40} 
+                  height={25} 
                   onHover={(c) => setCrossScaleNarrationIndex(topUniquePaths.findIndex(d => d == c))}
                   />
               })}
