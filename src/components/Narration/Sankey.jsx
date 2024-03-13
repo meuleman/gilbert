@@ -240,7 +240,7 @@ export default function CSNSankey({
         // artificially shrink the None nodes
         s.nodes.forEach(n => {
           if(n.field == "None") {
-            n.originalHeight = n.y1 - n.y0
+            n.originalHeight = n.y1 - n.y0 - 10
             n.y0 = n.y1  - 10
           }
         })

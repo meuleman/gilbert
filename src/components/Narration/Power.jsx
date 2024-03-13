@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { scaleLinear, scaleLog, scalePow } from 'd3-scale';
 import { zoomIdentity } from 'd3-zoom';
-import { range } from 'd3-array';
-import { interpolateObject } from 'd3-interpolate';
+import { range, extent } from 'd3-array';
+import { interpolateObject, interpolateNumber } from 'd3-interpolate';
 
 import { HilbertChromosome } from '../../lib/HilbertChromosome';
 import Data from '../../lib/data';
@@ -24,9 +24,11 @@ Power.propTypes = {
 };
 
 
-function Power({ csn, width, height }) {
+function Power({ csn, width, height, sheight=30 }) {
 
   const canvasRef = useRef(null);
+  const canvasRef1D = useRef(null);
+  const canvasRefStrip = useRef(null);
 
   const [percent, setPercent] = useState(1)
   const [order, setOrder] = useState(4)
@@ -69,14 +71,19 @@ function Power({ csn, width, height }) {
   useEffect(() => {
     scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
   }, [canvasRef, width, height])
+  useEffect(() => {
+    scaleCanvas(canvasRef1D.current, canvasRef1D.current.getContext("2d"), width, height)
+  }, [canvasRef1D, width, height])
+  useEffect(() => {
+    scaleCanvas(canvasRefStrip.current, canvasRefStrip.current.getContext("2d"), width, sheight)
+  }, [canvasRefStrip, width, sheight])
+
+
 
   useEffect(() => {
-    
-    // fetch the data around the region
+    // pre-fetch the data for each path in the CSN (if it exists)
     const dataClient = new Data()
-
     if(csn && csn.path) {
-      // const orderPoints = csn.path.filter(d => !!d).sort((a, b) => a.order - b.order).map((p) => {
       let lastRegion = null
       const orderPoints = range(4, 14).map((o) => {
         const p = csn.path.find(d => d.order === o)
@@ -141,6 +148,7 @@ function Power({ csn, width, height }) {
     }
   }
 
+  // Render the 2D power visualization
   useEffect(() => {
     const or = percentScale(percent)
     const o = Math.floor(or)
@@ -238,6 +246,131 @@ function Power({ csn, width, height }) {
     }
   }, [percent, percentScale, csn, data, oscale, width, height, zoomToBox, scales])
 
+  // Render the 1D pyramid visualization (and 1D Strip)
+  useEffect(() => {
+    const or = percentScale(percent)
+    const o = Math.floor(or)
+    const hilbert = new HilbertChromosome(o)
+    const step = hilbert.step
+
+    let rh = height / (15 - 4) // one row per order
+
+    if(csn && csn.path && canvasRef1D.current && canvasRefStrip.current && data) {
+
+      const region = csn.path.find(d => d.order === o)
+      if(region) {
+        const r = region.region
+
+        const ctx = canvasRef1D.current.getContext('2d');
+        ctx.clearRect(0, 0, width, height)
+        const ctxs = canvasRefStrip.current.getContext('2d');
+        ctxs.clearRect(0, 0, width, sheight)
+
+        const hdistance = 16 + 4 * (o - 4)
+
+        const dorder = data.find(d => d.order === o)
+        const pointso = dorder.points.filter(d => d.chromosome === r.chromosome && d.i > r.i - hdistance && d.i < r.i + hdistance)
+        const xExtentStart = extent(pointso, d => d.start)
+        const xExtentEnd = extent(pointso, d => d.end)
+        let xs = scaleLinear().domain([xExtentStart[0], xExtentEnd[1]]).range([0, width])
+
+        // we interpolate between this zoom and the next zoom region to get the scale we use
+        const no = o + 1
+        const nregion = csn.path.find(d => d.order === no)
+        if(nregion) {
+          const nr = nregion.region
+          const dnorder = data.find(d => d.order === no)
+          const nhdistance = 16 + 4 * (no - 4)
+          const pointsno = dnorder.points.filter(d => d.chromosome === r.chromosome && d.i > nr.i - nhdistance && d.i < nr.i + nhdistance)
+          const nxExtentStart = extent(pointsno, d => d.start)
+          const nxExtentEnd = extent(pointsno, d => d.end)
+          // const nxs = scaleLinear().domain([xExtentStart[0], xExtentEnd[1]]).range([0, width])
+          const interpolateStart = interpolateNumber(xExtentStart[0], nxExtentStart[0]);
+          const interpolateEnd = interpolateNumber(xExtentEnd[1], nxExtentEnd[1]);
+          xs = scaleLinear().domain([
+            interpolateStart(or - o), 
+            interpolateEnd(or - o)
+          ]).range([0, width]);
+        }
+
+        // we want a global coordinate system essentially for the 1D visualization
+        // const d = data.find(d => d.order === o)
+        data.map(d => {
+          // render a strip for each order
+          const i = d.order - 4
+          const y = i * rh
+          const h = rh
+          const w = width
+          ctx.fillStyle = "white"
+          ctx.fillRect(0, y, w, h)
+          ctxs.fillStyle = "white"
+          ctxs.fillRect(0, y, w, h)
+          const layer = d.layer
+          if(layer) {
+            // loop over the data poitns
+            const meta = d.data.metas.find((meta) => meta.chromosome === r.chromosome)
+            // TODO: abstract the min and max for scaling into function
+            let nonzero_min = meta["nonzero_min"]
+            let fields, max, min
+            if ((meta["fields"].length == 2) && (meta["fields"][0] == "max_field") && (meta["fields"][1] == "max_value")) {
+              fields = meta["full_fields"]
+              max = meta["full_max"]
+              min = nonzero_min ? nonzero_min : meta["full_min"]
+            } else {
+              fields = meta["fields"]
+              max = meta["max"]
+              min = nonzero_min ? nonzero_min : meta["min"]
+            }
+            if(!min.length && min < 0) min = 0;
+
+            // console.log("data", d)
+            const data = d.data
+            const dhdistance = 16 + 4 * (d.order - 4)
+            data.filter(p => p.i > d.region.i - dhdistance && p.i < d.region.i + dhdistance).map(p => {
+              const sample = layer.fieldChoice(p);
+              if(sample && sample.field){
+                // let fi = meta.fields.indexOf(sample.field)
+                // let domain = [meta.min[fi] < 0 ? 0 : meta.min[fi], meta.max[fi]]
+                // TODO: we could scale height
+                // TODO or we could scale opacity
+                ctx.fillStyle = layer.fieldColor(sample.field)
+                const x = xs(p.start)
+                let w = xs(p.end) - x
+                if(w < 1) w = 1
+                ctx.fillRect(x, y, w-0.5, h-1)
+                if(d.order == o) {
+                  ctxs.globalAlpha = 1
+                  ctxs.fillStyle = layer.fieldColor(sample.field)
+                  ctxs.fillRect(x, 0, w-0.5, h-1)
+                }
+                if(d.order == o-1) {
+                  ctxs.fillStyle = layer.fieldColor(sample.field)
+                  ctxs.globalAlpha = oscale(or - o)
+                  ctxs.fillRect(x, 0, w-0.5, h-1)
+                }
+              }
+            })
+          }
+          // render the region being highlighted
+          ctx.strokeStyle = "black"
+          // ctx.globalAlpha = 0.75
+          ctx.lineWidth = 1;
+          ctx.strokeRect(xs(d.region.start), i*rh, xs(d.region.end) - xs(d.region.start)-0.5, rh-1)
+        })
+
+        // render the region being highlighted
+        ctx.strokeStyle = "black"
+        ctxs.strokeStyle = "black"
+        // ctx.globalAlpha = 0.75
+        ctx.lineWidth = 2;
+        ctxs.lineWidth = 2;
+        ctx.strokeRect(xs(r.start), (r.order - 4)*rh, xs(r.end) - xs(r.start)-0.5, rh-1)
+        ctxs.strokeRect(xs(r.start), 0, xs(r.end) - xs(r.start)-0.5, rh-1)
+
+      }
+    }
+  }, [percent, percentScale, csn, data, width, height, zoomToBox, scales])
+
 
   return (
     <div className="power">
@@ -281,7 +414,21 @@ function Power({ csn, width, height }) {
             </div>)
           })}
         </div>
+        <canvas 
+          className="power-canvas-1d"
+          width={width + "px"}
+          height={height + "px"}
+          style={{width: width + "px", height: height + "px"}}
+          ref={canvasRef1D}
+        />
       </div>
+      <canvas 
+          className="power-canvas-strip"
+          width={width + "px"}
+          height={20 + "px"}
+          style={{width: width + "px", height: sheight + "px"}}
+          ref={canvasRefStrip}
+        />
       <label>
         <input style={{width: (width*1) + "px"}} type="range" min={1} max={100} value={percent} onChange={(e) => setPercent(e.target.value)}></input>
         {order}

@@ -16,11 +16,17 @@
   margin-left: 24px;
   overflow-y: hidden;
   position: relative;
-  flex-grow: 1;
 }
 .power-order {
   position: absolute;
 }
 .power input {
   width: 100%;
+}
+.power-canvas-1d {
+  border: 1px solid lightgray;
+}
+.power-canvas-strip {
+  margin-top: 4px;
+  border: 1px solid lightgray;
 }
