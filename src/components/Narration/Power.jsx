@@ -2,17 +2,95 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { scaleLinear, scaleLog, scalePow } from 'd3-scale';
 import { zoomIdentity } from 'd3-zoom';
 import { range, extent } from 'd3-array';
+import { line } from "d3-shape";
 import { interpolateObject, interpolateNumber } from 'd3-interpolate';
 
 import { HilbertChromosome } from '../../lib/HilbertChromosome';
 import Data from '../../lib/data';
 import { showKb, showPosition } from '../../lib/display'
 import scaleCanvas from '../../lib/canvas'
+import { getOffsets } from "../../lib/segments"
+
+import nucleotides from '../../layers/nucleotides';
 
 
 import CanvasBase from '../CanvasBase';
 
 import './Power.css';
+
+
+// TODO: move this to a more general place 
+function getDataBounds(meta) {
+  let nonzero_min = meta["nonzero_min"]
+  let fields, max, min
+  if ((meta["fields"].length == 2) && (meta["fields"][0] == "max_field") && (meta["fields"][1] == "max_value")) {
+    fields = meta["full_fields"]
+    max = meta["full_max"]
+    min = nonzero_min ? nonzero_min : meta["full_min"]
+  } else {
+    fields = meta["fields"]
+    max = meta["max"]
+    min = nonzero_min ? nonzero_min : meta["min"]
+  }
+  if(!min.length && min < 0) min = 0;
+  return { min, max, fields }
+}
+
+function renderSquares(ctx, points, t, o, scales, fill, stroke, sizeMultiple=1) {
+  let i,d,xx,yy; 
+  let step = Math.pow(0.5, o)
+  let rw = scales.sizeScale(step) * t.k * sizeMultiple - 1
+  for(i = 0; i < points.length; i++) {
+    d = points[i];
+    // scale and transform the coordinates
+    xx = t.x + scales.xScale(d.x) * t.k
+    yy = t.y + scales.yScale(d.y) * t.k
+    if(stroke) {
+      ctx.strokeStyle = stroke
+      ctx.strokeRect(xx - rw/2, yy - rw/2, rw, rw)
+    }
+    if(fill) {
+      ctx.fillStyle = fill
+      ctx.fillRect(xx - rw/2, yy - rw/2, rw, rw)
+    }
+  }
+}
+
+function renderPipes(ctx, points, t, o, scales, stroke, sizeMultiple=1) {
+  let linef = line()
+    .x(d => d.x)
+    .y(d => d.y)
+    .context(ctx)
+  let i,d,xx,yy,dp1,dm1; 
+  let step = Math.pow(0.5, o)
+  let rw = scales.sizeScale(step) * t.k 
+  let srw = rw * sizeMultiple
+
+  for(i = 0; i < points.length; i++) {
+    d = points[i];
+    dm1 = points[i-1];
+    dp1 = points[i+1];
+    // scale and transform the coordinates
+    xx = t.x + scales.xScale(d.x) * t.k
+    yy = t.y + scales.yScale(d.y) * t.k
+    let ps = []
+    if(dm1) {
+      let { xoff, yoff } = getOffsets(d, dm1, rw, srw)
+      ps.push({x: xx + xoff, y: yy + yoff})
+    }
+    ps.push({x: xx, y: yy})
+    if(dp1) {
+      let { xoff, yoff } = getOffsets(d, dp1, rw, srw)
+      ps.push({x: xx + xoff, y: yy + yoff})
+    }
+
+    ctx.strokeStyle = stroke
+    ctx.lineWidth = srw
+    ctx.beginPath()
+    linef(ps)
+    ctx.stroke()
+  }
+}
 
 import PropTypes from 'prop-types';
 
@@ -85,18 +163,32 @@ function Power({ csn, width, height, sheight=30 }) {
     const dataClient = new Data()
     if(csn && csn.path) {
       let lastRegion = null
-      const orderPoints = range(4, 14).map((o) => {
+      const orderPoints = range(4, 15).map((o) => {
         const p = csn.path.find(d => d.order === o)
         const hilbert = new HilbertChromosome(o)
         const step = hilbert.step
         let region;
         if(p) {
+          // if we have a path, we use it's region and save it in the last region as well
           region = p.region
           lastRegion = region
         } else {
           const i = lastRegion.i * 4
-          region = hilbert.fromRange(lastRegion.chromosome, i, i+1)
-          console.log("missing region", region)
+          region = hilbert.fromRange(lastRegion.chromosome, i, i+1)[0]
+          let start = lastRegion.start
+          let end = lastRegion.end
+          if(o < 14) {
+            let np = csn.path.find(d => d.order > o)
+            if(np && np.region) {
+              // if there is a path region at an order greater than the current missing path
+              // we use that as the start and end so that we zoom in on the right square
+              start = np.region.start
+              end = np.region.end
+            }
+          }
+          const regions = hilbert.fromRegion(lastRegion.chromosome, start, end)
+          region = regions[0]
+          lastRegion = region
         }
         // determine the bounding box around the region
         const bbox = {
@@ -108,7 +200,7 @@ function Power({ csn, width, height, sheight=30 }) {
         const points = hilbert.fromBbox(bbox)
         return {
           order: o,
-          layer: p?.layer,
+          layer: o == 14 ? nucleotides : p?.layer,
           region,
           p,
           points
@@ -135,18 +227,7 @@ function Power({ csn, width, height, sheight=30 }) {
   const oscale = useMemo(() => scaleLinear().domain([0, 0.5]).range([1, 0]).clamp(true), [])
   const scrollScale = useMemo(() => scaleLinear().domain([0.8, 1]).range([0, 1]).clamp(true), [])
   const nextScrollScale = useMemo(() => scaleLinear().domain([0.5, 1]).range([1, 0]).clamp(true), [])
-  function renderSquares(ctx, points, t, o, scales) {
-    let i,d,xx,yy; 
-    let step = Math.pow(0.5, o)
-    let rw = scales.sizeScale(step) * t.k - 1
-    for(i = 0; i < points.length; i++) {
-      d = points[i];
-      // scale and transform the coordinates
-      xx = t.x + scales.xScale(d.x) * t.k
-      yy = t.y + scales.yScale(d.y) * t.k
-      ctx.strokeRect(xx - rw/2, yy - rw/2, rw, rw)
-    }
-  }
+  
 
   // Render the 2D power visualization
   useEffect(() => {
@@ -159,33 +240,33 @@ function Power({ csn, width, height, sheight=30 }) {
     const step = hilbert.step
 
     if(csn && csn.path && canvasRef.current && data) {
-      const region = csn.path.find(d => d.order === o)
-      if(region) {
+      // const region = csn.path.find(d => d.order === o)
+      const d = data.find(d => d.order === o)
+      // if(!region) console.log("no region", d)
+      if(d) {
         // interpolate between last order and next. or - o goes from 0 to 1
-        const r = region.region
-        // console.log("region", region, "step", step, "scaler", scaler)
-        // console.log("or - o", or - o, "scaler", scaler, "k", transform.k)
+        const r = d.region
         let transform;
           // next order 
         const no = o + 1
         const nhilbert = new HilbertChromosome(no)
         const nstep = nhilbert.step
-        const nregion = csn.path.find(d => d.order === no)
-        if(nregion) {
-          const nr = nregion.region
+        // const nregion = csn.path.find(d => d.order === no)
+        const nd = data.find(d => d.order === no)
+        if(nd) {
+          const nr = nd.region
           const t = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, 0.75)
           const nt = zoomToBox(nr.x, nr.y, nr.x + nstep, nr.y + nstep, no, 0.75)
           transform = interpolateObject(t, nt)(or - o)
-          // console.log("transform", transform, t, nt, or - o)
         } else {
-          const scaler = 1 + (or - o) * 1.5
+          const scaler = .675 + (or - o) // TODO: magic number for order 14...
           transform = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, scaler)
         }
 
         const ctx = canvasRef.current.getContext('2d');
         ctx.clearRect(0, 0, width, height)
-
-        const d = data.find(d => d.order === o)
+        
+        const meta = d.data.metas.find((meta) => meta.chromosome === r.chromosome) 
 
         // render the current layer
         ctx.globalAlpha = 1
@@ -196,25 +277,27 @@ function Power({ csn, width, height, sheight=30 }) {
               data: d.data,
               loading: false,
               points: d.points,
-              meta: d.data.metas.find((meta) => meta.chromosome === r.chromosome),
+              meta,
               order: o,
               transform
             }, 
             layer: d.layer, 
             canvasRef 
           })
+        } else {
+          // renderSquares(ctx, d.points, transform, o, scales, "#eee", false, 0.25);
+          renderPipes(ctx, d.points, transform, o, scales, "#eee", 0.25);
         }
 
         // render squares outlining the current order squares
-        ctx.strokeStyle = "gray"
+        // ctx.strokeStyle = "gray"
         ctx.lineWidth = 0.5
-        // renderSquares(ctx, d.points, transform, o, scales);
+        // renderSquares(ctx, d.points, transform, o, scales, false, "gray");
         // render the previous layer faded out
         if(o > 4) {
           let pd = data.find(d => d.order === o - 1)
           ctx.lineWidth = 0.5
           ctx.globalAlpha = oscale(or - o)
-          // renderSquares(ctx, pd.points, transform, o-1, scales);
           if(pd.layer){
             pd.layer.renderer({ 
               scales, 
@@ -229,18 +312,21 @@ function Power({ csn, width, height, sheight=30 }) {
               layer: pd.layer, 
               canvasRef 
             })
+          } else {
+            // renderSquares(ctx, d.points, transform, o, scales, "#eee", false, 0.25);
+            renderPipes(ctx, pd.points, transform, o-1, scales, "#eee", 0.25);
           }
-          const lr = csn.path.find(d => d.order === o-1)
+          const lr = data.find(d => d.order === o-1)
           ctx.lineWidth = 2
           ctx.strokeStyle = "black"
-          lr && renderSquares(ctx, [lr.region], transform, o-1, scales);
+          lr && renderSquares(ctx, [lr.region], transform, o-1, scales, false, "black");
         }
         // if we are closer to the next order (and less than 14) lets preview it
         ctx.globalAlpha = 1
         ctx.lineWidth = 2
         ctx.strokeStyle = "black"
         // console.log(r, d, o)
-        renderSquares(ctx, [r], transform, o, scales);
+        renderSquares(ctx, [r], transform, o, scales, false, "black");
       }
 
     }
@@ -257,44 +343,51 @@ function Power({ csn, width, height, sheight=30 }) {
 
     if(csn && csn.path && canvasRef1D.current && canvasRefStrip.current && data) {
 
-      const region = csn.path.find(d => d.order === o)
-      if(region) {
-        const r = region.region
+      // the region at the current order
+      const dorder = data.find(d => d.order === o)
+      if(dorder) {
+        const r = dorder.region
 
         const ctx = canvasRef1D.current.getContext('2d');
         ctx.clearRect(0, 0, width, height)
         const ctxs = canvasRefStrip.current.getContext('2d');
         ctxs.clearRect(0, 0, width, sheight)
 
+        // how many hilbert segments to render on either side of the region, scales up with order
         const hdistance = 16 + 4 * (o - 4)
 
-        const dorder = data.find(d => d.order === o)
         const pointso = dorder.points.filter(d => d.chromosome === r.chromosome && d.i > r.i - hdistance && d.i < r.i + hdistance)
         const xExtentStart = extent(pointso, d => d.start)
         const xExtentEnd = extent(pointso, d => d.end)
+        // the x scale is based on the start of the earliest point and the end of the latest point
         let xs = scaleLinear().domain([xExtentStart[0], xExtentEnd[1]]).range([0, width])
 
         // we interpolate between this zoom and the next zoom region to get the scale we use
         const no = o + 1
-        const nregion = csn.path.find(d => d.order === no)
-        if(nregion) {
-          const nr = nregion.region
-          const dnorder = data.find(d => d.order === no)
+        // the region at the next order
+        const dnorder = data.find(d => d.order === no)
+        let nxExtentStart, nxExtentEnd
+        if(dnorder) {
+          const nr = dnorder.region
           const nhdistance = 16 + 4 * (no - 4)
           const pointsno = dnorder.points.filter(d => d.chromosome === r.chromosome && d.i > nr.i - nhdistance && d.i < nr.i + nhdistance)
-          const nxExtentStart = extent(pointsno, d => d.start)
-          const nxExtentEnd = extent(pointsno, d => d.end)
-          // const nxs = scaleLinear().domain([xExtentStart[0], xExtentEnd[1]]).range([0, width])
+          nxExtentStart = extent(pointsno, d => d.start)
+          nxExtentEnd = extent(pointsno, d => d.end)
+        } else {
+          // order 14
+          const rw = r.end - r.start
+          nxExtentStart = [r.start - rw*16, 0]
+          nxExtentEnd = [0, r.end + rw*16]
+        }
+          // the x scale is interpolated based on the difference between the raw order and order (0 to 1)
           const interpolateStart = interpolateNumber(xExtentStart[0], nxExtentStart[0]);
           const interpolateEnd = interpolateNumber(xExtentEnd[1], nxExtentEnd[1]);
           xs = scaleLinear().domain([
             interpolateStart(or - o), 
             interpolateEnd(or - o)
           ]).range([0, width]);
-        }
 
         // we want a global coordinate system essentially for the 1D visualization
-        // const d = data.find(d => d.order === o)
         data.map(d => {
           // render a strip for each order
           const i = d.order - 4
@@ -306,51 +399,61 @@ function Power({ csn, width, height, sheight=30 }) {
           ctxs.fillStyle = "white"
           ctxs.fillRect(0, y, w, h)
           const layer = d.layer
-          if(layer) {
+          // if(layer) {
             // loop over the data poitns
-            const meta = d.data.metas.find((meta) => meta.chromosome === r.chromosome)
-            // TODO: abstract the min and max for scaling into function
-            let nonzero_min = meta["nonzero_min"]
-            let fields, max, min
-            if ((meta["fields"].length == 2) && (meta["fields"][0] == "max_field") && (meta["fields"][1] == "max_value")) {
-              fields = meta["full_fields"]
-              max = meta["full_max"]
-              min = nonzero_min ? nonzero_min : meta["full_min"]
-            } else {
-              fields = meta["fields"]
-              max = meta["max"]
-              min = nonzero_min ? nonzero_min : meta["min"]
-            }
-            if(!min.length && min < 0) min = 0;
+            // const meta = d.data.metas.find((meta) => meta.chromosome === r.chromosome)
+            // const { min, max } = getDataBounds(meta)
 
             // console.log("data", d)
             const data = d.data
             const dhdistance = 16 + 4 * (d.order - 4)
-            data.filter(p => p.i > d.region.i - dhdistance && p.i < d.region.i + dhdistance).map(p => {
-              const sample = layer.fieldChoice(p);
-              if(sample && sample.field){
-                // let fi = meta.fields.indexOf(sample.field)
-                // let domain = [meta.min[fi] < 0 ? 0 : meta.min[fi], meta.max[fi]]
-                // TODO: we could scale height
-                // TODO or we could scale opacity
-                ctx.fillStyle = layer.fieldColor(sample.field)
+            d.points.filter(p => p.i > d.region.i - dhdistance && p.i < d.region.i + dhdistance).map(p => {
+              const dp = data.find(d => d.i == p.i)
+              if(dp && layer) {
+                const sample = layer.fieldChoice(dp);
+                if(sample && sample.field){
+                  // let fi = meta.fields.indexOf(sample.field)
+                  // let domain = [meta.min[fi] < 0 ? 0 : meta.min[fi], meta.max[fi]]
+                  // TODO: we could scale height
+                  // TODO or we could scale opacity
+                  if(layer.name == "Nucleotides") {
+                    ctx.fillStyle = layer.fieldColor(sample.value)
+                    ctxs.fillStyle = layer.fieldColor(sample.value)
+                  } else {
+                    ctx.fillStyle = layer.fieldColor(sample.field)
+                    ctxs.fillStyle = layer.fieldColor(sample.field)
+                  }
+                  const x = xs(p.start)
+                  let w = xs(p.end) - x
+                  if(w < 1) w = 1
+                  ctx.fillRect(x, y, w-0.5, h-1)
+                  if(d.order == o) {
+                    ctxs.globalAlpha = 1
+                    ctxs.fillRect(x, 0, w-0.5, h-1)
+                  }
+                  if(d.order == o-1) {
+                    ctxs.globalAlpha = oscale(or - o)
+                    ctxs.fillRect(x, 0, w-0.5, h-1)
+                  }
+                }
+              } else {
+                ctx.fillStyle = "#eee"
+                ctxs.fillStyle = "#eee"
                 const x = xs(p.start)
                 let w = xs(p.end) - x
                 if(w < 1) w = 1
                 ctx.fillRect(x, y, w-0.5, h-1)
-                if(d.order == o) {
+                if(d.order == o){ 
                   ctxs.globalAlpha = 1
-                  ctxs.fillStyle = layer.fieldColor(sample.field)
                   ctxs.fillRect(x, 0, w-0.5, h-1)
                 }
                 if(d.order == o-1) {
-                  ctxs.fillStyle = layer.fieldColor(sample.field)
                   ctxs.globalAlpha = oscale(or - o)
                   ctxs.fillRect(x, 0, w-0.5, h-1)
                 }
               }
             })
-          }
+          // }
           // render the region being highlighted
           ctx.strokeStyle = "black"
           // ctx.globalAlpha = 0.75
@@ -432,6 +535,7 @@ function Power({ csn, width, height, sheight=30 }) {
       <label>
         <input style={{width: (width*1) + "px"}} type="range" min={1} max={100} value={percent} onChange={(e) => setPercent(e.target.value)}></input>
         {order}
+        {/* {percentScale(percent)} */}
       </label>
     </div>
   );
