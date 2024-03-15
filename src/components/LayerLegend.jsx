@@ -114,7 +114,7 @@ const LayerLegend = ({
       let factorName = fullFactorList[hover.data?.max_field]
       hoverData = {[factorName]: hover.data.max_value}
     }
-    factorsToHighlight = fullFactorList.filter((f) => {return hoverData[f] > 0})
+    factorsToHighlight = fullFactorList?.filter((f) => {return hoverData[f] > 0})
   }
 
   // add factors to legend
