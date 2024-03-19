@@ -1,6 +1,7 @@
 import axios from "axios";
 import Data from './data';
 import { HilbertChromosome, } from './HilbertChromosome'
+import { fromRegion } from './regions'
 
 // function to generate cross scale narrations for a provided region.
 async function calculateCrossScaleNarration(selected, layers) {
@@ -8,12 +9,17 @@ async function calculateCrossScaleNarration(selected, layers) {
   
   let orders = Array.from({length: 11}, (a, i) => i + 4);
 
+  // use standard way of getting the hilbert range for this region
+  // sometimes selected region is a gene so it is bigger or smaller than a region
+  // this will convert it to a hilbert region
+  selected = fromRegion(selected)
+
   // get hilbert ranges for the selected genomic region
   const getRange = (selected, order) => {
     const hilbert = HilbertChromosome(order)
     const chrm = selected.chromosome
-    const start = selected.start
-    const stop = start + 4 ** (14 - selected.order)
+    const start = selected.regionStart
+    const stop = selected.regionEnd //start + 4 ** (14 - selected.order)
     let range = hilbert.fromRegion(chrm, start, stop-1)
     return range
   }
@@ -189,16 +195,6 @@ function narrateRegion(selected, order) {
 export default async function layerSuggestion(data, layers) {
   const fetchData = Data({debug: false}).fetchData;
   let orderRange = [4, 14]
-
-  // get hilbert ranges for the genomic region
-  const getRange = (segment, order) => {
-    const hilbert = HilbertChromosome(order)
-    const chrm = segment.chromosome
-    const start = segment.start
-    const stop = start + 4 ** (14 - segment.order)
-    let range = hilbert.fromRegion(chrm, start, stop-1)
-    return range
-  }
 
   const inViewData = data?.data.filter(d => d.inview)
   if(inViewData?.length > 0) {

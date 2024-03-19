@@ -1,6 +1,7 @@
 // function to generate simsearch results for a provided region with Genomic Narration tool. 
 import axios from "axios";
 import allFactors from './SimSearchFactors.json'
+import { fromRegion } from '../../lib/regions'
 
 export default function SimSearchRegion(selected, order, layer, setSearchByFactorInds, factors, simSearchMethod) {
   const maxSimSearchOrder = 11
@@ -24,9 +25,8 @@ export default function SimSearchRegion(selected, order, layer, setSearchByFacto
 
       let url = "https://explore.altius.org:5001/simsearch"
 
-      const chromosome = selected.chromosome
-      const start = selected.start
-      const stop = start + 1
+      const { chromosome, start, end } = fromRegion(selected)
+      // const end = start + 1
 
       let selectedFactors = ''
       if(simSearchMethod == "Region") {
@@ -37,7 +37,7 @@ export default function SimSearchRegion(selected, order, layer, setSearchByFacto
       }
 
       const postBody = {
-        location: `${chromosome}:${start}-${stop}`,
+        location: `${chromosome}:${start}-${end}`,
         includedFactors: JSON.stringify(includedFactors),
         selectedFactors: selectedFactors,
         roiURL: roiURL,

@@ -11,6 +11,10 @@ export function parsePosition(coords) {
   return { chromosome, start, end }
 }
 
+export function fromRegion(region, order) {
+  return fromPosition(region.chromosome, region.start, region.end, order || region.order)
+}
+
 export function fromCoordinates(coords) {
   const parsed = parsePosition(coords)
   return fromPosition(parsed.chromosome, parsed.start, parsed.end)
@@ -47,6 +51,8 @@ export function fromPosition(chromosome, start, end, order) {
   let hit = hilbert.get2DPoint(pos, chromosome)
   hit.start = start
   hit.end = end
+  hit.regionStart = hilbertPosToOrder(hit.i, { from: order, to: 14 })
+  hit.regionEnd =  hilbertPosToOrder(hit.i+1, { from: order, to: 14 })
   return hit
 }
 
@@ -58,6 +64,8 @@ export function urlify(region) {
       chromosome: region.chromosome,
       start: region.start,
       end: region.end,
+      regionStart: region.regionStart,
+      regionEnd: region.regionEnd,
       i: region.i,
       order: region.order,
       x: region.x,

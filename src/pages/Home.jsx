@@ -2,7 +2,7 @@ import {useEffect, useState, useRef, useCallback, useMemo} from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import Data from '../lib/data';
-import { urlify, jsonify, fromPosition } from '../lib/regions'
+import { urlify, jsonify, fromPosition, fromCoordinates } from '../lib/regions'
 import { HilbertChromosome, checkRanges } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
 import { calculateCrossScaleNarration, narrateRegion } from '../lib/csn'
@@ -208,20 +208,13 @@ function Home() {
 
   const processSimSearchResults = useCallback((order, result) => {
     setSimSearch(result)
-    let hilbert = HilbertChromosome(order)
     let similarRegions = result?.simSearch
     if(similarRegions && similarRegions.length)  {
       const similarRanges = similarRegions.map((d) => {
-        const coords = d.coordinates
-        const chrm = coords.split(':')[0]
-        const start = coords.split(':')[1].split('-')[0]
-        const stop = coords.split(':')[1].split('-')[1]
-        let range = hilbert.fromRegion(chrm, start, stop-1)[0]
-        range.end = +stop
-        return range
+        return fromCoordinates(d.coordinates)
       })
-      console.log("similar regions", similarRegions)
-      console.log("similar ranges", similarRanges)
+      // console.log("similar regions", similarRegions)
+      // console.log("similar ranges", similarRanges)
 
       setSimilarRegions(similarRanges)
     } else {
