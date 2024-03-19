@@ -183,6 +183,16 @@ function Home() {
     selectedRef.current = selected;
   }, [selected]);
 
+  useEffect(() => {
+    if(!initialSelectedRegion) {
+      // TODO: need a reliable way to clear state when deselecting a region
+      setSelected(null)
+      setSimilarRegions([])
+      setGenesetEnrichment(null)
+      setCrossScaleNarration([])
+    }
+  }, [initialSelectedRegion])
+
    // the hover can be null or the data in a hilbert cell
   const [hover, setHover] = useState(null)
   const [lastHover, setLastHover] = useState(null)
@@ -294,7 +304,6 @@ function Home() {
     const params = new URLSearchParams();
     if (newRegionSet) params.set('regionset', newRegionSet);
     if (newSelected) params.set('region', urlify(newSelected));
-    console.log("update url", newRegionSet, newSelected)
     navigate({ search: params.toString() }, { replace: true });
   }, [navigate]);
 
@@ -409,6 +418,7 @@ function Home() {
       } else if(simSearchMethod == "Region") {
         SimSearchRegion(selected, selected.order, layer, setSearchByFactorInds, newSearchByFactorInds, simSearchMethod).then((regionResult) => {
           processSimSearchResults(selected.order, regionResult)
+          console.log("REGION RESULT", regionResult)
           GenesetEnrichment(regionResult.simSearch.slice(1), zoom.order).then((enrichmentResult) => {
             setGenesetEnrichment(enrichmentResult)
           })

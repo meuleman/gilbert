@@ -5,9 +5,11 @@ import GilbertLogo from '../assets/gilbert-logo.svg?react';
 const LogoNav = () => {
   return (
     <div className="logo-nav">
-      <Link to="/">
+      {/* <Link to="/"> */}
+      <a href="/">
         <GilbertLogo height="50" width="auto" />
-      </Link>
+      </a>
+      {/* </Link> */}
     </div>
   );
 }

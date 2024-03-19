@@ -48,11 +48,13 @@ CSNSankey.propTypes = {
   width: PropTypes.number.isRequired,
   height: PropTypes.number.isRequired,
   paths: PropTypes.array.isRequired,
+  filteredPaths: PropTypes.array.isRequired,
   order: PropTypes.number.isRequired,
   tree: PropTypes.array,
   csn: PropTypes.object,
   csnThreshold: PropTypes.number,
   shrinkNone: PropTypes.bool,
+  filter: PropTypes.array,
   onFilter: PropTypes.func
 };
 
@@ -61,11 +63,13 @@ export default function CSNSankey({
   width,
   height,
   paths,
+  filteredPaths, // really only use this to check validity of filter logic
   tree,
   order,
   csn,
   csnThreshold = 0,
   shrinkNone = true,
+  filter = [],
   onFilter=() => {},
 }) {
 
@@ -262,7 +266,6 @@ export default function CSNSankey({
             let nodes = s.nodes.filter(d => d.order == order && d.field != "None")
             // console.log("space out", nodes, y0, y1)
             let dy = none.originalHeight/nodes.length
-            console.log("dy", none, dy)
             nodes.forEach((n,i) => {
               n.y0 = n.y0 + i*dy
               n.y1 = n.y1 + i*dy
@@ -279,6 +282,21 @@ export default function CSNSankey({
         })
       }
 
+
+      // figure out which links are also filtered
+      filteredPaths.forEach(path => {
+        range(4, 14).forEach(o => {
+          let p = path.path.find(d => d?.order == o)
+          let np = path.path.find(d => d?.order == o + 1)
+          let field = p?.field.field || "None"
+          let nfield = np?.field.field || "None"
+          let l = s.links.find(l => l.source.order == o && l.source.field == field && l.target.order == o+1 && l.target.field == nfield)
+          if(l) {
+            l.highlight = true
+          }
+        })
+      })
+
       setSank(s)
     }
   }, [ paths, tree, order, csnThreshold, shrinkNone, width, height])
@@ -286,15 +304,22 @@ export default function CSNSankey({
   const handleNodeFilter = useCallback((node) => {
     console.log("handling filter", node)
     onFilter((oldNodeFilter) => {
-      if(oldNodeFilter.find(n => n.order == node.order && n.field.field == node.field.field)) {
-        const filtered = oldNodeFilter.filter(n => n.order != node.order && n.field.field != node.field.field)
+      if(oldNodeFilter.find(n => n.id == node.id)) {
+        const filtered = oldNodeFilter.filter(n => n.id != node.id)
         console.log("filtering out", filtered)
         return [...filtered]
       } else {
-        return [...oldNodeFilter, node]
+        // check that any of the possible paths go thru the node
+        const found = filteredPaths.filter(p => p.path.find(d => d?.order == node.order && d?.field?.field == node.field))
+        console.log("paths", found.length)
+        if(found.length) { 
+          return [...oldNodeFilter, node]
+        } else {
+          return [node]
+        }
       }
     })
-  }, [onFilter])
+  }, [onFilter, filteredPaths])
 
 
   return (
@@ -303,43 +328,53 @@ export default function CSNSankey({
         console.log("sankey", sank)
       }}>
       <g className="orders">
-        {range(4, 15).map((order, i) => {
-          let x = sank.nodes.find(d => d.order == order)?.x0
-          return <text key={i} x={x} y={10} dy={".35em"}>Order: {order}</text>
+        {range(4, 15).map((o, i) => {
+          let x = sank.nodes.find(d => d.order == o)?.x0
+          return <text 
+            key={i} 
+            x={x} 
+            y={10} 
+            fontWeight={o == order ? "bold" : "normal"}
+            dy={".35em"}>
+              Order: {o}
+            </text>
         })
         }
       </g>
       <g className="links">
         {sank.links.map(link => {
           // check if link connects nodes in the csn
-          let highlight = false
-          let sn = csn.path.find(d => d.order == link.source.order && d.field.field == link.source.field)
-          if(link.source.field == "None") {
-            if(csn.path.filter(d => d.order == link.source.order).length < 1)
-              sn = true
-          }
-          let tn = csn.path.find(d => d.order == link.target.order && d.field.field == link.target.field)
-          if(link.target.field == "None") {
-            if(csn.path.filter(d => d.order == link.target.order).length < 1)
-              tn = true
-          }
-          if(tn && sn) {
-            highlight = true
-          } 
-          
           return <path 
             key={link.index} 
             onClick={() => console.log("LINK", link, sankeyLinkPath(link, 0, true))}
             d={sankeyLinkPath(link)}
-            fill={"#aaa" }
+            fill={link.highlight ? "#aaa" : "#ccc" }
             stroke={"none"}
             // d={useHorizontal ? sankeyLinkHorizontal()(link) : sankeyLinkPath(link)}
             // fill={useHorizontal ? "none" : "#aaa" }
             // stroke={useHorizontal ? "#aaa" : "none"}
             // strokeWidth={useHorizontal ? Math.max(1, link.width) : 0 }
-            opacity={highlight ? 1: 0.5}
+            opacity={link.highlight ? .65: 0.45}
             />
         })}
+      </g>
+      <g className="highlight-path">
+        {range(4, 14).map((o) => {
+          let p = csn.path.find(d => d.order == o)
+          let np = csn.path.find(d => d.order == o+1)
+          let field = p ? p.field.field : "None"
+          let nfield = np ? np.field.field : "None"
+          let l = sank.links.find(l => l.source.order == o && l.source.field == field && l.target.order == o+1 && l.target.field == nfield)
+          if(!l) return null
+          return <path
+            key={l.index}
+            d={sankeyLinkHorizontal()(l)}
+            strokeWidth="2"
+            stroke="gray"
+            fill="none"
+          ></path>
+        })}
+
       </g>
       <g className="nodes">
         {sank.nodes.map(node => {
@@ -352,6 +387,7 @@ export default function CSNSankey({
               fill={ node.color }
               stroke="black"
               fillOpacity="0.75"
+              strokeWidth={filter.find(d => d.id == node.id) ? 2 : 1 }
               onClick={() => handleNodeFilter(node)}
               />
         })}
@@ -361,7 +397,8 @@ export default function CSNSankey({
           return <text
             key={node.id} 
               x={node.x1 + 10} 
-              y={node.y0 + (node.y1 - node.y0)/2} 
+              // y={node.y0 + (node.y1 - node.y0)/2} 
+              y={node.y0 + 15} 
               dy={".35em"}
               fill="#333"
               // fill={ node.color }

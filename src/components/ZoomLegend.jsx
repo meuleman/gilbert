@@ -181,7 +181,7 @@ const ZoomLegend = ({
 
   // zoom to cross-scale narration region and change layer
   const handleSelectStation = useCallback((d) => { 
-    const regions = crossScaleNarration.filter(n => n?.order == d.order)
+    const regions = crossScaleNarration?.path?.filter(n => n?.order == d.order)
     if(regions.length == 1) {
       const orderRegion = regions[0]
       const region = orderRegion.region
@@ -288,7 +288,7 @@ const ZoomLegend = ({
         width: "30px",
         height: "1px",
         borderBottom: "2px solid black",
-        top: `${orderHeight * (orderRaw - orderDomain[0])}px`,
+        top: `${orderHeight * (orderRaw - orderDomain[0]) - 1.5}px`,
         zIndex: 1000
       }}></div>
       <div className="zoom-legend-orders" style={{

@@ -51,6 +51,7 @@ const RegionDetail = () => {
   const [layersData, setLayersData] = useState([])
   const [crossScaleNarration, setCrossScaleNarration] = useState(null)
   const [crossScaleNarrationUnique, setCrossScaleNarrationUnique] = useState(null)
+  const [crossScaleNarrationUnfiltered, setCrossScaleNarrationUnfiltered] = useState([])
   const [crossScaleNarrationFiltered, setCrossScaleNarrationFiltered] = useState([])
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
   const [csnSlice, setCsnSlice] = useState(20)
@@ -173,16 +174,32 @@ const RegionDetail = () => {
       let filteredPaths = members
         .slice(0, csnSlice).flat()
         .filter(d => d.path.filter(p => !!p).filter(p => p.field.value > csnThreshold).length === d.path.filter(p => !!p).length)
+      
+      // "unfiltered" may be a misnomer, but its not the sankey node filter
+      setCrossScaleNarrationUnfiltered(filteredPaths)
         // we want to filter to only paths that match the nodeFilter if it has nodes in it
         // the nodeFilter can have 1 or more nodes. the nodes define an order and a field
         // we only let paths through if they have the field at that order
       if(nodeFilter.length) {
-        filteredPaths = filteredPaths.filter(d => d.path.filter(p => !!p).filter(p => nodeFilter.find(n => n.order == p.order && n.field == p.field.field)).length === nodeFilter.length)
+        // filteredPaths = filteredPaths.filter(d => d.path.filter(p => !!p).filter(p => nodeFilter.find(n => n.order == p.order && n.field == p.field.field)).length === nodeFilter.length)
+        filteredPaths = filteredPaths.filter(d => {
+          let ff = nodeFilter.map(nf => {
+            return d.path.find(p => p?.order == nf.order && p?.field.field == nf.field)
+              || (nf.field == "None" && !d.path.find(p => p?.order == nf.order))
+          })
+          return ff.filter(d => d).length
+        })
       } 
       setCrossScaleNarrationFiltered(filteredPaths)
       let topUniques = uniquePaths.slice(0, csnSlice)
       if(nodeFilter.length) {
-        topUniques = topUniques.filter(d => d.path.filter(p => !!p).filter(p => nodeFilter.find(n => n.order == p.order && n.field == p.field.field)).length === nodeFilter.length)
+        topUniques = topUniques.filter(d => {
+          let ff = nodeFilter.map(nf => {
+            return d.path.find(p => p?.order == nf.order && p?.field.field == nf.field)
+              || (nf.field == "None" && !d.path.find(p => p?.order == nf.order))
+          })
+          return ff.filter(d => d).length
+        })
       }
       // console.log("top uniques", topUniques)
       setTopUniquePaths(topUniques)
@@ -291,11 +308,13 @@ const RegionDetail = () => {
                   width={stripsWidth}
                   height={800}
                   order={region.order}
-                  paths={crossScaleNarrationFiltered}
+                  paths={crossScaleNarrationUnfiltered}
+                  filteredPaths={crossScaleNarrationFiltered}
                   tree={crossScaleNarration?.tree}
                   csn={csn}
                   csnThreshold={csnThreshold}
                   shrinkNone={shrinkNone}
+                  filter={nodeFilter}
                   onFilter={setNodeFilter} />
 
               </div>
