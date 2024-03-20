@@ -1,0 +1,10 @@
+
+.region-summary .factor-list {
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+}
+.region-summary .factor-list .factor {
+  padding: 2px;
+}
+

@@ -23,6 +23,7 @@ import RegionThumb from '../components/RegionThumb';
 import RegionStrip from '../components/RegionStrip';
 import Sankey from '../components/Narration/Sankey';
 import CSNLine from '../components/Narration/Line';
+import Summary from '../components/Narration/Summary';
 import Power from '../components/Narration/Power';
 
 import './RegionDetail.css';
@@ -346,6 +347,11 @@ const RegionDetail = () => {
               })}
             </div>
             
+            <Summary
+              order={region.order}
+              paths={topUniquePaths}
+              onHover={(c) => setCrossScaleNarrationIndex(topUniquePaths.findIndex(d => d == c))}
+            />
             <div>
               <b>Explore narrations of {topUniquePaths.length} unique top paths:</b>
             </div>
@@ -353,6 +359,10 @@ const RegionDetail = () => {
               <input id="csn-slider" type='range' min={0} max={topUniquePaths.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
               <label htmlFor="csn-slider">Narration: {crossScaleNarrationIndex}</label>
             </div>
+            <CSNSentence
+              crossScaleNarration={csn}
+              order={region.order}
+            />
             <div className="thumbs">
               {range(4, csnMaxOrder + 1).map((order, i) => {
                 let d;
@@ -379,10 +389,7 @@ const RegionDetail = () => {
                 </div> )
               })}
             </div>
-            <CSNSentence
-              crossScaleNarration={csn}
-              order={region.order}
-            />
+            
             <Power csn={csn} width={300} height={300} />
 
             

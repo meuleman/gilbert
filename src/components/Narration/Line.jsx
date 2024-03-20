@@ -79,6 +79,7 @@ export default function Line({
                 dy=".2em"
                 fontSize="12"
                 fontFamily="monospace"
+                fontWeight={o == order ? "bold" : "normal"}
                 fill="#333"
                 // fill={ p ? p.field.color : "white"}
                 // stroke={ p ? "black" : "lightgray"}
