@@ -15,6 +15,8 @@ const SettingsPanel = ({
   crossScaleNarrationIndex=0,
   maxCSNIndex,
   handleChangeCSNIndex=()=>{},
+  csnMethod,
+  handleCsnMethodChange=()=>{},
 } = {}) => {
   return (
     <div className="settings-panel">
@@ -42,6 +44,15 @@ const SettingsPanel = ({
         <label>
           <input type='range' min={0} max={maxCSNIndex} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
           Cross Scale Narration {crossScaleNarrationIndex}
+        </label>
+        <label>
+          <select onChange={handleCsnMethodChange}>
+            <option value="sum">Sum</option>
+            <option value="normalizedSum">Normalized Sum</option>
+            <option value="max">Max</option>
+            {/* <option value="rank">Rank</option> */}
+          </select>
+          CSN Method
         </label>
       </div>
     </div>

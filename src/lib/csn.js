@@ -4,7 +4,7 @@ import { HilbertChromosome, } from './HilbertChromosome'
 import { fromRegion } from './regions'
 
 // function to generate cross scale narrations for a provided region.
-async function calculateCrossScaleNarration(selected, layers) {
+async function calculateCrossScaleNarration(selected, csnMethod='sum', layers) {
   const fetchData = Data({debug: false}).fetchData;
   
   let orders = Array.from({length: 11}, (a, i) => i + 4);
@@ -102,8 +102,11 @@ async function calculateCrossScaleNarration(selected, layers) {
       // function to sum through nodes and collect score at leaves
       let sumTree = (scoresThroughNode) => {
         tree.forEach((nodes, i) => {
-          let nodeValue = Math.sqrt(orderUpSegmentData[i].topField.value)  // normalize score
-          scoresThroughNode[i] += nodeValue
+          let nodeValue = orderUpSegmentData[i].topField.value
+          if(csnMethod === 'sum') scoresThroughNode[i] += nodeValue
+          else if(csnMethod === 'normalizedSum') scoresThroughNode[i] += Math.sqrt(nodeValue)
+          else if(csnMethod === 'max') scoresThroughNode[i] = Math.max(scoresThroughNode[i], nodeValue)
+          // scoresThroughNode[i] += nodeValue
           let children = nodes.slice(-4)
           if (children.length == 4) {children.forEach(c => scoresThroughNode[c] += scoresThroughNode[i])}
         })

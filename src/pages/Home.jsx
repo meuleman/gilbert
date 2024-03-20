@@ -176,6 +176,7 @@ function Home() {
   const [selectedNarration, setSelectedNarration] = useState(null)
   const [crossScaleNarration, setCrossScaleNarration] = useState(new Array(1).fill({'path': []}))
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
+  const [csnMethod, setCsnMethod] = useState("sum")
   const [genesetEnrichment, setGenesetEnrichment] = useState(null)
 
   const selectedRef = useRef(selected);
@@ -318,9 +319,9 @@ function Home() {
   }, [regionset, selected, setExampleRegions, updateUrlParams])
 
   // cross scale narration
-  const handleChangeCSNIndex = (e) => {
-    setCrossScaleNarrationIndex(e.target.value)
-  }
+  const handleChangeCSNIndex = (e) => setCrossScaleNarrationIndex(e.target.value)
+  // function to handle the change of the method in which CSN paths are scored
+  const handleCsnMethodChange = (e) => setCsnMethod(e.target.value)
   // function to subset our CSN results to just unique paths
   function findUniquePaths(paths) {
     const uniquePaths = []
@@ -347,7 +348,7 @@ function Home() {
   useEffect(() => {
     setCrossScaleNarrationIndex(0)
     if(selected){
-      calculateCrossScaleNarration(selected, [
+      calculateCrossScaleNarration(selected, csnMethod, [
         DHS_Components_Sfc_max,
         Chromatin_States_Sfc_max,
         TF_Motifs_Sfc_max,
@@ -364,7 +365,7 @@ function Home() {
         setLayer(layerOrderNatural[zoomRef.current.order])
       }
     }
-  }, [selected])  // layerOrderNatural
+  }, [selected, csnMethod])  // layerOrderNatural
 
   const [csn, setCsn] = useState([])
   useEffect(() => {
@@ -766,6 +767,8 @@ function Home() {
             handleChangeCSNIndex={handleChangeCSNIndex}
             maxCSNIndex={crossScaleNarration.length - 1}
             crossScaleNarrationIndex={crossScaleNarrationIndex}
+            csnMethod={csnMethod}
+            handleCsnMethodChange={handleCsnMethodChange}
           /> : null }
         </div>
       </div>

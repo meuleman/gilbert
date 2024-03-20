@@ -54,6 +54,7 @@ const RegionDetail = () => {
   const [crossScaleNarrationUnfiltered, setCrossScaleNarrationUnfiltered] = useState([])
   const [crossScaleNarrationFiltered, setCrossScaleNarrationFiltered] = useState([])
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
+  const [csnMethod, setCsnMethod] = useState('sum')
   const [csnSlice, setCsnSlice] = useState(20)
   
 
@@ -138,7 +139,7 @@ const RegionDetail = () => {
       })
 
 
-      calculateCrossScaleNarration(rs[1], [
+      calculateCrossScaleNarration(rs[1], csnMethod, [
         layers.find(d => d.name == "DHS Components"),
         layers.find(d => d.name == "Chromatin States"),
         layers.find(d => d.name == "TF Motifs"),
@@ -150,7 +151,7 @@ const RegionDetail = () => {
         setMaxUniquePaths(uniques.uniquePaths.length)
       })
     }
-  }, [region, fetchData])
+  }, [region, fetchData, csnMethod])
 
   const [csn, setCsn] = useState({})
   const [topUniquePaths, setTopUniquePaths] = useState([])
@@ -239,9 +240,8 @@ const RegionDetail = () => {
     setZoomedRegion(zr)
   }, [region])
 
-  const handleChangeCSNIndex = (e) => {
-    setCrossScaleNarrationIndex(e.target.value)
-  }
+  const handleChangeCSNIndex = (e) => setCrossScaleNarrationIndex(e.target.value)
+  const handleCsnMethodChange = (e) => setCsnMethod(e.target.value)
 
   const handleChangeCSNSlice = useCallback((e) => {
     setCsnSlice(e.target.value)
@@ -302,6 +302,16 @@ const RegionDetail = () => {
                   <br></br>
                   <input id="csn-threshold-slider" type='range' min={0} max={3} step="0.1" value={csnThreshold} onChange={handleChangeCSNThreshold} />
                   <label htmlFor="csn-threshold-slider">Factor score threshold: {csnThreshold}</label>
+                  <br></br>
+                  
+                  <label>
+                    <select id="csn-method-select" onChange={handleCsnMethodChange}>
+                      <option value="sum">Sum</option>
+                      <option value="normalizedSum">Normalized Sum</option>
+                      <option value="max">Max</option>
+                    </select>
+                  </label>
+                  <label htmlFor="csn-method-select">Method Select</label>
                   <br></br>
                 </div>
                 <Sankey 
