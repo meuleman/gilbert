@@ -82,6 +82,19 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers) {
     })
 
     let bestPaths = topFieldsAcrossLayers.then((response) => {
+      // // rank segments in each order against each other
+      // let orderSortedValues = {}
+      // orders.forEach(o => {
+      //   let orderValues = response.filter(d => d.order === o).map(d => d.topField.value)
+      //   let sortedOrderValues = orderValues.sort((a, b) => b - a)
+      //   orderSortedValues[o] = sortedOrderValues
+      // })
+      // response = response.map((d, i) => {
+      //   let numOrderSegments = orderSortedValues[d.order].length
+      //   d.topField.rank = (numOrderSegments - orderSortedValues[d.order].indexOf(d.topField.value)) / numOrderSegments
+      //   return d
+      // })
+
       // from order of selected segment to 14...
       let ordersUp = orders.slice(selected.order - Math.min(...orders))
       let orderUpSegmentData = response.filter(d => ordersUp.includes(d.order))
