@@ -145,7 +145,7 @@ const RegionDetail = () => {
         layers.find(d => d.name == "Chromatin States"),
         layers.find(d => d.name == "TF Motifs"),
         layers.find(d => d.name == "Repeats"),
-      ]).then(crossScaleResponse => {
+      ], [layers.find(d => d.name == "Variants (Categorical)")]).then(crossScaleResponse => {
         setCrossScaleNarration(crossScaleResponse)
         let uniques = findUniquePaths(crossScaleResponse.paths)
         setCrossScaleNarrationUnique(uniques)

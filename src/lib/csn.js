@@ -4,7 +4,7 @@ import { HilbertChromosome, } from './HilbertChromosome'
 import { fromRegion } from './regions'
 
 // function to generate cross scale narrations for a provided region.
-async function calculateCrossScaleNarration(selected, csnMethod='sum', layers) {
+async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[]) {
   const fetchData = Data({debug: false}).fetchData;
   
   let orders = Array.from({length: 11}, (a, i) => i + 4);
@@ -65,6 +65,29 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers) {
       })
     }))
 
+    // collect variant data for selected range
+    let variantTopFields = Promise.all(variantLayers.map((layer, i) => {
+      // get range
+      const order = 14
+      const orderRange = getRange(selected, order)
+      return fetchData(layer, order, orderRange)
+        .then((response) => {
+          // top field per segment
+          const topFields = response.map(d => {
+            let topField = layer.fieldChoice(d)
+            // store layer as integer
+            d.layer = i
+            d.topField = topField
+            return d
+          })
+          return topFields
+        })
+        .catch((error) => {
+          console.error(`Error fetching CSN data: ${error}`);
+          return null
+        })
+    }))
+
     // find the best score for each segment across layers
     let topFieldsAcrossLayers = topFieldsAllLayers.then((response) => {
       let layerData = response
@@ -81,6 +104,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers) {
       return topFieldsAcrossLayers
     })
 
+    let leafIndexOffset
     let bestPaths = topFieldsAcrossLayers.then((response) => {
       // // rank segments in each order against each other
       // let orderSortedValues = {}
@@ -128,7 +152,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers) {
       scoresThroughNode = sumTree(scoresThroughNode)
 
       // sort paths
-      let leafIndexOffset = numSegments - numLeaves
+      leafIndexOffset = numSegments - numLeaves
       let leafScores = scoresThroughNode.slice(-numLeaves).map((s, i) => ({score: s, i: i + leafIndexOffset}))
       let leafScoresSorted = leafScores.sort((a, b) => b.score - a.score)
 
@@ -161,7 +185,26 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers) {
       })
       return {'paths': topLeafPaths, 'tree': tree}
     })
-    return bestPaths
+
+    // attach variant data to paths
+    let bestPathsWithVariants = Promise.all([bestPaths, variantTopFields]).then(([bestPathsResponse, variantTopFieldsResponse]) => {
+      if(variantTopFieldsResponse.length > 0) {
+        let paths = [...bestPathsResponse.paths]
+        // first we need to find the resolution of the paths
+        let pathRes = 4 ** (14 - maxOrderHit)
+        // only keep variants that are not null (we may want to do this earlier/when we combine variant layers)
+        let variantsFiltered = variantTopFieldsResponse[0].filter(d => d.topField.value !== null)
+        variantsFiltered.forEach(d => {
+          // find path/node it belongs to
+          let node = Math.floor((d.start - selected.start) / pathRes) + leafIndexOffset
+          let path = paths.find(d => d.node === node)
+          path.variants ? path.variants.push(d) : path.variants = [d]
+        })
+        bestPathsResponse.paths = paths
+      }
+      return bestPathsResponse
+    })
+    return bestPathsWithVariants
   }
 }
 

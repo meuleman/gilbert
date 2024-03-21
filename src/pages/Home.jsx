@@ -37,6 +37,7 @@ import DHS_Components_Sfc_max from '../layers/dhs_components_sfc_max'
 import Chromatin_States_Sfc_max from '../layers/chromatin_states_sfc_max';
 import TF_Motifs_Sfc_max from '../layers/tf_motifs_sfc_max'
 import Repeats_Sfc_max from '../layers/repeats_sfc_max'
+import Variants_Categorical from '../layers/variants_categorical'
 
 import RegionFilesSelect from '../components/Regions/RegionFilesSelect'
 // autocomplete
@@ -352,8 +353,8 @@ function Home() {
         DHS_Components_Sfc_max,
         Chromatin_States_Sfc_max,
         TF_Motifs_Sfc_max,
-        Repeats_Sfc_max
-      ]).then(crossScaleResponse => {
+        Repeats_Sfc_max,
+      ], [Variants_Categorical]).then(crossScaleResponse => {
         // filter to just unique paths
         const filteredPaths = findUniquePaths(crossScaleResponse.paths).slice(0, 100)
         setCrossScaleNarration(filteredPaths)
