@@ -20,7 +20,6 @@ export default {
   fill: "white"
 }
 
-
 // this function chooses the top value for a data point
 function topValue(d) {
   let data = d.data

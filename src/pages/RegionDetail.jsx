@@ -28,6 +28,7 @@ import Power from '../components/Narration/Power';
 
 import './RegionDetail.css';
 
+const decoder = new TextDecoder('ascii');
 
 const RegionDetail = () => {
   const navigate = useNavigate();
@@ -115,28 +116,28 @@ const RegionDetail = () => {
       // Sim search on DHS
       SimSearchRegion(rs[1], region.order, DHS_Components_Sfc_max, setFactorsDHS,[]).then((result) => {
         setSimSearchDHS(result)
-        let similarRegions = result?.simSearch
-        if(similarRegions && similarRegions.length)  {
-          const similarRanges = similarRegions.map((d) => {
-            const { chromosome, start, end } = parsePosition(d.coordinates)
-            let range = fromPosition(chromosome, start, end)
-            return range
-          })
-          // console.log("similar dhs ranges", similarRanges)
-        }
+        // let similarRegions = result?.simSearch
+        // if(similarRegions && similarRegions.length)  {
+        //   const similarRanges = similarRegions.map((d) => {
+        //     const { chromosome, start, end } = parsePosition(d.coordinates)
+        //     let range = fromPosition(chromosome, start, end)
+        //     return range
+        //   })
+        //   // console.log("similar dhs ranges", similarRanges)
+        // }
       })
       // Sim search on Chromatin States
       SimSearchRegion(rs[1], region.order, Chromatin_States_Sfc_max, setFactorsChromatin, []).then((result) => {
         setSimSearchChromatin(result)
-        let similarRegions = result?.simSearch
-        if(similarRegions && similarRegions.length)  {
-          const similarRanges = similarRegions.map((d) => {
-            const { chromosome, start, end } = parsePosition(d.coordinates)
-            let range = fromPosition(chromosome, start, end)
-            return range
-          })
-          // console.log("similar chromatin ranges", similarRanges)
-        }
+        // let similarRegions = result?.simSearch
+        // if(similarRegions && similarRegions.length)  {
+        //   const similarRanges = similarRegions.map((d) => {
+        //     const { chromosome, start, end } = parsePosition(d.coordinates)
+        //     let range = fromPosition(chromosome, start, end)
+        //     return range
+        //   })
+        //   // console.log("similar chromatin ranges", similarRanges)
+        // }
       })
 
 
@@ -264,6 +265,28 @@ const RegionDetail = () => {
     })
   }, [setNodeFilter])
 
+  const [o14, setOrder14Data] = useState(null)
+  useEffect(() => {
+    if(region.order == 14) {
+      let n = layersData.find(d => d.layer.name == "Nucleotides")
+      console.log("n", n)
+      let c = layersData.find(d => d.layer.datasetName == "variants_favor_categorical")
+      console.log("c", c)
+      let apc = layersData.find(d => d.layer.datasetName == "variants_favor_apc")
+      console.log("apc", apc)
+      if(n && c && apc) {
+        setOrder14Data({
+          ndata: n.data[1],
+          n,
+          cdata: c.data[1], 
+          c,
+          apcdata: apc.data[1],
+          apc,
+        })
+      }
+    }
+  }, [region, layersData])
+
 
   return (
     <div className="region-detail">
@@ -283,6 +306,31 @@ const RegionDetail = () => {
           <div className="section-content">
             Order: {region.order}
             {/* {JSON.stringify(region)} */}
+            {o14 && <div className="order-14-data">
+              <span className="nucleotides">
+                Nucleotide: {decoder.decode(o14.ndata.bytes)[0]}
+              </span>
+              <span className="categorical">
+                <h4>FAVOR Categorical</h4>
+                {Object.keys(o14.cdata.data).map(factor => {
+                  let color = o14.c.layer.fieldColor(factor)
+                  let value = o14.cdata.data[factor]
+                  return <div className="factor" key={factor} style={{opacity: value > 0 ? 1 : 0.35, backgroundColor: value > 0 ? "white" : "#f0f0f0"}}>
+                    <b style={{color}}>{factor}</b><span> {value} </span>
+                  </div>
+                })}
+              </span>
+              <span className="apc">
+                <h4>FAVOR aPC</h4>
+                {Object.keys(o14.apcdata.data).map(factor => {
+                  let color = o14.apc.layer.fieldColor(factor)
+                  let value = o14.apcdata.data[factor]
+                  return <div className="factor" key={factor} style={{opacity: value > 0 ? 1 : 0.35, backgroundColor: value > 0 ? "white" : "#f0f0f0"}}>
+                    <b style={{color}}>{factor}</b><span> {value.toFixed(2)} </span>
+                  </div>
+                })}
+              </span>
+            </div>}
           </div>
         </div>
 
@@ -477,10 +525,19 @@ const RegionDetail = () => {
             </div>
             :
             <div className="similar-chromatin-regions">
-                {simSearchChromatin ? <SelectedModalSimSearch
+                {/* {simSearchChromatin ? <SelectedModalSimSearch
                   simSearch={simSearchChromatin}
                   searchByFactorInds={factorsChromatin}
                   handleFactorClick={(factor) => {console.log("Chromatin factor click", factor)}}
+                  onZoom={(region) => { console.log("Chromatin on zoom", region)}}
+                  selectedOrder={region?.order}
+                  setRegion={(region) => {console.log("Chromatin set region", region)}}
+                  onHover={(region) => {setSimilarZoomedRegion(zoomARegion(region))}}
+                /> : <div>No similar regions found</div>} */}
+                {simSearchChromatin ? <SimSearchResultList
+                  simSearch={simSearchChromatin}
+                  searchByFactorInds={factorsChromatin}
+                  onFactorClick={(factor) => {console.log("Chromatin factor click", factor)}}
                   onZoom={(region) => { console.log("Chromatin on zoom", region)}}
                   selectedOrder={region?.order}
                   setRegion={(region) => {console.log("Chromatin set region", region)}}
@@ -491,11 +548,11 @@ const RegionDetail = () => {
           </div>
           {layersData && layersData.length && <div className="zoomed-region">
             Region zoomed to order {zoomedRegion?.order}
-            {zoomedRegion && region && similarBy == "dhs" && <RegionStrip region={zoomedRegion} segments={32} layer={layersData[5].layer} width={500} height={40} /> }
-            {zoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={zoomedRegion} segments={32} layer={layersData[9].layer} width={500} height={40} /> }
+            {zoomedRegion && region && similarBy == "dhs" && <RegionStrip region={zoomedRegion} segments={32} layer={layers.find(d => d.name == "DHS Components")} width={500} height={40} /> }
+            {zoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={zoomedRegion} segments={32} layer={layers.find(d => d.name == "Chromatin States")} width={500} height={40} /> }
             Hovered similar region zoomed to order {similarZoomedRegion?.order}
-            {similarZoomedRegion && region && similarBy == "dhs" && <RegionStrip region={similarZoomedRegion} segments={32} layer={layersData[5].layer} width={500} height={40} /> }
-            {similarZoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={similarZoomedRegion} segments={32} layer={layersData[9].layer} width={500} height={40} /> }
+            {similarZoomedRegion && region && similarBy == "dhs" && <RegionStrip region={similarZoomedRegion} segments={32} layer={layers.find(d => d.name == "DHS Components")} width={500} height={40} /> }
+            {similarZoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={similarZoomedRegion} segments={32} layer={layers.find(d => d.name == "Chromatin States")} width={500} height={40} /> }
           </div>}
         </div>
         

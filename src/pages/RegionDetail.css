@@ -137,3 +137,21 @@
 .region-detail #csn-slice-slider {
   width: 80%;
 }
+
+.region-detail .order-14-data {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 450px;
+}
+.region-detail .order-14-data .factor {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  border: 1px solid gray;
+  margin: 4px;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+ 
