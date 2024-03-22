@@ -12,6 +12,8 @@ import scaleCanvas from '../../lib/canvas'
 import { getOffsets } from "../../lib/segments"
 
 import nucleotides from '../../layers/nucleotides';
+import variants_categorical from '../../layers/variants_categorical';
+import variants_apc from '../../layers/variants_apc';
 
 
 import CanvasBase from '../CanvasBase';
@@ -98,11 +100,13 @@ Power.propTypes = {
   csn: PropTypes.object.isRequired,
   width: PropTypes.number.isRequired,
   height: PropTypes.number.isRequired,
+  sheight: PropTypes.number,
+  onData: PropTypes.func,
   // percent: PropTypes.number
 };
 
 
-function Power({ csn, width, height, sheight=30 }) {
+function Power({ csn, width, height, sheight=30, onData }) {
 
   const canvasRef = useRef(null);
   const canvasRef1D = useRef(null);
@@ -164,7 +168,11 @@ function Power({ csn, width, height, sheight=30 }) {
     if(csn && csn.path) {
       let lastRegion = null
       const orderPoints = range(4, 15).map((o) => {
-        const p = csn.path.find(d => d.order === o)
+        let p = csn.path.find(d => d.order === o)
+        if(o == 14 && csn.variants) {
+          const v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0]
+          p = { region: v, layer: v.layer, field: v.topField, order: 14 }
+        }
         const hilbert = new HilbertChromosome(o)
         const step = hilbert.step
         let region;
@@ -179,6 +187,10 @@ function Power({ csn, width, height, sheight=30 }) {
           let end = lastRegion.end
           if(o < 14) {
             let np = csn.path.find(d => d.order > o)
+            if(o == 13 && csn.variants) {
+              const v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0]
+              np = { region: v }
+            }
             if(np && np.region) {
               // if there is a path region at an order greater than the current missing path
               // we use that as the start and end so that we zoom in on the right square
@@ -200,7 +212,9 @@ function Power({ csn, width, height, sheight=30 }) {
         const points = hilbert.fromBbox(bbox)
         return {
           order: o,
-          layer: o == 14 ? nucleotides : p?.layer,
+          // layer: o == 14 ? nucleotides : p?.layer,
+          layer: o == 14 ? variants_categorical : p?.layer,
+          // layer: o == 14 ? variants_apc : p?.layer,
           region,
           p,
           points
@@ -210,11 +224,20 @@ function Power({ csn, width, height, sheight=30 }) {
       Promise.all(orderPoints.map(p => dataClient.fetchData(p.layer, p.order, p.points)))
         .then((responses) => {
           setData(responses.map((d,i) => {
+            const order = orderPoints[i].order
+            const layer = orderPoints[i].layer
+            const region = orderPoints[i].region
+            if(order == 14) {
+              // for now we need to calculate the topField
+
+                let topField = layer.fieldChoice(d.find(r => r.chromosome === region.chromosome && r.i == region.i))
+                region.topField = topField
+            }
             return {
-              order: orderPoints[i].order,
-              layer: orderPoints[i].layer,
+              order,
+              layer,
               points: orderPoints[i].points,
-              region: orderPoints[i].region,
+              region,
               p: orderPoints[i].p,
               data: d
             }
@@ -222,6 +245,11 @@ function Power({ csn, width, height, sheight=30 }) {
         })
     }
   }, [csn])
+
+  useEffect(() => {
+    if(data && onData)
+      onData(data)
+  }, [data, onData])
 
 
   const oscale = useMemo(() => scaleLinear().domain([0, 0.5]).range([1, 0]).clamp(true), [])

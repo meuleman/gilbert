@@ -75,8 +75,9 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           // top field per segment
           const topFields = response.map(d => {
             let topField = layer.fieldChoice(d)
+            topField.color = layer.fieldColor(topField.field)
             // store layer as integer
-            d.layer = i
+            d.layer = layer
             d.topField = topField
             return d
           })

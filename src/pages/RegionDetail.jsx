@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { range, max } from 'd3-array';
 
-import { showFloat, showPosition } from '../lib/display';
+import { showFloat, showPosition, showKb } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition, sameHilbertRegion } from '../lib/regions';
 import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
@@ -141,17 +141,69 @@ const RegionDetail = () => {
       })
 
 
-      calculateCrossScaleNarration(rs[1], csnMethod, [
+      const csnLayers = [
         layers.find(d => d.name == "DHS Components"),
         layers.find(d => d.name == "Chromatin States"),
         layers.find(d => d.name == "TF Motifs"),
         layers.find(d => d.name == "Repeats"),
-      ], [layers.find(d => d.name == "Variants (Categorical)")]).then(crossScaleResponse => {
-        setCrossScaleNarration(crossScaleResponse)
-        let uniques = findUniquePaths(crossScaleResponse.paths)
-        setCrossScaleNarrationUnique(uniques)
-        setMaxUniquePaths(uniques.uniquePaths.length)
-      })
+      ]
+      if(region.order < 14) {
+        calculateCrossScaleNarration(rs[1], csnMethod, csnLayers, [layers.find(d => d.name == "Variants (Categorical)")]).then(crossScaleResponse => {
+          setCrossScaleNarration(crossScaleResponse)
+          console.log("CSN", crossScaleResponse)
+          let uniques = findUniquePaths(crossScaleResponse.paths)
+          setCrossScaleNarrationUnique(uniques)
+          setMaxUniquePaths(uniques.uniquePaths.length)
+        })
+      } else if(region.order == 14) {
+        // we calculate the path up from the basepair and fetch each corresponding data
+        // we also fetch the order 14 data
+        const orders = range(14, 3, -1).map(o => {
+          const hilbert = new HilbertChromosome(o)
+          const rs = hilbert.fromRegion(region.chromosome, region.start, region.end-1)[0]
+          return rs
+        })
+        console.log("orders", orders)
+        const topFieldsAllLayers = Promise.all(orders.slice(1).map(orderRegion => {
+          return Promise.all(csnLayers.map((layer) => {
+            return fetchData(layer, orderRegion.order, [orderRegion])
+              .then((response) => {
+                // top field per segment
+                // console.log(layer, orderRegion.order, orderRegion, "response", response)
+                const topFields = response.map(d => {
+                  let topField = layer.fieldChoice(d)
+                  // store layer as integer
+                  d.layer = layer
+                  d.topField = topField
+                  return d
+                })
+                return topFields[0]
+              })
+              .catch((error) => {
+                console.error(`Error fetching CSN data: ${error}`);
+                return null
+              })
+            }))
+        }))
+        topFieldsAllLayers.then((response) => {
+          console.log("top fields all layers response", response)
+          const topFieldsByOrder = response.map((d, i) => {
+            let o = orders[i+1]
+            console.log(o.order, o, d)
+            // find the maximum topField.value in each element of d
+            let top = d.sort((a,b) => b.topField?.value - a.topField?.value)[0]
+            console.log("top", top)
+            if(top.topField.field) {
+              o.topField = top.topField
+              return {field: top.topField, layer: top.layer, order: o.order, region: o }
+            } else {
+              return {field: top.topField, layer: null, order: o.order, region: o }
+            }
+          })
+          console.log("top fields by order", topFieldsByOrder)
+          setCsn({ path: topFieldsByOrder })
+        })
+      }
     }
   }, [region, fetchData, csnMethod])
 
@@ -269,11 +321,11 @@ const RegionDetail = () => {
   useEffect(() => {
     if(region.order == 14) {
       let n = layersData.find(d => d.layer.name == "Nucleotides")
-      console.log("n", n)
+      // console.log("n", n)
       let c = layersData.find(d => d.layer.datasetName == "variants_favor_categorical")
-      console.log("c", c)
+      // console.log("c", c)
       let apc = layersData.find(d => d.layer.datasetName == "variants_favor_apc")
-      console.log("apc", apc)
+      // console.log("apc", apc)
       if(n && c && apc) {
         setOrder14Data({
           ndata: n.data[1],
@@ -286,6 +338,8 @@ const RegionDetail = () => {
       }
     }
   }, [region, layersData])
+
+  const [powerData, setPowerData] = useState(null)
 
 
   return (
@@ -338,7 +392,7 @@ const RegionDetail = () => {
           <h3>Cross-Scale Narration</h3>
           
           <div className="section-content">
-            <div className="csn-sankey">
+            {region?.order < 14 ? <div className="csn-sankey">
               <div >
                 <div className="sankey-editorial-controls">
                   <div className="checkboxes">
@@ -377,11 +431,11 @@ const RegionDetail = () => {
                   onFilter={setNodeFilter} />
 
               </div>
-            </div>
+            </div> : null }
             {/* <h3>Narration</h3> */}
-            
 
-            <div className="lines">
+
+            { region?.order < 14 ? <div className="lines">
               {topUniquePaths.map((d, i) => {
                 return <CSNLine 
                   key={i} 
@@ -393,52 +447,59 @@ const RegionDetail = () => {
                   onHover={(c) => setCrossScaleNarrationIndex(topUniquePaths.findIndex(d => d == c))}
                   />
               })}
-            </div>
+            </div> : null }
             
-            <Summary
+            { region?.order < 14 ? <Summary
               order={region.order}
               paths={topUniquePaths}
               onHover={(c) => setCrossScaleNarrationIndex(topUniquePaths.findIndex(d => d == c))}
-            />
-            <div>
+            /> : null }
+
+            { region?.order < 14 ? <div>
               <b>Explore narrations of {topUniquePaths.length} unique top paths:</b>
-            </div>
             <div className="narration-slider">
               <input id="csn-slider" type='range' min={0} max={topUniquePaths.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
               <label htmlFor="csn-slider">Narration: {crossScaleNarrationIndex}</label>
             </div>
+            </div> : null }
             <CSNSentence
               crossScaleNarration={csn}
               order={region.order}
             />
             <div className="thumbs">
-              {range(4, csnMaxOrder + 1).map((order, i) => {
-                let d;
+              {powerData && range(4, 15).map((order, i) => {
+                let d = powerData.find(d => d?.order == order)
+                // console.log("D", d)
                 let thumbSize = stripsWidth/12 - 48
-                if(csn && csn.path) d = csn.path.find(d => d?.order == order)
+                // if(csn && csn.path) d = csn.path.find(d => d?.order == order)
                 return (
                 <div key={i} className={`csn-layer ${region.order == order ? "active" : ""}`} style={{width: (thumbSize+19) + "px", maxWidth: (thumbSize+19) + "px"}}>
                   <div className="csn-layer-header">
                     <span className="csn-order-layer">
-                      {order}:<br></br> {d ? d.layer.name : ""} 
+                      {showKb(4 ** (14 - order))} (order {order})
+                      <br></br> 
+                      {d.layer ? d.layer.name : <span>N/A</span>} 
                     </span>
-                    {/* {d ? <span className="csn-layer-links">
+                    
+                  </div>
+                  
+                  { d.layer ? <div className="csn-field-value">
+                    <span className="csn-field" style={{color: d.layer.fieldColor(d.region.topField?.field)}}>{d.region.topField?.field}</span>  
+                    {/* <span className="csn-value">{showFloat(d.field.value)}</span> */}
+                  </div> : <span> N/A </span> }
+                  { d.layer ? <RegionThumb region={d.region} highlights={powerData.map(n => n.region)} layer={d.layer} width={thumbSize} height={thumbSize} />
+                  : <RegionThumb region={d.region} layer={null} width={thumbSize} height={thumbSize} />}
+                  {/* { layersData?.length && <RegionThumb region={d.region} highlights={csn.map(n => n.region)} layer={layersData[5].layer} width={200} height={200} />} */}
+                  {d ? <span className="csn-layer-links">
                       <Link to={`/?region=${urlify(d.region)}`}> 🗺️ </Link>
                       <Link to={`/region?region=${urlify(d.region)}`}> 📄 </Link>
-                    </span> : null} */}
-                  </div>
-                  { d ? <div className="csn-field-value">
-                    <span className="csn-field" style={{color: d.layer.fieldColor(d.field.field)}}>{d.field.field}</span>  
-                    {/* <span className="csn-value">{showFloat(d.field.value)}</span> */}
-                  </div> : null }
-                  { d ? <RegionThumb region={d.region} highlights={csn.path.filter(d => !!d).map(n => n.region)} layer={d.layer} width={thumbSize} height={thumbSize} />
-                  : <RegionThumb region={({})} layer={null} width={thumbSize} height={thumbSize} />}
-                  {/* { layersData?.length && <RegionThumb region={d.region} highlights={csn.map(n => n.region)} layer={layersData[5].layer} width={200} height={200} />} */}
+                    </span> : null}
                 </div> )
-              })}
+
+            })}
             </div>
             
-            <Power csn={csn} width={300} height={300} />
+            <Power csn={csn} width={300} height={300} onData={(data) => setPowerData(data)} />
 
             
 

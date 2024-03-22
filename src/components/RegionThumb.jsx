@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { scaleLinear } from 'd3-scale';
 import { zoomIdentity } from 'd3-zoom';
+// these 2 for renderPipes
+import { line } from 'd3-shape';
+import { getOffsets } from "../lib/segments"
 
 import { HilbertChromosome } from '../lib/HilbertChromosome';
 import Data from '../lib/data';
@@ -18,6 +21,43 @@ RegionThumb.propTypes = {
   width: PropTypes.number.isRequired,
   height: PropTypes.number.isRequired,
 };
+
+// TODO: this function is copied from Power.jsx
+function renderPipes(ctx, points, t, o, scales, stroke, sizeMultiple=1) {
+  let linef = line()
+    .x(d => d.x)
+    .y(d => d.y)
+    .context(ctx)
+  let i,d,xx,yy,dp1,dm1; 
+  let step = Math.pow(0.5, o)
+  let rw = scales.sizeScale(step) * t.k 
+  let srw = rw * sizeMultiple
+
+  for(i = 0; i < points.length; i++) {
+    d = points[i];
+    dm1 = points[i-1];
+    dp1 = points[i+1];
+    // scale and transform the coordinates
+    xx = t.x + scales.xScale(d.x) * t.k
+    yy = t.y + scales.yScale(d.y) * t.k
+    let ps = []
+    if(dm1) {
+      let { xoff, yoff } = getOffsets(d, dm1, rw, srw)
+      ps.push({x: xx + xoff, y: yy + yoff})
+    }
+    ps.push({x: xx, y: yy})
+    if(dp1) {
+      let { xoff, yoff } = getOffsets(d, dp1, rw, srw)
+      ps.push({x: xx + xoff, y: yy + yoff})
+    }
+
+    ctx.strokeStyle = stroke
+    ctx.lineWidth = srw
+    ctx.beginPath()
+    linef(ps)
+    ctx.stroke()
+  }
+}
 
 
 function RegionThumb({ region, highlights, layer, width, height }) {
@@ -137,7 +177,7 @@ function RegionThumb({ region, highlights, layer, width, height }) {
           let rw = scales.sizeScale(hstep) * t.k
           ctx.strokeRect(x - rw/2, y - rw/2, rw, rw)
         })
-      }
+      } 
 
       // render the region
       ctx.globalAlpha = 1 
@@ -149,6 +189,9 @@ function RegionThumb({ region, highlights, layer, width, height }) {
       let rw = scales.sizeScale(step) * t.k
       ctx.strokeRect(x - rw/2, y - rw/2, rw, rw)
 
+    } else if(points?.length) {
+      // render the empty pipes
+      renderPipes(ctx, points, transform, region.order, scales, "#eee", 0.25);
     }
   }, [region, points, data, layer, scales, zoomToBox])
 

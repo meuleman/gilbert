@@ -30,7 +30,13 @@ export default function Line({
   useEffect(() => {
     // console.log(csn, order)
     if(csn?.path){
-      const p =csn.path.filter(d => !!d).sort((a, b) => a.order - b.order) 
+      console.log("csn.path",csn)
+      const p = csn.path.filter(d => !!d).sort((a, b) => a.order - b.order) 
+      if(csn.variants && csn.variants.length) {
+        let v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0]
+        console.log("V",v)
+        p.push({field: v.topField, layer: v.layer, order: 14, region: v})
+      }
       setPath(p)
     }
   }, [csn, order])
@@ -62,6 +68,7 @@ export default function Line({
         {path.length && xScale ? <g>
           {range(4, 15).map(o => {
             let p = path.find(d => d.order == o)
+            
             return <g key={o}>
               <rect
                 x={xScale(o)}
