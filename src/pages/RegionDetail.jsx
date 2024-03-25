@@ -58,6 +58,13 @@ const RegionDetail = () => {
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
   const [csnMethod, setCsnMethod] = useState('sum')
   const [csnSlice, setCsnSlice] = useState(20)
+
+  const csnLayers = [
+    layers.find(d => d.name == "DHS Components"),
+    layers.find(d => d.name == "Chromatin States"),
+    layers.find(d => d.name == "TF Motifs"),
+    layers.find(d => d.name == "Repeats"),
+  ]
   
 
   const [stripsWidth, setStripsWidth] = useState(0);
@@ -140,13 +147,6 @@ const RegionDetail = () => {
         // }
       })
 
-
-      const csnLayers = [
-        layers.find(d => d.name == "DHS Components"),
-        layers.find(d => d.name == "Chromatin States"),
-        layers.find(d => d.name == "TF Motifs"),
-        layers.find(d => d.name == "Repeats"),
-      ]
       if(region.order < 14) {
         calculateCrossScaleNarration(rs[1], csnMethod, csnLayers, [layers.find(d => d.name == "Variants (Categorical)")]).then(crossScaleResponse => {
           setCrossScaleNarration(crossScaleResponse)
@@ -156,56 +156,74 @@ const RegionDetail = () => {
           setMaxUniquePaths(uniques.uniquePaths.length)
         })
       } else if(region.order == 14) {
-        // we calculate the path up from the basepair and fetch each corresponding data
-        // we also fetch the order 14 data
-        const orders = range(14, 3, -1).map(o => {
-          const hilbert = new HilbertChromosome(o)
-          const rs = hilbert.fromRegion(region.chromosome, region.start, region.end-1)[0]
-          return rs
-        })
-        console.log("orders", orders)
-        const topFieldsAllLayers = Promise.all(orders.slice(1).map(orderRegion => {
-          return Promise.all(csnLayers.map((layer) => {
-            return fetchData(layer, orderRegion.order, [orderRegion])
-              .then((response) => {
-                // top field per segment
-                // console.log(layer, orderRegion.order, orderRegion, "response", response)
-                const topFields = response.map(d => {
-                  let topField = layer.fieldChoice(d)
-                  // store layer as integer
-                  d.layer = layer
-                  d.topField = topField
-                  return d
-                })
-                return topFields[0]
-              })
-              .catch((error) => {
-                console.error(`Error fetching CSN data: ${error}`);
-                return null
-              })
-            }))
-        }))
-        topFieldsAllLayers.then((response) => {
-          console.log("top fields all layers response", response)
-          const topFieldsByOrder = response.map((d, i) => {
-            let o = orders[i+1]
-            console.log(o.order, o, d)
-            // find the maximum topField.value in each element of d
-            let top = d.sort((a,b) => b.topField?.value - a.topField?.value)[0]
-            console.log("top", top)
-            if(top.topField.field) {
-              o.topField = top.topField
-              return {field: top.topField, layer: top.layer, order: o.order, region: o }
-            } else {
-              return {field: top.topField, layer: null, order: o.order, region: o }
-            }
-          })
-          console.log("top fields by order", topFieldsByOrder)
-          setCsn({ path: topFieldsByOrder })
-        })
       }
     }
   }, [region, fetchData, csnMethod])
+
+  // We have special logic for making a "CSN" path from order 14
+  // it's mostly about finding the highest factor for every region "above" the order 14 region
+  // then we grab the layerdata at order 14 and add the variants
+  useEffect(() => {
+    if(region.order == 14) {
+      // we calculate the path up from the basepair and fetch each corresponding data
+      // we also fetch the order 14 data
+      const orders = range(14, 3, -1).map(o => {
+        const hilbert = new HilbertChromosome(o)
+        const rs = hilbert.fromRegion(region.chromosome, region.start, region.end-1)[0]
+        return rs
+      })
+      // console.log("orders", orders)
+      const topFieldsAllLayers = Promise.all(orders.slice(1).map(orderRegion => {
+        return Promise.all(csnLayers.map((layer) => {
+          return fetchData(layer, orderRegion.order, [orderRegion])
+            .then((response) => {
+              // top field per segment
+              // console.log(layer, orderRegion.order, orderRegion, "response", response)
+              const topFields = response.map(d => {
+                let topField = layer.fieldChoice(d)
+                // store layer as integer
+                d.layer = layer
+                d.topField = topField
+                return d
+              })
+              return topFields[0]
+            })
+            .catch((error) => {
+              console.error(`Error fetching CSN data: ${error}`);
+              return null
+            })
+          }))
+      }))
+      topFieldsAllLayers.then((response) => {
+        // console.log("top fields all layers response", response)
+        const topFieldsByOrder = response.map((d, i) => {
+          let o = orders[i+1]
+          // find the maximum topField.value in each element of d
+          let top = d.sort((a,b) => b.topField?.value - a.topField?.value)[0]
+          // console.log("top", top)
+          if(top.topField.field) {
+            o.topField = top.topField
+            return {field: top.topField, layer: top.layer, order: o.order, region: o }
+          } else {
+            return {field: top.topField, layer: null, order: o.order, region: o }
+          }
+        })
+        // console.log("top fields by order", topFieldsByOrder)
+        let cl = layersData.find(d => d.layer.datasetName == "variants_favor_categorical")
+        let c = cl.data[1]
+        c.topField = c.field
+        c.layer = cl.layer
+        let apcl = layersData.find(d => d.layer.datasetName == "variants_favor_apc")
+        let apc = apcl.data[1]
+        apc.topField = apc.field
+        apc.layer = apcl.layer
+        // TODO: we can have logic to have one of these variants override the other
+        let csn14 = { path: topFieldsByOrder, variants: [c, apc].filter(d => !!d) }
+        console.log("csn 14", csn14)
+        setCsn(csn14)
+      })
+    }
+  }, [region, layersData])
 
   const [csn, setCsn] = useState({})
   const [topUniquePaths, setTopUniquePaths] = useState([])

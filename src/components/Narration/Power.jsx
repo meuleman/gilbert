@@ -171,6 +171,7 @@ function Power({ csn, width, height, sheight=30, onData }) {
         let p = csn.path.find(d => d.order === o)
         if(o == 14 && csn.variants) {
           const v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0]
+          console.log("V", v, csn.variants)
           p = { region: v, layer: v.layer, field: v.topField, order: 14 }
         }
         const hilbert = new HilbertChromosome(o)
@@ -213,7 +214,7 @@ function Power({ csn, width, height, sheight=30, onData }) {
         return {
           order: o,
           // layer: o == 14 ? nucleotides : p?.layer,
-          layer: o == 14 ? variants_categorical : p?.layer,
+          layer: o != 14 || (o == 14 && p?.layer) ? p?.layer : variants_categorical,
           // layer: o == 14 ? variants_apc : p?.layer,
           region,
           p,
@@ -227,9 +228,8 @@ function Power({ csn, width, height, sheight=30, onData }) {
             const order = orderPoints[i].order
             const layer = orderPoints[i].layer
             const region = orderPoints[i].region
-            if(order == 14) {
+            if(order == 14 && !region.topField) {
               // for now we need to calculate the topField
-
                 let topField = layer.fieldChoice(d.find(r => r.chromosome === region.chromosome && r.i == region.i))
                 region.topField = topField
             }

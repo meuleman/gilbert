@@ -6,5 +6,6 @@
 }
 .region-summary .factor-list .factor {
   padding: 2px;
+  width: fit-content;
 }
 
