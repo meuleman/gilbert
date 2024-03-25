@@ -6,12 +6,12 @@ export default {
   name: "Variants (Categorical)",
   datasetName: "variants_favor_categorical",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseURLPrefix}/20240320`,
+  baseURL: `${constants.baseURLPrefix}/20240325`,
   orders: [14,14],
   renderer: CanvasSimpleValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
-    .domain(["possibly_damaging", "probably_damaging", "deleterious", "Likely_pathogenic", "Pathogenic", "Pathogenic/Likely_pathogenic", "drug_response","protective,_risk_factor", "risk_factor", "Conflicting_interpretations_of_pathogenicity","Affects", "Affects,_association", "Conflicting_interpretations_of_pathogenicity,_other","Pathogenic,_Affects", "Pathogenic,_risk_factor", "association", "protective"])
+    .domain(["PolyPhen: possibly damaging", "PolyPhen: probably damaging", "SIFT: deleterious", "ClinVar Sig: Likely pathogenic", "ClinVar Sig: Pathogenic", "ClinVar Sig: Pathogenic/Likely pathogenic", "ClinVar Sig: drug response", "ClinVar Sig: protective, risk factor", "ClinVar Sig: risk factor", "ClinVar Sig: Conflicting interpretations of pathogenicity", "ClinVar Sig: Affects", "ClinVar Sig: Affects, association", "ClinVar Sig: Conflicting interpretations of pathogenicity, other", "ClinVar Sig: Pathogenic, Affects", "ClinVar Sig: Pathogenic, risk factor", "ClinVar Sig: association", "ClinVar Sig: protective"])
     .range(["#000000", "#ffe500","#fe8102","#ff0000","#07af00","#4c7d14","#414613","#05c1d9","#0467fd","#009588","#bb2dd4","#7a00ff","#4a6876","#08245b","#b9461d","#692108","#c3c3c3"])
     .unknown("#eee"),
   // used for the base canvas rendering
