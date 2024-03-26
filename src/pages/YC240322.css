@@ -1,0 +1,54 @@
+
+
+.umap-grid {
+  display: grid;
+  grid-template-columns: 1fr 0;
+  /* grid-template-rows: [header] max-content [content] 1fr [footer] max-content [end]; */
+  grid-template-rows: [header] max-content 1fr 100px;
+  height: 100vh;
+}
+
+.umap-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #111;
+}
+
+.umap-grid .loading {
+  font-size: 200px;
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.umap-grid .position {
+  display: inline-block;
+  width: 350px;
+  max-width: 350px;
+}
+
+.umap-grid .annotations {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 6px;
+}
+.umap-grid .annotations .annotation {
+  width: 300px;
+  max-width: 300px;
+}
+
+.umap-grid .selected-popup {
+  position: absolute;
+  bottom: 95px;
+  left: 0;
+  width: calc(100% - 10px);
+  height: 300px;
+  z-index: 100;
+  padding: 6px;
+  background-color: rgba(235, 235, 235, 0.8);
+  overflow-y: auto;
+}
+

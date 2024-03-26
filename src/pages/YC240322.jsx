@@ -1,0 +1,271 @@
+import { useEffect, useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import GilbertLogo from '../assets/gilbert-logo.svg?react';
+
+import { extent } from 'd3-array';
+
+import './YC240322.css';
+
+import Scatter from '../components/Scatter';
+import { showFloat, showPosition, showKb } from '../lib/display';
+import { urlify, fromPosition } from '../lib/regions';
+
+import dhs from '../layers/dhs_components_sfc_max';
+import chromatin_states from '../layers/chromatin_states_sfc_max';
+import tf from '../layers/tf_motifs_sfc_max';
+const layers = {
+  "DHS": dhs,
+  "chromatin_states": chromatin_states,
+  "TF": tf,
+}
+
+// ---------------- DUCK DB INITIALIZATION ----------------
+// TODO: make this import only happen on the umap page. not too slow to load tho
+import * as duckdb from '@duckdb/duckdb-wasm';
+import duckdb_wasm from '@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url';
+import mvp_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url';
+import duckdb_wasm_next from '@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url';
+import eh_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url';
+
+const MANUAL_BUNDLES = {
+    mvp: {
+        mainModule: duckdb_wasm,
+        mainWorker: mvp_worker,
+    },
+    eh: {
+        mainModule: duckdb_wasm_next,
+        // mainWorker: new URL('@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js', import.meta.url).toString(),
+        mainWorker: eh_worker
+    },
+};
+// Select a bundle based on browser checks
+const bundle = await duckdb.selectBundle(MANUAL_BUNDLES);
+// Instantiate the asynchronus version of DuckDB-wasm
+const worker = new Worker(bundle.mainWorker);
+const logger = new duckdb.ConsoleLogger();
+const db = new duckdb.AsyncDuckDB(logger, worker);
+await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+// ---------------- END DUCK DB INITIALIZATION ----------------
+
+
+const YC240322 = () => {
+  const [conn, setConn] = useState(null);
+  const [loading, setLoading] = useState(false)
+  const [umap, setUmap] = useState(null)
+  const [annotations, setAnnotations] = useState(null)
+  const [points, setPoints] = useState(null)
+
+  const [order, setOrder] = useState("all") // 4 to 12 or all
+  const orders = ["all", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+  const [layerColumn, setLayerColumn] = useState("all") // "DHS", "TF", "chromatin_states", "all"
+  const layerColumns = ["all", "DHS", "TF", "chromatin_states"]
+
+  const [selected, setSelected] = useState([])
+  const [hovered, setHovered] = useState(null)
+
+  const loadingRef = useRef(loading)
+  const containerRef = useRef(null)
+  const [width, height] = useWindowSize();
+  function useWindowSize() {
+    const [size, setSize] = useState([800, 800]);
+    useEffect(() => {
+      function updateSize() {
+        if(!containerRef.current) return
+        const { height, width } = containerRef.current.getBoundingClientRect()
+        console.log(containerRef.current.getBoundingClientRect())
+        console.log("width x height", width, height)
+        setSize([width, height]);
+      }
+      window.addEventListener('resize', updateSize);
+      updateSize();
+      return () => window.removeEventListener('resize', updateSize);
+    }, []);
+    return size;
+  }
+
+  // fetch umap parquet
+  useEffect(() => {
+    if(!loadingRef.current) { // just to make sure we don't kick off original query twice
+      loadingRef.current = true;
+      db.connect().then((c) => setConn(c)) // Connect to db
+    }
+  }, []); 
+
+  // query the umap coords
+  useEffect(() => {
+    if(conn) {
+      console.log("query umap")
+      setLoading(true)
+      conn.query("SELECT * FROM 'https://storage.googleapis.com/fun-data/hilbert/YC240322/YC240322_umap_coords.parquet'").then((res) => {
+        console.log("got rows")
+        let rows = res.toArray().map(Object.fromEntries)
+          .map(d => {
+            return {
+              chromosome: d["Chromosome"],
+              start: Number(d["Start"]),
+              end: Number(d["End"]),
+              x: Number(d["UMAP-1"]),
+              y: Number(d["UMAP-2"]),
+            }
+          })
+        console.log("normalize rows")
+        const x_ext = extent(rows, d => d.x)
+        const y_ext = extent(rows, d => d.y)
+        rows.forEach((d) => {
+          d.x = (d.x - x_ext[0]) / (x_ext[1] - x_ext[0]) * 2 - 1
+          d.y = (d.y - y_ext[0]) / (y_ext[1] - y_ext[0]) * 2 - 1
+        })
+        rows.columns = res.schema.fields.map((d) => d.name);
+        console.log("umap", rows)
+        // post-process the rows into schema
+        setUmap(rows)
+      }).catch((err) => {
+        console.error("err", err)
+      })
+    }
+
+  }, [conn])
+
+  useEffect(() => {
+    if(conn) {
+      console.log("querying annotations", order)
+      setLoading(true)
+      conn.query(`SELECT * FROM 'https://storage.googleapis.com/fun-data/hilbert/YC240322/YC240322_annot-${order}.parquet'`).then((res) => {
+        console.log("got rows", order)
+        let rows = res.toArray().map(Object.fromEntries)
+        .map(d => {
+          const keys = Object.keys(d)
+          return {
+            DHS: d[keys[0]],
+            TF: d[keys[1]],
+            all: d[keys[2]],
+            chromatin_states: d[keys[3]],
+          }
+        })
+        console.log("annotations", rows)
+        setAnnotations(rows)
+      })
+    }
+  }, [conn, order])
+
+  useEffect(() => {
+    if(umap && annotations) {
+      console.log("setting points")
+      let domain;
+      if(layerColumn == "all") {
+        domain = ["NA"].concat(dhs.fieldColor.domain().concat(tf.fieldColor.domain()).concat(chromatin_states.fieldColor.domain()))
+      } else {
+        const layer = layers[layerColumn]
+        domain = ["NA"].concat(layer.fieldColor.domain())
+      }
+      console.log("DOMAIN", domain)
+      // console.log("layer", layer, layer.fieldColor.domain(), layer.fieldColor.range())
+      let pts = umap.map((d,i) => {
+        let ant = annotations[i][layerColumn]
+        return [d.x, d.y, domain.indexOf(ant)]
+      })
+      console.log("points", pts)
+      setLoading(false)
+      setPoints(pts)
+    }
+  }, [umap, annotations, layerColumn])
+
+  const [pointColor, setPointColor] = useState(null)
+  useEffect(() => {
+    if(layerColumn == "all") {
+      setPointColor(["#222"].concat(dhs.fieldColor.range().concat(tf.fieldColor.range()).concat(chromatin_states.fieldColor.range())))
+    } else {
+      setPointColor(["#222"].concat(layers[layerColumn].fieldColor.range()))
+    }
+  }, [layerColumn])
+
+
+  useEffect(() => {
+    console.log("pointColor", pointColor)
+  }, [pointColor])
+
+  useEffect(() => {
+    console.log("selected", selected)
+  }, [selected])
+  useEffect(() => {
+    console.log("hovered", hovered)
+  }, [hovered])
+
+
+
+  return (
+    <div className="umap-grid">
+      <div className="header">
+        <div className="header--brand">
+          <GilbertLogo height="50" width="auto" />
+        </div>
+        <div className="header--navigation">
+            {/* <Link to="/">Back to map</Link> */}
+        </div>
+      </div>
+      <div className="asdf"></div>
+      <div className="content">
+        <div className="umap-container" ref={containerRef}>
+          {loading ? <span className="loading">Loading</span> : ""}
+          {points && <Scatter
+            width={width}
+            height={height}
+            points={points}
+            pointColor={pointColor}
+            pointSize={2}
+            opacity={0.5}
+            onSelect={setSelected}
+            onHover={setHovered}
+          />}
+        </div>
+      </div>
+      <div className="footer">
+        <label>
+          Order:
+          <select value={order} onChange={(e) => setOrder(e.target.value)}>
+            {orders.map((d) => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </label>
+        <label>
+          Layer:
+          <select value={layerColumn} onChange={(e) => setLayerColumn(e.target.value)}>
+            {layerColumns.map((d) => <option key={d} value={d}>{d}</option>)}
+          </select>
+          <br></br>
+        </label>
+        {hovered && <span className="hovered">
+          {showPosition(umap[hovered])} 
+          <span className="annotations">
+            <span className="annotation" style={{fontWeight: layerColumn == "DHS" ? "bold" : "normal"}}>DHS: {annotations[hovered]["DHS"]}</span> 
+            <span className="annotation" style={{fontWeight: layerColumn == "TF" ? "bold" : "normal"}}>TF: {annotations[hovered]["TF"]}</span> 
+            <span className="annotation" style={{fontWeight: layerColumn == "chromatin_states" ? "bold" : "normal"}}>CS: {annotations[hovered]["chromatin_states"]}</span> 
+            <span className="annotation" style={{fontWeight: layerColumn == "all" ? "bold" : "normal"}}>all: {annotations[hovered]["all"]}</span> 
+          </span>
+        </span>}
+        <br></br>
+        <span className="selected">
+          {selected.length} selected
+        </span>
+        {selected.length && <div className="selected-popup">
+          {selected.slice(0, 100).map((d) => {
+            let region = fromPosition(umap[d].chromosome, umap[d].start, umap[d].end)
+            return <div key={d}>
+              {showPosition(region)} 
+              <span className="links">
+              <Link to={`/?region=${urlify(region)}`} target="_blank"> 🗺️ </Link>
+              <Link to={`/region?region=${urlify(region)}`} target="_blank"> 📄 </Link>
+              </span>
+              <span className="annotations">
+                <span className="annotation" style={{fontWeight: layerColumn == "DHS" ? "bold" : "normal"}}>DHS: {annotations[d]["DHS"]}</span> 
+                <span className="annotation" style={{fontWeight: layerColumn == "TF" ? "bold" : "normal"}}>TF: {annotations[d]["TF"]}</span> 
+                <span className="annotation" style={{fontWeight: layerColumn == "chromatin_states" ? "bold" : "normal"}}>CS: {annotations[d]["chromatin_states"]}</span> 
+                <span className="annotation" style={{fontWeight: layerColumn == "all" ? "bold" : "normal"}}>all: {annotations[d]["all"]}</span> 
+              </span>
+          </div>})}
+        </div>}
+      </div>
+    </div>
+  );
+};
+
+export default YC240322;

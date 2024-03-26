@@ -151,7 +151,10 @@ export default function CSNSankey({
       range(order, 3, -1).forEach(order => {
         // we use the currently selected CSN path, since all paths will have the higher order objects we need
         let factor = filtered.find(d => d.order == order)
-        if(!factor) console.log("uh oh", order, filtered)
+        if(!factor) {
+          console.log("uh oh", order, filtered)
+          return
+        }
         let n = {
           id: `${order}-${factor.field.field}`,
           order: order,

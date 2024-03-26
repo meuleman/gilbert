@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@duckdb/duckdb-wasm": "^1.28.1-dev106.0",
     "@observablehq/plot": "^0.6.7",
     "axios": "^1.4.0",
     "d3-array": "^3.2.3",
@@ -30,6 +31,7 @@
     "react-router-dom": "^6.21.3",
     "react-table": "^7.8.0",
     "react-window": "^1.8.10",
+    "regl-scatterplot": "^1.8.5",
     "vite-plugin-svgr": "^4.2.0"
   },
   "devDependencies": {
