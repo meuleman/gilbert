@@ -90,10 +90,10 @@ function Home() {
   const [layerOrder, setLayerOrder] = useState(null)
   const layerOrderRef = useRef(layerOrder)
   useEffect(() => {
-    console.log("layer order natural", layerOrderNatural)
-    if(layerOrderNatural)
-    setLayerOrder(layerOrderNatural)
-    layerOrderRef.current = layerOrderNatural
+    if(layerOrderNatural){
+      setLayerOrder(layerOrderNatural)
+      layerOrderRef.current = layerOrderNatural
+    }
   }, [layerOrderNatural])
   useEffect(() => {
     layerOrderRef.current = layerOrder
@@ -281,8 +281,9 @@ function Home() {
   // do a sim search if selected changes
   useEffect(() => {
     if(selected){
-      console.log("selected changed", selected)
+      // console.log("selected changed", selected, layer.name)
       SimSearchRegion(selected, selected.order, layer, setSearchByFactorInds, []).then((regionResult) => {
+        // console.log("sim searchregion results", selected, layer.name, regionResult)
         if(!regionResult || !regionResult.simSearch) return;
         processSimSearchResults(selected.order, regionResult)
         GenesetEnrichment(regionResult.simSearch.slice(1), selected.order).then((enrichmentResult) => {
@@ -380,9 +381,8 @@ function Home() {
         newCsn.path.forEach(d => {
           newLayerOrder[d?.order] = d?.layer
         })
-        // console.log("new layer order from csn", newLayerOrder)
-        // console.log("new layer", newLayerOrder[selected.order])
         if(newLayerOrder[selected.order] && !layerLockRef.current){
+          layerOrderRef.current = newLayerOrder // this is so that handleZoom uses most up to date in race condition
           setLayerOrder(newLayerOrder)
           setLayer(newLayerOrder[selected.order])
         }
@@ -583,9 +583,8 @@ function Home() {
           <LensModal
               layers={layers}
               currentLayer={layer}
-              // setLayerOrder={(lo) => { setLayerOrder(lo); setLayerOrderNatural(lo) }}
               setLayerOrder={useCallback((lo) => {
-                // console.log("LO WTF", lo)
+                console.log("LO lensmodal ", lo)
                 setLayerOrderNatural(lo)
               }, [setLayerOrderNatural])}
               setLayer={setLayer}
