@@ -199,7 +199,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           // find path/node it belongs to
           let node = Math.floor((d.start - selected.start) / pathRes) + leafIndexOffset
           let path = paths.find(d => d.node === node)
-          path.variants ? path.variants.push(d) : path.variants = [d]
+          if(path) path.variants ? path.variants.push(d) : path.variants = [d]
         })
         bestPathsResponse.paths = paths
       }
