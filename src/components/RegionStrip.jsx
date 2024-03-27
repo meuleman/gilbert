@@ -85,8 +85,11 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
             
             if(sample && sample.field){
               // console.log("sample", sample, yScale(sample.value))
-              let fi = fields.indexOf(sample.field)
-              let domain = [min[fi] < 0 ? 0 : min[fi], max[fi]]
+              let domain = [min < 0 ? 0 : min, max]
+              if (Array.isArray(min)) {
+                let fi = fields.indexOf(sample.field)
+                domain = [min[fi] < 0 ? 0 : min[fi], max[fi]]
+              }
               const yScale = scaleLinear()
                 .domain(domain)
                 .range([height,0])

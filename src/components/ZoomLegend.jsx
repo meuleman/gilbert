@@ -198,7 +198,6 @@ const ZoomLegend = ({
   const [orderRaw, setOrderRaw] = useState(orderDomain[0] + Math.log2(orderZoomScale(k)));
   const [order, setOrder] = useState(Math.floor(orderRaw))
   useEffect(() => {
-    console.log("calc order", k, orderDomain)
     let or = orderDomain[0] + Math.log2(orderZoomScale(k))
     setOrderRaw(or)
     setOrder(Math.floor(or))
@@ -206,7 +205,6 @@ const ZoomLegend = ({
 
   const [activeLayer, setActiveLayer] = useState(null)
   useEffect(() => {
-    console.log("active layer")
     setActiveLayer((layerLock && !lensHovering) ? layer : layerOrder && layerOrder[order])
   }, [layer, layerOrder, layerLock, lensHovering, order])
 
@@ -262,10 +260,6 @@ const ZoomLegend = ({
       // console.log("set orders2")
     setOrders(ords)
   }, [order, zoomExtent, orderDomain, orderZoomScale, stations, CSNView, crossScaleNarration, activeLayer, selected, hovered ])
-  useEffect(() => {
-    console.log("testing4")
-  // }, [zoomExtent])
-  }, [crossScaleNarration])
 
   // console.log("station map", stationsMap)
   // console.log("ORDERS", orders)
