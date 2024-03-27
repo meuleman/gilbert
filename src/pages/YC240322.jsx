@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import GilbertLogo from '../assets/gilbert-logo.svg?react';
 
@@ -7,7 +7,14 @@ import { extent } from 'd3-array';
 import './YC240322.css';
 
 import Scatter from '../components/Scatter';
-import { showFloat, showPosition, showKb } from '../lib/display';
+import HilbertGenome from '../components/HilbertGenome'
+import ZoomLegend from '../components/ZoomLegend';
+import SVGChromosomeNames from '../components/SVGChromosomeNames'
+import SVGSelected from '../components/SVGSelected'
+import DisplayExampleRegions from '../components/ExampleRegions/DisplayExampleRegions'
+import RegionMask from '../components/RegionMask'
+
+import { showPosition } from '../lib/display';
 import { urlify, fromPosition } from '../lib/regions';
 
 import dhs from '../layers/dhs_components_sfc_max';
@@ -18,6 +25,8 @@ const layers = {
   "chromatin_states": chromatin_states,
   "TF": tf,
 }
+import layersAll from '../layers'
+import lenses from '../components/Lenses/lenses.json'
 
 // ---------------- DUCK DB INITIALIZATION ----------------
 // TODO: make this import only happen on the umap page. not too slow to load tho
@@ -63,9 +72,14 @@ const YC240322 = () => {
   const [selected, setSelected] = useState([])
   const [hovered, setHovered] = useState(null)
 
+  const orderDomain = useMemo(() => [4, 14], [])
+  const zoomExtent = useMemo(() => [0.85, 4000], [])
+  const duration = useMemo(() => 1000, [])
+
   const loadingRef = useRef(loading)
   const containerRef = useRef(null)
-  const [width, height] = useWindowSize();
+
+  const [mapWidth, height] = useWindowSize();
   function useWindowSize() {
     const [size, setSize] = useState([800, 800]);
     useEffect(() => {
@@ -74,7 +88,10 @@ const YC240322 = () => {
         const { height, width } = containerRef.current.getBoundingClientRect()
         console.log(containerRef.current.getBoundingClientRect())
         console.log("width x height", width, height)
-        setSize([width, height]);
+        // 150 is width for zoom legend
+        let mw = Math.floor(width - 150)/2
+        console.log("map width", mw)
+        setSize([mw, height]);
       }
       window.addEventListener('resize', updateSize);
       updateSize();
@@ -82,6 +99,8 @@ const YC240322 = () => {
     }, []);
     return size;
   }
+
+  useEffect(() => { document.title = `Gilbert | UMAP`}, [])
 
   // fetch umap parquet
   useEffect(() => {
@@ -179,17 +198,61 @@ const YC240322 = () => {
     }
   }, [layerColumn])
 
+  const [layer, setLayer] = useState(dhs)
+  const [layerOrder, setLayerOrder] = useState(null)
+  const [zoom, setZoom] = useState({order: 4, points: [], bbox: {}, transform: {}})
+
+  useEffect(() => {
+    const lo = {...lenses["Integrative"]}
+    if(layerColumn == "all"){
+      Object.keys(lo).forEach(o => {
+        lo[o] = layersAll.find((d) => d.name == lo[o])
+      })
+      setLayerOrder(lo)
+      if(zoom) {
+        let l = lo[zoom.order]
+        setLayer(l)
+      }
+    } else {
+      Object.keys(lo).forEach(o => {
+        lo[o] = layers[layerColumn]
+      })
+      setLayerOrder(lo)
+      setLayer(layers[layerColumn])
+    }
+  }, [layerColumn, zoom])
+
+  const handleZoom = useCallback((newZoom) => {
+    console.log("handleZoom", newZoom)
+    setZoom(newZoom)
+  }, [setZoom])
+  
+  useEffect(() => {
+    console.log("layer change", layer)
+  }, [layer])
+  useEffect(() => {
+    console.log("zoom", zoom)
+  }, [zoom])
+
 
   useEffect(() => {
     console.log("pointColor", pointColor)
   }, [pointColor])
 
+  const [selectedRegionSample, setSelectedRegionSample] = useState([])
   useEffect(() => {
     console.log("selected", selected)
-  }, [selected])
+    setSelectedRegionSample(selected.slice(0, 1000).map((d) => fromPosition(umap[d].chromosome, umap[d].start, umap[d].end)))
+  }, [selected, umap])
+
+  const [hover, setHover] = useState(null)
   useEffect(() => {
-    console.log("hovered", hovered)
+    // console.log("hovered", hovered)
+    if(hovered && umap[hovered]){
+      setHover(fromPosition(umap[hovered].chromosome, umap[hovered].start, umap[hovered].end, zoom.order))
+    }
   }, [hovered])
+
 
 
 
@@ -204,11 +267,11 @@ const YC240322 = () => {
         </div>
       </div>
       <div className="asdf"></div>
-      <div className="content">
-        <div className="umap-container" ref={containerRef}>
+      <div className="content" ref={containerRef}>
+        <div className="umap-container" style={{width: mapWidth+"px"}}>
           {loading ? <span className="loading">Loading</span> : ""}
           {points && <Scatter
-            width={width}
+            width={mapWidth}
             height={height}
             points={points}
             pointColor={pointColor}
@@ -217,6 +280,63 @@ const YC240322 = () => {
             onSelect={setSelected}
             onHover={setHovered}
           />}
+        </div>
+        <div className="hilbert-container">
+          <HilbertGenome 
+            orderMin={orderDomain[0]}
+            orderMax={orderDomain[1]}
+            zoomMin={zoomExtent[0]}
+            zoomMax={zoomExtent[1]}
+            width={mapWidth} 
+            height={height}
+            // zoomToRegion={region}
+            activeLayer={layer}
+            // orderOffset={orderOffset}
+            zoomDuration={duration}
+            SVGRenderers={[
+              SVGChromosomeNames({ }),
+              SVGSelected({ hit: hover, dataOrder: zoom.order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes: false }),
+              // SVGSelected({ hit: selected, stroke: "gold", strokeWidthMultiplier: 0.35, showGenes: false }),
+              RegionMask({ regions: selectedRegionSample, overrideOrder: zoom.order}),
+              ...DisplayExampleRegions({
+                exampleRegions: selectedRegionSample,
+                order: zoom.order,
+                width: 0.1,
+                radiusMultiplier: 0.5,
+                color: "black",
+                numRegions: 100,
+              }),
+              // showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
+            ]}
+            onZoom={handleZoom}
+            // onHover={handleHover}
+            // onClick={handleClick}
+            // onData={onData}
+            // onZooming={(d) => setIsZooming(d.zooming)}
+            // debug={showDebug}
+          />
+        </div>
+        <div className="zoom-legend-container">
+        <ZoomLegend 
+            k={zoom?.transform.k} 
+            height={height} 
+            effectiveOrder={zoom?.order}
+            zoomExtent={zoomExtent} 
+            orderDomain={orderDomain} 
+            layerOrder={layerOrder}
+            layer={layer}
+            // layerLock={layerLock}
+            // lensHovering={lensHovering}
+            // selected={selected}
+            // hovered={hover}
+            // crossScaleNarration={csn}
+            // onZoom={(region) => { 
+            //   setRegion(null); 
+            //   const hit = fromPosition(region.chromosome, region.start, region.end)
+            //   setRegion(hit)
+            //   // setSelected(hit)
+            // }}
+          />
         </div>
       </div>
       <div className="footer">
@@ -247,13 +367,17 @@ const YC240322 = () => {
           {selected.length} selected
         </span>
         {selected.length && <div className="selected-popup">
-          {selected.slice(0, 100).map((d) => {
+          <div className="selected-header">
+            <button onClick={() => setSelected([])}>Clear</button>
+            <span className="selected-count">Showing {selected.slice(0, 1000).length} of {selected.length}</span>
+          </div>
+          {selected.slice(0, 1000).map((d) => {
             let region = fromPosition(umap[d].chromosome, umap[d].start, umap[d].end)
-            return <div key={d}>
+            return <div className="selected-region" key={d}>
               {showPosition(region)} 
               <span className="links">
-              <Link to={`/?region=${urlify(region)}`} target="_blank"> 🗺️ </Link>
-              <Link to={`/region?region=${urlify(region)}`} target="_blank"> 📄 </Link>
+                <Link to={`/?region=${urlify(region)}`} target="_blank"> 🗺️ </Link>
+                <Link to={`/region?region=${urlify(region)}`} target="_blank"> 📄 </Link>
               </span>
               <span className="annotations">
                 <span className="annotation" style={{fontWeight: layerColumn == "DHS" ? "bold" : "normal"}}>DHS: {annotations[d]["DHS"]}</span> 

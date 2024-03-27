@@ -1,21 +1,22 @@
 import SVGSelected from '../SVGSelected'
+import { HilbertChromosome, checkRanges } from '../../lib/HilbertChromosome'
 
-const DisplayedExampleRegions = ({
+const DisplayExampleRegions = ({
   exampleRegions,
-  hilbert,
+  order,
   // selectedRegion,
-  checkRanges,
   color = "green",
   clickedColor  = "red",
   width = 0.4,
   showGenes = false,
   numRegions,
-  radisMultiplier=0.125,
+  radiusMultiplier=0.125,
 } = {}) => {
   if(exampleRegions.length) {
     if(numRegions) {
       exampleRegions = exampleRegions.slice(0, numRegions)
     }
+    const hilbert = HilbertChromosome(order)
     const exampleRanges = exampleRegions.map(r => {
       // TODO: we should have a Region class that standardizes the fields
       let chrm = r.chr || r.chromosome
@@ -30,7 +31,7 @@ const DisplayedExampleRegions = ({
     })
 
     const SVGExampleArr = exampleRanges.map((range) => { 
-      return SVGSelected({ hit: range, stroke: color, strokeWidthMultiplier: width, showGenes: showGenes, radiusMultiplier: radisMultiplier })
+      return SVGSelected({ hit: range, stroke: color, strokeWidthMultiplier: width, showGenes: showGenes, radiusMultiplier: radiusMultiplier })
     })
 
     return SVGExampleArr
@@ -39,4 +40,4 @@ const DisplayedExampleRegions = ({
   }
 }
 
-export default DisplayedExampleRegions
+export default DisplayExampleRegions

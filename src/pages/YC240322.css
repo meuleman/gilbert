@@ -8,11 +8,24 @@
   height: 100vh;
 }
 
-.umap-container {
-  width: 100%;
+.umap-grid .content {
+  display: flex;
+  flex-direction: row;
+  gap: 0px;
+}
+
+.umap-grid .umap-container {
+  width: fit-content;
   height: 100%;
   overflow: hidden;
+  min-width: 0;
   background-color: #111;
+}
+.umap-grid .hilbert-container {
+  width: fit-content;
+  height: 100%;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .umap-grid .loading {
@@ -24,13 +37,25 @@
   transform: translate(-50%, -50%);
 }
 
-.umap-grid .position {
+.umap-grid .zoom-legend-container {
+  width: 150px;
+  flex-grow: 1;
+  overflow: auto;  
+  min-height: 0;
+}
+
+.umap-grid .selected-region {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+}
+.umap-grid .selected-region .position {
   display: inline-block;
   width: 350px;
   max-width: 350px;
 }
 
-.umap-grid .annotations {
+.umap-grid .selected-region .annotations {
   display: inline-flex;
   flex-direction: row;
   gap: 6px;
@@ -45,10 +70,15 @@
   bottom: 95px;
   left: 0;
   width: calc(100% - 10px);
-  height: 300px;
+  height: 200px;
   z-index: 100;
   padding: 6px;
   background-color: rgba(235, 235, 235, 0.8);
   overflow-y: auto;
 }
 
+
+.umap-grid .selected-popup button {
+  padding: 6px;
+  margin: 6px;
+}

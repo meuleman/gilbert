@@ -122,7 +122,7 @@ const HilbertGenome = ({
     zoomDuration = 1000,
     width,
     height,
-    activeLayer = "bands",
+    activeLayer,
     pinOrder = 0,
     orderOffset = 0,
     SVGRenderers = [],
@@ -155,14 +155,9 @@ const HilbertGenome = ({
 
   const scales = useMemo(() => ({ xScale, yScale, sizeScale, orderZoomScale, width, height }), [xScale, yScale, sizeScale, orderZoomScale, width, height])
   
-  // the layer can change when the order changes once we implement some logic for it
+  // the layer is controlled outside of this component
   const layer = useMemo(() => {
-    //console.log("layer choice")
-    if(activeLayer == "auto") {
-      // TODO have some logic for automatically selecting the layer
-    } else {
-      return activeLayer
-    }
+    return activeLayer
   }, [activeLayer])
 
   // this debounced function fetches the data and updates the state

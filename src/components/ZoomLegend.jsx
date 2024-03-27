@@ -12,9 +12,7 @@ import './ZoomLegend.css';
 const debounceTimed = debouncerTimed()
 
 const ZoomLegend = ({
-  width = 50,
   height = 640,
-  margin = 10,
   effectiveOrder = 4,
   zoomExtent = [0, 100],
   orderDomain = [4, 16],
@@ -25,7 +23,7 @@ const ZoomLegend = ({
   layer,
   layerLock,
   lensHovering,
-  crossScaleNarration = [],
+  crossScaleNarration,
   onZoom=()=>{},
   setLayer=()=>{},
   setLayerOrder=()=>{}
@@ -200,6 +198,7 @@ const ZoomLegend = ({
   const [orderRaw, setOrderRaw] = useState(orderDomain[0] + Math.log2(orderZoomScale(k)));
   const [order, setOrder] = useState(Math.floor(orderRaw))
   useEffect(() => {
+    console.log("calc order", k, orderDomain)
     let or = orderDomain[0] + Math.log2(orderZoomScale(k))
     setOrderRaw(or)
     setOrder(Math.floor(or))
@@ -207,6 +206,7 @@ const ZoomLegend = ({
 
   const [activeLayer, setActiveLayer] = useState(null)
   useEffect(() => {
+    console.log("active layer")
     setActiveLayer((layerLock && !lensHovering) ? layer : layerOrder && layerOrder[order])
   }, [layer, layerOrder, layerLock, lensHovering, order])
 
@@ -251,16 +251,21 @@ const ZoomLegend = ({
             o.color = o.layer.fieldColor(o.field.field)
           }
         } else {
-          const scaleNarration = crossScaleNarration.path.filter(n => n?.order == o.order)
-          if(scaleNarration.length == 1) {
+          const scaleNarration = crossScaleNarration?.path.filter(n => n?.order == o.order)
+          if(scaleNarration?.length == 1) {
             o.layer = scaleNarration[0].layer
             o.field = scaleNarration[0].field
             o.color = o.field?.color
           }
         }
       })
+      // console.log("set orders2")
     setOrders(ords)
   }, [order, zoomExtent, orderDomain, orderZoomScale, stations, CSNView, crossScaleNarration, activeLayer, selected, hovered ])
+  useEffect(() => {
+    console.log("testing4")
+  // }, [zoomExtent])
+  }, [crossScaleNarration])
 
   // console.log("station map", stationsMap)
   // console.log("ORDERS", orders)
@@ -272,12 +277,14 @@ const ZoomLegend = ({
 
   const [csnPerOrder, setCSNPerOrder] = useState({})
   useEffect(() => {
-    let csnf = crossScaleNarration.path?.filter(n => n !== null)
-    let csnp = {}
-    if(csnf?.length > 0) {
-      csnf.forEach(n => csnp[n.order] = n)
+    if(crossScaleNarration){
+      let csnf = crossScaleNarration.path?.filter(n => n !== null)
+      let csnp = {}
+      if(csnf?.length > 0) {
+        csnf.forEach(n => csnp[n.order] = n)
+      }
+      setCSNPerOrder(csnp)
     }
-    setCSNPerOrder(csnp)
   }, [crossScaleNarration, setCSNPerOrder])
 
   return (

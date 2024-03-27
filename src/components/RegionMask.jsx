@@ -8,6 +8,7 @@ import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome"
 // Optionally render genes that are overlapping with this cell
 export default function RegionMask({ 
   regions=[],
+  overrideOrder = 0,
   stroke = "gray",
   fill = "none",
   strokeWidthMultiplier = 0.2,
@@ -22,12 +23,17 @@ export default function RegionMask({
       // let sw = sizeScale(Math.pow(0.5, order))*strokeWidthMultiplier
 
       const rects = regions.filter(d => !!d && d.type !== "autocomplete").map((region,i) => {
-        let step = Math.pow(0.5, region.order)
+        let step = Math.pow(0.5, overrideOrder ? overrideOrder: region.order)
         let rw = sizeScale(step)
+        let hit = region
+        if(overrideOrder){
+          const hilbert = HilbertChromosome(overrideOrder)
+          hit = hilbert.fromRegion(region.chromosome, region.start, region.end)[0]
+        }
         return (<rect
           key={i + "-rect"}
-          x={xScale(region.x) - rw/2}
-          y={yScale(region.y) - rw/2}
+          x={xScale(hit.x) - rw/2}
+          y={yScale(hit.y) - rw/2}
           width={rw}
           height={rw}
           fill="black"

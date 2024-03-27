@@ -49,7 +49,7 @@ import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
 import SimSearchByFactor from '../components/SimSearch/SimSearchByFactor'
 
 import DisplaySimSearchRegions from '../components/SimSearch/DisplaySimSearchRegions'
-import DisplayedExampleRegions from '../components/ExampleRegions/DisplayExampleRegions';
+import DisplayExampleRegions from '../components/ExampleRegions/DisplayExampleRegions';
 
 import { getSet } from '../components/Regions/localstorage'
 import SelectedModal from '../components/SelectedModal'
@@ -649,8 +649,6 @@ function Home() {
                   activeLayer={layer}
                   orderOffset={orderOffset}
                   zoomDuration={duration}
-                  // pinOrder={region?.order}
-                  layers={layers}
                   SVGRenderers={[
                     SVGChromosomeNames({ }),
                     showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
@@ -676,10 +674,9 @@ function Home() {
                       width: 0.05, 
                       showGenes: false 
                     }),
-                    ...DisplayedExampleRegions({
+                    ...DisplayExampleRegions({
                       exampleRegions: exampleRegions,
-                      hilbert: HilbertChromosome(zoom.order),
-                      checkRanges: checkRanges,
+                      order: zoom.order,
                       width: 0.2,
                       color: "red",
                       numRegions: 100,
