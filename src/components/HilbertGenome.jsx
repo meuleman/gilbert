@@ -172,6 +172,9 @@ const HilbertGenome = ({
       })
       let myCallback = (data) => {
         if(data) {
+          if(layer.layers) {
+            data = layer.combiner(data)
+          }
           dispatch({ type: actions.SET_DATA, payload: { 
             data, 
             order: state.order, 
@@ -205,12 +208,26 @@ const HilbertGenome = ({
       if(state.zooming) {
         dataDebounceTimed(() => {
           dispatch({ type: actions.SET_LOADING, payload: { loading: true } });
-          return dataClient.fetchData(layer, state.order, state.points)
+          if(layer.layers) {
+            let promises = layer.layers.map(l => {
+              return dataClient.fetchData(l, state.order, state.points)
+            })
+            return Promise.all(promises)
+          } else {
+            return dataClient.fetchData(layer, state.order, state.points)
+          }
         }, myCallback, 150)
       } else {
         dataDebounce(() => {
           dispatch({ type: actions.SET_LOADING, payload: { loading: true } });
-          return dataClient.fetchData(layer, state.order, state.points)
+          if(layer.layers) {
+            let promises = layer.layers.map(l => {
+              return dataClient.fetchData(l, state.order, state.points)
+            })
+            return Promise.all(promises)
+          } else {
+            return dataClient.fetchData(layer, state.order, state.points)
+          }
         }, myCallback, 150)
       }
     }
@@ -248,13 +265,18 @@ const HilbertGenome = ({
       // fetch the meta for each order in this layer
       Promise.all(range(layer.orders[0], layer.orders[1] + 1)
         .map(async (order) => {
-          return dataClient.fetchMeta(layer, order, "meta")
+          if(layer.layers){
+            return dataClient.fetchMeta(layer.layers[0], order, "meta")
+          } else {
+            return dataClient.fetchMeta(layer, order, "meta")
+          }
         })
       ).then(metas => {
         const metaMap = new Map(metas.map(meta => [meta.order, meta]))
         dispatch({ type: actions.SET_METAS, payload: { metas: metaMap, metaLayer: layer }})
       }).catch(err => {
-        console.log("caught", err)
+        if(!layer.layers)
+          console.log("caught", err)
       })
       // onLayer(layer)
     }

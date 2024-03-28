@@ -10,7 +10,7 @@
     "11": "CD3+ DNase-seq", 
     "12": "CD3+ Fiber-seq", 
     "13": "GC Content", 
-    "14": "Nucleotides"
+    "14": "Nucleotide Badges"
   },
   "Basic": {
     "4": "Bands", 
@@ -23,7 +23,7 @@
     "11": "GC Content", 
     "12": "GC Content", 
     "13": "GC Content", 
-    "14": "Nucleotides"
+    "14": "Nucleotide Badges"
   },
   "Integrative" : {
     "4": "DHS Components", 
@@ -36,6 +36,6 @@
     "11": "GC Content", 
     "12": "GC Content", 
     "13": "GC Content", 
-    "14": "Nucleotides"
+    "14": "Nucleotide Badges"
   }
 } 

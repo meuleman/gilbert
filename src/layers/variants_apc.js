@@ -11,8 +11,18 @@ export default {
   renderer: CanvasSimpleValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
-    .domain(["apc_conservation_v2", "apc_protein_function_v3", "apc_proximity_to_coding", "apc_transcription_factor"])
-    .range(["#fe8102","#ff0000","#07af00","#4c7d14"])
+    .domain([
+      "apc_conservation_v2", 
+      "apc_protein_function_v3", 
+      "apc_proximity_to_coding", 
+      "apc_transcription_factor"
+    ])
+    .range([
+      "#2B7E7E", //"#fe8102",
+      "#999", // "#ff0000",
+      "#999", // "#07af00",
+      "#999" // "#4c7d14"
+    ])
     .unknown("#eee"),
   // used for the base canvas rendering
   strokeWidthMultiplier: 0.05,

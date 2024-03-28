@@ -584,7 +584,6 @@ function Home() {
               layers={layers}
               currentLayer={layer}
               setLayerOrder={useCallback((lo) => {
-                console.log("LO lensmodal ", lo)
                 setLayerOrderNatural(lo)
               }, [setLayerOrderNatural])}
               setLayer={setLayer}

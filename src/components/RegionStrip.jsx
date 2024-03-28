@@ -58,6 +58,7 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
           ctx.strokeRect(xScale(p.start)+0.75, 1, bw-1.5, height-2)
         })
 
+        
         if(data && layer && data[0]) {
           // render the region
           ctx.globalAlpha = 1 
@@ -78,7 +79,12 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
             max = meta["max"]
             min = nonzero_min ? nonzero_min : meta["min"]
           }
-          if(!min.length && min < 0) min = 0;
+          if(!min || !min.length && min < 0) min = 0;
+
+          if(layer.datasetName == "variants_gwas") {
+            max = 100
+            // console.log("minmax",min,max)
+          }
 
           data.map(d => {
             const sample = layer.fieldChoice(d);
@@ -90,6 +96,7 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
                 let fi = fields.indexOf(sample.field)
                 domain = [min[fi] < 0 ? 0 : min[fi], max[fi]]
               }
+              
               const yScale = scaleLinear()
                 .domain(domain)
                 .range([height,0])
@@ -107,7 +114,8 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
               const w = bw - 2
               ctx.fillRect(x, y, w, h)
               if(layer.name == "Nucleotides") {
-                ctx.fillStyle = 'white'
+                // ctx.fillStyle = 'white'
+                ctx.fillStyle = 'black'
                 let fs = height/3
                 ctx.font = `${fs}px monospace`;
                 ctx.fillText(sample.value, x+bw/2 - .4*fs, y+height/2+.3*fs)

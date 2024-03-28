@@ -13,7 +13,7 @@ export default {
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()
     .domain(fields.fields)
-    .range(fields.colors)
+    .range(fields.fields.map(d => "#39A939"))
     .unknown("#eee"),
   // used for the base canvas rendering
   strokeWidthMultiplier: 0.05,

@@ -164,8 +164,8 @@ export default function SVGBBox({
             fill={fill}
             stroke={stroke}
             strokeWidth={sw}
-            strokeDasharray={loading ? circumference / 16 : circumference}
-            strokeDashoffset={loading ? circumference / 16 : 0}
+            strokeDasharray={loading ? circumference / 12 : circumference}
+            strokeDashoffset={loading ? circumference / 12 : 0}
             className={loading ? 'spinner' : ''}
           ></circle>
           {showGenes && genePaths}

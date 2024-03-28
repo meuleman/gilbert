@@ -11,8 +11,44 @@ export default {
   renderer: CanvasSimpleValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
-    .domain(["PolyPhen: possibly damaging", "PolyPhen: probably damaging", "SIFT: deleterious", "ClinVar Sig: Likely pathogenic", "ClinVar Sig: Pathogenic", "ClinVar Sig: Pathogenic/Likely pathogenic", "ClinVar Sig: drug response", "ClinVar Sig: protective, risk factor", "ClinVar Sig: risk factor", "ClinVar Sig: Conflicting interpretations of pathogenicity", "ClinVar Sig: Affects", "ClinVar Sig: Affects, association", "ClinVar Sig: Conflicting interpretations of pathogenicity, other", "ClinVar Sig: Pathogenic, Affects", "ClinVar Sig: Pathogenic, risk factor", "ClinVar Sig: association", "ClinVar Sig: protective"])
-    .range(["#000000", "#ffe500","#fe8102","#ff0000","#07af00","#4c7d14","#414613","#05c1d9","#0467fd","#009588","#bb2dd4","#7a00ff","#4a6876","#08245b","#b9461d","#692108","#c3c3c3"])
+    .domain([
+      "PolyPhen: possibly damaging", 
+      "PolyPhen: probably damaging", 
+      "SIFT: deleterious", 
+      "ClinVar Sig: Likely pathogenic", 
+      "ClinVar Sig: Pathogenic", 
+      "ClinVar Sig: Pathogenic/Likely pathogenic", 
+      "ClinVar Sig: drug response", 
+      "ClinVar Sig: protective, risk factor", 
+      "ClinVar Sig: risk factor", 
+      "ClinVar Sig: Conflicting interpretations of pathogenicity", 
+      "ClinVar Sig: Affects", 
+      "ClinVar Sig: Affects, association", 
+      "ClinVar Sig: Conflicting interpretations of pathogenicity, other", 
+      "ClinVar Sig: Pathogenic, Affects", 
+      "ClinVar Sig: Pathogenic, risk factor", 
+      "ClinVar Sig: association", 
+      "ClinVar Sig: protective"
+    ])
+    .range([
+      "#D34747", // "#ffe500",
+      "#D34747",// "#fe8102",
+      "#D34747",// "#ff0000",
+      "#D38647", // "#000000", 
+      "#D38647",// "#07af00",
+      "#D38647",// "#4c7d14",
+      "#D38647",// "#414613",
+      "#D38647",// "#05c1d9",
+      "#D38647",// "#0467fd",
+      "#D38647",// "#009588",
+      "#D38647",// "#bb2dd4",
+      "#D38647",// "#7a00ff",
+      "#D38647",// "#4a6876",
+      "#D38647",// "#08245b",
+      "#D38647",// "#b9461d",
+      "#D38647",// "#692108",
+      "#D38647"// "#c3c3c3"
+    ])
     .unknown("#eee"),
   // used for the base canvas rendering
   strokeWidthMultiplier: 0.05,

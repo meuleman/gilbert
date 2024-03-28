@@ -12,7 +12,12 @@ export default {
   fieldChoice: d => ({ field: "basepair", value: decoder.decode(d.bytes)[0] }),
   fieldColor: scaleOrdinal()
     .domain(['A', 'C', 'G', 'T'])
-    .range(["steelblue", "orange", "darkorange", "cornflowerblue"])
+    .range([
+      "#eee", // "steelblue", 
+      "#eee", // "orange", 
+      "#eee", // "darkorange", 
+      "#eee" // "cornflowerblue"
+    ])
     .unknown("gray"),
   // used for the base canvas rendering
   strokeWidthMultiplier: 0.05,

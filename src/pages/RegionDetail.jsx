@@ -344,21 +344,50 @@ const RegionDetail = () => {
       // console.log("c", c)
       let apc = layersData.find(d => d.layer.datasetName == "variants_favor_apc")
       // console.log("apc", apc)
+      let gwas = layersData.find(d => d.layer.datasetName == "variants_gwas")
       if(n && c && apc) {
-        setOrder14Data({
+        let o14d = {
           ndata: n.data[1],
           n,
           cdata: c.data[1], 
           c,
           apcdata: apc.data[1],
           apc,
-        })
+          gwasdata: gwas.data[1],
+          gwas
+        }
+        console.log("o14", o14d)
+        setOrder14Data(o14d)
       }
     }
   }, [region, layersData])
 
   const [powerData, setPowerData] = useState(null)
 
+
+  const badgeColors = {
+    "Protein Function": "#D34747",
+    "ClinVar Sig": "#D38647",
+    "Conservation": "#2B7E7E",
+    "GWAS": "#39A939"
+  }
+
+  function getProteinFunction(d) {
+    if(d["SIFT: deleterious"]) return 3
+    if(d["PolyPhen: probably damaging"]) return 2
+    if(d["PolyPhen: possibly damaging"]) return 1
+    return 0
+  }
+  function getClinVarSig(d) {
+    let keys = Object.keys(d)
+    for(let i = 0; i < keys.length; i++) {
+      let k = keys[i]
+      if((k.indexOf("ClinVar Sig") >= 0) && d[k]) {
+        return d[k]
+      }
+    }
+    return 0
+  }
 
   return (
     <div className="region-detail">
@@ -382,6 +411,14 @@ const RegionDetail = () => {
               <span className="nucleotides">
                 Nucleotide: {decoder.decode(o14.ndata.bytes)[0]}
               </span>
+              <div className="badge-prototype">
+                Badge Prototype:<br></br>
+                Protein Function: <span style={{color: badgeColors["Protein Function"]}}>{getProteinFunction(o14.cdata.data) ? "⏺" : ""}</span><br></br>
+                ClinVar Sig: <span style={{color: badgeColors["ClinVar Sig"]}}>{getClinVarSig(o14.cdata.data) ? "⏺" : ""}</span><br></br>
+                Conservation: <span style={{color: badgeColors["Conservation"]}}>{o14.apcdata.data["apc_conservation_v2"] ? "⏺" : ""}</span><br></br>
+                GWAS: <span style={{color: badgeColors["GWAS"]}}>{o14.gwasdata.data.max_value ? "⏺" : ""}</span>
+
+              </div>
               <span className="categorical">
                 <h4>FAVOR Categorical</h4>
                 {Object.keys(o14.cdata.data).map(factor => {
@@ -401,6 +438,25 @@ const RegionDetail = () => {
                     <b style={{color}}>{factor}</b><span> {value.toFixed(2)} </span>
                   </div>
                 })}
+              </span>
+              <span className="gwas">
+                <h4>GWAS</h4>
+                {[o14.gwasdata].map(d => {
+                  let fieldIndex = o14.gwasdata.data.max_field
+                  let field = o14.gwas.layer.fieldColor.domain()[fieldIndex]
+                  let value = o14.gwasdata.data.max_value
+                  return <div key={field}className="factor" style={{opacity: value > 0 ? 1 : 0.35, backgroundColor: value > 0 ? "white" : "#f0f0f0"}}>
+                    {value > 0 ? <b style={{color: o14.gwas.layer.fieldColor(field)}}>{field}</b>:""}<span> {value.toFixed(2)} </span>
+
+                  </div>
+                })}
+                {/* {Object.keys(o14.gwasdata.data).map(factor => {
+                  let color = "black"//o14.gwas.layer.fieldColor(factor)
+                  let value = o14.gwasdata.data[factor]
+                  return <div className="factor" key={factor} style={{opacity: value > 0 ? 1 : 0.35, backgroundColor: value > 0 ? "white" : "#f0f0f0"}}>
+                    <b style={{color}}>{factor}</b><span> {value.toFixed(2)} </span>
+                  </div>
+                })} */}
               </span>
             </div>}
           </div>
