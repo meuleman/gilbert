@@ -4,6 +4,7 @@ import GeneCounts from './gene_counts'
 import Nucleotides from './nucleotides'
 import VariantsCat from './variants_categorical'
 import Variants_aPC from './variants_apc'
+import Variants_GWAS from './variants_gwas'
 import DHS_OE_Chi from './dhs_oe_chi'
 import DHS_Components_Sfc from './dhs_components_sfc'
 import DHS_Components_Sfc_max from './dhs_components_sfc_max'
@@ -36,6 +37,7 @@ export default [
   Nucleotides,
   VariantsCat,
   Variants_aPC,
+  Variants_GWAS,
   DHS_OE_Chi,
   DHS_Components_Sfc,
   DHS_Components_Sfc_max,
