@@ -13,10 +13,10 @@ export default {
   fieldColor: scaleOrdinal()
     .domain(['A', 'C', 'G', 'T'])
     .range([
-      "#eee", // "steelblue", 
-      "#eee", // "orange", 
-      "#eee", // "darkorange", 
-      "#eee" // "cornflowerblue"
+      "#ddd", // "steelblue", 
+      "#ccc", // "orange", 
+      "#ccc", // "darkorange", 
+      "#ddd" // "cornflowerblue"
     ])
     .unknown("gray"),
   // used for the base canvas rendering

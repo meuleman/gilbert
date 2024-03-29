@@ -75,18 +75,18 @@ export default function CanvasOrder14Component({ canvasRef, state, scales, layer
         } else {
           ctx.fillStyle = badgeColor
         }
-          ctx.beginPath()
-          ctx.arc(xx - cornerOffset, yy - cornerOffset, radius, 0, 2*Math.PI)
-          ctx.fill()
+        ctx.beginPath()
+        ctx.arc(xx - cornerOffset, yy - cornerOffset, radius, 0, 2*Math.PI)
+        ctx.fill()
         // render clinvar_sig in bottom right
         if(d.data.clinvar_sig) {
           ctx.fillStyle = fieldColor("ClinVar Sig")
         } else {
           ctx.fillStyle = badgeColor
         }
-          ctx.beginPath()
-          ctx.arc(xx + cornerOffset, yy + cornerOffset, radius, 0, 2*Math.PI)
-          ctx.fill()
+        ctx.beginPath()
+        ctx.arc(xx + cornerOffset, yy + cornerOffset, radius, 0, 2*Math.PI)
+        ctx.fill()
        
         // render conservation in bottom left
         if(d.data.conservation) {
@@ -94,9 +94,9 @@ export default function CanvasOrder14Component({ canvasRef, state, scales, layer
         } else {
           ctx.fillStyle = badgeColor
         }
-          ctx.beginPath()
-          ctx.arc(xx - cornerOffset, yy + cornerOffset, radius, 0, 2*Math.PI)
-          ctx.fill()
+        ctx.beginPath()
+        ctx.arc(xx - cornerOffset, yy + cornerOffset, radius, 0, 2*Math.PI)
+        ctx.fill()
 
         // render gwas in top right
         if(d.data.gwas) {
@@ -104,9 +104,9 @@ export default function CanvasOrder14Component({ canvasRef, state, scales, layer
         } else {
           ctx.fillStyle = badgeColor
         }
-          ctx.beginPath()
-          ctx.arc(xx + cornerOffset, yy - cornerOffset, radius, 0, 2*Math.PI)
-          ctx.fill()
+        ctx.beginPath()
+        ctx.arc(xx + cornerOffset, yy - cornerOffset, radius, 0, 2*Math.PI)
+        ctx.fill()
 
         // ctx.fillStyle = 'white'
         ctx.fillStyle = 'black'

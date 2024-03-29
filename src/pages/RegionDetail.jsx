@@ -104,11 +104,18 @@ const RegionDetail = () => {
       const matchingLayers = layers.filter(d => d.orders[0] <= region.order && d.orders[1] >= region.order)
       const layersDataResult = Promise.all(matchingLayers.map((layer) => {
         // console.log("layer", layer)
-        return fetchData(layer, region.order, rs)
+        if(layer.layers) {
+          return Promise.all(layer.layers.map(l => fetchData(l, region.order, rs)))
+        } else {
+          return fetchData(layer, region.order, rs)
+        }
       }))
       layersDataResult.then((response) => {
         setLayersData(response.map((d, i) => {
           const layer = matchingLayers[i]
+          if(layer.layers) {
+            d = layer.combiner(d)
+          }
           let data = d.map(r => {
             const field = layer.fieldChoice(r)
             return {
@@ -120,7 +127,7 @@ const RegionDetail = () => {
           return {
             layer,
             data,
-            meta: d.metas[0],
+            meta: d.metas ? d.metas[0] : {},
             order: d.order
           }
         }))
@@ -219,9 +226,9 @@ const RegionDetail = () => {
         // n.topField = n.field
         // n.layer = nl.layer
         let cl = layersData.find(d => d.layer.datasetName == "variants_favor_categorical")
-        let c = cl.data[1]
-        c.topField = c.field
-        c.layer = cl.layer
+        let c = cl?.data[1] || {}
+        c.topField = c?.field
+        c.layer = cl?.layer
         let apcl = layersData.find(d => d.layer.datasetName == "variants_favor_apc")
         let apc = apcl.data[1]
         apc.topField = apc.field
