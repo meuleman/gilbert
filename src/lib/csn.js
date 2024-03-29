@@ -73,6 +73,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       return fetchData(layer, order, orderRange)
         .then((response) => {
           // top field per segment
+          
           const topFields = response.map(d => {
             let topField = layer.fieldChoice(d)
             topField.color = layer.fieldColor(topField.field)
@@ -194,7 +195,8 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
         // first we need to find the resolution of the paths
         let pathRes = 4 ** (14 - maxOrderHit)
         // only keep variants that are not null (we may want to do this earlier/when we combine variant layers)
-        let variantsFiltered = variantTopFieldsResponse[0].filter(d => d.topField.value !== null)
+        let variantsFiltered = variantTopFieldsResponse.flatMap(d => d).filter(d => d.topField.value !== null)
+        // console.log("TOP FIELDS RESPONSES", variantsFiltered, variantTopFieldsResponse)
         variantsFiltered.forEach(d => {
           // find path/node it belongs to
           let node = Math.floor((d.start - selected.start) / pathRes) + leafIndexOffset
@@ -341,4 +343,16 @@ export {
   layerSuggestion,
   walkTree,
   findUniquePaths
+}
+
+
+// logic to determine which variant is the most important from a list of variants
+export function variantChooser(variants) {
+  let categories = variants.filter(d => d.layer.datasetName == "variants_favor_categorical")
+  if(categories.length) return categories.sort((a,b) => b.topField.value - a.topField.value)[0]
+  let gwas = variants.filter(d => d.layer.datasetName == "variants_gwas")
+  if(gwas.length) return gwas.sort((a,b) => b.topField.value - a.topField.value)[0]
+  let apc = variants.filter(d => d.layer.datasetName == "variants_favor_apc")
+  if(apc.length) return apc.sort((a,b) => b.topField.value - a.topField.value)[0]
+  return null
 }

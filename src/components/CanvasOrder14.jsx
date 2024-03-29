@@ -33,8 +33,9 @@ export default function CanvasOrder14Component({ canvasRef, state, scales, layer
     const rw = sizeScale(sw) * t.k // - 1
     const srw = rw * 0.7
 
-    const hilbertColor = "#ddd"
-    const badgeColor = "#ccc"
+    const ATColor = "#ddd"
+    const GCColor = "#ccc"
+    const badgeColor = "#bbb"
 
     for(i = 0; i < data.length; i++) {
       d = data[i];
@@ -47,8 +48,8 @@ export default function CanvasOrder14Component({ canvasRef, state, scales, layer
       let text = d.data.nucleotide
 
       if(text) {
-        ctx.fillStyle = hilbertColor//fieldColor(text)
-        ctx.strokeStyle = hilbertColor//fieldColor(text)
+        ctx.fillStyle = text == "A" || text == "T" ? ATColor : GCColor
+        ctx.strokeStyle = text == "A" || text == "T" ? ATColor : GCColor
 
         let points = []
         if(dm1) {
@@ -77,14 +78,14 @@ export default function CanvasOrder14Component({ canvasRef, state, scales, layer
           ctx.beginPath()
           ctx.arc(xx - cornerOffset, yy - cornerOffset, radius, 0, 2*Math.PI)
           ctx.fill()
-        // render clinvar_sig in top right
+        // render clinvar_sig in bottom right
         if(d.data.clinvar_sig) {
           ctx.fillStyle = fieldColor("ClinVar Sig")
         } else {
           ctx.fillStyle = badgeColor
         }
           ctx.beginPath()
-          ctx.arc(xx + cornerOffset, yy - cornerOffset, radius, 0, 2*Math.PI)
+          ctx.arc(xx + cornerOffset, yy + cornerOffset, radius, 0, 2*Math.PI)
           ctx.fill()
        
         // render conservation in bottom left
@@ -97,14 +98,14 @@ export default function CanvasOrder14Component({ canvasRef, state, scales, layer
           ctx.arc(xx - cornerOffset, yy + cornerOffset, radius, 0, 2*Math.PI)
           ctx.fill()
 
-        // render gwas in bottom right
+        // render gwas in top right
         if(d.data.gwas) {
           ctx.fillStyle = fieldColor("GWAS")
         } else {
           ctx.fillStyle = badgeColor
         }
           ctx.beginPath()
-          ctx.arc(xx + cornerOffset, yy + cornerOffset, radius, 0, 2*Math.PI)
+          ctx.arc(xx + cornerOffset, yy - cornerOffset, radius, 0, 2*Math.PI)
           ctx.fill()
 
         // ctx.fillStyle = 'white'

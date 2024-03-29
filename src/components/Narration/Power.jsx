@@ -10,10 +10,13 @@ import Data from '../../lib/data';
 import { showKb, showPosition } from '../../lib/display'
 import scaleCanvas from '../../lib/canvas'
 import { getOffsets } from "../../lib/segments"
+import { variantChooser } from '../../lib/csn';
 
 import nucleotides from '../../layers/nucleotides';
 import variants_categorical from '../../layers/variants_categorical';
 import variants_apc from '../../layers/variants_apc';
+import variants_gwas from '../../layers/variants_gwas';
+import order_14 from '../../layers/order_14';
 
 
 import CanvasBase from '../CanvasBase';
@@ -170,8 +173,10 @@ function Power({ csn, width, height, sheight=30, onData }) {
       const orderPoints = range(4, 15).map((o) => {
         let p = csn.path.find(d => d.order === o)
         if(o == 14 && csn.variants) {
-          const v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0]
-          console.log("V", v, csn.variants)
+          // const v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0]
+          const v = variantChooser(csn.variants || [])
+          console.log("order 14 top variant", v, "variants", csn.variants)
+          // combine the variants into order_14 data
           p = { region: v, layer: v.layer, field: v.topField, order: 14 }
         }
         const hilbert = new HilbertChromosome(o)
@@ -214,7 +219,8 @@ function Power({ csn, width, height, sheight=30, onData }) {
         return {
           order: o,
           // layer: o == 14 ? nucleotides : p?.layer,
-          layer: o != 14 || (o == 14 && p?.layer) ? p?.layer : variants_categorical,
+          // layer: o != 14 || (o == 14 && p?.layer) ? p?.layer : variants_categorical,
+          layer: o == 14 ? order_14 : p?.layer,
           // layer: o == 14 ? variants_apc : p?.layer,
           region,
           p,
@@ -222,16 +228,24 @@ function Power({ csn, width, height, sheight=30, onData }) {
         }
       })
 
-      Promise.all(orderPoints.map(p => dataClient.fetchData(p.layer, p.order, p.points)))
+      Promise.all(orderPoints.map(p => {
+        if(p.layer?.layers){ 
+          return Promise.all(p.layer.layers.map(l => dataClient.fetchData(l, p.order, p.points)))
+        } else {
+          return dataClient.fetchData(p.layer, p.order, p.points)
+        }
+      }))
         .then((responses) => {
           setData(responses.map((d,i) => {
             const order = orderPoints[i].order
             const layer = orderPoints[i].layer
             const region = orderPoints[i].region
-            if(order == 14 && !region.topField) {
-              // for now we need to calculate the topField
-                let topField = layer.fieldChoice(d.find(r => r.chromosome === region.chromosome && r.i == region.i))
-                region.topField = topField
+            if(order == 14) {
+                // combine the data
+                d = layer.combiner(d)
+                // for now we need to calculate the topField
+                // let topField = layer.fieldChoice(d.find(r => r.chromosome === region.chromosome && r.i == region.i))
+                // region.topField = topField
             }
             return {
               order,
@@ -294,7 +308,7 @@ function Power({ csn, width, height, sheight=30, onData }) {
         const ctx = canvasRef.current.getContext('2d');
         ctx.clearRect(0, 0, width, height)
         
-        const meta = d.data.metas.find((meta) => meta.chromosome === r.chromosome) 
+        const meta = d.data.metas?.find((meta) => meta.chromosome === r.chromosome) || {}
 
         // render the current layer
         ctx.globalAlpha = 1
@@ -513,7 +527,7 @@ function Power({ csn, width, height, sheight=30, onData }) {
           style={{width: width + "px", height: height + "px"}}
           ref={canvasRef}
         />
-        <div className="power-scroll" style={{width: width + "px", height: height + "px"}}>
+        <div className="power-scroll" style={{width: 350 + "px", height: height + "px"}}>
           {data && data.map((d) => {
             const or = percentScale(percent)
             const o = Math.floor(or)

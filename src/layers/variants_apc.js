@@ -9,7 +9,8 @@ export default {
   baseURL: `${constants.baseURLPrefix}/20240321`,
   orders: [14,14],
   renderer: CanvasSimpleValue,
-  fieldChoice: topValue,
+  // fieldChoice: topValue,
+  fieldChoice: conservation,
   fieldColor: scaleOrdinal()
     .domain([
       "apc_conservation_v2", 
@@ -41,4 +42,10 @@ function topValue(d) {
   .sort((a,b) => b.value - a.value)[0]
   if(top?.value <= 0) return { field: "", value: null }
   return top
+}
+
+function conservation(d) {
+  let data = d.data
+  if(!data) return { field: "", value: null }
+  return { field: "apc_conservation_v2", value: data["apc_conservation_v2"] }
 }

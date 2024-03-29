@@ -113,9 +113,15 @@ function RegionThumb({ region, highlights, layer, width, height }) {
 
     // fetch the data around the region
     const dataClient = new Data()
-    dataClient.fetchData(layer, region.order, points).then((response) => {
-      setData(response)
-    })
+    if(layer?.layers) {
+      Promise.all(layer.layers.map(l => dataClient.fetchData(l, region.order, points))).then((responses) => {
+        setData(layer.combiner(responses))
+      })
+    } else {
+      dataClient.fetchData(layer, region.order, points).then((response) => {
+        setData(response)
+      })
+    }
   }, [region, layer])
 
   const [transform, setTransform] = useState(null)
@@ -132,9 +138,6 @@ function RegionThumb({ region, highlights, layer, width, height }) {
     ctx.clearRect(0, 0, width, height)
     if(data && layer) {
       let t = {...transform}
-
-      // ctx.fillStyle = "white"
-      // ctx.fillRect(0, 0, width, height)
 
       CanvasBase({ 
         scales, 
@@ -155,7 +158,7 @@ function RegionThumb({ region, highlights, layer, width, height }) {
           data,
           loading: false,
           points,
-          meta: data.metas.find((meta) => meta.chromosome === region.chromosome),
+          meta: data.metas?.find((meta) => meta.chromosome === region.chromosome),
           order: region.order,
           transform
         }, 

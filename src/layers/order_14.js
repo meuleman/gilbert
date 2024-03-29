@@ -38,6 +38,8 @@ function getGWAS(d) {
   return d["max_value"]
 }
 
+
+
 export default {
   name: "Nucleotide Badges",
   datasetName: "badges",

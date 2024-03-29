@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { scaleLinear } from 'd3-scale';
 import { range } from 'd3-array';
 import { showFloat } from '../../lib/display';
-
+import { variantChooser } from '../../lib/csn';
 import './Line.css';
 
 import PropTypes from 'prop-types';
@@ -33,8 +33,9 @@ export default function Line({
       console.log("csn.path",csn)
       const p = csn.path.filter(d => !!d).sort((a, b) => a.order - b.order) 
       if(csn.variants && csn.variants.length) {
-        let v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0]
-        console.log("V",v)
+        // let v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0]
+        let v = variantChooser(csn.variants)
+        console.log("top variant line ",v)
         p.push({field: v.topField, layer: v.layer, order: 14, region: v})
       }
       setPath(p)

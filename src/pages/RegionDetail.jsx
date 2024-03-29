@@ -65,6 +65,12 @@ const RegionDetail = () => {
     layers.find(d => d.name == "TF Motifs"),
     layers.find(d => d.name == "Repeats"),
   ]
+  const variantLayers = [
+    layers.find(d => d.datasetName == "variants_favor_categorical"),
+    layers.find(d => d.datasetName == "variants_favor_apc"),
+    layers.find(d => d.datasetName == "variants_gwas"),
+    // layers.find(d => d.datasetName == "grc"),
+  ]
   
 
   const [stripsWidth, setStripsWidth] = useState(0);
@@ -148,15 +154,14 @@ const RegionDetail = () => {
       })
 
       if(region.order < 14) {
-        calculateCrossScaleNarration(rs[1], csnMethod, csnLayers, [layers.find(d => d.name == "Variants (Categorical)")]).then(crossScaleResponse => {
+        calculateCrossScaleNarration(rs[1], csnMethod, csnLayers, variantLayers).then(crossScaleResponse => {
           setCrossScaleNarration(crossScaleResponse)
           console.log("CSN", crossScaleResponse)
           let uniques = findUniquePaths(crossScaleResponse.paths)
           setCrossScaleNarrationUnique(uniques)
           setMaxUniquePaths(uniques.uniquePaths.length)
         })
-      } else if(region.order == 14) {
-      }
+      } 
     }
   }, [region, fetchData, csnMethod])
 
@@ -209,6 +214,10 @@ const RegionDetail = () => {
           }
         })
         // console.log("top fields by order", topFieldsByOrder)
+        // let nl = layersData.find(d => d.layer.datasetName == "grc")
+        // let n = nl.data[1]
+        // n.topField = n.field
+        // n.layer = nl.layer
         let cl = layersData.find(d => d.layer.datasetName == "variants_favor_categorical")
         let c = cl.data[1]
         c.topField = c.field
@@ -217,8 +226,11 @@ const RegionDetail = () => {
         let apc = apcl.data[1]
         apc.topField = apc.field
         apc.layer = apcl.layer
-        // TODO: we can have logic to have one of these variants override the other
-        let csn14 = { path: topFieldsByOrder, variants: [c, apc].filter(d => !!d) }
+        let gwasl = layersData.find(d => d.layer.datasetName == "variants_gwas")
+        let gwas = gwasl.data[1]
+        gwas.topField = gwas.field
+        gwas.layer = gwasl.layer
+        let csn14 = { path: topFieldsByOrder, variants: [c, apc, gwas].filter(d => !!d) }
         console.log("csn 14", csn14)
         setCsn(csn14)
       })
@@ -544,7 +556,7 @@ const RegionDetail = () => {
               {powerData && range(4, 15).map((order, i) => {
                 let d = powerData.find(d => d?.order == order)
                 // console.log("D", d)
-                let thumbSize = stripsWidth/12 - 48
+                let thumbSize = stripsWidth/12 - 34
                 // if(csn && csn.path) d = csn.path.find(d => d?.order == order)
                 return (
                 <div key={i} className={`csn-layer ${region.order == order ? "active" : ""}`} style={{width: (thumbSize+19) + "px", maxWidth: (thumbSize+19) + "px"}}>
@@ -572,8 +584,8 @@ const RegionDetail = () => {
 
             })}
             </div>
-            
-            <Power csn={csn} width={300} height={300} onData={(data) => setPowerData(data)} />
+            <br></br>
+            <Power csn={csn} width={(stripsWidth-450)/2} height={(stripsWidth-450)/2} onData={(data) => setPowerData(data)} />
 
             
 
