@@ -65,25 +65,27 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
           ctx.strokeStyle = "black" 
           ctx.lineWidth = 3;
 
-          const meta = data.metas.find((meta) => meta.chromosome === region.chromosome)
-          // console.log("meta", meta)
-          // the min and max for scaling
-          let nonzero_min = meta["nonzero_min"]
           let fields, max, min
-          if ((meta["fields"].length == 2) && (meta["fields"][0] == "max_field") && (meta["fields"][1] == "max_value")) {
-            fields = meta["full_fields"]
-            max = meta["full_max"]
-            min = nonzero_min ? nonzero_min : meta["full_min"]
-          } else {
-            fields = meta["fields"]
-            max = meta["max"]
-            min = nonzero_min ? nonzero_min : meta["min"]
-          }
-          if(!min || !min.length && min < 0) min = 0;
+          if(data.metas){
+            const meta = data.metas?.find((meta) => meta.chromosome === region.chromosome)
+            // console.log("meta", meta)
+            // the min and max for scaling
+            let nonzero_min = meta["nonzero_min"]
+            if ((meta["fields"].length == 2) && (meta["fields"][0] == "max_field") && (meta["fields"][1] == "max_value")) {
+              fields = meta["full_fields"]
+              max = meta["full_max"]
+              min = nonzero_min ? nonzero_min : meta["full_min"]
+            } else {
+              fields = meta["fields"]
+              max = meta["max"]
+              min = nonzero_min ? nonzero_min : meta["min"]
+            }
+            if(!min || !min.length && min < 0) min = 0;
 
-          if(layer.datasetName == "variants_gwas") {
-            max = 100
-            // console.log("minmax",min,max)
+            if(layer.datasetName == "variants_gwas") {
+              max = 100
+              // console.log("minmax",min,max)
+            }
           }
 
           data.map(d => {
@@ -107,6 +109,10 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
                 ctx.fillStyle = layer.fieldColor(sample.value)
                 y = 1
                 h = height - 2
+              } else if(layer.datasetName == "badges") {
+                ctx.fillStyle = layer.nucleotideColor(d.data.nucleotide)
+                y = 1
+                h = height - 2
               } else {
                 ctx.fillStyle = layer.fieldColor(sample.field)
               }
@@ -119,6 +125,61 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
                 let fs = height/3
                 ctx.font = `${fs}px monospace`;
                 ctx.fillText(sample.value, x+bw/2 - .4*fs, y+height/2+.3*fs)
+              }
+              if(layer.datasetName == "badges") {
+                // console.log("sup badge", d)
+
+                let fs = height/3
+                let xx = x+bw/2 - bw/12
+                let yy = y + height/2  - fs/10
+                let coX = bw/5
+                let coY = fs
+                let radius = bw/8
+                const badgeColor = "#bbb"
+                // render protein_function in top left
+                if(d.data.protein_function) {
+                  ctx.fillStyle = layer.fieldColor("Protein Function")
+                } else {
+                  ctx.fillStyle = badgeColor
+                }
+                ctx.beginPath()
+                ctx.arc(xx - coX, yy - coY, radius, 0, 2*Math.PI)
+                ctx.fill()
+                // render clinvar_sig in bottom right
+                if(d.data.clinvar_sig) {
+                  ctx.fillStyle = layer.fieldColor("ClinVar Sig")
+                } else {
+                  ctx.fillStyle = badgeColor
+                }
+                ctx.beginPath()
+                ctx.arc(xx + coX, yy + coY, radius, 0, 2*Math.PI)
+                ctx.fill()
+              
+                // render conservation in bottom left
+                if(d.data.conservation) {
+                  ctx.fillStyle = layer.fieldColor("Conservation")
+                } else {
+                  ctx.fillStyle = badgeColor
+                }
+                ctx.beginPath()
+                ctx.arc(xx - coX, yy + coY, radius, 0, 2*Math.PI)
+                ctx.fill()
+
+                // render gwas in top right
+                if(d.data.gwas) {
+                  ctx.fillStyle = layer.fieldColor("GWAS")
+                } else {
+                  ctx.fillStyle = badgeColor
+                }
+                ctx.beginPath()
+                ctx.arc(xx + coX, yy - coY, radius, 0, 2*Math.PI)
+                ctx.fill()
+
+
+
+                ctx.fillStyle = 'black'
+                ctx.font = `${fs}px monospace`;
+                ctx.fillText(d.data.nucleotide, x+bw/2 - .4*fs, y+height/2+.3*fs)
               }
             }
             if(d.i == region.i){
@@ -172,10 +233,18 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
 
       // fetch the data around the region
       const dataClient = new Data()
-      dataClient.fetchData(layer, region.order, points).then((response) => {
-        setData(response)
-        render(region, response, points)
-      })
+      if(layer.layers) {
+        Promise.all(layer.layers.map(l => dataClient.fetchData(l, region.order, points))).then((responses) => {
+          let data = layer.combiner(responses)
+          setData(data)
+          render(region, data, points)
+        })
+      } else {
+        dataClient.fetchData(layer, region.order, points).then((response) => {
+          setData(response)
+          render(region, response, points)
+        })
+      }
     }
   }, [region, layer, segments, render])
 

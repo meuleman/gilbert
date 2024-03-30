@@ -71,7 +71,16 @@ export default {
     })
     return combined
   },
-  fieldChoice: d => ({ field: "basepair", value: decoder.decode(d.bytes)[0] }),
+  fieldChoice: d => ({ field: "badge", value: true }),
+  nucleotideColor: scaleOrdinal()
+    .domain(['A', 'C', 'G', 'T'])
+    .range([
+      "#ddd", // "steelblue", 
+      "#ccc", // "orange", 
+      "#ccc", // "darkorange", 
+      "#ddd" // "cornflowerblue"
+    ])
+    .unknown("gray"),
   fieldColor: scaleOrdinal()
     .domain([
       "Protein Function", 

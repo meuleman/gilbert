@@ -47,6 +47,7 @@ export default [
   Bands,
   GeneCounts,
   GCContent,
+  NucleotideBadges,
   Nucleotides,
   VariantsCat,
   Variants_aPC,
@@ -88,6 +89,5 @@ export default [
   CD3Fiberseq,
   LADs,
   LADs_new,
-  NucleotideBadges
 ]
 
