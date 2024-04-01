@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import GilbertLogo from '../assets/gilbert-logo.svg?react';
+import axios from "axios";
 
 import { extent } from 'd3-array';
 
@@ -244,6 +245,29 @@ const YC240322 = () => {
     console.log("selected", selected)
     setSelectedRegionSample(selected.slice(0, 1000).map((d) => fromPosition(umap[d].chromosome, umap[d].start, umap[d].end)))
   }, [selected, umap])
+
+  if(selectedRegionSample.length > 0){
+    let url = "https://explore.altius.org:5001/get_shared_factor"
+    const postBody = {
+      chr_strs: selectedRegionSample.map(d => d.chromosome + ":" + d.start + "-" + d.end),
+    };
+    console.log(postBody)
+    const getSharedFactor = axios({
+      method: 'POST',
+      url: url,
+      data: postBody
+    }).then((response) => {
+        const sharedFactorData = response.data
+        const sharedFactor = sharedFactorData.SharedFactor
+        const sharedFactorPercentage = sharedFactorData.SharedFactorPercentage
+        const meanSharedFactorPercentage = sharedFactorData.MeanSharedFactorPercentage
+        console.log(sharedFactor, sharedFactorPercentage, meanSharedFactorPercentage)
+    })
+    .catch((err) => {
+      console.error(`error:     ${JSON.stringify(err)}`);
+      console.error(`post body: ${JSON.stringify(postBody)}`);
+    });
+  }
 
   const [hover, setHover] = useState(null)
   useEffect(() => {
