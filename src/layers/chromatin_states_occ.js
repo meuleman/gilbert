@@ -10,7 +10,7 @@ export default {
   datasetName: "cs_occ",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseURLPrefix}/20240329`,
-  orders: [4,13],
+  orders: [4,14],
   renderer: CanvasScaledValue,
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()

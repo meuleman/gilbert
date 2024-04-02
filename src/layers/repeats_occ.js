@@ -7,12 +7,12 @@ const repeatsColors = [ "#FF0000",  "#FF0000",  "#00FF00",  "#0000FF",  "#0000FF
 
 
 export default {
-  name: "Repeats (ENR, Full)",
-  datasetName: "repeats_enr",
-  baseURL: `${constants.baseURLPrefix}/20240327`,
-  orders: [4,13],
+  name: "Repeats (OCC)",
+  datasetName: "repeats_occ",
+  baseURL: `${constants.baseURLPrefix}/20240401`,
+  orders: [4,14],
   renderer: CanvasScaledValue,
-  fieldChoice: topValue,
+  fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()
     .domain(repeatsFields)
     .range(repeatsColors)
@@ -24,16 +24,13 @@ export default {
 }
 
 
-// this function chooses the top value for a data point
-function topValue(d) {
-  let data = d.data
-  delete data.Count
+function decodeValue(d) {
+  let data = d.data;
   if(!data) return { field: "", value: null }
-  let top = Object.keys(data).map((f) => ({
-    field: f,
-    value: data[f]
-  }))
-  .sort((a,b) => b.value - a.value)[0]
+  let top = {
+    field: repeatsFields[data.max_field],
+    value: data.max_value
+  }
   if(top.value <= 0) return { field: "", value: null }
   return top
 }

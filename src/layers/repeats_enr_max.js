@@ -10,7 +10,7 @@ export default {
   name: "Repeats (ENR)",
   datasetName: "repeats_enr_max",
   baseURL: `${constants.baseURLPrefix}/20240327`,
-  orders: [4,12],
+  orders: [4,13],
   renderer: CanvasScaledValue,
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()

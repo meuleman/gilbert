@@ -33,6 +33,7 @@ import Repeats_Sfc from './repeats_sfc'
 import Repeats_Sfc_max from './repeats_sfc_max'
 import Repeats_enr from './repeats_enr'
 import Repeats_enr_max from './repeats_enr_max'
+import Repeats_occ from './repeats_occ'
 import CpG_Island_Density from './cpg_islands_density'
 import ENCSR000EOT from './encode_ENCSR000EOT_max'
 import CD3 from './encode_CD3_D2_Stim_AG90658_output_2.5.1_max'
@@ -72,7 +73,7 @@ export default [
   // TF_Motifs_OE_Chi,
   TF_Motifs_Sfc,
   TF_Motifs_Sfc_max,
-  // tf_motifs_occ, // not ready yet
+  tf_motifs_occ,
   tf_motifs_enr,
   tf_motifs_enr_max,
   DHS_mapped_TF_motifs_sfc,
@@ -81,6 +82,7 @@ export default [
   Repeats_Sfc_max,
   Repeats_enr,
   Repeats_enr_max,
+  Repeats_occ,
   UKBB,
   UKBB_Counts,
   CpG_Island_Density,
