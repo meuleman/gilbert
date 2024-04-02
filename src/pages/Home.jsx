@@ -349,13 +349,20 @@ function Home() {
   }
   useEffect(() => {
     setCrossScaleNarrationIndex(0)
+    const csnLayers = [
+      layers.find(d => d.name == "DHS Components (ENR)"),
+      layers.find(d => d.name == "Chromatin States (ENR)"),
+      layers.find(d => d.name == "TF Motifs (ENR)"),
+      layers.find(d => d.name == "Repeats (ENR)"),
+    ]
+    const variantLayers = [
+      layers.find(d => d.datasetName == "variants_favor_categorical"),
+      layers.find(d => d.datasetName == "variants_favor_apc"),
+      layers.find(d => d.datasetName == "variants_gwas"),
+      // layers.find(d => d.datasetName == "grc"),
+    ]
     if(selected){
-      calculateCrossScaleNarration(selected, csnMethod, [
-        DHS_Components_Sfc_max,
-        Chromatin_States_Sfc_max,
-        TF_Motifs_Sfc_max,
-        Repeats_Sfc_max,
-      ], [Variants_Categorical]).then(crossScaleResponse => {
+      calculateCrossScaleNarration(selected, csnMethod, csnLayers, variantLayers).then(crossScaleResponse => {
         // filter to just unique paths
         const filteredPaths = findUniquePaths(crossScaleResponse.paths).slice(0, 100)
         setCrossScaleNarration(filteredPaths)

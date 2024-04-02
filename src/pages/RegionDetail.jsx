@@ -60,10 +60,10 @@ const RegionDetail = () => {
   const [csnSlice, setCsnSlice] = useState(20)
 
   const csnLayers = [
-    layers.find(d => d.name == "DHS Components"),
-    layers.find(d => d.name == "Chromatin States"),
-    layers.find(d => d.name == "TF Motifs"),
-    layers.find(d => d.name == "Repeats"),
+    layers.find(d => d.name == "DHS Components (ENR)"),
+    layers.find(d => d.name == "Chromatin States (ENR)"),
+    layers.find(d => d.name == "TF Motifs (ENR)"),
+    layers.find(d => d.name == "Repeats (ENR)"),
   ]
   const variantLayers = [
     layers.find(d => d.datasetName == "variants_favor_categorical"),
