@@ -32,12 +32,6 @@ import SVGChromosomeNames from '../components/SVGChromosomeNames'
 
 // layer configurations
 import layers from '../layers'
-// CSN layers
-import DHS_Components_Sfc_max from '../layers/dhs_components_sfc_max'
-import Chromatin_States_Sfc_max from '../layers/chromatin_states_sfc_max';
-import TF_Motifs_Sfc_max from '../layers/tf_motifs_sfc_max'
-import Repeats_Sfc_max from '../layers/repeats_sfc_max'
-import Variants_Categorical from '../layers/variants_categorical'
 
 import RegionFilesSelect from '../components/Regions/RegionFilesSelect'
 // autocomplete
