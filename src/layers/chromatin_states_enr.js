@@ -1,7 +1,18 @@
 
 import { scaleOrdinal } from "d3-scale";
+import { color as d3Color } from 'd3-color';
+import { hsv as d3Hsv } from 'd3-hsv';
 import CanvasScaledValue from "../components/CanvasScaledValue";
 import * as constants from "../lib/constants";
+
+const csFields = ["Active TSS","Flanking TSS","Flanking TSS Upstream","Flanking TSS Downstream","Strong transcription","Weak transcription","Genic Enhancer 1","Genic Enhancer 2","Active Enhancer 1","Active Enhancer 2","Weak Enhancer","ZNF genes + repeats","Heterochromatin","Bivalent/Poised TSS","Bivalent Enhancer","Repressed PolyComb","Weak Repressed PolyComb","Quiescent/Low"]
+const csColors = ["#ff0000","#ff4500","#ff4500","#ff4500","#008000","#006400","#c2e105","#c2e105","#ffc34d","#ffc34d","#ffff00","#66cdaa","#8a91d0","#cd5c5c","#bdb76b","#808080","#c0c0c0","#eeeeee"]  // temp change white to gray-white
+const colorScaleFactor = 0.75;
+let csColorsReduced = csColors.map(c => {
+  let hsv = d3Hsv(d3Color(c));
+  hsv.v *= colorScaleFactor;  // Reduce brightness
+  return String(hsv);
+});
 
 export default {
   name: "Chromatin States (ENR, Full)",
@@ -12,8 +23,8 @@ export default {
   renderer: CanvasScaledValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
-    .domain(["Active TSS","Flanking TSS","Flanking TSS Upstream","Flanking TSS Downstream","Strong transcription","Weak transcription","Genic Enhancer 1","Genic Enhancer 2","Active Enhancer 1","Active Enhancer 2","Weak Enhancer","ZNF genes + repeats","Heterochromatin","Bivalent/Poised TSS","Bivalent Enhancer","Repressed PolyComb","Weak Repressed PolyComb","Quiescent/Low"])
-    .range(["#ff0000","#ff4500","#ff4500","#ff4500","#008000","#006400","#c2e105","#c2e105","#ffc34d","#ffc34d","#ffff00","#66cdaa","#8a91d0","#cd5c5c","#bdb76b","#808080","#c0c0c0","#eeeeee"]) //temp change white to gray-white
+    .domain(csFields)
+    .range(csColorsReduced)
     .unknown("#eee"),
   // used for the base canvas rendering
   strokeWidthMultiplier: 0.05,
