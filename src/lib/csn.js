@@ -195,22 +195,18 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       return {'paths': topLeafPaths, 'tree': tree}
     })
 
+    // find the resolution of the paths
+    let pathRes = 4 ** (14 - maxOrderHit)
     // attach variant data to paths
     // console.log("ATTACH VARIANT DATA TO PATHS")
     let bestPathsWithVariants = Promise.all([bestPaths, variantTopFields]).then(([bestPathsResponse, variantTopFieldsResponse]) => {
-      // console.log(bestPathsResponse, variantTopFieldsResponse)
       if(variantTopFieldsResponse.length > 0) {
-        // first we need to find the resolution of the paths
-        let pathRes = 4 ** (14 - maxOrderHit)
         // only keep variants that are not null (we may want to do this earlier/when we combine variant layers)
-        let variantsFiltered = variantTopFieldsResponse.flatMap(d => d).filter(d => d.topField.value !== null && d.topField.value !== 0)
-        // console.log("VARIANTS FILTERED", variantsFiltered)
-        // console.log("TOP FIELDS RESPONSES", variantsFiltered, variantTopFieldsResponse)
-        let pathMaping = new Map(bestPathsResponse.paths.map(path => [path.node, path]));
+        const variantsFiltered = variantTopFieldsResponse.flatMap(d => d).filter(d => d.topField.value !== null && d.topField.value !== 0)
+        const pathMaping = new Map(bestPathsResponse.paths.map(path => [path.node, path]));
         variantsFiltered.forEach(d => {
           // find path/node it belongs to
           let node = Math.floor((d.start - selected.start) / pathRes) + leafIndexOffset
-          // let path = bestPathsResponse.paths.find(d => d.node === node)
           let path = pathMaping.get(node)
           if(path) path.variants ? path.variants.push(d) : path.variants = [d]
         })
