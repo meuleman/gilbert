@@ -29,6 +29,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
     // track the orders we collect layer data from
     let maxOrderHit = Math.min(...orders)
     // get the top field within each layer for all overlapping segments
+    // console.log("RETRIEVE DATA")
     let topFieldsAllLayers = Promise.all(layers.map((layer, i) => {
       // ... find the top field within each segment for each layer
       let topFieldsAllOrders = Promise.all(orders.map((order) => {
@@ -66,6 +67,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
     }))
 
     // collect variant data for selected range
+    // console.log("COLLECT VARIANT DATA")
     let variantTopFields = Promise.all(variantLayers.map((layer, i) => {
       // get range
       const order = 14
@@ -85,14 +87,15 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           return topFields
         })
         .catch((error) => {
-          console.error(`Error fetching CSN data: ${error}`);
+          console.error(`Error fetching variant data: ${error}`);
           return null
         })
     }))
 
     // find the best score for each segment across layers
-    let topFieldsAcrossLayers = topFieldsAllLayers.then((response) => {
-      let layerData = response
+    // console.log("BEST SCORE FOR EACH SEGMENT ACROSS LAYERS")
+    let topFieldsAcrossLayers = topFieldsAllLayers.then((layerData) => {
+      topFieldsAllLayers = undefined
       // the most segments in any layer
       let numSegments = Math.max(...layerData.map(d => d.length))
       let topFieldsAcrossLayers = new Array(numSegments).fill(null)
@@ -127,6 +130,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       let orderDownSegmentData = response.filter(d => !ordersUp.includes(d.order))
 
       // create tree for orderUp data
+      // console.log("BUIDLING TREE")
       let numSegments = orderUpSegmentData.length
       let tree = new Array(numSegments).fill(null).map(d => [])
       let scoresThroughNode = new Array(numSegments).fill(0)
@@ -151,9 +155,11 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
         })
         return scoresThroughNode
       }
+      // console.log("SCORE TREE")
       scoresThroughNode = sumTree(scoresThroughNode)
 
       // sort paths
+      // console.log("SORT PATHS")
       leafIndexOffset = numSegments - numLeaves
       let leafScores = scoresThroughNode.slice(-numLeaves).map((s, i) => ({score: s, i: i + leafIndexOffset}))
       let leafScoresSorted = leafScores.sort((a, b) => b.score - a.score)
@@ -170,6 +176,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
         } else return null
       }
       // refactor orders below selected and add to each path
+      // console.log("REFACTOR")
       let topLeafPaths = new Array(leafScoresSorted.length).fill(null).map(d => {return {'path': [...orderDownSegmentData.map(d => refactorFeature(d))]}})
       // function to move through the tree and collect features for each segment
       let collectFeatures = (node, i) => {
@@ -189,22 +196,26 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
     })
 
     // attach variant data to paths
+    // console.log("ATTACH VARIANT DATA TO PATHS")
     let bestPathsWithVariants = Promise.all([bestPaths, variantTopFields]).then(([bestPathsResponse, variantTopFieldsResponse]) => {
+      // console.log(bestPathsResponse, variantTopFieldsResponse)
       if(variantTopFieldsResponse.length > 0) {
-        let paths = [...bestPathsResponse.paths]
         // first we need to find the resolution of the paths
         let pathRes = 4 ** (14 - maxOrderHit)
         // only keep variants that are not null (we may want to do this earlier/when we combine variant layers)
-        let variantsFiltered = variantTopFieldsResponse.flatMap(d => d).filter(d => d.topField.value !== null)
+        let variantsFiltered = variantTopFieldsResponse.flatMap(d => d).filter(d => d.topField.value !== null && d.topField.value !== 0)
+        // console.log("VARIANTS FILTERED", variantsFiltered)
         // console.log("TOP FIELDS RESPONSES", variantsFiltered, variantTopFieldsResponse)
+        let pathMaping = new Map(bestPathsResponse.paths.map(path => [path.node, path]));
         variantsFiltered.forEach(d => {
           // find path/node it belongs to
           let node = Math.floor((d.start - selected.start) / pathRes) + leafIndexOffset
-          let path = paths.find(d => d.node === node)
+          // let path = bestPathsResponse.paths.find(d => d.node === node)
+          let path = pathMaping.get(node)
           if(path) path.variants ? path.variants.push(d) : path.variants = [d]
         })
-        bestPathsResponse.paths = paths
       }
+      console.log('VARIANT MAP DONE!!!', bestPathsResponse)
       return bestPathsResponse
     })
     return bestPathsWithVariants
