@@ -7,8 +7,8 @@ const dhsColors = ["#ffe500","#fe8102","#ff0000","#07af00","#4c7d14","#414613","
 
 export default {
   name: "DHS Components (OCC)",
-  datasetName: "dhs_occ_a",
-  baseURL: `${constants.baseURLPrefix}/20240328`,
+  datasetName: "dhs_occ",
+  baseURL: `${constants.baseURLPrefix}/20240404`,
   orders: [4,14],
   renderer: CanvasScaledValue,
   fieldChoice: decodeValue,
