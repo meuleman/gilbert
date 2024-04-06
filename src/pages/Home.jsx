@@ -348,6 +348,10 @@ function Home() {
       layers.find(d => d.name == "Chromatin States (ENR)"),
       layers.find(d => d.name == "TF Motifs (ENR)"),
       layers.find(d => d.name == "Repeats (ENR)"),
+      layers.find(d => d.name == "DHS Components (OCC)"),
+      layers.find(d => d.name == "Chromatin States (OCC)"),
+      layers.find(d => d.name == "TF Motifs (OCC)"),
+      layers.find(d => d.name == "Repeats (OCC)"),
     ]
     const variantLayers = [
       layers.find(d => d.datasetName == "variants_favor_categorical"),

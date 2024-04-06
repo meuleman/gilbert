@@ -26,6 +26,8 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
 
   // path based approach where the each suggested segment is within the one an order below it
   if(selected) {
+    // determine which layers are OCC
+    const occMask = layers.map(d => d.datasetName.includes('occ'))
     // track the orders we collect layer data from
     let maxOrderHit = Math.min(...orders)
     // get the top field within each layer for all overlapping segments
@@ -99,31 +101,28 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       // the most segments in any layer
       let numSegments = Math.max(...layerData.map(d => d.length))
       let topFieldsAcrossLayers = new Array(numSegments).fill(null)
+      // console.log(layerData)
+      // ENR layers
+      const enrLayerData = layerData.filter((d, i) => !occMask[i])
+      const occLayerData = layerData.filter((d, i) => occMask[i])
       // find the layer with the max score for each segment
       for(let i = 0; i < numSegments; i++) {
-        let topLayerForSegment = layerData.map(d => d[i]).sort((a,b) => {return b.topField.value - a.topField.value})[0]
+        let topLayerForSegment = enrLayerData.map(d => d[i]).sort((a,b) => {return b.topField.value - a.topField.value})[0]
+        // if no ENR data, find OCC data
+        if(!topLayerForSegment?.topField?.value > 0) {
+          topLayerForSegment = occLayerData.map(d => d[i]).sort((a,b) => {return b.topField.value - a.topField.value})[0]
+        }
+        // console.log('TOP LAYER FOR SEGMENT', topLayerForSegment)
         // replace integer with layer info
         topLayerForSegment.layer = layers[topLayerForSegment.layer]
         topFieldsAcrossLayers[i] = topLayerForSegment
       }
+      layerData = undefined
       return topFieldsAcrossLayers
     })
 
     let leafIndexOffset
     let bestPaths = topFieldsAcrossLayers.then((response) => {
-      // // rank segments in each order against each other
-      // let orderSortedValues = {}
-      // orders.forEach(o => {
-      //   let orderValues = response.filter(d => d.order === o).map(d => d.topField.value)
-      //   let sortedOrderValues = orderValues.sort((a, b) => b - a)
-      //   orderSortedValues[o] = sortedOrderValues
-      // })
-      // response = response.map((d, i) => {
-      //   let numOrderSegments = orderSortedValues[d.order].length
-      //   d.topField.rank = (numOrderSegments - orderSortedValues[d.order].indexOf(d.topField.value)) / numOrderSegments
-      //   return d
-      // })
-
       // from order of selected segment to 14...
       let ordersUp = orders.slice(selected.order - Math.min(...orders))
       let orderUpSegmentData = response.filter(d => ordersUp.includes(d.order))
