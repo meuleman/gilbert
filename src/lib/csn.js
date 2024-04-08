@@ -2,6 +2,221 @@ import axios from "axios";
 import Data from './data';
 import { HilbertChromosome, } from './HilbertChromosome'
 import { fromRegion } from './regions'
+import { min } from "d3-array";
+
+// // function to generate cross scale narrations for a provided region.
+// async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[]) {
+//   const fetchData = Data({debug: false}).fetchData;
+  
+//   let orders = Array.from({length: 11}, (a, i) => i + 4);
+
+//   // use standard way of getting the hilbert range for this region
+//   // sometimes selected region is a gene so it is bigger or smaller than a region
+//   // this will convert it to a hilbert region
+//   selected = fromRegion(selected)
+
+//   // get hilbert ranges for the selected genomic region
+//   const getRange = (selected, order) => {
+//     const hilbert = HilbertChromosome(order)
+//     const chrm = selected.chromosome
+//     const start = selected.regionStart
+//     const stop = selected.regionEnd //start + 4 ** (14 - selected.order)
+//     let range = hilbert.fromRegion(chrm, start, stop-1)
+//     return range
+//   }
+
+//   // path based approach where the each suggested segment is within the one an order below it
+//   if(selected) {
+//     // determine which layers are OCC
+//     const occMask = layers.map(d => d.datasetName.includes('occ'))
+//     // track the orders we collect layer data from
+//     let maxOrderHit = Math.min(...orders)
+//     // get the top field within each layer for all overlapping segments
+//     // console.log("RETRIEVE DATA")
+//     let topFieldsAllLayers = Promise.all(layers.map((layer, i) => {
+//       // ... find the top field within each segment for each layer
+//       let topFieldsAllOrders = Promise.all(orders.map((order) => {
+//         // if the layer includes current order
+//         if((layer.orders[0] <= order) && (layer.orders[1] >= order)) {
+//           // update ordersHit with orders we collect layer data from
+//           maxOrderHit = Math.max(maxOrderHit, order)
+//           // get hilbert ranges
+//           const orderRange = getRange(selected, order)
+//           // fetch data for collected hilbert segments
+//           return fetchData(layer, order, orderRange)
+//             .then((response) => {
+//               // top field per segment
+//               const topFields = response.map(d => {
+//                 let topField = layer.fieldChoice(d)
+//                 // store layer as integer
+//                 d.layer = i
+//                 d.topField = topField
+//                 return d
+//               })
+//               return topFields
+//             })
+//             .catch((error) => {
+//               console.error(`Error fetching CSN data: ${error}`);
+//               return null
+//             })
+//         } else {
+//           return Promise.resolve(null)
+//         }
+//       }))
+//       return topFieldsAllOrders.then((response) => {
+//         // flatten for easy lookup in following steps
+//         return response.filter(d => d !== null).flat()
+//       })
+//     }))
+
+//     // collect variant data for selected range
+//     // console.log("COLLECT VARIANT DATA")
+//     let variantTopFields = Promise.all(variantLayers.map((layer, i) => {
+//       // get range
+//       const order = 14
+//       const orderRange = getRange(selected, order)
+//       return fetchData(layer, order, orderRange)
+//         .then((response) => {
+//           // top field per segment
+          
+//           const topFields = response.map(d => {
+//             let topField = layer.fieldChoice(d)
+//             topField.color = layer.fieldColor(topField.field)
+//             // store layer as integer
+//             d.layer = layer
+//             d.topField = topField
+//             return d
+//           })
+//           return topFields
+//         })
+//         .catch((error) => {
+//           console.error(`Error fetching variant data: ${error}`);
+//           return null
+//         })
+//     }))
+
+//     // find the best score for each segment across layers
+//     // console.log("BEST SCORE FOR EACH SEGMENT ACROSS LAYERS")
+//     let topFieldsAcrossLayers = topFieldsAllLayers.then((layerData) => {
+//       topFieldsAllLayers = undefined
+//       // the most segments in any layer
+//       let numSegments = Math.max(...layerData.map(d => d.length))
+//       let topFieldsAcrossLayers = new Array(numSegments).fill(null)
+//       // ENR layers
+//       const enrLayerData = layerData.filter((d, i) => !occMask[i])
+//       const occLayerData = layerData.filter((d, i) => occMask[i])
+//       console.log(layerData, enrLayerData, occLayerData, selected)
+//       layerData = undefined
+//       // find the layer with the max score for each segment
+//       for(let i = 0; i < numSegments; i++) {
+//         let topLayerForSegment = enrLayerData.map(d => d[i]).sort((a,b) => {return b.topField.value - a.topField.value})[0]
+//         // if no ENR data, find OCC data
+//         if(!topLayerForSegment?.topField?.value > 0) {
+//           topLayerForSegment = occLayerData.map(d => d[i]).sort((a,b) => {return b.topField.value - a.topField.value})[0]
+//         }
+//         // console.log('TOP LAYER FOR SEGMENT', topLayerForSegment)
+//         // replace integer with layer info
+//         topLayerForSegment.layer = layers[topLayerForSegment.layer]
+//         topFieldsAcrossLayers[i] = topLayerForSegment
+//       }
+//       return topFieldsAcrossLayers
+//     })
+
+//     let leafIndexOffset
+//     let bestPaths = topFieldsAcrossLayers.then((response) => {
+//       // from order of selected segment to 14...
+//       let ordersUp = orders.slice(selected.order - Math.min(...orders))
+//       let orderUpSegmentData = response.filter(d => ordersUp.includes(d.order))
+//       let orderDownSegmentData = response.filter(d => !ordersUp.includes(d.order))
+
+//       // create tree for orderUp data
+//       // console.log("BUIDLING TREE")
+//       let numSegments = orderUpSegmentData.length
+//       let tree = new Array(numSegments).fill(null).map(d => [])
+//       let scoresThroughNode = new Array(numSegments).fill(0)
+//       // store scores through each path/leaf
+//       let numLeaves = 4 ** (maxOrderHit - Math.min(...ordersUp))
+//       for(let c = 1; c < numSegments; c++) {
+//         let p = Math.floor((c - 1) / 4)
+//         tree[p].push(c)
+//         tree[c].push(p)
+//       }
+
+//       // function to sum through nodes and collect score at leaves
+//       let sumTree = (scoresThroughNode) => {
+//         tree.forEach((nodes, i) => {
+//           let nodeValue = orderUpSegmentData[i].topField.value
+//           if(csnMethod === 'sum') scoresThroughNode[i] += nodeValue
+//           else if(csnMethod === 'normalizedSum') scoresThroughNode[i] += Math.sqrt(nodeValue)
+//           else if(csnMethod === 'max') scoresThroughNode[i] = Math.max(scoresThroughNode[i], nodeValue)
+//           // scoresThroughNode[i] += nodeValue
+//           let children = nodes.slice(-4)
+//           if (children.length == 4) {children.forEach(c => scoresThroughNode[c] += scoresThroughNode[i])}
+//         })
+//         return scoresThroughNode
+//       }
+//       // console.log("SCORE TREE")
+//       scoresThroughNode = sumTree(scoresThroughNode)
+
+//       // sort paths
+//       // console.log("SORT PATHS")
+//       leafIndexOffset = numSegments - numLeaves
+//       let leafScores = scoresThroughNode.slice(-numLeaves).map((s, i) => ({score: s, i: i + leafIndexOffset}))
+//       let leafScoresSorted = leafScores.sort((a, b) => b.score - a.score)
+
+//       // collect the features for each leaf path
+//       let refactorFeature = (d) => {
+//         let field = d.topField
+//         // only keep stations with significant scores
+//         if(field.value !== null) {
+//           field.color = d.layer.fieldColor(field.field)
+//           return { 
+//             region: d, order: d.order, layer: d.layer, field: field,
+//           }
+//         } else return null
+//       }
+//       // refactor orders below selected and add to each path
+//       // console.log("REFACTOR")
+//       let topLeafPaths = new Array(leafScoresSorted.length).fill(null).map(d => {return {'path': [...orderDownSegmentData.map(d => refactorFeature(d))]}})
+//       // function to move through the tree and collect features for each segment
+//       let collectFeatures = (node, i) => {
+//         let nodeFeature = orderUpSegmentData[node]
+//         topLeafPaths[i].path.push(refactorFeature(nodeFeature))
+//         if(node != 0) {
+//           let parent = tree[node][0]
+//           collectFeatures(parent, i)
+//         }
+//       }
+//       leafScoresSorted.forEach((d, i) => {
+//         topLeafPaths[i]['score'] = d.score
+//         topLeafPaths[i]['node'] = d.i
+//         collectFeatures(d.i, i)
+//       })
+//       return {'paths': topLeafPaths, 'tree': tree}
+//     })
+
+//     // find the resolution of the paths
+//     let pathRes = 4 ** (14 - maxOrderHit)
+//     // attach variant data to paths
+//     // console.log("ATTACH VARIANT DATA TO PATHS")
+//     let bestPathsWithVariants = Promise.all([bestPaths, variantTopFields]).then(([bestPathsResponse, variantTopFieldsResponse]) => {
+//       if(variantTopFieldsResponse.length > 0) {
+//         // only keep variants that are not null (we may want to do this earlier/when we combine variant layers)
+//         const variantsFiltered = variantTopFieldsResponse.flatMap(d => d).filter(d => d.topField.value !== null && d.topField.value !== 0)
+//         const pathMaping = new Map(bestPathsResponse.paths.map(path => [path.node, path]));
+//         variantsFiltered.forEach(d => {
+//           // find path/node it belongs to
+//           let node = Math.floor((d.start - selected.start) / pathRes) + leafIndexOffset
+//           let path = pathMaping.get(node)
+//           if(path) path.variants ? path.variants.push(d) : path.variants = [d]
+//         })
+//       }
+//       console.log('VARIANT MAP DONE!!!', bestPathsResponse)
+//       return bestPathsResponse
+//     })
+//     return bestPathsWithVariants
+//   }
+// }
 
 // function to generate cross scale narrations for a provided region.
 async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[]) {
@@ -28,8 +243,20 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
   if(selected) {
     // determine which layers are OCC
     const occMask = layers.map(d => d.datasetName.includes('occ'))
+    const layerNames = layers.map(d => d.name)
+    // create a mapping between enr and occ layers
+    const enrInds = occMask.map((v, i) => !v ? i : -1).filter(i => i !== -1)
+    let enrOccMapping = {}
+    enrInds.forEach((i) => {
+      const baseName = layerNames[i].replace(' (ENR)', '')
+      const occInd = layerNames.findIndex(d => d.includes(baseName) && d.includes('OCC'))
+      enrOccMapping[i] = occInd
+    })
+
     // track the orders we collect layer data from
     let maxOrderHit = Math.min(...orders)
+    let minOrderHit = Math.max(...orders)
+    let selectedOrder = selected.order
     // get the top field within each layer for all overlapping segments
     // console.log("RETRIEVE DATA")
     let topFieldsAllLayers = Promise.all(layers.map((layer, i) => {
@@ -39,6 +266,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
         if((layer.orders[0] <= order) && (layer.orders[1] >= order)) {
           // update ordersHit with orders we collect layer data from
           maxOrderHit = Math.max(maxOrderHit, order)
+          minOrderHit = Math.min(minOrderHit, order)
           // get hilbert ranges
           const orderRange = getRange(selected, order)
           // fetch data for collected hilbert segments
@@ -96,29 +324,68 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
 
     // find the best score for each segment across layers
     // console.log("BEST SCORE FOR EACH SEGMENT ACROSS LAYERS")
+    let dataTree
     let topFieldsAcrossLayers = topFieldsAllLayers.then((layerData) => {
       topFieldsAllLayers = undefined
+
+      // build tree
+      let numNodes = 0
+      for(let o = minOrderHit; o <= maxOrderHit; o++) {numNodes += 4 ** Math.max(0, (o - selectedOrder))}
+      dataTree = new Array(numNodes).fill(null).map(d => ({'children': [], 'parent': null, data: null}))
+
+      // create tree
+      let p
+      let minSelectedDiff = selectedOrder - minOrderHit
+      for(let c = 1; c < numNodes; c++) {
+        c < minSelectedDiff ? p = c - 1 : p = Math.floor((c - 1) / 4) + minSelectedDiff - 1
+        dataTree[p].children.push(c)
+        dataTree[c].parent = p
+      }
+
       // the most segments in any layer
       let numSegments = Math.max(...layerData.map(d => d.length))
-      let topFieldsAcrossLayers = new Array(numSegments).fill(null)
-      // console.log(layerData)
       // ENR layers
       const enrLayerData = layerData.filter((d, i) => !occMask[i])
-      const occLayerData = layerData.filter((d, i) => occMask[i])
+
+      // create empty value tracker for ENR data
+      const enrEmptyTracter = new Array(layers.length).fill(0)
       // find the layer with the max score for each segment
       for(let i = 0; i < numSegments; i++) {
         let topLayerForSegment = enrLayerData.map(d => d[i]).sort((a,b) => {return b.topField.value - a.topField.value})[0]
         // if no ENR data, find OCC data
         if(!topLayerForSegment?.topField?.value > 0) {
-          topLayerForSegment = occLayerData.map(d => d[i]).sort((a,b) => {return b.topField.value - a.topField.value})[0]
+          // move up tree and find what is special about this path in ENR
+          let node = i
+          let enrTracter = [...enrEmptyTracter]
+          while(dataTree[node].parent !== null) {
+            // find parent data
+            let parentData = dataTree[dataTree[node].parent].data
+            // if ENR data, add to tracker
+            if(enrInds.includes(parentData?.layerInd)) {
+              enrTracter[parentData.layerInd] = Math.max(enrTracter[parentData.layerInd], parentData.topField.value)
+            }
+            // move up the tree
+            node = dataTree[node].parent
+          }
+          // find the layer with the max score across path
+          const layerSortOrder = enrTracter.map((v, i) => ({v, i})).sort((a,b) => {return b.v - a.v})
+          // data for segment across orders
+          const segmentData = layerData.map(d => d[i])
+          // sort layers in segment data
+          const segmentDataSorted = layerSortOrder.map(d => segmentData[enrOccMapping[d.i]])
+          // take the top layer if it has non-zero value
+          topLayerForSegment = segmentDataSorted.filter(d => d?.topField?.value > 0)[0]
+          if(!topLayerForSegment) topLayerForSegment = segmentDataSorted[0]
+          // if(!topLayerForSegment) topLayerForSegment = null
+          // topLayerForSegment = occLayerData.map(d => d[i]).sort((a,b) => {return b.topField.value - a.topField.value})[0]
+          // break // delete
         }
-        // console.log('TOP LAYER FOR SEGMENT', topLayerForSegment)
         // replace integer with layer info
+        topLayerForSegment.layerInd = topLayerForSegment?.layer
         topLayerForSegment.layer = layers[topLayerForSegment.layer]
-        topFieldsAcrossLayers[i] = topLayerForSegment
+        dataTree[i].data = topLayerForSegment
       }
-      layerData = undefined
-      return topFieldsAcrossLayers
+      return dataTree.map(d => d.data)
     })
 
     let leafIndexOffset
@@ -154,7 +421,6 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
         })
         return scoresThroughNode
       }
-      // console.log("SCORE TREE")
       scoresThroughNode = sumTree(scoresThroughNode)
 
       // sort paths
