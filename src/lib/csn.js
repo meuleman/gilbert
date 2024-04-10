@@ -337,7 +337,8 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       let p
       let minSelectedDiff = selectedOrder - minOrderHit
       for(let c = 1; c < numNodes; c++) {
-        c < minSelectedDiff ? p = c - 1 : p = Math.floor((c - 1) / 4) + minSelectedDiff - 1
+        // c < minSelectedDiff ? p = c - 1 : p = Math.floor((c - 1) / 4) + minSelectedDiff - 1
+        c <= minSelectedDiff ? p = c - 1 : p = Math.floor((c - minSelectedDiff - 1) / 4) + minSelectedDiff
         dataTree[p].children.push(c)
         dataTree[c].parent = p
       }
@@ -457,10 +458,21 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
         collectFeatures(d.i, i)
       })
 
-      let orderOffset = selectedOrder - minOrderHit      
+      // adjust tree to only include selected segment and below
+      let orderOffset = selectedOrder - minOrderHit
       let returnTree = dataTree.slice(orderOffset).map(d => {
-        return [d.parent - orderOffset, ...d.children.map(c => c - orderOffset)]
+        let adjustedParent = d.parent - orderOffset
+        let adjustedChildren = d.children.map(c => c - orderOffset)
+        let adjustedNode
+        (adjustedParent >= 0) ? adjustedNode = [adjustedParent, ...adjustedChildren] : adjustedNode = adjustedChildren
+        return adjustedNode
       })
+      // adjust path nodes to match new tree
+      topLeafPaths.forEach((d) => {
+        d.node -= orderOffset
+      })
+      // console.log(Math.max(...topLeafPaths.map(d => d.node)), Math.min(...topLeafPaths.map(d => d.node)))
+      // console.log('RETURN TREE', returnTree, dataTree.slice(orderOffset), dataTree)
 
       return {'paths': topLeafPaths, 'tree': returnTree}
     })
@@ -470,9 +482,9 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
     // attach variant data to paths
     // console.log("ATTACH VARIANT DATA TO PATHS")
     let bestPathsWithVariants = Promise.all([bestPaths, variantTopFields]).then(([bestPathsResponse, variantTopFieldsResponse]) => {
-      console.log('VARIANT MAP START')
+      // console.log('VARIANT MAP START')
       if(variantTopFieldsResponse.length > 0) {
-        console.log("WE HAVE VARIANTS")
+        // console.log("WE HAVE VARIANTS")
         // only keep variants that are not null (we may want to do this earlier/when we combine variant layers)
         const variantsFiltered = variantTopFieldsResponse.flatMap(d => d).filter(d => d.topField.value !== null && d.topField.value !== 0)
         const pathMaping = new Map(bestPathsResponse.paths.map(path => [path.node, path]));
