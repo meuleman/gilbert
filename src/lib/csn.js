@@ -276,7 +276,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
               const topFields = response.map(d => {
                 let topField = layer.fieldChoice(d)
                 // store layer as integer
-                d.layer = i
+                d.layerInd = i
                 d.topField = topField
                 return d
               })
@@ -309,7 +309,6 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           const topFields = response.map(d => {
             let topField = layer.fieldChoice(d)
             topField.color = layer.fieldColor(topField.field)
-            // store layer as integer
             d.layer = layer
             d.topField = topField
             return d
@@ -332,8 +331,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       let numNodes = 0
       for(let o = minOrderHit; o <= maxOrderHit; o++) {numNodes += 4 ** Math.max(0, (o - selectedOrder))}
       dataTree = new Array(numNodes).fill(null).map(d => ({'children': [], 'parent': null, data: null}))
-
-      // create tree
+      // fill tree
       let p
       let minSelectedDiff = selectedOrder - minOrderHit
       for(let c = 1; c < numNodes; c++) {
@@ -348,43 +346,86 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       // ENR layers
       const enrLayerData = layerData.filter((d, i) => !occMask[i])
 
-      // create empty value tracker for ENR data
-      const enrEmptyTracter = new Array(layers.length).fill(0)
+      // function to find upstream ENR data for a segment
+      const findPathENRData = (node, factorTracker) => {
+        // find parent data
+        let parentData = dataTree[dataTree[node].parent].data
+        // if ENR data, add to tracker
+        if((enrInds.includes(parentData?.layerInd)) && (parentData?.topField?.value > 0)) {
+          factorTracker.push({
+            score: parentData.data.max_value,
+            factor: parentData.data.max_field,
+            layer: parentData.layerInd
+          })
+        }
+        // move up the tree
+        node = dataTree[node].parent
+        // if new node has parent, collect information
+        if(dataTree[node].parent !== null) {
+          findPathENRData(node, factorTracker)
+        }
+        return factorTracker
+      }
+
       // find the layer with the max score for each segment
+      console.log("DATATREE", dataTree)
       for(let i = 0; i < numSegments; i++) {
+        // first look for ENR data
         let topLayerForSegment = enrLayerData.map(d => d[i]).sort((a,b) => {return b.topField.value - a.topField.value})[0]
         // if no ENR data, find OCC data
         if(!topLayerForSegment?.topField?.value > 0) {
           // move up tree and find what is special about this path in ENR
-          let node = i
-          let enrTracter = [...enrEmptyTracter]
-          while(dataTree[node].parent !== null) {
-            // find parent data
-            let parentData = dataTree[dataTree[node].parent].data
-            // if ENR data, add to tracker
-            if(enrInds.includes(parentData?.layerInd)) {
-              enrTracter[parentData.layerInd] = Math.max(enrTracter[parentData.layerInd], parentData.topField.value)
-            }
-            // move up the tree
-            node = dataTree[node].parent
-          }
-          // find the layer with the max score across path
-          const layerSortOrder = enrTracter.map((v, i) => ({v, i})).sort((a,b) => {return b.v - a.v})
+          const factorTracker = findPathENRData(i, [])
+          // const enrTracter = allTrackers.tracker
+
+
+          // // find the layer with the max score across path
+          // const layerSortOrder = enrTracter.map((v, i) => ({v, i})).sort((a,b) => {return b.v - a.v})
+          // // data for segment across orders
+          // const segmentData = layerData.map(d => d[i])
+          // // sort layers in segment data
+          // const segmentDataSorted = layerSortOrder.map(d => segmentData[enrOccMapping[d.i]])
+          // // take the top layer if it has non-zero value
+          // topLayerForSegment = segmentDataSorted.filter(d => d?.topField?.value > 0)[0]
+          // if(!topLayerForSegment) topLayerForSegment = segmentDataSorted[0]
+          
+
+          // factor version
+          const enrFactorTracker = factorTracker
+          enrFactorTracker.sort((a,b) => {return b.score - a.score})
           // data for segment across orders
           const segmentData = layerData.map(d => d[i])
-          // sort layers in segment data
-          const segmentDataSorted = layerSortOrder.map(d => segmentData[enrOccMapping[d.i]])
-          // take the top layer if it has non-zero value
-          topLayerForSegment = segmentDataSorted.filter(d => d?.topField?.value > 0)[0]
-          if(!topLayerForSegment) topLayerForSegment = segmentDataSorted[0]
-          // if(!topLayerForSegment) topLayerForSegment = null
-          // topLayerForSegment = occLayerData.map(d => d[i]).sort((a,b) => {return b.topField.value - a.topField.value})[0]
+          
+          // find the first ENR factor (sorted by score) with nonzero OCC scores
+          let hasUsed = new Set();
+          for(let e = 0; e < enrFactorTracker.length; e++) {
+            let enr = enrFactorTracker[e]
+            let key = `${enr.layer},${enr.factor}`;
+            if(!hasUsed.has(key)) {
+              hasUsed.add(key)
+              let occSegmentData = segmentData[enrOccMapping[enr.layer]]
+              if((occSegmentData?.data?.max_value > 0) && (occSegmentData?.data?.max_field === enr.factor)) {
+                topLayerForSegment = occSegmentData
+                // setting OCC scores to a constant low value for now
+                topLayerForSegment.topField.value = 0.01
+                break
+              }
+            }
+          }
           // break // delete
+          // if(!topLayerForSegment) {
+          //   topLayerForSegment = segmentData[0]
+          //   console.log('NO OCC DATA', i, topLayerForSegment, segmentData, occMask)
+          // }
+          
         }
-        // replace integer with layer info
-        topLayerForSegment.layerInd = topLayerForSegment?.layer
-        topLayerForSegment.layer = layers[topLayerForSegment.layer]
-        dataTree[i].data = topLayerForSegment
+        // add full layer info
+        // console.log(topLayerForSegment, i, numSegments)
+        
+        if(topLayerForSegment) {
+          topLayerForSegment.layer = layers[topLayerForSegment.layerInd]
+          dataTree[i].data = topLayerForSegment
+        }
       }
       return {dataTree: dataTree, topFieldsAcrossLayers: dataTree.map(d => d.data)}
     })
@@ -414,7 +455,8 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       // function to sum through nodes and collect score at leaves
       let sumThroughTree = (nodeScores) => {
         dataTree.forEach((d, i) => {
-          let nodeValue = d.data.topField.value
+          let nodeValue = d.data?.topField?.value
+          nodeValue ? nodeValue : 0
           if(csnMethod === 'sum') nodeScores[i] += nodeValue
           else if(csnMethod === 'normalizedSum') nodeScores[i] += Math.sqrt(nodeValue)
           else if(csnMethod === 'max') nodeScores[i] = Math.max(nodeScores[i], nodeValue)
@@ -431,9 +473,9 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
 
       // collect the features for each leaf path
       let refactorFeature = (d) => {
-        let field = d.topField
+        let field = d?.topField
         // only keep stations with significant scores
-        if(field.value !== null) {
+        if(field && field?.value !== null) {
           field.color = d.layer.fieldColor(field.field)
           return { 
             region: d, order: d.order, layer: d.layer, field: field,
