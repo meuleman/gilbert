@@ -30,12 +30,12 @@ export default function Line({
   useEffect(() => {
     // console.log(csn, order)
     if(csn?.path){
-      console.log("csn.path",csn)
+      // console.log("csn.path",csn)
       const p = csn.path.filter(d => !!d).sort((a, b) => a.order - b.order) 
       if(csn.variants && csn.variants.length) {
         // let v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0]
         let v = variantChooser(csn.variants)
-        console.log("top variant line ",v)
+        // console.log("top variant line ",v)
         p.push({field: v.topField, layer: v.layer, order: 14, region: v})
       }
       setPath(p)
