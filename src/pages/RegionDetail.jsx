@@ -60,10 +60,14 @@ const RegionDetail = () => {
   const [csnSlice, setCsnSlice] = useState(20)
 
   const csnLayers = [
-    layers.find(d => d.name == "DHS Components (ENR)"),
-    layers.find(d => d.name == "Chromatin States (ENR)"),
-    layers.find(d => d.name == "TF Motifs (ENR)"),
-    layers.find(d => d.name == "Repeats (ENR)"),
+    // layers.find(d => d.name == "DHS Components (ENR)"),
+    // layers.find(d => d.name == "Chromatin States (ENR)"),
+    // layers.find(d => d.name == "TF Motifs (ENR)"),
+    // layers.find(d => d.name == "Repeats (ENR)"),
+    layers.find(d => d.name == "DHS Components (ENR, Full)"),
+    layers.find(d => d.name == "Chromatin States (ENR, Full)"),
+    layers.find(d => d.name == "TF Motifs (ENR, Full)"),
+    layers.find(d => d.name == "Repeats (ENR, Full)"),
     layers.find(d => d.name == "DHS Components (OCC)"),
     layers.find(d => d.name == "Chromatin States (OCC)"),
     layers.find(d => d.name == "TF Motifs (OCC)"),

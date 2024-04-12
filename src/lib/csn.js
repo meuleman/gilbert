@@ -34,25 +34,55 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
     const enrInds = occMask.map((v, i) => !v ? i : -1).filter(i => i !== -1)
     let enrOccMapping = {}
     enrInds.forEach((i) => {
-      const baseName = layerNames[i].replace(' (ENR)', '')
+      const baseName = layerNames[i].replace(' (ENR)', '').replace(' (ENR, Full)', '')
       const occInd = layerNames.findIndex(d => d.includes(baseName) && d.includes('OCC'))
       enrOccMapping[i] = occInd
     })
 
     // track the orders we collect layer data from
-    let maxOrderHit = Math.min(...orders)
-    let minOrderHit = Math.max(...orders)
+    // let maxOrderHit = Math.min(...orders)
+    // let minOrderHit = Math.max(...orders)
+    let maxOrderHit = 14
+    let minOrderHit = 4
     let selectedOrder = selected.order
+
+    // build tree to collect and track data
+    let numNodes = 0
+    for(let o = minOrderHit; o <= maxOrderHit; o++) {numNodes += 4 ** Math.max(0, (o - selectedOrder))}
+    let dataTree = new Array(numNodes).fill(null).map(d => ({'children': [], 'parent': null, data: {}, variants: {}, order: null}))
+    // fill tree
+    let minSelectedDiff = selectedOrder - minOrderHit
+    let p
+    let o = minOrderHit
+    let numForOrder = Math.max(1, 4 ** (o - selectedOrder))
+    let orderCount = 0
+    for(let c = 0; c < numNodes; c++) {
+      if(c > 0){
+        // c < minSelectedDiff ? p = c - 1 : p = Math.floor((c - 1) / 4) + minSelectedDiff - 1
+        c <= minSelectedDiff ? p = c - 1 : p = Math.floor((c - minSelectedDiff - 1) / 4) + minSelectedDiff
+        dataTree[p].children.push(c)
+        dataTree[c].parent = p
+      }
+      // set order
+      if(orderCount === numForOrder) {
+        o++
+        numForOrder = Math.max(1, 4 ** (o - selectedOrder))
+        orderCount = 0
+      }
+      dataTree[c].order = o
+      orderCount++
+    }
+
     // get the top field within each layer for all overlapping segments
-    // console.log("RETRIEVE DATA")
-    let topFieldsAllLayers = Promise.all(layers.map((layer, i) => {
+    let topFieldsAllLayers = Promise.all(layers.map((layer, l) => {
       // ... find the top field within each segment for each layer
       let topFieldsAllOrders = Promise.all(orders.map((order) => {
+        // console.log("RETRIEVE DATA", layer, order)
         // if the layer includes current order
         if((layer.orders[0] <= order) && (layer.orders[1] >= order)) {
-          // update ordersHit with orders we collect layer data from
-          maxOrderHit = Math.max(maxOrderHit, order)
-          minOrderHit = Math.min(minOrderHit, order)
+          // // update ordersHit with orders we collect layer data from
+          // maxOrderHit = Math.max(maxOrderHit, order)
+          // minOrderHit = Math.min(minOrderHit, order)
           // get hilbert ranges
           const orderRange = getRange(selected, order)
           // fetch data for collected hilbert segments
@@ -62,11 +92,19 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
               const topFields = response.map(d => {
                 let topField = layer.fieldChoice(d)
                 // store layer as integer
-                d.layerInd = i
+                d.layerInd = l
                 d.topField = topField
                 return d
               })
-              return topFields
+              // add data to tree
+              let i = 0
+              dataTree.forEach((d) => {
+                if (d.order == order) {
+                  if(topFields[i].topField.value > 0) d.data[l] = topFields[i]
+                  i++
+                }
+              })
+              Promise.resolve(null)
             })
             .catch((error) => {
               console.error(`Error fetching CSN data: ${error}`);
@@ -78,13 +116,14 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       }))
       return topFieldsAllOrders.then((response) => {
         // flatten for easy lookup in following steps
-        return response.filter(d => d !== null).flat()
+        return Promise.resolve(null)
       })
     }))
+    console.log(dataTree)
 
     // collect variant data for selected range
-    // console.log("COLLECT VARIANT DATA")
-    let variantTopFields = Promise.all(variantLayers.map((layer, i) => {
+    let variantTopFields = Promise.all(variantLayers.map((layer, l) => {
+      console.log("COLLECT VARIANT DATA")
       // get range
       const order = 14
       const orderRange = getRange(selected, order)
@@ -99,7 +138,16 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
             d.topField = topField
             return d
           })
-          return topFields
+          // add data to tree
+          let i = 0
+          dataTree.forEach((d) => {
+            if (d.order == order) {
+              if(topFields[i].topField.value > 0) d.variants[l] = topFields[i]
+              i++
+            }
+          })
+          console.log("VARIANT DATA LOADED", layer)
+          return Promise.resolve(null)
         })
         .catch((error) => {
           console.error(`Error fetching variant data: ${error}`);
@@ -108,75 +156,81 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
     }))
 
     // find the best score for each segment across layers
-    // console.log("BEST SCORE FOR EACH SEGMENT ACROSS LAYERS")
-    let dataTree
-    let topFieldsAcrossLayers = topFieldsAllLayers.then((layerData) => {
-      topFieldsAllLayers = undefined
-
-      // build tree
-      let numNodes = 0
-      for(let o = minOrderHit; o <= maxOrderHit; o++) {numNodes += 4 ** Math.max(0, (o - selectedOrder))}
-      dataTree = new Array(numNodes).fill(null).map(d => ({'children': [], 'parent': null, data: null}))
-      // fill tree
-      let p
-      let minSelectedDiff = selectedOrder - minOrderHit
-      for(let c = 1; c < numNodes; c++) {
-        // c < minSelectedDiff ? p = c - 1 : p = Math.floor((c - 1) / 4) + minSelectedDiff - 1
-        c <= minSelectedDiff ? p = c - 1 : p = Math.floor((c - minSelectedDiff - 1) / 4) + minSelectedDiff
-        dataTree[p].children.push(c)
-        dataTree[c].parent = p
-      }
-
-      // the most segments in any layer
-      let numSegments = Math.max(...layerData.map(d => d.length))
-      // ENR layers
-      const enrLayerData = layerData.filter((d, i) => !occMask[i])
+    let topFieldsAcrossLayers = topFieldsAllLayers.then(() => {
+      console.log("BEST SCORE FOR EACH SEGMENT ACROSS LAYERS")
+      // // ENR layers
+      // const enrLayerData = layerData.filter((d, i) => !occMask[i])
 
       // function to find upstream ENR data for a segment
-      const findPathENRData = (node, factorTracker) => {
+      const findPathENRData = (node, tracker) => {
         // find parent data
-        let parentData = dataTree[dataTree[node].parent].data
-        // if ENR data, add to tracker
-        if((enrInds.includes(parentData?.layerInd)) && (parentData?.topField?.value > 0)) {
-          factorTracker.push({
-            score: parentData.data.max_value,
-            factor: parentData.data.max_field,
-            layer: parentData.layerInd
-          })
-        }
+        let parentENRData = enrInds.map(d => dataTree[dataTree[node].parent].data[d])
+        // console.log(parentENRData)
+        parentENRData.forEach(d => {
+          // if ENR data, add to tracker
+          if(d?.topField?.value > 0) {
+            let layerInd = d.layerInd
+            if(d?.data?.max_field >= 0) {
+              tracker.push({
+                score: d.data.max_value,
+                factor: d.data.max_field,
+                layer: layerInd
+              })
+            }
+            else {
+              // full data
+              // filter byte array for nonzero values and add to tracker
+              [...d.bytes].forEach((value, index) => {
+                if (value > 0) {
+                  tracker.push({
+                    score: value,
+                    factor: index,
+                    layer: layerInd
+                  })
+                }
+              })
+            }
+          }
+        })
         // move up the tree
         node = dataTree[node].parent
         // if new node has parent, collect information
         if(dataTree[node].parent !== null) {
-          findPathENRData(node, factorTracker)
+          findPathENRData(node, tracker)
         }
-        return factorTracker
+        return tracker
       }
 
       // find the layer with the max score for each segment
-      console.log("DATATREE", dataTree)
-      for(let i = 0; i < numSegments; i++) {
+      console.log("FIND THE LAYER WITH THE MAX SCORE FOR EACH SEGMENT")
+      for(let i = 0; i < numNodes; i++) {
+        // node
+        let nodeData = dataTree[i].data
         // first look for ENR data
-        let topLayerForSegment = enrLayerData.map(d => d[i]).sort((a,b) => {return b.topField.value - a.topField.value})[0]
+        let topLayerForSegment = enrInds.map(d => nodeData[d]).sort((a,b) => {return b.topField.value - a.topField.value})[0]
+        // console.log(nodeData[enrInds[0]])
+        // let topLayerForSegment = enrInds.reduce((max, d) => {
+        //   let current = nodeData[d];
+        //   return (current && (max.topField.value < current.topField.value)) ? current : max;
+        // }, nodeData[enrInds[0]] );
+        
         // if no ENR data, find OCC data
         if(!topLayerForSegment?.topField?.value > 0) {
           // move up tree and find what is special about this path in ENR
-          const factorTracker = findPathENRData(i, [])
-
-          // factor version
-          const enrFactorTracker = factorTracker
-          enrFactorTracker.sort((a,b) => {return b.score - a.score})
-          // data for segment across orders
-          const segmentData = layerData.map(d => d[i])
+          const enrTracker = findPathENRData(i, [])
+          enrTracker.sort((a,b) => {return b.score - a.score})
+          // console.log("ENR FACTOR TRACKER", enrTracker)
           
           // find the first ENR factor (sorted by score) with nonzero OCC scores
           let hasUsed = new Set();
-          for(let e = 0; e < enrFactorTracker.length; e++) {
-            let enr = enrFactorTracker[e]
+          // console.log("ENR TRACKER", enrTracker)
+          // break
+          for(let e = 0; e < enrTracker.length; e++) {
+            let enr = enrTracker[e]
             let key = `${enr.layer},${enr.factor}`;
             if(!hasUsed.has(key)) {
               hasUsed.add(key)
-              let occSegmentData = segmentData[enrOccMapping[enr.layer]]
+              let occSegmentData = nodeData[enrOccMapping[enr.layer]]
               if((occSegmentData?.data?.max_value > 0) && (occSegmentData?.data?.max_field === enr.factor)) {
                 topLayerForSegment = occSegmentData
                 // setting OCC scores to a constant low value for now
@@ -185,20 +239,23 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
               }
             }
           }
-        }        
+        }
         if(topLayerForSegment) {
           topLayerForSegment.layer = layers[topLayerForSegment.layerInd]
-          dataTree[i].data = topLayerForSegment
+          dataTree[i].data['chosen'] = topLayerForSegment
         }
       }
-      return {dataTree: dataTree, topFieldsAcrossLayers: dataTree.map(d => d.data)}
+      console.log("MAX SCORE FOR EACH SEGMENT DONE")
+      return Promise.resolve(null)
     })
+    console.log("DATATREE", dataTree)
 
     let leafIndexOffset
-    let bestPaths = topFieldsAcrossLayers.then((response) => {
+    // let bestPaths = topFieldsAcrossLayers.then((response) => {
+    let bestPaths = Promise.all([topFieldsAcrossLayers, variantTopFields]).then(() => {
+      console.log("FIND THE BEST PATHS")
 
       // parse tree and build each path
-      let dataTree = response.dataTree
       let numLeaves = 4 ** (maxOrderHit - selectedOrder)
       let numSegments = dataTree.length
       leafIndexOffset = numSegments - numLeaves
@@ -206,7 +263,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       // function to sum through nodes and collect score at leaves
       let sumThroughTree = (nodeScores) => {
         dataTree.forEach((d, i) => {
-          let nodeValue = d.data?.topField?.value
+          let nodeValue = d.data?.chosen?.topField?.value
           nodeValue ? nodeValue : 0
           if(csnMethod === 'sum') nodeScores[i] += nodeValue
           else if(csnMethod === 'normalizedSum') nodeScores[i] += Math.sqrt(nodeValue)
@@ -236,63 +293,76 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
 
       // initialize path data
       let topLeafPaths = new Array(leafScoresSorted.length).fill(null).map(d => {return {'path': []}})
+
       // function to move through the tree and collect features for each segment
       let collectFeatures = (node, i) => {
         let treeDataNode = dataTree[node]
-        let nodeFeature = treeDataNode.data
+        let nodeFeature = treeDataNode.data.chosen
         topLeafPaths[i].path.push(refactorFeature(nodeFeature))
+        // add variants
+        if(treeDataNode.variants) {
+          let variants = Object.values(treeDataNode.variants).filter(d => d.topField.value !== null && d.topField.value !== 0)
+          // let pathVariants = 
+          if(variants.length > 0) {
+            topLeafPaths[i]['variants'] ? topLeafPaths[i]['variants'].push(...variants) : topLeafPaths[i]['variants'] = variants
+          }
+        }
         if(treeDataNode.parent !== null) {
           collectFeatures(treeDataNode.parent, i)
         }
       }
+      // leafScoresSorted.forEach((d, i) => {
       leafScoresSorted.forEach((d, i) => {
         topLeafPaths[i]['score'] = d.score
         topLeafPaths[i]['node'] = d.i
         collectFeatures(d.i, i)
       })
+      console.log("TOP LEAF PATHS", topLeafPaths) 
 
       // adjust tree to only include selected segment and below
-      let orderOffset = selectedOrder - minOrderHit
-      let returnTree = dataTree.slice(orderOffset).map(d => {
-        let adjustedParent = d.parent - orderOffset
-        let adjustedChildren = d.children.map(c => c - orderOffset)
+      let returnTree = dataTree.slice(minSelectedDiff).map(d => {
+        let adjustedParent = d.parent - minSelectedDiff
+        let adjustedChildren = d.children.map(c => c - minSelectedDiff)
         let adjustedNode
         (adjustedParent >= 0) ? adjustedNode = [adjustedParent, ...adjustedChildren] : adjustedNode = adjustedChildren
         return adjustedNode
       })
       // adjust path nodes to match new tree
       topLeafPaths.forEach((d) => {
-        d.node -= orderOffset
+        d.node -= minSelectedDiff
       })
       // console.log(Math.max(...topLeafPaths.map(d => d.node)), Math.min(...topLeafPaths.map(d => d.node)))
-      // console.log('RETURN TREE', returnTree, dataTree.slice(orderOffset), dataTree)
+      // console.log('RETURN TREE', returnTree, dataTree.slice(minSelectedDiff), dataTree)
 
       return {'paths': topLeafPaths, 'tree': returnTree}
     })
+    console.log("BEST PATHS", bestPaths)
+    return bestPaths
 
     // find the resolution of the paths
-    let pathRes = 4 ** (14 - maxOrderHit)
+    // let pathRes = 4 ** (14 - maxOrderHit)
     // attach variant data to paths
     // console.log("ATTACH VARIANT DATA TO PATHS")
-    let bestPathsWithVariants = Promise.all([bestPaths, variantTopFields]).then(([bestPathsResponse, variantTopFieldsResponse]) => {
+    // let bestPathsWithVariants = Promise.all([bestPaths, variantTopFields]).then(([bestPathsResponse, variantTopFieldsResponse]) => {
+      // console.log("VARIANTS", dataTree.map(d => d.variants).filter(d => Object.keys(d).length > 0))
       // console.log('VARIANT MAP START')
-      if(variantTopFieldsResponse.length > 0) {
-        // console.log("WE HAVE VARIANTS")
-        // only keep variants that are not null (we may want to do this earlier/when we combine variant layers)
-        const variantsFiltered = variantTopFieldsResponse.flatMap(d => d).filter(d => d.topField.value !== null && d.topField.value !== 0)
-        const pathMaping = new Map(bestPathsResponse.paths.map(path => [path.node, path]));
-        variantsFiltered.forEach(d => {
-          // console.log('VARIANT', d)
-          // find path/node it belongs to
-          let node = Math.floor((d.start - selected.start) / pathRes) + leafIndexOffset
-          let path = pathMaping.get(node)
-          if(path) path.variants ? path.variants.push(d) : path.variants = [d]
-        })
-      }
-      console.log('VARIANT MAP DONE!!!', bestPathsResponse)
-      return bestPathsResponse
-    })
-    return bestPathsWithVariants
+      // if(variantTopFieldsResponse.length > 0) {
+      //   // console.log("WE HAVE VARIANTS")
+      //   // only keep variants that are not null (we may want to do this earlier/when we combine variant layers)
+      //   const variantsFiltered = variantTopFieldsResponse.flatMap(d => d).filter(d => d.topField.value !== null && d.topField.value !== 0)
+      //   const pathMaping = new Map(bestPathsResponse.paths.map(path => [path.node, path]));
+      //   variantsFiltered.forEach(d => {
+      //     // console.log('VARIANT', d)
+      //     // find path/node it belongs to
+      //     let node = Math.floor((d.start - selected.start) / pathRes) + leafIndexOffset
+      //     let path = pathMaping.get(node)
+      //     if(path) path.variants ? path.variants.push(d) : path.variants = [d]
+      //   })
+      // }
+      // console.log('VARIANT MAP DONE!!!', bestPathsResponse)
+      // return bestPathsResponse
+    // })
+    // return bestPathsWithVariants
   }
 }
 
