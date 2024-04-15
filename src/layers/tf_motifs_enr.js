@@ -13,7 +13,7 @@ export default {
   datasetName: "tf_enr",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseURLPrefix}/20240327`,
-  orders: [4,12],
+  orders: [4,13],
   renderer: CanvasScaledValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
