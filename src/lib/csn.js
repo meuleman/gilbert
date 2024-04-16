@@ -263,8 +263,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       // function to sum through nodes and collect score at leaves
       let sumThroughTree = (nodeScores) => {
         dataTree.forEach((d, i) => {
-          let nodeValue = d.data?.chosen?.topField?.value
-          nodeValue = nodeValue || 0
+          let nodeValue = d.data?.chosen?.topField?.value || 0
           if(csnMethod === 'sum') nodeScores[i] += nodeValue
           else if(csnMethod === 'normalizedSum') nodeScores[i] += Math.sqrt(nodeValue)
           else if(csnMethod === 'max') nodeScores[i] = Math.max(nodeScores[i], nodeValue)
