@@ -264,7 +264,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       let sumThroughTree = (nodeScores) => {
         dataTree.forEach((d, i) => {
           let nodeValue = d.data?.chosen?.topField?.value
-          nodeValue ? nodeValue : 0
+          nodeValue = nodeValue || 0
           if(csnMethod === 'sum') nodeScores[i] += nodeValue
           else if(csnMethod === 'normalizedSum') nodeScores[i] += Math.sqrt(nodeValue)
           else if(csnMethod === 'max') nodeScores[i] = Math.max(nodeScores[i], nodeValue)
@@ -338,31 +338,6 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
     })
     console.log("BEST PATHS", bestPaths)
     return bestPaths
-
-    // find the resolution of the paths
-    // let pathRes = 4 ** (14 - maxOrderHit)
-    // attach variant data to paths
-    // console.log("ATTACH VARIANT DATA TO PATHS")
-    // let bestPathsWithVariants = Promise.all([bestPaths, variantTopFields]).then(([bestPathsResponse, variantTopFieldsResponse]) => {
-      // console.log("VARIANTS", dataTree.map(d => d.variants).filter(d => Object.keys(d).length > 0))
-      // console.log('VARIANT MAP START')
-      // if(variantTopFieldsResponse.length > 0) {
-      //   // console.log("WE HAVE VARIANTS")
-      //   // only keep variants that are not null (we may want to do this earlier/when we combine variant layers)
-      //   const variantsFiltered = variantTopFieldsResponse.flatMap(d => d).filter(d => d.topField.value !== null && d.topField.value !== 0)
-      //   const pathMaping = new Map(bestPathsResponse.paths.map(path => [path.node, path]));
-      //   variantsFiltered.forEach(d => {
-      //     // console.log('VARIANT', d)
-      //     // find path/node it belongs to
-      //     let node = Math.floor((d.start - selected.start) / pathRes) + leafIndexOffset
-      //     let path = pathMaping.get(node)
-      //     if(path) path.variants ? path.variants.push(d) : path.variants = [d]
-      //   })
-      // }
-      // console.log('VARIANT MAP DONE!!!', bestPathsResponse)
-      // return bestPathsResponse
-    // })
-    // return bestPathsWithVariants
   }
 }
 
