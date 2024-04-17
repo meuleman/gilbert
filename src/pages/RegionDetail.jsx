@@ -92,11 +92,15 @@ const RegionDetail = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+
   const regionRef = useRef(null);
+  const csnMethodRef = useRef(null);
 
   useEffect(() => {
-    if(regionRef.current !== region) {
+    if(regionRef.current !== region || csnMethodRef.current !== csnMethod) {
       regionRef.current = region;
+      csnMethodRef.current = csnMethod;
       console.log("region", region)
       setInside(getGenesInCell(region, region.order))
       setOutside(getGenesOverCell(region, region.order))
