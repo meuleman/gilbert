@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { range, max } from 'd3-array';
 
@@ -92,9 +92,11 @@ const RegionDetail = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+  const regionRef = useRef(null);
 
   useEffect(() => {
-    if(region) {
+    if(regionRef.current !== region) {
+      regionRef.current = region;
       console.log("region", region)
       setInside(getGenesInCell(region, region.order))
       setOutside(getGenesOverCell(region, region.order))
