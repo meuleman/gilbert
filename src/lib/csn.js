@@ -206,7 +206,6 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
     // look for OCC factors that match upstream ENR factors
     let topFieldsAcrossLayersTime = Date.now()
     let topFieldsAcrossLayers = trackerPromise.then(() => {
-      console.log("ORDER 10 DATA", dataTree.filter(d => d.order === 10))
       console.log("Time to load all data", Date.now() - topFieldsAcrossLayersTime, "ms")
 
       // find the layer with the max score for each segment
@@ -220,8 +219,6 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
         let nodeData = dataTree[i].data
         // first look for ENR data
         let topLayerForSegment = enrInds.map(d => nodeData[d]).sort((a,b) => {return b.topField.value - a.topField.value})[0]
-        // let topLayerForSegment = enrInds.map(d => nodeData[d])[0]
-
         
         // if no ENR data, find OCC data
         if(!topLayerForSegment?.topField?.value > 0) {
@@ -240,7 +237,6 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           enrTracker.sort((a,b) => b.score - a.score)
           totalSortTime += window.performance.now() - sortTime
 
-
           // find the first ENR factor (sorted by score) with nonzero OCC scores
           let forTime = window.performance.now()
           for(let e = 0; e < enrTracker.length; e++) {
@@ -252,7 +248,6 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
               topLayerForSegment = occSegmentData
               // setting OCC scores to a constant low value for now
               topLayerForSegment.topField.value = 0.01
-              
               break
             }
           }
