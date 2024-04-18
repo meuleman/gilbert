@@ -1,6 +1,6 @@
 // Visualize a 1D strip centered on a region
 
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { scaleLinear } from 'd3-scale';
 import { extent } from 'd3-array';
 
@@ -9,7 +9,7 @@ import scaleCanvas from '../lib/canvas'
 
 import Data from '../lib/data';
 
-import CanvasBase from './CanvasBase';
+import Tooltip from './Tooltips/Tooltip';
 
 import './RegionStrip.css';
 
@@ -28,8 +28,11 @@ RegionStrip.propTypes = {
 function RegionStrip({ region, segments=100, highlights, layer, width, height }) {
 
   const canvasRef = useRef(null);
+  const tooltipRef = useRef(null)
   const [data, setData] = useState(null)
   const [points, setPoints] = useState(null)
+
+  const xScaleRef = useRef(null)
 
   useEffect(() => {
     scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
@@ -48,6 +51,7 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
           .domain(xExtent)
           .range([0, width])
         const bw = xScale(points[0].end) - xScale(points[0].start)
+        xScaleRef.current = xScale
 
         ctx.strokeStyle = "gray"
         ctx.lineWidth = 0.5
@@ -203,6 +207,8 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
             })
           }
         }
+      } else {
+        xScaleRef.current = null
       }
     }
   }, [layer, highlights, width, height])
@@ -252,6 +258,30 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
     console.log("clicked region strip", region, data, layer)
   }, [region, data, layer])
 
+  const handleMouseMove = useCallback((e) => {
+    if(!xScaleRef.current || !data?.length) return
+    const { clientX } = e;
+    const rect = e.target.getBoundingClientRect();
+    const x = clientX - rect.x; // x position within the element.
+
+    const mStart = xScaleRef.current.invert(x); 
+
+    const hoveredData = data.find(d => {
+      return d.start < mStart && d.end > mStart
+    });
+
+    if(hoveredData) {
+      const bw = xScaleRef.current(hoveredData.end) - xScaleRef.current(hoveredData.start)
+      const tx = xScaleRef.current(hoveredData.start) + rect.x + bw/2
+      console.log("hovered data", hoveredData)
+      tooltipRef.current.show(hoveredData, layer, tx, rect.top - 2)
+    }
+  }, [data, layer])
+
+  const handleMouseLeave = useCallback(() => {
+    tooltipRef.current.hide()
+  }, [])
+
   return (
     <div 
       className="region-strip" 
@@ -265,7 +295,10 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
         height={height + "px"}
         ref={canvasRef}
         onClick={handleClick}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
       />
+      <Tooltip ref={tooltipRef} orientation="top" bottomOffset={height+5} />
     </div>
   );
 }
