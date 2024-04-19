@@ -40,6 +40,7 @@ import CD3 from './encode_CD3_D2_Stim_AG90658_output_2.5.1_max'
 import CD3Fiberseq from './fiberseq_CD3_HAP1d2stim_mean'
 import LADs from './lads'
 import LADs_new from './lads_new'
+import LADs_occ from './lads_occ'
 import NucleotideBadges from './order_14'
 
 
@@ -91,5 +92,6 @@ export default [
   CD3Fiberseq,
   LADs,
   LADs_new,
+  LADs_occ,
 ]
 
