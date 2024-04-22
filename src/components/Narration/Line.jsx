@@ -21,9 +21,11 @@ export default function Line({
   csn,
   order,
   highlight=false,
+  selected=false,
   width = 500,
   height,
-  onHover = () => {}
+  onHover = () => {},
+  onClick = () => {}
 }) {
   
   const [path, setPath] = useState([])
@@ -31,12 +33,14 @@ export default function Line({
     // console.log(csn, order)
     if(csn?.path){
       // console.log("csn.path",csn)
-      const p = csn.path.filter(d => !!d).sort((a, b) => a.order - b.order) 
+      let p = csn.path.filter(d => !!d).sort((a, b) => a.order - b.order) 
       if(csn.variants && csn.variants.length) {
         // let v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0]
         let v = variantChooser(csn.variants)
         // console.log("top variant line ",v)
+        p = p.filter(d => d.order !== 14);
         p.push({field: v.topField, layer: v.layer, order: 14, region: v})
+        console.log("p", p)
       }
       setPath(p)
     }
@@ -53,7 +57,7 @@ export default function Line({
   }, [width, height])
 
   return (
-    <div className="csn-line" onMouseEnter={() => onHover(csn)}>
+    <div className="csn-line" onMouseEnter={() => onHover(csn)} onClick={() => onClick(csn)}>
       
       <svg width={width} height={height}>
         <line 
@@ -63,7 +67,7 @@ export default function Line({
           // y2={height/2+rw/2} 
           y1={height-4}
           y2={height-4}
-          stroke={highlight ? "black" : "lightgray" }
+          stroke={selected ? "black" : highlight ? "#aaa" : "lightgray" }
           strokeWidth={highlight ? 2 : 1} />
 
         {path.length && xScale ? <g>

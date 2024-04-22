@@ -19,10 +19,11 @@ function processFactors(factors) {
 
 function Factor({
   factor,
-  onHover = () => {}
+  onHover = () => {},
+  onClick = () => {}
 } = {}) {
   return <>
-    { factor ? <div className="factor" onMouseEnter={() => onHover(factor.path)}>
+    { factor ? <div className="factor" onMouseEnter={() => onHover(factor.path)} onClick={() => onClick(factor.path)}>
       <b style={{color: factor.field.color}}>{factor.field.field}</b>: {factor.field.value.toFixed(2)} 
       (order {factor.order})
       <span className="summary-layer-links"> 
@@ -38,7 +39,8 @@ function Factor({
 function Summary({
   order,
   paths = [],
-  onHover = () => {}
+  onHover = () => {},
+  onClick = () => {}
 } = {}) {
 
   const [aboveFactors, setAboveFactors] = useState([])
@@ -77,19 +79,19 @@ function Summary({
     <div>
       <h3>Above</h3>
       <div className="factor-list">
-        {aboveFactors.map(f => <Factor key={f.field.field} factor={f} onHover={onHover} />)}
+        {aboveFactors.map(f => <Factor key={f.field.field} factor={f} onHover={onHover} onClick={onClick} />)}
       </div>
     </div>
     <div>
       <h3>Current</h3>
       <div className="factor-list">
-        {orderFactors.map(f => <Factor key={f.field.field} factor={f} onHover={onHover} />)}
+        {orderFactors.map(f => <Factor key={f.field.field} factor={f} onHover={onHover} onClick={onClick} />)}
       </div>
     </div>
     <div>
       <h3>Below</h3>
       <div className="factor-list">
-        {belowFactors.map(f => <Factor key={f.field.field} factor={f} onHover={onHover} />)}
+        {belowFactors.map(f => <Factor key={f.field.field} factor={f} onHover={onHover} onClick={onClick} />)}
       </div>
     </div>
   </div>

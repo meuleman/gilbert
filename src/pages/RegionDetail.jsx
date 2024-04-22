@@ -58,6 +58,15 @@ const RegionDetail = () => {
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
   const [csnMethod, setCsnMethod] = useState('sum')
   const [csnSlice, setCsnSlice] = useState(20)
+  const [selectedCSNIndex, setSelectedCSNIndex] = useState(-1)
+  const [hoveredCSNIndex, setHoveredCSNIndex] = useState(-1)
+  useEffect(() => {
+    if(selectedCSNIndex >= 0) {
+      setCrossScaleNarrationIndex(selectedCSNIndex)
+    } else if(hoveredCSNIndex >= 0) {
+      setCrossScaleNarrationIndex(hoveredCSNIndex)
+    }
+  }, [selectedCSNIndex, hoveredCSNIndex])
 
   const csnLayers = [
     // layers.find(d => d.name == "DHS Components (ENR)"),
@@ -501,6 +510,7 @@ const RegionDetail = () => {
           <div className="section-content">
             {region?.order < 14 ? <div className="csn-sankey">
               <div >
+                
                 <div className="sankey-editorial-controls">
                   <div className="checkboxes">
                     <input type="checkbox" checked={shrinkNone} onChange={e => setShrinkNone(e.target.checked)} />
@@ -541,6 +551,22 @@ const RegionDetail = () => {
             </div> : null }
             {/* <h3>Narration</h3> */}
 
+            { region?.order < 14 ? <Summary
+                  order={region.order}
+                  paths={topUniquePaths}
+                  onClick={(c) => {
+                    let ind = topUniquePaths.findIndex(d => d == c)
+                    if(ind == selectedCSNIndex) {
+                      setSelectedCSNIndex(-1)
+                    } else {
+                      setSelectedCSNIndex(ind)
+                    }
+                  }}
+                  onHover={(c) => {
+                    let ind = topUniquePaths.findIndex(d => d == c)
+                    setHoveredCSNIndex(ind)
+                  }}
+                /> : null }
 
             { region?.order < 14 ? <div className="lines">
               {topUniquePaths.map((d, i) => {
@@ -549,18 +575,26 @@ const RegionDetail = () => {
                   csn={d} 
                   order={region.order} 
                   highlight={i == crossScaleNarrationIndex} 
+                  selected={i == selectedCSNIndex}
                   width={stripsWidth} 
                   height={25} 
-                  onHover={(c) => setCrossScaleNarrationIndex(topUniquePaths.findIndex(d => d == c))}
+                  onClick={(c) => {
+                    let ind = topUniquePaths.findIndex(d => d == c)
+                    if(ind == selectedCSNIndex) {
+                      setSelectedCSNIndex(-1)
+                    } else {
+                      setSelectedCSNIndex(ind)
+                    }
+                  }}
+                  onHover={(c) => {
+                    let ind = topUniquePaths.findIndex(d => d == c)
+                    setHoveredCSNIndex(ind)
+                  }}
                   />
               })}
             </div> : null }
             
-            { region?.order < 14 ? <Summary
-              order={region.order}
-              paths={topUniquePaths}
-              onHover={(c) => setCrossScaleNarrationIndex(topUniquePaths.findIndex(d => d == c))}
-            /> : null }
+            
 
             { region?.order < 14 ? <div>
               <b>Explore narrations of {topUniquePaths.length} unique top paths:</b>
