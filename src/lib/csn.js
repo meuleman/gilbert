@@ -290,14 +290,13 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
     // console.log("DATATREE", dataTree)
 
     // get the paths for each leaf of tree
-    let leafIndexOffset
     let bestPaths = Promise.all([topFieldsAcrossLayers, variantTopFields]).then(() => {
-      let bestPathTime = Date.now()
+      let bestPathTime = window.performance.now()
 
       // parse tree and build each path
       let numLeaves = 4 ** (maxOrderHit - selectedOrder)
       let numSegments = dataTree.length
-      leafIndexOffset = numSegments - numLeaves
+      let leafIndexOffset = numSegments - numLeaves
       let nodeScores = new Array(numSegments).fill(0)
 
       // function to sum through nodes and collect score at leaves
@@ -321,7 +320,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       let leafScoresSorted = leafScores.sort((a, b) => b.score - a.score)
 
       // function to refactor features for a given node
-      let refactorFeature = (d) => {
+      let refactorTopFeature = (d) => {
         let field = d?.topField
         // only keep stations with significant scores
         if(field && field?.value !== null) {
@@ -332,18 +331,45 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
         } else return null
       }
 
+      let refactorAllFeatures = (d) => {
+        let keys = Object.keys(d).filter(k => k !== 'chosen')
+        // find all non-zero features for a given node across all layers
+        let segmentOrder = d[keys[0]].order
+        let allFeatures = {order: segmentOrder, features: {}}
+        // for each layer...
+        keys.forEach(layerInd => {
+          let layerInfo = d[layerInd]
+          // save the nonzero data for each layer
+          if(layerInfo.data.max_value > 0) {  // if max data and not 0
+            let key = `${layerInd},${layerInfo.data.max_field}`
+            let value = layerInfo.data.max_value
+            allFeatures.features[key] = value
+          } else if(!layerInfo.data.max_value) {  // full data
+            // filter byte array for nonzero values and add to tracker
+            [...layerInfo.bytes].forEach((value, index) => {
+              if (value > 0) {
+                let key = `${layerInd},${index}`
+                allFeatures.features[key] = value
+              }
+            })
+          }
+        })
+        return allFeatures
+      }
+
       // initialize path data
-      let topLeafPaths = new Array(leafScoresSorted.length).fill(null).map(d => {return {'path': []}})
+      let topLeafPaths = new Array(leafScoresSorted.length).fill(null).map(d => {return {'path': [], 'fullData': []}})
 
       // function to move through the tree and collect top features for each segment
       let collectFeatures = (node, i) => {
         let treeDataNode = dataTree[node]
-        let nodeFeature = treeDataNode.data.chosen
-        topLeafPaths[i].path.push(refactorFeature(nodeFeature))
+        let nodeAllFeatures = treeDataNode.data
+        topLeafPaths[i].fullData.push(refactorAllFeatures(nodeAllFeatures))
+        let nodeChosenFeature = nodeAllFeatures.chosen
+        topLeafPaths[i].path.push(refactorTopFeature(nodeChosenFeature))
         // add variants
         if(treeDataNode.variants) {
           let variants = Object.values(treeDataNode.variants).filter(d => d.topField.value !== null && d.topField.value !== 0)
-          // let pathVariants = 
           if(variants.length > 0) {
             topLeafPaths[i]['variants'] ? topLeafPaths[i]['variants'].push(...variants) : topLeafPaths[i]['variants'] = variants
           }
@@ -372,7 +398,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       topLeafPaths.forEach((d) => {
         d.node -= minSelectedDiff
       })
-      console.log("Time to find best paths", Date.now() - bestPathTime, "ms")
+      console.log("Time to find best paths", window.performance.now() - bestPathTime, "ms")
       return {'paths': topLeafPaths, 'tree': returnTree}
     })
     return bestPaths
