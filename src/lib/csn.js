@@ -197,9 +197,22 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           let tracker = findENRData(d.data)
           d['enrTracker'] = tracker
         }
+        d['usedOCC'] = {}
       })
       return Promise.resolve(null)
     })
+
+    // function to move down the tree and set the used OCC for each node in a path
+    const setUsedOCC = (node, i, layer, factor) => {
+      // set used OCC
+      node.usedOCC[`${layer},${factor}`] = i
+      // find children and recrusively set used OCC
+      let children = node.children
+      children.forEach(c => {
+        setUsedOCC(dataTree[c], i, layer, factor)
+      })
+      return
+    }
 
     // find the best score for each segment across layers
     // first search for ENR scores. If they do not exist for a segment, 
@@ -216,7 +229,8 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       let totalSortTime = 0
       for(let i = 0; i < numNodes; i++) {
         // get node from dataTree
-        let nodeData = dataTree[i].data
+        let node = dataTree[i]
+        let nodeData = node.data
         // first look for ENR data
         let topLayerForSegment = enrInds.map(d => nodeData[d]).sort((a,b) => {return b.topField.value - a.topField.value})[0]
         
@@ -225,7 +239,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           // move up tree and find ENR factors in this path and sort by score
           let trackerTime = window.performance.now()
           // const enrTracker = findPathENRData(i, [])
-          let nodeENRTracker = dataTree[i].enrTracker
+          let nodeENRTracker = node.enrTracker
           const enrTracker = Object.keys(nodeENRTracker).map(k => {
             let layerFactor = k.split(',')
             let score = nodeENRTracker[k]
@@ -239,16 +253,22 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
 
           // find the first ENR factor (sorted by score) with nonzero OCC scores
           let forTime = window.performance.now()
+          // console.log(node, enrTracker)
           for(let e = 0; e < enrTracker.length; e++) {
             let enr = enrTracker[e]
-            // matching OCC layer for ENR layer
-            let occSegmentData = nodeData[enrOccMapping[enr.layer]]
-            // is the factor the same?
-            if((occSegmentData?.data?.max_value > 0) && (occSegmentData?.data?.max_field === enr.factor)) {
-              topLayerForSegment = occSegmentData
-              // setting OCC scores to a constant low value for now
-              topLayerForSegment.topField.value = 0.01
-              break
+            // if this OCC layer x factor has not been used in this path
+            if(!(`${enr.layer},${enr.factor}` in node.usedOCC)) {
+              // matching OCC layer for ENR layer
+              let occSegmentData = nodeData[enrOccMapping[enr.layer]]
+              // is the factor the same?
+              if((occSegmentData?.data?.max_value > 0) && (occSegmentData?.data?.max_field === enr.factor)) {
+                topLayerForSegment = occSegmentData
+                // setting OCC scores to a constant low value for now
+                topLayerForSegment.topField.value = 0.01
+                // go through self and children and set used OCC to include this factor
+                setUsedOCC(node, i, enr.layer, enr.factor)
+                break
+              }
             }
           }
           // console.log("Time to find OCC data", Date.now() - forTime, "ms", i)
@@ -267,6 +287,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       console.log("Time to find total tracker sort", totalSortTime, "ms")
       return Promise.resolve(null)
     })
+    // console.log("DATATREE", dataTree)
 
     // get the paths for each leaf of tree
     let leafIndexOffset
