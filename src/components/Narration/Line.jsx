@@ -40,7 +40,7 @@ export default function Line({
         // console.log("top variant line ",v)
         p = p.filter(d => d.order !== 14);
         p.push({field: v.topField, layer: v.layer, order: 14, region: v})
-        console.log("p", p)
+        // console.log("p", p)
       }
       setPath(p)
     }

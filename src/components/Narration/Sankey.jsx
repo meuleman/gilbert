@@ -103,6 +103,7 @@ export default function CSNSankey({
           if(!p || p.field.value < csnThreshold) {
             p = { order: baseOrder + i, layer: { name: "ZNone" }, field: { field: "None", value: 0, color: "lightgray" } }
           }
+          console.log("trunks", t, p, baseOrder+i)
           let node = {
             id: `${p.order}-${p.field.field}`,
             // do we include "b" which is essentially the region id within the order?
@@ -148,12 +149,14 @@ export default function CSNSankey({
 
       const filtered = paths[0].path.filter(d => !!d).sort((a,b) => a.order - b.order)
       // manually add nodes and links for the orders above and including the region
+      console.log("ORDER", order)
       range(order, 3, -1).forEach(order => {
         // we use the currently selected CSN path, since all paths will have the higher order objects we need
         let factor = filtered.find(d => d.order == order)
         if(!factor) {
           console.log("uh oh", order, filtered)
-          return
+          factor = { order: order, layer: { name: "ZNone" }, field: { field: "None", value: 0, color: "lightgray" } }
+          // return
         }
         let n = {
           id: `${order}-${factor.field.field}`,
@@ -299,6 +302,8 @@ export default function CSNSankey({
           }
         })
       })
+
+      console.log("sank", s)
 
       setSank(s)
     }
