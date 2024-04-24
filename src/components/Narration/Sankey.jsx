@@ -67,6 +67,7 @@ export default function CSNSankey({
   tree,
   order,
   csn,
+  hoveredCsn = {},
   csnThreshold = 0,
   shrinkNone = true,
   filter = [],
@@ -103,7 +104,6 @@ export default function CSNSankey({
           if(!p || p.field.value < csnThreshold) {
             p = { order: baseOrder + i, layer: { name: "ZNone" }, field: { field: "None", value: 0, color: "lightgray" } }
           }
-          console.log("trunks", t, p, baseOrder+i)
           let node = {
             id: `${p.order}-${p.field.field}`,
             // do we include "b" which is essentially the region id within the order?
@@ -149,12 +149,11 @@ export default function CSNSankey({
 
       const filtered = paths[0].path.filter(d => !!d).sort((a,b) => a.order - b.order)
       // manually add nodes and links for the orders above and including the region
-      console.log("ORDER", order)
       range(order, 3, -1).forEach(order => {
         // we use the currently selected CSN path, since all paths will have the higher order objects we need
         let factor = filtered.find(d => d.order == order)
         if(!factor) {
-          console.log("uh oh", order, filtered)
+          // console.log("uh oh", order, filtered)
           factor = { order: order, layer: { name: "ZNone" }, field: { field: "None", value: 0, color: "lightgray" } }
           // return
         }
@@ -303,8 +302,6 @@ export default function CSNSankey({
         })
       })
 
-      console.log("sank", s)
-
       setSank(s)
     }
   }, [ paths, tree, order, csnThreshold, shrinkNone, width, height])
@@ -366,6 +363,24 @@ export default function CSNSankey({
             />
         })}
       </g>
+      <g className="highlight-path-hovered">
+        {range(4, 14).map((o) => {
+          if(!hoveredCsn?.path) return null
+          let p = hoveredCsn.path.find(d => d.order == o)
+          let np = hoveredCsn.path.find(d => d.order == o+1)
+          let field = p ? p.field.field : "None"
+          let nfield = np ? np.field.field : "None"
+          let l = sank.links.find(l => l.source.order == o && l.source.field == field && l.target.order == o+1 && l.target.field == nfield)
+          if(!l) return null
+          return <path
+            key={l.index}
+            d={sankeyLinkHorizontal()(l)}
+            strokeWidth="2"
+            stroke="#999"
+            fill="none"
+          ></path>
+        })}
+      </g>
       <g className="highlight-path">
         {range(4, 14).map((o) => {
           let p = csn.path.find(d => d.order == o)
@@ -378,11 +393,10 @@ export default function CSNSankey({
             key={l.index}
             d={sankeyLinkHorizontal()(l)}
             strokeWidth="2"
-            stroke="gray"
+            stroke="#333"
             fill="none"
           ></path>
         })}
-
       </g>
       <g className="nodes">
         {sank.nodes.map(node => {

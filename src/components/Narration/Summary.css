@@ -3,10 +3,20 @@
   display: flex;
   flex-direction: column;
   padding: 6px;
+  width: 600px;
 }
 .region-summary .factor-list .factor {
   padding: 2px;
-  width: fit-content;
+  /* width: fit-content; */
   cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  align-items: left;
+  justify-content: space-between;
 }
-
+.region-summary .factor-list .factor:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.region-summary .factor-list .factor span {
+  min-width: 200px;
+}

@@ -63,6 +63,9 @@ const Tooltip = forwardRef(({ orientation: defaultOrientation, bottomOffset = 0 
       const tooltip = tooltipRef.current;
       const arrow = arrowRef.current
       if (isVisible && tooltip) {
+        tooltip.style.top = '-1000px'
+        tooltip.style.left = '-1000px'
+        tooltip.style.display = isVisible ? 'block' : 'none'
         const tooltipRect = tooltip.getBoundingClientRect();
         const { width, height } = tooltipRect;
         const { x, y } = position;
@@ -119,8 +122,13 @@ const Tooltip = forwardRef(({ orientation: defaultOrientation, bottomOffset = 0 
         setOrientation(newOrientation);
         tooltip.style.left = `${tooltipX}px`;
         tooltip.style.top = `${tooltipY}px`;
+        tooltip.style.display = isVisible ? 'block' : 'none'
+      }
+      if(!isVisible) {
+        tooltip.style.display = 'none'
       }
     };
+    
 
     updatePosition();
     window.addEventListener('scroll', updatePosition);
@@ -130,7 +138,7 @@ const Tooltip = forwardRef(({ orientation: defaultOrientation, bottomOffset = 0 
       window.removeEventListener('scroll', updatePosition);
       window.removeEventListener('resize', updatePosition);
     };
-  }, [isVisible, position, defaultOrientation]);
+  }, [isVisible, position, defaultOrientation, bottomOffset]);
 
   const getArrowStyle = () => {
     const arrowSize = 5;
@@ -191,7 +199,8 @@ const Tooltip = forwardRef(({ orientation: defaultOrientation, bottomOffset = 0 
         padding: '5px',
         borderRadius: '4px',
         pointerEvents: "none",
-        display: isVisible ? 'block' : 'none',
+        display: 'none'
+        // display: isVisible ? 'block' : 'none',
       }}
     >
       {content}

@@ -22,10 +22,15 @@ function Factor({
   onHover = () => {},
   onClick = () => {}
 } = {}) {
+  let val = factor.field.value.toFixed(2)
+  if(factor.layer.datasetName.indexOf("occ") >= 0) {
+    val = "✅"
+  }
   return <>
     { factor ? <div className="factor" onMouseEnter={() => onHover(factor.path)} onClick={() => onClick(factor.path)}>
-      <b style={{color: factor.field.color}}>{factor.field.field}</b>: {factor.field.value.toFixed(2)} 
-      (order {factor.order})
+      <span><b style={{color: factor.field.color}}>{factor.field.field}</b>: </span>
+      <span>{val}</span>
+      <span>order {factor.order}</span>
       <span className="summary-layer-links"> 
         <Link to={`/?region=${urlify(factor.region)}`}> 🗺️ </Link>
         <Link to={`/region?region=${urlify(factor.region)}`}> 📄 </Link>

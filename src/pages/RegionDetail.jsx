@@ -64,7 +64,7 @@ const RegionDetail = () => {
     if(selectedCSNIndex >= 0) {
       setCrossScaleNarrationIndex(selectedCSNIndex)
     } else if(hoveredCSNIndex >= 0) {
-      setCrossScaleNarrationIndex(hoveredCSNIndex)
+      // setCrossScaleNarrationIndex(hoveredCSNIndex)
     }
   }, [selectedCSNIndex, hoveredCSNIndex])
 
@@ -268,6 +268,7 @@ const RegionDetail = () => {
   }, [region, layersData])
 
   const [csn, setCsn] = useState({})
+  const [hoveredCsn, setHoveredCsn] = useState({})
   const [topUniquePaths, setTopUniquePaths] = useState([])
   const [maxUniquePaths, setMaxUniquePaths] = useState(0)
   const [csnMaxOrder, setCsnMaxOrder] = useState(14)
@@ -331,10 +332,24 @@ const RegionDetail = () => {
         console.log("NO PATH?")
       } else {
         const filtered = path.path.filter(d => !!d).sort((a,b) => a.order - b.order)
+        filtered.fullData = path.path.fullData
         setCsn({...path, path: filtered})
       }
     }
   }, [crossScaleNarrationIndex, crossScaleNarration, topUniquePaths])
+  useEffect(() => {
+    if(crossScaleNarration && topUniquePaths.length) {
+      const path = topUniquePaths[hoveredCSNIndex]
+      if(!path) {
+        console.log("NO hovered PATH?")
+      } else {
+        const filtered = path.path.filter(d => !!d).sort((a,b) => a.order - b.order)
+        filtered.fullData = path.path.fullData
+        setHoveredCsn({...path, path: filtered})
+      }
+    }
+  }, [hoveredCSNIndex, crossScaleNarration, topUniquePaths])
+
 
 
   const [zoomedRegion, setZoomedRegion] = useState(null)
@@ -542,6 +557,7 @@ const RegionDetail = () => {
                   filteredPaths={crossScaleNarrationFiltered}
                   tree={crossScaleNarration?.tree}
                   csn={csn}
+                  hoveredCsn={hoveredCsn}
                   csnThreshold={csnThreshold}
                   shrinkNone={shrinkNone}
                   filter={nodeFilter}
@@ -580,11 +596,11 @@ const RegionDetail = () => {
                   height={25} 
                   onClick={(c) => {
                     let ind = topUniquePaths.findIndex(d => d == c)
-                    if(ind == selectedCSNIndex) {
-                      setSelectedCSNIndex(-1)
-                    } else {
+                    // if(ind == selectedCSNIndex) {
+                    //   setSelectedCSNIndex(-1)
+                    // } else {
                       setSelectedCSNIndex(ind)
-                    }
+                    // }
                   }}
                   onHover={(c) => {
                     let ind = topUniquePaths.findIndex(d => d == c)
