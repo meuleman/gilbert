@@ -170,7 +170,7 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
   useEffect(() => {
     // pre-fetch the data for each path in the CSN (if it exists)
     const dataClient = new Data()
-    if(csn && csn.path) {
+    if(csn && csn.path && csn.path.length) {
       let lastRegion = null
       const orderPoints = range(4, 15).map((o) => {
         let p = csn.path.find(d => d.order === o)

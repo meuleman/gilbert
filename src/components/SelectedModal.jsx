@@ -35,7 +35,6 @@ const SelectedModal = ({
   const [narration, setNarration] = useState(csn)
   useEffect(() => {
     if(crossScaleNarration.length == 0) return
-    console.log("SUP", crossScaleNarration)
     let narration = {...crossScaleNarration[crossScaleNarrationIndex]}
     narration.path = narration.path.filter(d => !!d).sort((a,b) => a.order - b.order)
     narration.layers = csn.layers
@@ -105,7 +104,9 @@ const SelectedModal = ({
             scroll={false} 
             oned={false} 
             userOrder={selected.order}
-            onData={(data) => console.log("power data", data)} />
+            onData={(data) => {
+              // console.log("power data", data)
+            }}/>
               
         </div>}
         <div className="selected-modal-children">
