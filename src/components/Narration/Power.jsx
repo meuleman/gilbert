@@ -104,19 +104,22 @@ Power.propTypes = {
   width: PropTypes.number.isRequired,
   height: PropTypes.number.isRequired,
   sheight: PropTypes.number,
+  userOrder: PropTypes.number,
   onData: PropTypes.func,
   // percent: PropTypes.number
 };
 
 
-function Power({ csn, width, height, sheight=30, onData }) {
+function Power({ csn, width, height, sheight=30, userOrder, onData }) {
 
   const canvasRef = useRef(null);
   const canvasRef1D = useRef(null);
   const canvasRefStrip = useRef(null);
 
-  const [percent, setPercent] = useState(1)
-  const [order, setOrder] = useState(4)
+  const percentScale = useMemo(() => scaleLinear().domain([1, 100]).range([4, 14.999]), [])
+
+  const [percent, setPercent] = useState(userOrder ? percentScale.invert(userOrder + .5) : 1)
+  const [order, setOrder] = useState(userOrder ? userOrder : 4)
 
   const [data, setData] = useState(null)
 
@@ -139,7 +142,6 @@ function Power({ csn, width, height, sheight=30, onData }) {
   const xScale = useMemo(() => scaleLinear().domain([xMin, xMax]).range(xRange), [xMin, xMax, xRange]);
   const yScale = useMemo(() => scaleLinear().domain([yMin, yMax]).range(yRange), [yMin, yMax, yRange]);
   const sizeScale = useMemo(() => scaleLinear().domain([sizeMin, sizeMax]).range(sizeRange), [sizeMin, sizeMax, sizeRange]);
-  const percentScale = useMemo(() => scaleLinear().domain([1, 100]).range([4, 14.999]), [])
   const orderZoomScale = useMemo(() =>  scaleLinear().domain(zoomExtent).range([1, Math.pow(2, orderDomain[1] - orderDomain[0] + 0.999)]), [orderDomain, zoomExtent])
   const scales = useMemo(() => ({ xScale, yScale, sizeScale, orderZoomScale, width, height }), [xScale, yScale, sizeScale, orderZoomScale, width, height])
 

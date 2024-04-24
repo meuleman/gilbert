@@ -23,6 +23,7 @@ export default function Line({
   order,
   highlight=false,
   selected=false,
+  text=true,
   width = 500,
   height,
   onHover = () => {},
@@ -63,6 +64,7 @@ export default function Line({
     const rect = e.target.ownerSVGElement.getBoundingClientRect();
     const p = path.find(d => d.order === o)
     const x = xScale(o)
+    console.log("RECT", rect)
     if(p) {
       tooltipRef.current.show(p.region, p.layer, x + spacing/2, rect.top - 2)
     }
@@ -121,14 +123,16 @@ export default function Line({
                 // stroke={ p ? "black" : "lightgray"}
                 // paintOrder="stroke"
                 >
-                  { p ? (p.layer.datasetName.indexOf("occ") >= 0 ? ` ✅ ` : "") + (p.layer.datasetName.indexOf("enr") >= 0 ? ` 📊 ` : "") + p.field.field : null}
+                  { p ? (p.layer.datasetName.indexOf("occ") >= 0 ? ` ✅ ` : "") + (p.layer.datasetName.indexOf("enr") >= 0 ? ` 📊 ` : "") + (text ? p.field.field : "") : null}
                 </text>
               </g>
           })}
           
         </g> : null }
+        {path.length ? <g>
         <text x={xScale(15) + 20} y={height/2 - rw} dy=".35em" fontSize="10" fontFamily="monospace" fill="black">Score: {showFloat(csn?.score)}</text>
         <text x={xScale(15) + 20} y={height/2} dy=".4em" fontSize="10" fontFamily="monospace" fill="black">Paths: {csn.members}</text>
+        </g> : null }
       </svg>
       <Tooltip ref={tooltipRef} orientation="top" bottomOffset={height+5} />
     </div>

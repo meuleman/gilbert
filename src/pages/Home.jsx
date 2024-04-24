@@ -387,7 +387,7 @@ function Home() {
     }
   }, [selected, csnMethod])  // layerOrderNatural
 
-  const [csn, setCsn] = useState([])
+  const [csn, setCsn] = useState({path: [], layers: csnLayers})
   useEffect(() => {
     if(crossScaleNarration?.length) {
       console.log("updated CSN?", crossScaleNarration)
