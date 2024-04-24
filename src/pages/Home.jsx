@@ -32,6 +32,20 @@ import SVGChromosomeNames from '../components/SVGChromosomeNames'
 
 // layer configurations
 import layers from '../layers'
+const csnLayers = [
+  // layers.find(d => d.name == "DHS Components (ENR)"),
+  // layers.find(d => d.name == "Chromatin States (ENR)"),
+  // layers.find(d => d.name == "TF Motifs (ENR)"),
+  // layers.find(d => d.name == "Repeats (ENR)"),
+  layers.find(d => d.name == "DHS Components (ENR, Full)"),
+  layers.find(d => d.name == "Chromatin States (ENR, Full)"),
+  layers.find(d => d.name == "TF Motifs (ENR, Full)"),
+  layers.find(d => d.name == "Repeats (ENR, Full)"),
+  layers.find(d => d.name == "DHS Components (OCC)"),
+  layers.find(d => d.name == "Chromatin States (OCC)"),
+  layers.find(d => d.name == "TF Motifs (OCC)"),
+  layers.find(d => d.name == "Repeats (OCC)"),
+]
 
 import RegionFilesSelect from '../components/Regions/RegionFilesSelect'
 // autocomplete
@@ -172,6 +186,7 @@ function Home() {
   const [crossScaleNarration, setCrossScaleNarration] = useState(new Array(1).fill({'path': []}))
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
   const [csnMethod, setCsnMethod] = useState("sum")
+  const [loadingCSN, setLoadingCSN] = useState(false)
   const [genesetEnrichment, setGenesetEnrichment] = useState(null)
 
   const selectedRef = useRef(selected);
@@ -343,31 +358,24 @@ function Home() {
   }
   useEffect(() => {
     setCrossScaleNarrationIndex(0)
-    const csnLayers = [
-      // layers.find(d => d.name == "DHS Components (ENR)"),
-      // layers.find(d => d.name == "Chromatin States (ENR)"),
-      // layers.find(d => d.name == "TF Motifs (ENR)"),
-      // layers.find(d => d.name == "Repeats (ENR)"),
-      layers.find(d => d.name == "DHS Components (ENR, Full)"),
-      layers.find(d => d.name == "Chromatin States (ENR, Full)"),
-      layers.find(d => d.name == "TF Motifs (ENR, Full)"),
-      layers.find(d => d.name == "Repeats (ENR, Full)"),
-      layers.find(d => d.name == "DHS Components (OCC)"),
-      layers.find(d => d.name == "Chromatin States (OCC)"),
-      layers.find(d => d.name == "TF Motifs (OCC)"),
-      layers.find(d => d.name == "Repeats (OCC)"),
-    ]
+    
     const variantLayers = [
       layers.find(d => d.datasetName == "variants_favor_categorical"),
       layers.find(d => d.datasetName == "variants_favor_apc"),
       layers.find(d => d.datasetName == "variants_gwas"),
       // layers.find(d => d.datasetName == "grc"),
     ]
-    if(selected){
+    if(selected && selected.order > 5){
+      // clear the cross scale narration first
+      setCrossScaleNarration([])
+      setCsn({path: [], layers: csnLayers})
+      setLoadingCSN(true)
       calculateCrossScaleNarration(selected, csnMethod, csnLayers, variantLayers).then(crossScaleResponse => {
         // filter to just unique paths
         const filteredPaths = findUniquePaths(crossScaleResponse.paths).slice(0, 100)
+        // setFullCSNPaths(crossScaleResponse.paths)
         setCrossScaleNarration(filteredPaths)
+        setLoadingCSN(false)
       })
     } else {
       // we set the layer order back to non-CSN if no selected region
@@ -375,14 +383,17 @@ function Home() {
         setLayerOrder(layerOrderNatural)
         setLayer(layerOrderNatural[zoomRef.current.order])
       }
+      console.log("else selected")
     }
   }, [selected, csnMethod])  // layerOrderNatural
 
   const [csn, setCsn] = useState([])
   useEffect(() => {
     if(crossScaleNarration?.length) {
+      console.log("updated CSN?", crossScaleNarration)
       let newCsn = crossScaleNarration[crossScaleNarrationIndex]
       newCsn.path = newCsn.path.filter(d => !!d).sort((a,b) => a.order - b.order)
+      newCsn.layers = csnLayers
       setCsn(newCsn)
       // we update the layer order and layer
       if(selected) {
@@ -396,6 +407,8 @@ function Home() {
           setLayer(newLayerOrder[selected.order])
         }
       }
+    } else {
+      setCsn({path: [], layers: csnLayers})
     }
   }, [selected, crossScaleNarrationIndex, crossScaleNarration])
 
@@ -629,6 +642,8 @@ function Home() {
               <SelectedModal 
                 selected={selected} 
                 csn={csn}
+                crossScaleNarration={crossScaleNarration}
+                loadingCSN={loadingCSN}
                 onZoom={(region) => { setRegion(null); setRegion(region)}}
                 onClose={handleModalClose}
                 >

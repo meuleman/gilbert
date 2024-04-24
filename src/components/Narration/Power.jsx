@@ -175,7 +175,7 @@ function Power({ csn, width, height, sheight=30, onData }) {
         if(o == 14 && csn.variants) {
           // const v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0]
           const v = variantChooser(csn.variants || [])
-          console.log("order 14 top variant", v, "variants", csn.variants)
+          // console.log("order 14 top variant", v, "variants", csn.variants)
           // combine the variants into order_14 data
           p = { region: v, layer: v.layer, field: v.topField, order: 14 }
         }

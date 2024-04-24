@@ -360,9 +360,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
 
       // initialize path data
       let topLeafPaths = new Array(leafScoresSorted.length).fill(null).map(d => {
-        let p = []
-        p.fullData = {}
-        return {'path': p}
+        return {'path': []}
       })
 
       // function to move through the tree and collect top features for each segment
@@ -371,7 +369,6 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
         let nodeAllFeatures = treeDataNode.data
         const fullData = refactorAllFeatures(nodeAllFeatures)
         // console.log("features", node, i, nodeAllFeatures, fullData)
-        // topLeafPaths[i].path.fullData[fullData.order] = fullData.features
         let nodeChosenFeature = nodeAllFeatures.chosen
         const refactor = refactorTopFeature(nodeChosenFeature)
         if(refactor)

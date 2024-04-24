@@ -36,7 +36,6 @@ export default function Line({
     if(csn?.path){
       // console.log("csn.path",csn)
       let p = csn.path.filter(d => !!d).sort((a, b) => a.order - b.order) 
-      p.fullData = csn.path.fullData
       if(csn.variants && csn.variants.length) {
         // let v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0]
         let v = variantChooser(csn.variants)

@@ -1,5 +1,5 @@
 // A component to display some information below the map when hovering over hilbert cells
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
 import { showKb } from '../lib/display'
@@ -10,6 +10,8 @@ import './SelectedModal.css'
 const SelectedModal = ({
   selected = null,
   csn = [],
+  crossScaleNarration = {},
+  loadingCSN = false,
   onClose=()=>{},
   onZoom=()=>{},
   children=null
@@ -19,6 +21,11 @@ const SelectedModal = ({
   const onMinimize = useCallback(() => {
     setMinimized(!minimized)
   }, [minimized, setMinimized])
+
+  useEffect(() => {
+    console.log("selected modal csn", csn)
+    console.log("selected CSN", crossScaleNarration)
+  }, [crossScaleNarration, csn])
   
   return (
     <>
@@ -45,6 +52,7 @@ const SelectedModal = ({
         </div>
         
         <div className="csn">
+          {loadingCSN ? <div>Loading CSN...</div> : null}
           <CSNSentence
             crossScaleNarration={csn}
             order={selected.order}

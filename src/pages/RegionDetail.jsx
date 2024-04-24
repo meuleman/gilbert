@@ -332,11 +332,11 @@ const RegionDetail = () => {
         console.log("NO PATH?")
       } else {
         const filtered = path.path.filter(d => !!d).sort((a,b) => a.order - b.order)
-        filtered.fullData = path.path.fullData
-        setCsn({...path, path: filtered})
+        setCsn({...path, path: filtered, layers: csnLayers})
       }
     }
   }, [crossScaleNarrationIndex, crossScaleNarration, topUniquePaths])
+
   useEffect(() => {
     if(crossScaleNarration && topUniquePaths.length) {
       const path = topUniquePaths[hoveredCSNIndex]
@@ -344,8 +344,7 @@ const RegionDetail = () => {
         console.log("NO hovered PATH?")
       } else {
         const filtered = path.path.filter(d => !!d).sort((a,b) => a.order - b.order)
-        filtered.fullData = path.path.fullData
-        setHoveredCsn({...path, path: filtered})
+        setHoveredCsn({...path, path: filtered, layers: csnLayers})
       }
     }
   }, [hoveredCSNIndex, crossScaleNarration, topUniquePaths])
