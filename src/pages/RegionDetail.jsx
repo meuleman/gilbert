@@ -595,6 +595,7 @@ const RegionDetail = () => {
                   width={stripsWidth} 
                   height={25} 
                   onClick={(c) => {
+                    console.log("selected", c)
                     let ind = topUniquePaths.findIndex(d => d == c)
                     // if(ind == selectedCSNIndex) {
                     //   setSelectedCSNIndex(-1)

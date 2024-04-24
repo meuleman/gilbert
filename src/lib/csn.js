@@ -334,7 +334,8 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       let refactorAllFeatures = (d) => {
         let keys = Object.keys(d).filter(k => k !== 'chosen')
         // find all non-zero features for a given node across all layers
-        let segmentOrder = d[keys[0]].order
+        let segmentOrder = d[keys[0]]?.order
+        if(!segmentOrder) return {order: null, features: {}}
         let allFeatures = {order: segmentOrder, features: {}}
         // for each layer...
         keys.forEach(layerInd => {
@@ -369,9 +370,13 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
         let treeDataNode = dataTree[node]
         let nodeAllFeatures = treeDataNode.data
         const fullData = refactorAllFeatures(nodeAllFeatures)
-        topLeafPaths[i].path.fullData[fullData.order] = fullData.features
+        // console.log("features", node, i, nodeAllFeatures, fullData)
+        // topLeafPaths[i].path.fullData[fullData.order] = fullData.features
         let nodeChosenFeature = nodeAllFeatures.chosen
-        topLeafPaths[i].path.push(refactorTopFeature(nodeChosenFeature))
+        const refactor = refactorTopFeature(nodeChosenFeature)
+        if(refactor)
+          refactor.fullData = fullData.features
+        topLeafPaths[i].path.push(refactor)
         // add variants
         if(treeDataNode.variants) {
           let variants = Object.values(treeDataNode.variants).filter(d => d.topField.value !== null && d.topField.value !== 0)

@@ -64,7 +64,6 @@ export default function Line({
     const rect = e.target.ownerSVGElement.getBoundingClientRect();
     const p = path.find(d => d.order === o)
     const x = xScale(o)
-    console.log("x", x, p)
     if(p) {
       tooltipRef.current.show(p.region, p.layer, x + spacing/2, rect.top - 2)
     }
