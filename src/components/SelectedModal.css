@@ -74,3 +74,8 @@
   margin: 4px 0px;
   border-radius: 5px;
 }
+
+.selected-modal .power-modal {
+  margin-left: 6px;
+}
+

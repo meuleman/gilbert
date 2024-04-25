@@ -121,7 +121,7 @@ export default function ZoomLine({
           strokeWidth={2}
           pointerEvents="none"
            />
-        {path.length && yScale ? <g>
+        {path.length && yScale && text ? <g>
           {range(4, 15).map(o => {
             return <g key={o} onMouseMove={(e) => handleHover(e, o)} onMouseLeave={() => handleLeave()}>
               <text

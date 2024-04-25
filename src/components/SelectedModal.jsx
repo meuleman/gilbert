@@ -108,29 +108,35 @@ const SelectedModal = ({
 
           <br></br>
           <div className="power-container">
-            {/* <ZoomLine 
-              csn={narration} 
-              order={selected.order + 0.5} 
+            <ZoomLine 
+              csn={crossScaleNarration[0]} 
+              order={zoomOrder} 
               highlight={true}
               selected={true}
-              width={22} 
+              text={true}
+              width={18} 
               height={powerWidth} 
               onClick={(c) => {
-                console.log("selected", c)
+                // setNarration(c)
+                setCrossScaleNarrationIndex(0)
               }}
               onHover={(or) => {
-                console.log("hover", or)
+                // console.log("hover", or)
+                if(crossScaleNarrationIndex !== 0) {
+                  setCrossScaleNarrationIndex(0)
+                }
                 setZoomOrder(or)
               }}
-              /> */}
-              {crossScaleNarration.slice(0, 5).map((n,i) => {
+              />
+              {crossScaleNarration.slice(1, 16).map((n,i) => {
                 return (<ZoomLine 
                   key={i}
                   csn={n} 
                   order={zoomOrder} 
                   highlight={true}
                   selected={crossScaleNarrationIndex === i}
-                  width={18} 
+                  text={false}
+                  width={6} 
                   height={powerWidth} 
                   onClick={(c) => {
                     // setNarration(c)
