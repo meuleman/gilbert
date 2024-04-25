@@ -246,28 +246,35 @@ const YC240322 = () => {
     setSelectedRegionSample(selected.slice(0, 1000).map((d) => fromPosition(umap[d].chromosome, umap[d].start, umap[d].end)))
   }, [selected, umap])
 
-  if(selectedRegionSample.length > 0){
-    let url = "https://explore.altius.org:5001/get_shared_factor"
-    const postBody = {
-      chr_strs: selectedRegionSample.map(d => d.chromosome + ":" + d.start + "-" + d.end),
-    };
-    console.log(postBody)
-    const getSharedFactor = axios({
-      method: 'POST',
-      url: url,
-      data: postBody
-    }).then((response) => {
-        const sharedFactorData = response.data
-        const sharedFactor = sharedFactorData.SharedFactor
-        const sharedFactorPercentage = sharedFactorData.SharedFactorPercentage
-        const meanSharedFactorPercentage = sharedFactorData.MeanSharedFactorPercentage
-        console.log(sharedFactor, sharedFactorPercentage, meanSharedFactorPercentage)
-    })
-    .catch((err) => {
-      console.error(`error:     ${JSON.stringify(err)}`);
-      console.error(`post body: ${JSON.stringify(postBody)}`);
-    });
-  }
+  const [sharedFactor, setSharedFactor] = useState(null)
+  const [sharedFactorLoading, setSharedFactorLoading] = useState(false)
+  useEffect(() => {
+    if(selectedRegionSample.length > 0){
+      let url = "https://explore.altius.org:5001/get_shared_factor"
+      const postBody = {
+        chr_strs: selectedRegionSample.map(d => d.chromosome + ":" + d.start + "-" + d.end),
+      };
+      console.log(postBody)
+      setSharedFactorLoading(true)
+      const getSharedFactor = axios({
+        method: 'POST',
+        url: url,
+        data: postBody
+      }).then((response) => {
+          const sharedFactorData = response.data
+          const sharedFactor = sharedFactorData.SharedFactor
+          const sharedFactorPercentage = sharedFactorData.SharedFactorPercentage
+          const meanSharedFactorPercentage = sharedFactorData.MeanSharedFactorPercentage
+          console.log("Shared factors for Selected Region Sample", sharedFactor, sharedFactorPercentage, meanSharedFactorPercentage)
+          setSharedFactor(sharedFactor)
+          setSharedFactorLoading(false)
+      })
+      .catch((err) => {
+        console.error(`error:     ${JSON.stringify(err)}`);
+        console.error(`post body: ${JSON.stringify(postBody)}`);
+      });
+    }
+  }, [selectedRegionSample])
 
   const [hover, setHover] = useState(null)
   useEffect(() => {
@@ -394,6 +401,9 @@ const YC240322 = () => {
           <div className="selected-header">
             <button onClick={() => setSelected([])}>Clear</button>
             <span className="selected-count">Showing {selected.slice(0, 1000).length} of {selected.length}</span>
+            
+            <span>{sharedFactorLoading ? " Loading..." : sharedFactor}</span>
+
           </div>
           {selected.slice(0, 1000).map((d) => {
             let region = fromPosition(umap[d].chromosome, umap[d].start, umap[d].end)
