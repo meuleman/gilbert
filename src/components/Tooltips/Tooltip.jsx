@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useImperativeHandle, forwardRef } from 're
 import { showPosition, showFloat } from '../../lib/display'
 
 
-function defaultContent(region, layer) {
+function defaultContent(region, layer, orientation) {
   // let field = layer.fieldChoice(region)
   let fields = []
   if(region.data.max_field) {
@@ -14,10 +14,14 @@ function defaultContent(region, layer) {
     fields = Object.keys(region.data).map(key => ({ field: key, value: region.data[key] }))
       .sort((a,b) => a.value - b.value)
       .filter(d => d.value > 0)
+    if(orientation == "bottom") {
+      fields = fields.reverse()
+    }
   }
   
   return (
     <div style={{display: 'flex', flexDirection: 'column'}}>
+      {orientation == "bottom" ? showPosition(region) : null}
       {fields.map((f,i) => (
         <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
           <span>
@@ -30,12 +34,16 @@ function defaultContent(region, layer) {
         </div>
       ))}
       
-      {showPosition(region)}
+      {orientation !== "bottom" ? showPosition(region) : null}
     </div>
   )
 }
 
-const Tooltip = forwardRef(({ orientation: defaultOrientation, bottomOffset = 0 }, ref) => {
+const Tooltip = forwardRef(({ 
+  orientation: defaultOrientation, 
+  bottomOffset = 0, 
+  enforceBounds = true 
+}, ref) => {
   const tooltipRef = useRef(null);
   const arrowRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -46,9 +54,9 @@ const Tooltip = forwardRef(({ orientation: defaultOrientation, bottomOffset = 0 
   useImperativeHandle(ref, () => ({
     show: (region, layer, x, y) => {
       if(layer.tooltip) {
-        setContent(layer.tooltip(region, layer))
+        setContent(layer.tooltip(region, layer, defaultOrientation))
       } else {
-        setContent(defaultContent(region, layer))
+        setContent(defaultContent(region, layer, defaultOrientation))
       }
       setPosition({ x, y });
       setIsVisible(true);
@@ -71,36 +79,50 @@ const Tooltip = forwardRef(({ orientation: defaultOrientation, bottomOffset = 0 
         const { x, y } = position;
 
         let newOrientation = defaultOrientation;
-        let tooltipX = x - width / 2;
+        let tooltipX = x;
         let tooltipY = y;
 
         if (defaultOrientation === 'top') {
-          if (y - height < 0 && y + height < window.innerHeight) {
-            newOrientation = 'bottom';
-            tooltipY = y + bottomOffset; 
-          } else {
-            tooltipY = y - height; // Adjust the offset as needed
+          tooltipX = x - width / 2;
+          if(enforceBounds) {
+            if (y - height < 0 && y + height < window.innerHeight) {
+              newOrientation = 'bottom';
+              tooltipY = y + bottomOffset; 
+            } else {
+              tooltipY = y - height; // Adjust the offset as needed
+            }
           }
         } else if (defaultOrientation === 'bottom') {
-          if (y + height > window.innerHeight) {
-            newOrientation = 'top';
-            tooltipY = y - height - 10; // Adjust the offset as needed
-          } else {
-            tooltipY = y + 10; // Adjust the offset as needed
+          tooltipX = x - width / 2;
+          if(enforceBounds) {
+            if (y + height > window.innerHeight) {
+              newOrientation = 'top';
+              tooltipY = y - height - 10; // Adjust the offset as needed
+            } else {
+              tooltipY = y + 10; // Adjust the offset as needed
+            }
           }
         } else if (defaultOrientation === 'left') {
-          if (x - width < 0) {
-            newOrientation = 'right';
-            tooltipX = x + 10; // Adjust the offset as needed
-          } else {
-            tooltipX = x - width - 10; // Adjust the offset as needed
+          tooltipY = y - height / 2;
+          tooltipX = x - width;
+          if(enforceBounds) {
+            if (x - width < 0) {
+              newOrientation = 'right';
+              tooltipX = x + 10; // Adjust the offset as needed
+            } else {
+              tooltipX = x - width - 10; // Adjust the offset as needed
+            }
           }
         } else if (defaultOrientation === 'right') {
-          if (x + width > window.innerWidth) {
-            newOrientation = 'left';
-            tooltipX = x - width - 10; // Adjust the offset as needed
-          } else {
-            tooltipX = x + 10; // Adjust the offset as needed
+          tooltipY = y - height / 2;
+          tooltipX = x;
+          if(enforceBounds) {
+            if (x + width > window.innerWidth) {
+              newOrientation = 'left';
+              tooltipX = x - width - 10; // Adjust the offset as needed
+            } else {
+              tooltipX = x + 10; // Adjust the offset as needed
+            }
           }
         }
 
@@ -110,15 +132,18 @@ const Tooltip = forwardRef(({ orientation: defaultOrientation, bottomOffset = 0 
           if(newOrientation == 'top' || newOrientation == 'bottom') {
             arrow.style.marginLeft = tooltipX + "px"
           }
-          tooltipX = 0;
+          if(enforceBounds) tooltipX = 0;
         } else if (tooltipX + width > window.innerWidth) {
-          let dX = tooltipX - (window.innerWidth - width)
-          tooltipX = window.innerWidth - width;
-          if(newOrientation == 'top' || newOrientation == 'bottom') {
-            arrow.style.marginLeft = dX + "px"
+          if(enforceBounds) {
+            let dX = tooltipX - (window.innerWidth - width)
+            tooltipX = window.innerWidth - width;
+            if(newOrientation == 'top' || newOrientation == 'bottom') {
+              // arrow.style.marginLeft = dX + "px"
+            }
           }
         }
 
+        // console.log("tooltip", tooltipX, newOrientation, width)
         setOrientation(newOrientation);
         tooltip.style.left = `${tooltipX}px`;
         tooltip.style.top = `${tooltipY}px`;
@@ -192,7 +217,7 @@ const Tooltip = forwardRef(({ orientation: defaultOrientation, bottomOffset = 0 
     <div
       ref={tooltipRef}
       style={{
-        position: 'absolute',
+        position: 'fixed',
         background: '#efefef',
         border: `1px solid black`,
         color: 'black',

@@ -1,0 +1,32 @@
+
+.power-modal {
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+}
+
+.power-modal .power-container {
+  display: flex;
+  flex-direction: row;
+}
+.power-modal .power-canvas {
+  border: 1px solid lightgray;
+}
+.power-modal .power-scroll {
+  margin-left: 24px;
+  overflow-y: hidden;
+  position: relative;
+}
+.power-modal .power-order {
+  position: absolute;
+}
+.power-modal .power input {
+  width: 100%;
+}
+.power-modal .power-canvas-1d {
+  border: 1px solid lightgray;
+}
+.power-modal .power-canvas-strip {
+  margin-top: 4px;
+  border: 1px solid lightgray;
+}

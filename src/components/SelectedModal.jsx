@@ -5,7 +5,8 @@ import { urlify } from '../lib/regions'
 import { showKb } from '../lib/display'
 import CSNSentence from './Narration/Sentence'
 import CSNLine from './Narration/Line'
-import Power from './Narration/Power'
+import ZoomLine from './Narration/ZoomLine'
+import PowerModal from './Narration/PowerModal'
 
 import './SelectedModal.css'
 
@@ -19,7 +20,7 @@ const SelectedModal = ({
   children=null
 } = {}) => {
 
-  const width = 450
+  const powerWidth = 350
 
   const [minimized, setMinimized] = useState(false)
   const onMinimize = useCallback(() => {
@@ -33,11 +34,17 @@ const SelectedModal = ({
   }, [setCrossScaleNarrationIndex])
 
   const [narration, setNarration] = useState(csn)
+
+  const makeNarration = useCallback((c) => {
+    let n = {...c}
+    n.path = n.path.filter(d => !!d).sort((a,b) => a.order - b.order)
+    n.layers = csn.layers
+    return n
+  }, [csn])
+
   useEffect(() => {
     if(crossScaleNarration.length == 0) return
-    let narration = {...crossScaleNarration[crossScaleNarrationIndex]}
-    narration.path = narration.path.filter(d => !!d).sort((a,b) => a.order - b.order)
-    narration.layers = csn.layers
+    let narration = makeNarration(crossScaleNarration[crossScaleNarrationIndex])
     console.log("narration", narration)
     setNarration(narration)
   }, [crossScaleNarration, crossScaleNarrationIndex, csn])
@@ -46,6 +53,8 @@ const SelectedModal = ({
     console.log("selected modal csn", csn)
     console.log("selected CSN", crossScaleNarration)
   }, [crossScaleNarration, csn])
+
+  const [zoomOrder, setZoomOrder] = useState(selected.order + 0.5)
   
   return (
     <>
@@ -73,16 +82,16 @@ const SelectedModal = ({
         
         {loadingCSN ? <div>Loading CSN...</div> : 
         <div className="csn">
-          <div className="narration-slider">
+          {/* <div className="narration-slider">
             <input id="csn-slider" type='range' min={0} max={crossScaleNarration.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
             <label htmlFor="csn-slider">Narration: {crossScaleNarrationIndex}</label>
-          </div>
+          </div> */}
           <CSNSentence
             crossScaleNarration={narration}
             order={selected.order}
           />
           <br/>
-          <CSNLine 
+          {/* <CSNLine 
             csn={narration} 
             order={selected.order} 
             highlight={true}
@@ -95,19 +104,66 @@ const SelectedModal = ({
             }}
             onHover={(c) => {
             }}
-            />
+            /> */}
 
           <br></br>
-          <Power csn={narration} 
-            width={width} 
-            height={width} 
-            scroll={false} 
-            oned={false} 
-            userOrder={selected.order}
-            onData={(data) => {
-              // console.log("power data", data)
-            }}/>
+          <div className="power-container">
+            {/* <ZoomLine 
+              csn={narration} 
+              order={selected.order + 0.5} 
+              highlight={true}
+              selected={true}
+              width={22} 
+              height={powerWidth} 
+              onClick={(c) => {
+                console.log("selected", c)
+              }}
+              onHover={(or) => {
+                console.log("hover", or)
+                setZoomOrder(or)
+              }}
+              /> */}
+              {crossScaleNarration.slice(0, 5).map((n,i) => {
+                return (<ZoomLine 
+                  key={i}
+                  csn={n} 
+                  order={zoomOrder} 
+                  highlight={true}
+                  selected={crossScaleNarrationIndex === i}
+                  width={18} 
+                  height={powerWidth} 
+                  onClick={(c) => {
+                    // setNarration(c)
+                    setCrossScaleNarrationIndex(i)
+                  }}
+                  onHover={(or) => {
+                    // console.log("hover", or)
+                    if(crossScaleNarrationIndex !== i) {
+                      setCrossScaleNarrationIndex(i)
+                    }
+                    setZoomOrder(or)
+                  }}
+                  />)
+                })}
+            <PowerModal csn={narration} 
+              width={powerWidth} 
+              height={powerWidth} 
+              scroll={false} 
+              oned={false} 
+              userOrder={zoomOrder}
+              onData={(data) => {
+                // console.log("power data", data)
+              }}
+              onOrder={(order) => {
+                // console.log("power order", order)
+              }}
+              />
               
+          </div>
+          <div>
+            {/* {zoomOrder} */}
+          </div>
+
         </div>}
         <div className="selected-modal-children">
           {children}
