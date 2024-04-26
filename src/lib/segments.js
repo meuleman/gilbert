@@ -65,8 +65,8 @@ export function joinSegments(segments, segmentThreshold = 100) {
 const f = (x) => x
 const c = (x) => x
 
-export function getOffsets(d, p, rw, srw) {
-  // figure out which of the 4 directions the previous point is from this one
+export function getOffsets(d, p, rw, srw, extend = 1) {
+  // figure out which of the 4 directions the current point (d) is from the other point (p)
   // and draw a rectangle offset in that direction
   let dx = d.x - p.x
   let dy = d.y - p.y
@@ -80,38 +80,30 @@ export function getOffsets(d, p, rw, srw) {
   let w = 0
   let h = 0
   let rw2 = rw/2
-  let srw2 = srw/2
   let rwsrw2 = (rw-srw)/2
   if(dir == 1) { // previous point to the left
-    xoff = -rw2
-    // yoff = -srw2
+    xoff = -rw2 * extend
     yoff = 0
-    w = rwsrw2
+    w = rwsrw2 * extend
     h = srw
   }
   if(dir == 2) { // previous point to the right
-    // xoff = srw2
-    xoff = rw2
-    // yoff = -srw2
+    xoff = rw2 * extend
     yoff = 0
-    w = rwsrw2
+    w = rwsrw2 * extend
     h = srw
   }
   if(dir == 3) { // previous point above
-    // xoff = -srw2
     xoff = 0
-    yoff = -rw2
-    h = rwsrw2
+    yoff = -rw2 * extend
+    h = rwsrw2 * extend
     w = srw
   }
   if(dir == 4) { // previous point below
-    // xoff = -srw2
     xoff = 0
-    // yoff = srw2
-    yoff = rw2
-    h = rwsrw2
+    yoff = rw2 * extend
+    h = rwsrw2 * extend
     w = srw
   }
   return { xoff, yoff, h, w }
-
 }

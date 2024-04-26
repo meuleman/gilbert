@@ -83,11 +83,9 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
             shrinkScale.domain(domain)
           }
           // let a = alphaScale(sample.value)
-          let srw = f(rw * (shrinkScale(sample.value) || 0.1))
+          let srw = f(rw * (shrinkScale(sample.value) || 0.1)) * 0.95
           
           // ctx.globalAlpha = a < 0 ? 0 : a
-          ctx.fillStyle = fieldColor(sample.field)
-          ctx.strokeStyle = fieldColor(sample.field)
           // ctx.fillRect(f(xx - srw/2), f(yy - srw/2), srw, srw)
           // ctx.strokeRect(f(xx - srw/2), f(yy - srw/2), srw, srw)
           
@@ -113,6 +111,27 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
             points.push({x: xx + xoff, y: yy + yoff})
           }
 
+          if(layer.datasetName.indexOf("enr") >= 0) {
+            let extend = 1.05
+            let opoints = []
+            if(dm1) {
+              let { xoff, yoff, w, h } = getOffsets(d, dm1, rw, srw, extend)
+              opoints.push({x: xx + xoff, y: yy + yoff})
+            }
+            opoints.push({x: xx, y: yy})
+            if(dp1) {
+              let { xoff, yoff, w, h } = getOffsets(d, dp1, rw, srw, extend)
+              opoints.push({x: xx + xoff, y: yy + yoff})
+            }
+            ctx.strokeStyle = "black"
+            ctx.lineWidth = srw * extend
+            ctx.beginPath()
+            linef(opoints)
+            ctx.stroke()
+          }
+          
+          ctx.fillStyle = fieldColor(sample.field)
+          ctx.strokeStyle = fieldColor(sample.field)
           ctx.lineWidth = srw
           ctx.beginPath()
           linef(points)

@@ -41,6 +41,7 @@ function defaultContent(region, layer, orientation) {
 
 const Tooltip = forwardRef(({ 
   orientation: defaultOrientation, 
+  contentFn,
   bottomOffset = 0, 
   enforceBounds = true 
 }, ref) => {
@@ -53,7 +54,9 @@ const Tooltip = forwardRef(({
 
   useImperativeHandle(ref, () => ({
     show: (region, layer, x, y) => {
-      if(layer.tooltip) {
+      if(contentFn) {
+        setContent(contentFn(region, layer, defaultOrientation))
+      } else if(layer.tooltip) {
         setContent(layer.tooltip(region, layer, defaultOrientation))
       } else {
         setContent(defaultContent(region, layer, defaultOrientation))

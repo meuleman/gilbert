@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { scaleLinear } from 'd3-scale';
 import { range } from 'd3-array';
-import { showFloat } from '../../lib/display';
+import { showFloat, showPosition } from '../../lib/display';
 import { variantChooser } from '../../lib/csn';
 import './Line.css';
 
@@ -18,6 +18,41 @@ ZoomLine.propTypes = {
   onClick: PropTypes.func
 };
 
+
+
+function tooltipContent(region, layer, orientation) {
+  // let field = layer.fieldChoice(region)
+  let fields = []
+  if(region.data.max_field) {
+    fields.push(layer.fieldChoice(region))
+    // fields.push({ field: region.data.max_field, value: region.data.max_value })
+  } else if(region.data.bp) {
+    fields.push(layer.fieldChoice(region))
+  } else {
+    fields = Object.keys(region.data).map(key => ({ field: key, value: region.data[key] }))
+      .sort((a,b) => a.value - b.value)
+      .filter(d => d.value > 0)
+    
+  }
+  
+  return (
+    <div style={{display: 'flex', flexDirection: 'column'}}>
+      <span>{showPosition(region)}</span>
+      <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
+      {fields.map((f,i) => (
+        <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+          <span>
+            <span style={{color: layer.fieldColor(f.field), marginRight: '4px'}}>⏺</span>
+            {f.field} 
+          </span>
+          <span>
+            {typeof f.value == "number" ? showFloat(f.value) : f.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function ZoomLine({
   csn,
@@ -140,7 +175,7 @@ export default function ZoomLine({
         </g> : null}
 
       </svg>
-      <Tooltip ref={tooltipRef} orientation="left" enforceBounds={false} />
+      <Tooltip ref={tooltipRef} orientation="left" contentFn={tooltipContent} enforceBounds={false} />
     </div>
   )
 }
