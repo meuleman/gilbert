@@ -1,5 +1,5 @@
 // A component to display some information below the map when hovering over hilbert cells
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
 import { showKb } from '../lib/display'
@@ -12,15 +12,16 @@ import './SelectedModal.css'
 
 const SelectedModal = ({
   selected = null,
-  csn = [],
-  crossScaleNarration = {},
+  crossScaleNarration = [],
+  layers = [],
   loadingCSN = false,
+  onCSNIndex=()=>{},
   onClose=()=>{},
   onZoom=()=>{},
   children=null
 } = {}) => {
 
-  const powerWidth = 350
+  const powerWidth = 300
 
   const [minimized, setMinimized] = useState(false)
   const onMinimize = useCallback(() => {
@@ -28,31 +29,38 @@ const SelectedModal = ({
   }, [minimized, setMinimized])
 
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
+  const [selectedNarrationIndex, setSelectedNarrationIndex] = useState(0)
 
   const handleChangeCSNIndex = useCallback((e) => {
     setCrossScaleNarrationIndex(e.target.value)
   }, [setCrossScaleNarrationIndex])
 
-  const [narration, setNarration] = useState(csn)
-
   const makeNarration = useCallback((c) => {
     let n = {...c}
+    if(!n.path || n.path.length == 0) {
+      return {}
+    }
     n.path = n.path.filter(d => !!d).sort((a,b) => a.order - b.order)
-    n.layers = csn.layers
+    n.layers = layers
     return n
-  }, [csn])
+  }, [layers])
+
+  const [narration, setNarration] = useState(makeNarration(crossScaleNarration[0]))
 
   useEffect(() => {
     if(crossScaleNarration.length == 0) return
     let narration = makeNarration(crossScaleNarration[crossScaleNarrationIndex])
     console.log("narration", narration)
     setNarration(narration)
-  }, [crossScaleNarration, crossScaleNarrationIndex, csn])
+  }, [crossScaleNarration, crossScaleNarrationIndex, makeNarration])
 
   useEffect(() => {
-    console.log("selected modal csn", csn)
     console.log("selected CSN", crossScaleNarration)
-  }, [crossScaleNarration, csn])
+  }, [crossScaleNarration])
+
+  const unselectedNarrations = useMemo(() => {
+    return crossScaleNarration.filter((n,i) => i !== crossScaleNarrationIndex)
+  }, [crossScaleNarration, crossScaleNarrationIndex])
 
   const [zoomOrder, setZoomOrder] = useState(selected.order + 0.5)
   
@@ -109,7 +117,7 @@ const SelectedModal = ({
           <br></br>
           <div className="power-container">
             <ZoomLine 
-              csn={crossScaleNarration[0]} 
+              csn={crossScaleNarration[selectedNarrationIndex]} 
               order={zoomOrder} 
               highlight={true}
               selected={true}
@@ -118,17 +126,15 @@ const SelectedModal = ({
               height={powerWidth} 
               onClick={(c) => {
                 // setNarration(c)
-                setCrossScaleNarrationIndex(0)
+                // setCrossScaleNarrationIndex(0)
               }}
               onHover={(or) => {
                 // console.log("hover", or)
-                if(crossScaleNarrationIndex !== 0) {
-                  setCrossScaleNarrationIndex(0)
-                }
+                setCrossScaleNarrationIndex(selectedNarrationIndex)
                 setZoomOrder(or)
               }}
               />
-              {crossScaleNarration.slice(1, 16).map((n,i) => {
+              {crossScaleNarration.slice(0, 23).map((n,i) => {
                 return (<ZoomLine 
                   key={i}
                   csn={n} 
@@ -140,7 +146,10 @@ const SelectedModal = ({
                   height={powerWidth} 
                   onClick={(c) => {
                     // setNarration(c)
-                    setCrossScaleNarrationIndex(i)
+                    let idx = crossScaleNarration.indexOf(c)
+                    setSelectedNarrationIndex(idx)
+                    setCrossScaleNarrationIndex(idx)
+                    onCSNIndex(idx)
                   }}
                   onHover={(or) => {
                     // console.log("hover", or)

@@ -641,9 +641,10 @@ function Home() {
           {selected ? 
               <SelectedModal 
                 selected={selected} 
-                csn={csn}
+                layers={csnLayers}
                 crossScaleNarration={crossScaleNarration}
                 loadingCSN={loadingCSN}
+                onCSNIndex={(i) => setCrossScaleNarrationIndex(i)}
                 onZoom={(region) => { setRegion(null); setRegion(region)}}
                 onClose={handleModalClose}
                 >

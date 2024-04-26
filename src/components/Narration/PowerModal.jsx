@@ -293,7 +293,6 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
     const or = percentScale(percent)
     const o = Math.floor(or)
     setOrder(o)
-    console.log("percent baby", percent, or, o)
     // console.log("percent", percent, or, o)
 
     const hilbert = new HilbertChromosome(o)
