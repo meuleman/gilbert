@@ -49,11 +49,12 @@ const PowerOverlay = ({
       }}>
       <div className="header">
         <div className="power-modal-selected">
-          🎯 {selected.chromosome}:{selected.start} - {selected.end} ({showKb(selected.end - selected.start)})
+          {/* 🎯 {selected.chromosome}:{selected.start} - {selected.end} ({showKb(selected.end - selected.start)})
           <span className="autocomplete-info">
             {selected.description && selected.description.type == "gene" ? ` [${selected.description.name}]` : ""}
             {selected.description && selected.description.type == "annotation" ? ` [${selected.description.name}]` : ""}
-          </span>
+          </span> */}
+          <button onClick={() => setZoomOrder(selected.order + 0.5)}>reset zoom</button>
         </div>
         <div className="header-buttons">
           {/* <div className={`minimize ${minimized ? "active" : ""}`} onClick={onMinimize}>_</div> */}
@@ -68,53 +69,8 @@ const PowerOverlay = ({
         
         {loadingCSN ? <div>Loading CSN...</div> : 
         <div className="csn">
-          <button onClick={() => setZoomOrder(selected.order + 0.5)}>reset zoom</button>
           <div className="power-container">
-            {/* <ZoomLine 
-              csn={crossScaleNarration[selectedNarrationIndex]} 
-              order={zoomOrder} 
-              highlight={true}
-              selected={true}
-              text={true}
-              width={18} 
-              height={powerWidth} 
-              onClick={(c) => {
-                // setNarration(c)
-                // setCrossScaleNarrationIndex(0)
-              }}
-              onHover={(or) => {
-                // console.log("hover", or)
-                setCrossScaleNarrationIndex(selectedNarrationIndex)
-                setZoomOrder(or)
-              }}
-              />
-              {crossScaleNarration.slice(0, 23).map((n,i) => {
-                return (<ZoomLine 
-                  key={i}
-                  csn={n} 
-                  order={zoomOrder} 
-                  highlight={true}
-                  selected={crossScaleNarrationIndex === i}
-                  text={false}
-                  width={6} 
-                  height={powerWidth} 
-                  onClick={(c) => {
-                    // setNarration(c)
-                    let idx = crossScaleNarration.indexOf(c)
-                    setSelectedNarrationIndex(idx)
-                    setCrossScaleNarrationIndex(idx)
-                    onCSNIndex(idx)
-                  }}
-                  onHover={(or) => {
-                    // console.log("hover", or)
-                    if(crossScaleNarrationIndex !== i) {
-                      setCrossScaleNarrationIndex(i)
-                    }
-                    setZoomOrder(or)
-                  }}
-                  />)
-                })} */}
-
+           
             <ZoomLine 
               csn={narration} 
               order={zOrder} 
@@ -147,6 +103,10 @@ const PowerOverlay = ({
           </div>
           <div>
             {/* {zoomOrder} */}
+            {narration ? <CSNSentence
+              crossScaleNarration={narration}
+              order={selected.order}
+            /> : null }
           </div>
 
         </div>}

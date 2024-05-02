@@ -68,6 +68,9 @@
   background-color: lightgray;
 }
 
+.selected-modal .csn-info {
+  font-style: italic;
+}
 .selected-modal .csn .narration-sentence {
   padding: 4px 4px;
   border: 1px solid gray;
