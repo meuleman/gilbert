@@ -281,11 +281,30 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
   //   onPercent && onPercent(percent)
   // }, [percent, onPercent])
 
+  const handleWheel = useCallback((event) => {
+    event.preventDefault();
+    const delta = -event.deltaY;
+    setPercent(prevPercent => {
+      let newPercent = prevPercent + delta * 0.01; // Adjust the 0.01 to control the sensitivity of the scroll
+      newPercent = Math.max(0, Math.min(100, newPercent));
+      onOrder(percentScale(newPercent))
+      return newPercent
+    });
+  }, [setPercent, onOrder]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (canvas) {
+      canvas.addEventListener('wheel', handleWheel, { passive: false });
+      return () => {
+        canvas.removeEventListener('wheel', handleWheel);
+      };
+    }
+  }, [handleWheel]);
+
 
 
   const oscale = useMemo(() => scaleLinear().domain([0, 0.5]).range([1, 0]).clamp(true), [])
-  const scrollScale = useMemo(() => scaleLinear().domain([0.8, 1]).range([0, 1]).clamp(true), [])
-  const nextScrollScale = useMemo(() => scaleLinear().domain([0.5, 1]).range([1, 0]).clamp(true), [])
   
 
   // Render the 2D power visualization
@@ -531,7 +550,6 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
     if(d) {
       // const bw = interpXScale(d.end) - interpXScale(d.start)
       const tx = clientX//interpXScale(d.start) + bw// + 12 + 20;
-      console.log("tx", tx)
       tooltipRef.current.show(d, dataregions.layer, tx, rect.top + sheight + 5)
     }
   }, [data, interpXScale, order, sheight])
@@ -590,7 +608,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
       <canvas 
           className="power-canvas-strip"
           width={width + "px"}
-          height={20 + "px"}
+          height={sheight + "px"}
           style={{width: width + "px", height: sheight + "px"}}
           ref={canvasRefStrip}
           onMouseMove={handleMouseMove}

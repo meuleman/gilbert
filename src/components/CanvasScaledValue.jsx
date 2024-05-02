@@ -111,6 +111,7 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
             points.push({x: xx + xoff, y: yy + yoff})
           }
 
+          // TODO: comment out this if block if you don't like the segment borders
           if(layer.datasetName.indexOf("enr") >= 0) {
             let extend = 1.05
             let opoints = []

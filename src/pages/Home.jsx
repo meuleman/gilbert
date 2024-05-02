@@ -61,6 +61,7 @@ import DisplayExampleRegions from '../components/ExampleRegions/DisplayExampleRe
 
 import { getSet } from '../components/Regions/localstorage'
 import SelectedModal from '../components/SelectedModal'
+import PowerOverlay from '../components/PowerOverlay'
 import SimSearchResultList from '../components/SimSearch/ResultList'
 import GenesetEnrichment from '../components/SimSearch/GenesetEnrichment';
 // import Spectrum from '../components/Spectrum';
@@ -174,10 +175,29 @@ function Home() {
     setZoom(newZoom)
   }, [setZoom, setLayer])
 
-
     // selected powers the sidebar modal and the 1D track
   const [selected, setSelected] = useState(jsonify(initialSelectedRegion))
   const [selectedOrder, setSelectedOrder] = useState(selected?.order)
+
+
+  const [scales, setScales] = useState(null)
+  const [modalPosition, setModalPosition] = useState({x: 0, y: 0})
+  useEffect(() => {
+    const calculateModalPosition = () => {
+      if (!selected || !zoom || !zoom.transform || !scales) return { x: 0, y: 0 };
+
+      const { k, x, y } = zoom.transform;
+      const selectedX = scales.xScale(selected.x) * k + x;
+      const selectedY = scales.yScale(selected.y) * k + y;
+
+      return { x: selectedX, y: selectedY };
+    };
+
+    setModalPosition(calculateModalPosition());
+    // setModalPosition(showPosition(selected))
+  }, [selected, zoom, scales])
+
+
   const [simSearch, setSimSearch] = useState(null)
   const [similarRegions, setSimilarRegions] = useState([])
   // const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(null)
@@ -536,6 +556,10 @@ function Home() {
     setData(payload)
   }, [setData])
 
+
+  const [powerOrder, setPowerOrder] = useState(zoom.order + 0.5)
+  const [powerNarration, setPowerNarration] = useState(null)
+
   // // when in layer suggestion mode, this function will update the
   // // layer order based on the current viewable data
   // let LayerSuggestionMode = true
@@ -641,12 +665,15 @@ function Home() {
           {selected ? 
               <SelectedModal 
                 selected={selected} 
+                k={zoom.transform.k}
                 layers={csnLayers}
                 crossScaleNarration={crossScaleNarration}
                 loadingCSN={loadingCSN}
                 onCSNIndex={(i) => setCrossScaleNarrationIndex(i)}
                 onZoom={(region) => { setRegion(null); setRegion(region)}}
                 onClose={handleModalClose}
+                onZoomOrder={(or) => setPowerOrder(or)}
+                onNarration={(n) => setPowerNarration(n)}
                 >
                   <SimSearchResultList
                     simSearch={simSearch}
@@ -671,8 +698,10 @@ function Home() {
                   height={height}
                   zoomToRegion={region}
                   activeLayer={layer}
+                  selected={selected}
                   orderOffset={orderOffset}
                   zoomDuration={duration}
+                  onScales={setScales}
                   SVGRenderers={[
                     SVGChromosomeNames({ }),
                     showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
@@ -717,6 +746,31 @@ function Home() {
                 />
               )}
             </div>
+            {selected ? 
+              <PowerOverlay 
+                selected={selected} 
+                zoomOrder={powerOrder}
+                narration={powerNarration}
+                layers={csnLayers}
+                loadingCSN={loadingCSN}
+                mapWidth={width}
+                mapHeight={height}
+                modalPosition={modalPosition}
+                onClose={handleModalClose}
+                >
+                  <SimSearchResultList
+                    simSearch={simSearch}
+                    zoomRegion={region}
+                    searchByFactorInds={searchByFactorInds}
+                    onFactorClick={handleFactorClick}
+                    onZoom={(region) => { 
+                      const hit = fromPosition(region.chromosome, region.start, region.end)
+                      setRegion(null); 
+                      setRegion(hit)}}
+                    onHover={setHover}
+                  />
+            </PowerOverlay> : null}
+            
           </div>
           <div className="lenses">
             

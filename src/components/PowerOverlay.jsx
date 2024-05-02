@@ -9,87 +9,46 @@ import ZoomLine from './Narration/ZoomLine'
 import PowerModal from './Narration/PowerModal'
 import { scaleLinear } from 'd3-scale'
 
-import './SelectedModal.css'
+import './PowerOverlay.css'
 
-const SelectedModal = ({
+const PowerOverlay = ({
   selected = null,
-  k,
-  crossScaleNarration = [],
+  narration = null,
+  zoomOrder,
   layers = [],
   loadingCSN = false,
+  mapWidth,
+  mapHeight,
+  modalPosition,
   onCSNIndex=()=>{},
   onClose=()=>{},
   onZoom=()=>{},
-  onZoomOrder=()=>{},
-  onNarration=()=>{},
   children=null
 } = {}) => {
 
   const powerWidth = 300
+  const powerHeight = 300 //Math.round(powerWidth / mapWidth * mapHeight);
 
   const [minimized, setMinimized] = useState(false)
   const onMinimize = useCallback(() => {
     setMinimized(!minimized)
   }, [minimized, setMinimized])
 
-  const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
-  const [selectedNarrationIndex, setSelectedNarrationIndex] = useState(0)
-
-  const handleChangeCSNIndex = useCallback((e) => {
-    setCrossScaleNarrationIndex(e.target.value)
-  }, [setCrossScaleNarrationIndex])
-
-  const makeNarration = useCallback((c) => {
-    let n = {...c}
-    if(!n.path || n.path.length == 0) {
-      return {}
-    }
-    n.path = n.path.filter(d => !!d).sort((a,b) => a.order - b.order)
-    n.layers = layers
-    return n
-  }, [layers])
-
-  const [narration, setNarration] = useState(makeNarration(crossScaleNarration[0]))
+  const [zOrder, setZoomOrder] = useState(zoomOrder)
   useEffect(() => {
-    onNarration(narration)
-  }, [narration])
-
-  useEffect(() => {
-    if(crossScaleNarration.length == 0) return
-    let narration = makeNarration(crossScaleNarration[crossScaleNarrationIndex])
-    console.log("narration", narration)
-    setNarration(narration)
-  }, [crossScaleNarration, crossScaleNarrationIndex, makeNarration])
-
-  useEffect(() => {
-    console.log("selected CSN", crossScaleNarration)
-  }, [crossScaleNarration])
-
-  const unselectedNarrations = useMemo(() => {
-    return crossScaleNarration.filter((n,i) => i !== crossScaleNarrationIndex)
-  }, [crossScaleNarration, crossScaleNarrationIndex])
-
-  const orderZoomScale = scaleLinear().domain([0.85, 4000]).range([1, Math.pow(2, 10.999)])
-  const [zoomOrder, setZoomOrder] = useState(4)
-  useEffect(() => {
-    let or = 4 + Math.log2(orderZoomScale(k))
-    if(selected.order + 0.5 > or) {
-      or = selected.order + 0.5
-    } 
-    setZoomOrder(or)
-  }, [selected, k])
-  useEffect(() => {
-    onZoomOrder(zoomOrder)
+    setZoomOrder(zoomOrder)
   }, [zoomOrder])
-
-  
   
   return (
     <>
     {selected && (
-    <div className="selected-modal">
+    <div className="power-overlay" style={{
+      position: "absolute", 
+      top: modalPosition.y - powerHeight/2 - 62, 
+      left: modalPosition.x - powerWidth/2
+      }}>
       <div className="header">
-        <div className="selected-modal-selected">
+        <div className="power-modal-selected">
           🎯 {selected.chromosome}:{selected.start} - {selected.end} ({showKb(selected.end - selected.start)})
           <span className="autocomplete-info">
             {selected.description && selected.description.type == "gene" ? ` [${selected.description.name}]` : ""}
@@ -97,46 +56,21 @@ const SelectedModal = ({
           </span>
         </div>
         <div className="header-buttons">
-          <div className={`minimize ${minimized ? "active" : ""}`} onClick={onMinimize}>_</div>
+          {/* <div className={`minimize ${minimized ? "active" : ""}`} onClick={onMinimize}>_</div> */}
           <div className="close" onClick={onClose}>x</div>
         </div>
       </div>
-      {minimized}
       <div className={`content ${minimized ? "minimized" : ""}`}>
-        <div className="controls">
+        {/* <div className="controls">
           <Link to={`/region?region=${urlify(selected)}`} target="_blank">📄 Details️ Page</Link>
           <Link onClick={() => onZoom(selected)} alt="Zoom to region">🔍 Zoom to region</Link>         
-        </div>
+        </div> */}
         
         {loadingCSN ? <div>Loading CSN...</div> : 
         <div className="csn">
-          {/* <div className="narration-slider">
-            <input id="csn-slider" type='range' min={0} max={crossScaleNarration.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
-            <label htmlFor="csn-slider">Narration: {crossScaleNarrationIndex}</label>
-          </div> */}
-          <CSNSentence
-            crossScaleNarration={narration}
-            order={selected.order}
-          />
-          <br/>
-          {/* <CSNLine 
-            csn={narration} 
-            order={selected.order} 
-            highlight={true}
-            selected={true}
-            text={false}
-            width={width} 
-            height={25} 
-            onClick={(c) => {
-              console.log("selected", c)
-            }}
-            onHover={(c) => {
-            }}
-            /> */}
-
-          <br></br>
+          <button onClick={() => setZoomOrder(selected.order + 0.5)}>reset zoom</button>
           <div className="power-container">
-            <ZoomLine 
+            {/* <ZoomLine 
               csn={crossScaleNarration[selectedNarrationIndex]} 
               order={zoomOrder} 
               highlight={true}
@@ -154,7 +88,7 @@ const SelectedModal = ({
                 setZoomOrder(or)
               }}
               />
-              {crossScaleNarration.slice(0, 55).map((n,i) => {
+              {crossScaleNarration.slice(0, 23).map((n,i) => {
                 return (<ZoomLine 
                   key={i}
                   csn={n} 
@@ -162,7 +96,7 @@ const SelectedModal = ({
                   highlight={true}
                   selected={crossScaleNarrationIndex === i}
                   text={false}
-                  width={8} 
+                  width={6} 
                   height={powerWidth} 
                   onClick={(c) => {
                     // setNarration(c)
@@ -179,20 +113,36 @@ const SelectedModal = ({
                     setZoomOrder(or)
                   }}
                   />)
-                })}
-            {/* <PowerModal csn={narration} 
+                })} */}
+
+            <ZoomLine 
+              csn={narration} 
+              order={zOrder} 
+              highlight={true}
+              selected={true}
+              text={true}
+              width={18} 
+              height={powerHeight} 
+              onClick={(c) => {
+                // setNarration(c)
+                // setCrossScaleNarrationIndex(0)
+              }}
+              onHover={(or) => {
+                setZoomOrder(or)
+              }}
+            />
+            <PowerModal 
+              csn={narration} 
               width={powerWidth} 
-              height={powerWidth} 
-              scroll={false} 
-              oned={false} 
-              userOrder={zoomOrder}
+              height={powerHeight} 
+              userOrder={zOrder}
               onData={(data) => {
                 // console.log("power data", data)
               }}
               onOrder={(order) => {
-                // console.log("power order", order)
+                setZoomOrder(order)
               }}
-              /> */}
+              />
               
           </div>
           <div>
@@ -200,7 +150,7 @@ const SelectedModal = ({
           </div>
 
         </div>}
-        <div className="selected-modal-children">
+        <div className="power-modal-children">
           {children}
         </div>
       </div>
@@ -209,4 +159,4 @@ const SelectedModal = ({
 </>
   )
 }
-export default SelectedModal
+export default PowerOverlay

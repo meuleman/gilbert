@@ -44,7 +44,7 @@ const initialState = {
   // The meta data for each available order of the layer
   metas: new Map(),
   // The data point selected by clicking
-  selected: null,
+  // selected: null,
   // The data point selected by hovering
   hovered: null,
   zooming: false,
@@ -57,7 +57,7 @@ const actions = {
   SET_LOADING: "SET_LOADING",
   SET_DATA: "SET_DATA",
   SET_METAS: "SET_METAS",
-  SET_SELECTED: "SET_SELECTED",
+  // SET_SELECTED: "SET_SELECTED",
   SET_HOVERED: "SET_HOVERED",
 };
 
@@ -93,8 +93,8 @@ function reducer(state, action) {
       const { metas, metaLayer } = action.payload;
       return { ...state, metas, metaLayer };
     }
-    case actions.SET_SELECTED:
-      return { ...state, selected: action.payload };
+    // case actions.SET_SELECTED:
+    //   return { ...state, selected: action.payload };
     case actions.SET_HOVERED:
       return { ...state, hovered: action.payload };
     default:
@@ -123,10 +123,12 @@ const HilbertGenome = ({
     width,
     height,
     activeLayer,
+    selected = null,
     pinOrder = 0,
     orderOffset = 0,
     SVGRenderers = [],
     onZoom = () => {},
+    onScales = () => {},
     onHover = () => {},
     onClick = () => {},
     onData = () => {},
@@ -154,6 +156,9 @@ const HilbertGenome = ({
   const orderZoomScale = useMemo(() =>  scaleLinear().domain(zoomExtent).range([1, Math.pow(2, orderDomain[1] - orderDomain[0] + 0.999)]), [orderDomain, zoomExtent])
 
   const scales = useMemo(() => ({ xScale, yScale, sizeScale, orderZoomScale, width, height }), [xScale, yScale, sizeScale, orderZoomScale, width, height])
+  useEffect(() => {
+    onScales(scales)
+  }, [scales, onScales])
   
   // the layer is controlled outside of this component
   const layer = useMemo(() => {
@@ -433,10 +438,11 @@ const HilbertGenome = ({
       .on("zoom", handleZoom)
       .filter((event) => {
         if(event.type === 'dblclick') return false
+        if(selected && event.type === 'wheel') return false
         return true
       })
     select(svgRef.current).call(zoomBehavior)
-  }, [zoomBehavior, handleZoom])
+  }, [zoomBehavior, selected, handleZoom])
 
   // run the zoom with the initial transform when the component mounts
   useEffect(() => {
