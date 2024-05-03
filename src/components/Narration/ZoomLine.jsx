@@ -8,15 +8,6 @@ import './Line.css';
 import Tooltip from '../Tooltips/Tooltip';
 
 import PropTypes from 'prop-types';
-ZoomLine.propTypes = {
-  csn: PropTypes.object.isRequired,
-  order: PropTypes.number.isRequired,
-  highlight: PropTypes.bool,
-  width: PropTypes.number,
-  height: PropTypes.number,
-  onHover: PropTypes.func,
-  onClick: PropTypes.func
-};
 
 
 
@@ -54,6 +45,16 @@ function tooltipContent(region, layer, orientation) {
     </div>
   )
 }
+ZoomLine.propTypes = {
+  csn: PropTypes.object.isRequired,
+  order: PropTypes.number.isRequired,
+  highlight: PropTypes.bool,
+  selected: PropTypes.bool,
+  width: PropTypes.number,
+  height: PropTypes.number,
+  onHover: PropTypes.func,
+  onClick: PropTypes.func
+};
 
 export default function ZoomLine({
   csn,
@@ -106,7 +107,7 @@ export default function ZoomLine({
   }, [path, onClick])
 
   const handleHover = useCallback((e, o) => {
-    tooltipRef.current.hide()
+    // tooltipRef.current.hide()
     const svg = e.target.ownerSVGElement
     const rect = svg.getBoundingClientRect();
 
@@ -124,8 +125,9 @@ export default function ZoomLine({
   }, [path, yScale, rw, onHover])
 
   const handleLeave = useCallback(() => {
+    console.log("handle leave")
     tooltipRef.current.hide()
-  }, [tooltipRef])
+  }, [])
 
   return (
     <div className="csn-line" onClick={() => onClick(csn)}>

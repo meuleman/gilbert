@@ -85,7 +85,27 @@ const SelectedModal = ({
   //   onZoomOrder(zoomOrder)
   // }, [zoomOrder])
 
+  const handleMainLineHover = useCallback((or) => {
+    // console.log("hover", or)
+    setCrossScaleNarrationIndex(selectedNarrationIndex)
+    setZoomOrder(or)
+  }, [selectedNarrationIndex, setCrossScaleNarrationIndex, setZoomOrder])
   
+  const handleLineClick = useCallback((c) => {
+    // setNarration(c)
+    let idx = crossScaleNarration.indexOf(c)
+    setSelectedNarrationIndex(idx)
+    setCrossScaleNarrationIndex(idx)
+    onCSNIndex(idx)
+  }, [crossScaleNarration, onCSNIndex])
+  
+  const handleLineHover = useCallback((i) => (or) => {
+    // console.log("hover", or)
+    if(crossScaleNarrationIndex !== i) {
+      setCrossScaleNarrationIndex(i)
+    }
+    setZoomOrder(or)
+  }, [crossScaleNarrationIndex, setCrossScaleNarrationIndex, setZoomOrder])
   
   return (
     <>
@@ -147,15 +167,7 @@ const SelectedModal = ({
               text={true}
               width={18} 
               height={powerWidth} 
-              onClick={(c) => {
-                // setNarration(c)
-                // setCrossScaleNarrationIndex(0)
-              }}
-              onHover={(or) => {
-                // console.log("hover", or)
-                setCrossScaleNarrationIndex(selectedNarrationIndex)
-                setZoomOrder(or)
-              }}
+              onHover={handleMainLineHover}
               />
               {crossScaleNarration.slice(0, 55).map((n,i) => {
                 return (<ZoomLine 
@@ -167,20 +179,8 @@ const SelectedModal = ({
                   text={false}
                   width={8} 
                   height={powerWidth} 
-                  onClick={(c) => {
-                    // setNarration(c)
-                    let idx = crossScaleNarration.indexOf(c)
-                    setSelectedNarrationIndex(idx)
-                    setCrossScaleNarrationIndex(idx)
-                    onCSNIndex(idx)
-                  }}
-                  onHover={(or) => {
-                    // console.log("hover", or)
-                    if(crossScaleNarrationIndex !== i) {
-                      setCrossScaleNarrationIndex(i)
-                    }
-                    setZoomOrder(or)
-                  }}
+                  onClick={handleLineClick}
+                  onHover={handleLineHover(i)}
                   />)
                 })}
             {/* <PowerModal csn={narration} 

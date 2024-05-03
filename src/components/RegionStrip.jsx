@@ -273,7 +273,7 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
     if(hoveredData) {
       const bw = xScaleRef.current(hoveredData.end) - xScaleRef.current(hoveredData.start)
       const tx = xScaleRef.current(hoveredData.start) + rect.x + bw/2
-      console.log("hovered data", hoveredData)
+      // console.log("hovered data", hoveredData)
       tooltipRef.current.show(hoveredData, layer, tx, rect.top - 2)
     }
   }, [data, layer])

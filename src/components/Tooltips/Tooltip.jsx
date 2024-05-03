@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useImperativeHandle, forwardRef } from 'react';
+import { useRef, useEffect, useState, useImperativeHandle, forwardRef, useMemo } from 'react';
 import { showPosition, showFloat } from '../../lib/display'
 
 
@@ -63,11 +63,12 @@ const Tooltip = forwardRef(({
   const [content, setContent] = useState('');
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [orientation, setOrientation] = useState(defaultOrientation);
+  const cfn = useMemo(() => contentFn, [contentFn])
 
   useImperativeHandle(ref, () => ({
     show: (region, layer, x, y) => {
       if(contentFn) {
-        setContent(contentFn(region, layer, defaultOrientation))
+        setContent(cfn(region, layer, defaultOrientation))
       } else if(layer.tooltip) {
         setContent(layer.tooltip(region, layer, defaultOrientation))
       } else {
@@ -77,6 +78,7 @@ const Tooltip = forwardRef(({
       setIsVisible(true);
     },
     hide: () => {
+      console.log("hiding")
       setIsVisible(false);
     }
   }))
@@ -169,7 +171,7 @@ const Tooltip = forwardRef(({
         setOrientation(newOrientation);
         tooltip.style.left = `${tooltipX}px`;
         tooltip.style.top = `${tooltipY}px`;
-        tooltip.style.display = isVisible ? 'block' : 'none'
+        // tooltip.style.display = isVisible ? 'block' : 'none'
       }
       // if(!isVisible) {
       //   tooltip.style.display = 'none'
