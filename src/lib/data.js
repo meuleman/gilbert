@@ -38,7 +38,7 @@ export default function Data({
         return fetchOrder(layer, order, chromosome, meta, d.start, d.stop, cachebust)
       })
   
-      let stride = meta.shape[1] || 1
+      let stride = meta.shape.length === 3 ? meta.shape[1] * meta.shape[2] : meta.shape[1] || 1
   
       
       try { // TODO is this try in the right place?
@@ -102,7 +102,7 @@ export default function Data({
     let dtype = meta.dtype
     let arrayType = numpyDtypeToTypedArray(dtype);
     
-    let stride = meta.shape[1] || 1
+    let stride = meta.shape.length === 3 ? meta.shape[1] * meta.shape[2] : meta.shape[1] || 1
     let bpv = meta.bytes_per_value
 
     if(debug) {

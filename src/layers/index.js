@@ -25,6 +25,7 @@ import TF_Motifs_Sfc_max from './tf_motifs_sfc_max'
 import tf_motifs_occ from './tf_motifs_occ'
 import tf_motifs_enr from './tf_motifs_enr'
 import tf_motifs_enr_max from './tf_motifs_enr_max'
+import tf_motifs_enr_top10 from './tf_motifs_enr_top10'
 import DHS_mapped_TF_motifs_sfc from './dhs_mapped_tf_motifs_sfc'
 import DHS_mapped_TF_motifs_sfc_max from './dhs_mapped_tf_motifs_sfc_max'
 import UKBB from './ukbb'
@@ -77,6 +78,7 @@ export default [
   tf_motifs_occ,
   tf_motifs_enr,
   tf_motifs_enr_max,
+  tf_motifs_enr_top10,
   DHS_mapped_TF_motifs_sfc,
   DHS_mapped_TF_motifs_sfc_max,
   Repeats_Sfc,
