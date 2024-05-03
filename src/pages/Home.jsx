@@ -672,7 +672,6 @@ function Home() {
                 onCSNIndex={(i) => setCrossScaleNarrationIndex(i)}
                 onZoom={(region) => { setRegion(null); setRegion(region)}}
                 onClose={handleModalClose}
-                onZoomOrder={(or) => setPowerOrder(or)}
                 onNarration={(n) => setPowerNarration(n)}
                 >
                   <SimSearchResultList
@@ -749,7 +748,7 @@ function Home() {
             {selected ? 
               <PowerOverlay 
                 selected={selected} 
-                zoomOrder={powerOrder}
+                zoomOrder={selected?.order + 0.5}
                 narration={powerNarration}
                 layers={csnLayers}
                 loadingCSN={loadingCSN}

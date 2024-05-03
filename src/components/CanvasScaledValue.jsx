@@ -112,24 +112,24 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
           }
 
           // TODO: comment out this if block if you don't like the segment borders
-          if(layer.datasetName.indexOf("enr") >= 0) {
-            let extend = 1.05
-            let opoints = []
-            if(dm1) {
-              let { xoff, yoff, w, h } = getOffsets(d, dm1, rw, srw, extend)
-              opoints.push({x: xx + xoff, y: yy + yoff})
-            }
-            opoints.push({x: xx, y: yy})
-            if(dp1) {
-              let { xoff, yoff, w, h } = getOffsets(d, dp1, rw, srw, extend)
-              opoints.push({x: xx + xoff, y: yy + yoff})
-            }
-            ctx.strokeStyle = "black"
-            ctx.lineWidth = srw * extend
-            ctx.beginPath()
-            linef(opoints)
-            ctx.stroke()
-          }
+          // if(layer.datasetName.indexOf("enr") >= 0) {
+          //   let extend = 1.05
+          //   let opoints = []
+          //   if(dm1) {
+          //     let { xoff, yoff, w, h } = getOffsets(d, dm1, rw, srw, extend)
+          //     opoints.push({x: xx + xoff, y: yy + yoff})
+          //   }
+          //   opoints.push({x: xx, y: yy})
+          //   if(dp1) {
+          //     let { xoff, yoff, w, h } = getOffsets(d, dp1, rw, srw, extend)
+          //     opoints.push({x: xx + xoff, y: yy + yoff})
+          //   }
+          //   ctx.strokeStyle = "black"
+          //   ctx.lineWidth = srw * extend
+          //   ctx.beginPath()
+          //   linef(opoints)
+          //   ctx.stroke()
+          // }
           
           ctx.fillStyle = fieldColor(sample.field)
           ctx.strokeStyle = fieldColor(sample.field)

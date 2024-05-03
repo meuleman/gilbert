@@ -50,20 +50,23 @@ const SelectedModal = ({
   }, [layers])
 
   const [narration, setNarration] = useState(makeNarration(crossScaleNarration[0]))
+
   useEffect(() => {
-    onNarration(narration)
-  }, [narration])
+    onNarration(makeNarration(crossScaleNarration[selectedNarrationIndex]))
+  }, [selectedNarrationIndex, crossScaleNarration, makeNarration])
+  // useEffect(() => {
+  //   onNarration(narration)
+  // }, [narration])
 
   useEffect(() => {
     if(crossScaleNarration.length == 0) return
     let narration = makeNarration(crossScaleNarration[crossScaleNarrationIndex])
-    console.log("narration", narration)
     setNarration(narration)
   }, [crossScaleNarration, crossScaleNarrationIndex, makeNarration])
 
-  useEffect(() => {
-    console.log("selected CSN", crossScaleNarration)
-  }, [crossScaleNarration])
+  // useEffect(() => {
+  //   console.log("selected CSN", crossScaleNarration)
+  // }, [crossScaleNarration])
 
   const unselectedNarrations = useMemo(() => {
     return crossScaleNarration.filter((n,i) => i !== crossScaleNarrationIndex)
@@ -78,9 +81,9 @@ const SelectedModal = ({
     } 
     setZoomOrder(or)
   }, [selected, k])
-  useEffect(() => {
-    onZoomOrder(zoomOrder)
-  }, [zoomOrder])
+  // useEffect(() => {
+  //   onZoomOrder(zoomOrder)
+  // }, [zoomOrder])
 
   
   
@@ -118,10 +121,7 @@ const SelectedModal = ({
             <input id="csn-slider" type='range' min={0} max={crossScaleNarration.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
             <label htmlFor="csn-slider">Narration: {crossScaleNarrationIndex}</label>
           </div> */}
-          {/* <CSNSentence
-            crossScaleNarration={narration}
-            order={selected.order}
-          /> */}
+       
           {/* <CSNLine 
             csn={narration} 
             order={selected.order} 
@@ -199,7 +199,11 @@ const SelectedModal = ({
               
           </div>
           <div>
-            {/* {zoomOrder} */}
+            <span>Cross-Scale Narration path: {crossScaleNarrationIndex + 1}, score: {narration.score?.toFixed(2)}</span>
+            <CSNSentence
+              crossScaleNarration={narration}
+              order={selected.order}
+            />
           </div>
 
         </div>}

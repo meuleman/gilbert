@@ -68,13 +68,13 @@
   background-color: lightgray;
 }
 
-.power-overlay .csn button {
-  padding: 3px 6px;
+.power-overlay button {
+  padding: 6px 6px;
   margin: 6px 0;
 }
 .power-overlay .csn .narration-sentence {
   padding: 4px 4px;
-  border: 1px solid gray;
+  /* border: 1px solid gray; */
   margin: 4px 0px;
   border-radius: 5px;
 }
