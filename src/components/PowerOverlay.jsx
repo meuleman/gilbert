@@ -1,5 +1,4 @@
-// A component to display some information below the map when hovering over hilbert cells
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
 import { showKb } from '../lib/display'
@@ -38,6 +37,11 @@ const PowerOverlay = ({
   useEffect(() => {
     setZoomOrder(zoomOrder)
   }, [zoomOrder])
+
+
+  const handleZoom = useCallback((or) => {
+    setZoomOrder(or)
+  }, [setZoomOrder])
   
   return (
     <>
@@ -79,25 +83,14 @@ const PowerOverlay = ({
               text={true}
               width={18} 
               height={powerHeight} 
-              onClick={(c) => {
-                // setNarration(c)
-                // setCrossScaleNarrationIndex(0)
-              }}
-              onHover={(or) => {
-                setZoomOrder(or)
-              }}
+              onHover={handleZoom}
             />
             <PowerModal 
               csn={narration} 
               width={powerWidth} 
               height={powerHeight} 
               userOrder={zOrder}
-              onData={(data) => {
-                // console.log("power data", data)
-              }}
-              onOrder={(order) => {
-                setZoomOrder(order)
-              }}
+              onOrder={handleZoom}
               />
               
           </div>

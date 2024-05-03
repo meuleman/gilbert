@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useImperativeHandle, forwardRef } from 'react';
+import { useRef, useEffect, useState, useImperativeHandle, forwardRef, useMemo } from 'react';
 import { showPosition, showFloat } from '../../lib/display'
 
 
@@ -21,7 +21,13 @@ function defaultContent(region, layer, orientation) {
   
   return (
     <div style={{display: 'flex', flexDirection: 'column'}}>
-      {orientation == "bottom" ? showPosition(region) : null}
+      {orientation == "bottom" ? <div>
+        {showPosition(region)}
+        <br/>
+        <span className="position">Order: {region.order}</span>
+        <br/>
+        <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
+      </div> : null}
       {fields.map((f,i) => (
         <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
           <span>
@@ -34,7 +40,13 @@ function defaultContent(region, layer, orientation) {
         </div>
       ))}
       
-      {orientation !== "bottom" ? showPosition(region) : null}
+      {orientation !== "bottom" ? <div>
+        <span style={{borderTop: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
+        <br/>
+        <span className="position">Order: {region.order}</span>
+        <br/>
+        {showPosition(region)}
+      </div> : null}
     </div>
   )
 }
@@ -51,11 +63,12 @@ const Tooltip = forwardRef(({
   const [content, setContent] = useState('');
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [orientation, setOrientation] = useState(defaultOrientation);
+  const cfn = useMemo(() => contentFn, [contentFn])
 
   useImperativeHandle(ref, () => ({
     show: (region, layer, x, y) => {
       if(contentFn) {
-        setContent(contentFn(region, layer, defaultOrientation))
+        setContent(cfn(region, layer, defaultOrientation))
       } else if(layer.tooltip) {
         setContent(layer.tooltip(region, layer, defaultOrientation))
       } else {
@@ -65,18 +78,26 @@ const Tooltip = forwardRef(({
       setIsVisible(true);
     },
     hide: () => {
+      console.log("hiding")
       setIsVisible(false);
     }
   }))
 
   useEffect(() => {
+    const tooltip = tooltipRef.current;
+    if(tooltip) {
+      tooltip.style.display = isVisible ? 'block' : 'none'
+    }
+  }, [isVisible])
+
+  useEffect(() => {
     const updatePosition = () => {
       const tooltip = tooltipRef.current;
       const arrow = arrowRef.current
-      if (isVisible && tooltip) {
+      if (tooltip) {
         tooltip.style.top = '-1000px'
         tooltip.style.left = '-1000px'
-        tooltip.style.display = isVisible ? 'block' : 'none'
+        // tooltip.style.display = isVisible ? 'block' : 'none'
         const tooltipRect = tooltip.getBoundingClientRect();
         const { width, height } = tooltipRect;
         const { x, y } = position;
@@ -150,11 +171,11 @@ const Tooltip = forwardRef(({
         setOrientation(newOrientation);
         tooltip.style.left = `${tooltipX}px`;
         tooltip.style.top = `${tooltipY}px`;
-        tooltip.style.display = isVisible ? 'block' : 'none'
+        // tooltip.style.display = isVisible ? 'block' : 'none'
       }
-      if(!isVisible) {
-        tooltip.style.display = 'none'
-      }
+      // if(!isVisible) {
+      //   tooltip.style.display = 'none'
+      // }
     };
     
 
@@ -166,7 +187,7 @@ const Tooltip = forwardRef(({
       window.removeEventListener('scroll', updatePosition);
       window.removeEventListener('resize', updatePosition);
     };
-  }, [isVisible, position, defaultOrientation, bottomOffset]);
+  }, [position, defaultOrientation, bottomOffset, enforceBounds]);
 
   const getArrowStyle = () => {
     const arrowSize = 5;
