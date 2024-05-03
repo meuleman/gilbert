@@ -21,7 +21,7 @@ function tooltipContent(region, layer, orientation) {
     fields.push(layer.fieldChoice(region))
   } else {
     fields = Object.keys(region.data).map(key => ({ field: key, value: region.data[key] }))
-      .sort((a,b) => a.value - b.value)
+      .sort((a,b) => b.value - a.value)
       .filter(d => d.value > 0)
     
   }
