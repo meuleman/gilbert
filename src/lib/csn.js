@@ -33,7 +33,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
   const enrInds = occMask.map((v, i) => !v ? i : -1).filter(i => i !== -1)
   let enrOccMapping = {}
   enrInds.forEach((i) => {
-    const baseName = layerNames[i].replace(' (ENR)', '').replace(' (ENR, Full)', '')
+    const baseName = layerNames[i].replace(' (ENR)', '').replace(' (ENR, Full)', '').replace(' (ENR, Top 10)', '')
     const occInd = layerNames.findIndex(d => d.includes(baseName) && d.includes('OCC'))
     enrOccMapping[i] = occInd
   })
@@ -166,7 +166,17 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           let layerInd = d.layerInd
           if(d?.data?.max_field >= 0) {
             let key = `${layerInd},${d.data.max_field}`
-            tracker[key] = Math.max(tracker[key] || 0, d.data.max_value)
+            if(d.data.max_value > 0) tracker[key] = Math.max(tracker[key] || 0, d.data.max_value)
+          } else if (d?.data?.top_fields) {  // top x data
+            let numFactors = d.bytes.length / 2
+            for(let i = 0; i < numFactors; i++) {
+              let index = d.bytes[2 * i]
+              let value = d.bytes[(2 * i) + 1]
+              if (value > 0) {
+                let key = `${layerInd},${index}`
+                tracker[key] = Math.max(tracker[key] || 0, value)
+              }
+            }
           } else {  // full data
             // filter byte array for nonzero values and add to tracker
             [...d.bytes].forEach((value, index) => {
@@ -345,6 +355,16 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
             let key = `${layerInd},${layerInfo.data.max_field}`
             let value = layerInfo.data.max_value
             allFeatures.features[key] = value
+          } else if(layerInfo.data.top_fields) {  // if top data
+            let numFactors = layerInfo.bytes.length / 2
+            for(let i = 0; i < numFactors; i++) {
+              let index = layerInfo.bytes[2 * i]
+              let value = layerInfo.bytes[(2 * i) + 1]
+              if (value > 0) {
+                let key = `${layerInd},${index}`
+                allFeatures.features[key] = value
+              }
+            }
           } else if(!layerInfo.data.max_value) {  // full data
             // filter byte array for nonzero values and add to tracker
             [...layerInfo.bytes].forEach((value, index) => {

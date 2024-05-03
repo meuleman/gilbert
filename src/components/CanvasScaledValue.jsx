@@ -34,8 +34,8 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
     let fields, max, min
     if (
         (meta["fields"].length == 2) && 
-        ((meta["fields"][0] == "max_field") || (meta["fields"][0] == "field")) && 
-        ((meta["fields"][1] == "max_value") || (meta["fields"][1] == "value"))
+        ((meta["fields"][0] == "max_field") || (meta["fields"][0] == "top_fields")) && 
+        ((meta["fields"][1] == "max_value") || (meta["fields"][1] == "top_values"))
       ) {
       fields = meta["full_fields"]
       max = meta["full_max"]

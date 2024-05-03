@@ -9,9 +9,9 @@ const tfColors = ["#23171b","#362357","#433087","#433087","#493dac","#493dac","#
 
 export default {
   name: "TF Motifs (ENR, Top 10)",
-  datasetName: "tf_enr_top10_b",
+  datasetName: "tf_enr_top10_c",
   baseURL: `${constants.baseURLPrefix}/20240327`,
-  orders: [4,10],
+  orders: [4,11],
   renderer: CanvasScaledValue,
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()
@@ -28,8 +28,8 @@ function decodeValue(d) {
   let data = d.data;
   if(!data) return { field: "", value: null }
   let top = {
-    field: tfFields[data.field],
-    value: data.value
+    field: tfFields[data.top_fields],
+    value: data.top_values
   }
   if(top.value <= 0) return { field: "", value: null }
   return top
