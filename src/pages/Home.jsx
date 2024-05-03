@@ -386,7 +386,7 @@ function Home() {
       layers.find(d => d.datasetName == "variants_gwas"),
       // layers.find(d => d.datasetName == "grc"),
     ]
-    if(selected && selected.order > 5){
+    if(selected && selected.order > 4){
       // clear the cross scale narration first
       setCrossScaleNarration([])
       setCsn({path: [], layers: csnLayers})
