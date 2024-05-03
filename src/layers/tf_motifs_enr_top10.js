@@ -11,7 +11,7 @@ export default {
   name: "TF Motifs (ENR, Top 10)",
   datasetName: "tf_enr_top10_c",
   baseURL: `${constants.baseURLPrefix}/20240327`,
-  orders: [4,11],
+  orders: [4,12],
   renderer: CanvasScaledValue,
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()
