@@ -191,6 +191,43 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       return tracker
     }
 
+    let refactorAllFeatures = (d) => {
+      let keys = Object.keys(d).filter(k => k !== 'chosen')
+      // find all non-zero features for a given node across all layers
+      let segmentOrder = d[keys[0]]?.order
+      if(!segmentOrder) return {order: null, features: {}}
+      let allFeatures = {order: segmentOrder, features: {}}
+      // for each layer...
+      keys.forEach(layerInd => {
+        let layerInfo = d[layerInd]
+        // save the nonzero data for each layer
+        if(layerInfo.data.max_value > 0) {  // if max data and not 0
+          let key = `${layerInd},${layerInfo.data.max_field}`
+          let value = layerInfo.data.max_value
+          allFeatures.features[key] = value
+        } else if(layerInfo.data.top_fields) {  // if top data
+          let numFactors = layerInfo.bytes.length / 2
+          for(let i = 0; i < numFactors; i++) {
+            let index = layerInfo.bytes[2 * i]
+            let value = layerInfo.bytes[(2 * i) + 1]
+            if (value > 0) {
+              let key = `${layerInd},${index}`
+              allFeatures.features[key] = value
+            }
+          }
+        } else if(!layerInfo.data.max_value) {  // full data
+          // filter byte array for nonzero values and add to tracker
+          [...layerInfo.bytes].forEach((value, index) => {
+            if (value > 0) {
+              let key = `${layerInd},${index}`
+              allFeatures.features[key] = value
+            }
+          })
+        }
+      })
+      return allFeatures
+    }
+
 
     // track the ENR factors for each node in upstream segments
     let trackerPromise = topFieldsAllLayers.then(() => {
@@ -207,6 +244,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           let tracker = findENRData(d.data)
           d['enrTracker'] = tracker
         }
+        d['fullDataTracker'] = refactorAllFeatures(d.data)
         d['usedOCC'] = {}
       })
       return Promise.resolve(null)
@@ -341,43 +379,6 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
         } else return null
       }
 
-      let refactorAllFeatures = (d) => {
-        let keys = Object.keys(d).filter(k => k !== 'chosen')
-        // find all non-zero features for a given node across all layers
-        let segmentOrder = d[keys[0]]?.order
-        if(!segmentOrder) return {order: null, features: {}}
-        let allFeatures = {order: segmentOrder, features: {}}
-        // for each layer...
-        keys.forEach(layerInd => {
-          let layerInfo = d[layerInd]
-          // save the nonzero data for each layer
-          if(layerInfo.data.max_value > 0) {  // if max data and not 0
-            let key = `${layerInd},${layerInfo.data.max_field}`
-            let value = layerInfo.data.max_value
-            allFeatures.features[key] = value
-          } else if(layerInfo.data.top_fields) {  // if top data
-            let numFactors = layerInfo.bytes.length / 2
-            for(let i = 0; i < numFactors; i++) {
-              let index = layerInfo.bytes[2 * i]
-              let value = layerInfo.bytes[(2 * i) + 1]
-              if (value > 0) {
-                let key = `${layerInd},${index}`
-                allFeatures.features[key] = value
-              }
-            }
-          } else if(!layerInfo.data.max_value) {  // full data
-            // filter byte array for nonzero values and add to tracker
-            [...layerInfo.bytes].forEach((value, index) => {
-              if (value > 0) {
-                let key = `${layerInd},${index}`
-                allFeatures.features[key] = value
-              }
-            })
-          }
-        })
-        return allFeatures
-      }
-
       // initialize path data
       let topLeafPaths = new Array(leafScoresSorted.length).fill(null).map(d => {
         return {'path': []}
@@ -386,10 +387,9 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       // function to move through the tree and collect top features for each segment
       let collectFeatures = (node, i) => {
         let treeDataNode = dataTree[node]
-        let nodeAllFeatures = treeDataNode.data
-        const fullData = refactorAllFeatures(nodeAllFeatures)
+        const fullData = treeDataNode.fullDataTracker
         // console.log("features", node, i, nodeAllFeatures, fullData)
-        let nodeChosenFeature = nodeAllFeatures.chosen
+        let nodeChosenFeature = treeDataNode.data.chosen
         const refactor = refactorTopFeature(nodeChosenFeature)
         if(refactor)
           refactor.fullData = fullData.features
