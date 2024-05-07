@@ -417,17 +417,18 @@ function Home() {
       newCsn.layers = csnLayers
       setCsn(newCsn)
       // we update the layer order and layer
-      if(selected) {
-        let newLayerOrder = Object.assign({}, layerOrderRef.current)
-        newCsn.path.forEach(d => {
-          newLayerOrder[d?.order] = d?.layer
-        })
-        if(newLayerOrder[selected.order] && !layerLockRef.current){
-          layerOrderRef.current = newLayerOrder // this is so that handleZoom uses most up to date in race condition
-          setLayerOrder(newLayerOrder)
-          setLayer(newLayerOrder[selected.order])
-        }
-      }
+      // TODO: if we want to update the layer order based on the csn, we can uncomment this
+      // if(selected) {
+      //   let newLayerOrder = Object.assign({}, layerOrderRef.current)
+      //   newCsn.path.forEach(d => {
+      //     newLayerOrder[d?.order] = d?.layer
+      //   })
+      //   if(newLayerOrder[selected.order] && !layerLockRef.current){
+      //     layerOrderRef.current = newLayerOrder // this is so that handleZoom uses most up to date in race condition
+      //     setLayerOrder(newLayerOrder)
+      //     setLayer(newLayerOrder[selected.order])
+      //   }
+      // }
     } else {
       setCsn({path: [], layers: csnLayers})
     }
@@ -674,6 +675,7 @@ function Home() {
                 onZoom={(region) => { setRegion(null); setRegion(region)}}
                 onClose={handleModalClose}
                 onNarration={(n) => setPowerNarration(n)}
+                onZoomOrder={(n) => setPowerOrder(n)}
                 >
                   <SimSearchResultList
                     simSearch={simSearch}
@@ -683,7 +685,8 @@ function Home() {
                     onZoom={(region) => { 
                       const hit = fromPosition(region.chromosome, region.start, region.end)
                       setRegion(null); 
-                      setRegion(hit)}}
+                      setRegion(hit)}
+                    }
                     onHover={setHover}
                   />
             </SelectedModal> : null}
@@ -749,7 +752,7 @@ function Home() {
             {selected ? 
               <PowerOverlay 
                 selected={selected} 
-                zoomOrder={selected?.order + 0.5}
+                zoomOrder={powerOrder}
                 narration={powerNarration}
                 layers={csnLayers}
                 loadingCSN={loadingCSN}
@@ -789,7 +792,7 @@ function Home() {
                     lensHovering={lensHovering}
                     selected={selected}
                     hovered={hover}
-                    crossScaleNarration={csn}
+                    // crossScaleNarration={csn}
                     onZoom={(region) => { 
                       setRegion(null); 
                       const hit = fromPosition(region.chromosome, region.start, region.end)

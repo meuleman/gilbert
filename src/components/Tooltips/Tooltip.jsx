@@ -78,7 +78,6 @@ const Tooltip = forwardRef(({
       setIsVisible(true);
     },
     hide: () => {
-      console.log("hiding")
       setIsVisible(false);
     }
   }))

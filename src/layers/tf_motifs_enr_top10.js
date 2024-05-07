@@ -27,10 +27,15 @@ export default {
 function decodeValue(d) {
   let data = d.data;
   if(!data) return { field: "", value: null }
-  let top = {
-    field: tfFields[data.top_fields],
-    value: data.top_values
-  }
+  // let top = {
+  //   field: tfFields[data.top_fields],
+  //   value: data.top_values
+  // }
+  let top = Object.keys(data).map((f) => ({
+    field: f,
+    value: data[f]
+  }))
+  .sort((a,b) => b.value - a.value)[0]
   if(top.value <= 0) return { field: "", value: null }
   return top
 }

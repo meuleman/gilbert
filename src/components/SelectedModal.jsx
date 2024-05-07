@@ -97,7 +97,8 @@ const SelectedModal = ({
     setSelectedNarrationIndex(idx)
     setCrossScaleNarrationIndex(idx)
     onCSNIndex(idx)
-  }, [crossScaleNarration, onCSNIndex])
+    onZoomOrder(Math.floor(zoomOrder) + 0.5)
+  }, [crossScaleNarration, onCSNIndex, onZoomOrder, zoomOrder])
   
   const handleLineHover = useCallback((i) => (or) => {
     // console.log("hover", or)
@@ -134,9 +135,7 @@ const SelectedModal = ({
         {loadingCSN ? <div>Loading CSN...</div> : 
         <div className="csn">
           <span className="csn-info">Hover over the visualization below to see the various cross-scale narrations. 
-              Click to select the narration.<br/>
-             The horizontal axis of the visualization represents each narration in order of decreasing score,
-             and the vertical axis represents the zoom level.</span>
+              Click to select the narration and zoom level.</span>
           {/* <div className="narration-slider">
             <input id="csn-slider" type='range' min={0} max={crossScaleNarration.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
             <label htmlFor="csn-slider">Narration: {crossScaleNarrationIndex}</label>
@@ -165,11 +164,11 @@ const SelectedModal = ({
               highlight={true}
               selected={true}
               text={true}
-              width={18} 
+              width={34} 
               height={powerWidth} 
               onHover={handleMainLineHover}
               />
-              {crossScaleNarration.slice(0, 55).map((n,i) => {
+              {crossScaleNarration.slice(0, 50).map((n,i) => {
                 return (<ZoomLine 
                   key={i}
                   csn={n} 
@@ -177,7 +176,7 @@ const SelectedModal = ({
                   highlight={true}
                   selected={crossScaleNarrationIndex === i}
                   text={false}
-                  width={8} 
+                  width={8.5} 
                   height={powerWidth} 
                   onClick={handleLineClick}
                   onHover={handleLineHover(i)}

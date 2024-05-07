@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { scaleLinear } from 'd3-scale';
 import { range } from 'd3-array';
-import { showFloat, showPosition } from '../../lib/display';
+import { showFloat, showPosition, showKb } from '../../lib/display';
 import { variantChooser } from '../../lib/csn';
 import './Line.css';
 
@@ -22,9 +22,19 @@ function tooltipContent(region, layer, orientation) {
   } else {
     fields = Object.keys(region.data).map(key => ({ field: key, value: region.data[key] }))
       .sort((a,b) => b.value - a.value)
-      .filter(d => d.value > 0)
-    
+      .filter(d => d.value > 0 && d.field !== "top_fields")
   }
+  let layers = region.layers;
+  // figure out fullData, which is an object with layerIndex,fieldIndex for each key
+  let fullData = region.layers && region.fullData ? Object.keys(region.fullData).map(key => {
+    let [layerIndex, fieldIndex] = key.split(",")
+    let layer = layers[+layerIndex]
+    let field = layer.fieldColor.domain()[+fieldIndex]
+    return { layer, field, value: region.fullData[key] }
+  }).filter(d => fields.find(f => f.field !== d.field && layer.name !== d.layer.name))
+  : []
+
+
   
   return (
     <div style={{display: 'flex', flexDirection: 'column'}}>
@@ -37,6 +47,19 @@ function tooltipContent(region, layer, orientation) {
             <span style={{color: layer.fieldColor(f.field), marginRight: '4px'}}>⏺</span>
             {f.field} 
           </span>
+          <span>
+            {typeof f.value == "number" ? showFloat(f.value) : f.value}
+          </span>
+        </div>
+      ))}
+      <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>Other factors</span>
+      {fullData.map((f,i) => (
+        <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+          <span>
+            <span style={{color: f.layer.fieldColor(f.field), marginRight: '4px'}}>⏺</span>
+            {f.field} 
+          </span>
+          <span>{f.layer.name}</span>
           <span>
             {typeof f.value == "number" ? showFloat(f.value) : f.value}
           </span>
@@ -119,13 +142,13 @@ export default function ZoomLine({
     setOr(or)
     // console.log("y", y, my, or)//, p, rect)
     if(p) {
-      tooltipRef.current.show(p.region, p.layer, rect.x - 5, rect.y + my)
+
+      tooltipRef.current.show({...p.region, fullData: p.fullData, layers: csn.layers}, p.layer, rect.x - 5, rect.y + my)
     }
     // tooltipRef.current.show(tooltipRef.current, csn)
-  }, [path, yScale, rw, onHover])
+  }, [csn, path, yScale, rw, onHover])
 
   const handleLeave = useCallback(() => {
-    console.log("handle leave")
     tooltipRef.current.hide()
   }, [])
 
@@ -161,17 +184,19 @@ export default function ZoomLine({
            />
         {path.length && yScale && text ? <g>
           {range(4, 15).map(o => {
+            let bp = showKb(Math.pow(4, 14 - o))
             return <g key={o} onMouseMove={(e) => handleHover(e, o)} onMouseLeave={() => handleLeave()}>
               <text
                 y={yScale(o) + 2*rw/3}
-                x={o < 10 ? 4 : 1}
+                x={width / 2}
+                textAnchor="middle"
                 fontFamily="Courier"
-                fontSize={12}
+                fontSize={9}
                 // stroke="#333"
                 fill="#111"
                 paintOrder="stroke"
                 >
-                {o}
+                {bp}
               </text>
             </g>
           })}

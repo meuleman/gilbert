@@ -7,6 +7,7 @@ import CSNLine from './Narration/Line'
 import ZoomLine from './Narration/ZoomLine'
 import PowerModal from './Narration/PowerModal'
 import { scaleLinear } from 'd3-scale'
+import { variantChooser } from '../lib/csn'
 
 import './PowerOverlay.css'
 
@@ -35,6 +36,7 @@ const PowerOverlay = ({
 
   const [zOrder, setZoomOrder] = useState(zoomOrder)
   useEffect(() => {
+    console.log("zoom order changed", zoomOrder)
     setZoomOrder(zoomOrder)
   }, [zoomOrder])
 
@@ -42,6 +44,20 @@ const PowerOverlay = ({
   const handleZoom = useCallback((or) => {
     setZoomOrder(or)
   }, [setZoomOrder])
+
+  
+  const [zoomedPathRegion, setZoomedPathRegion] = useState(null)
+  useEffect(() => {
+    if (narration && narration.path && narration.path.length) {
+      const z = Math.floor(zOrder)
+      let zr = narration.path.find(n => n.order == z)
+      if(z == 14 && narration.variants && narration.variants.length) {
+        let v = variantChooser(narration.variants)
+        zr = {field: v.topField, layer: v.layer, order: 14, region: v}
+      }
+      setZoomedPathRegion(zr)
+    }
+  }, [narration, zOrder])
   
   return (
     <>
@@ -81,7 +97,7 @@ const PowerOverlay = ({
               highlight={true}
               selected={true}
               text={true}
-              width={18} 
+              width={34} 
               height={powerHeight} 
               onHover={handleZoom}
             />
@@ -94,12 +110,19 @@ const PowerOverlay = ({
               />
               
           </div>
+          <div className="zoom-text">
+            At the {showKb(Math.pow(4, 14 - Math.floor(zOrder)))} scale, 
+            {zoomedPathRegion ? " the dominant factor is " : "no factors are significant for this path at this scale."}
+            {zoomedPathRegion ? <span>
+              {zoomedPathRegion.layer.name}: {zoomedPathRegion.field.field}
+            </span>: ""}
+          </div>
           <div>
             {/* {zoomOrder} */}
-            {narration ? <CSNSentence
+            {/* {narration ? <CSNSentence
               crossScaleNarration={narration}
               order={selected.order}
-            /> : null }
+            /> : null } */}
           </div>
 
         </div>}
