@@ -174,7 +174,7 @@ const SelectedModal = ({
                   csn={n} 
                   order={zoomOrder} 
                   highlight={true}
-                  selected={crossScaleNarrationIndex === i}
+                  selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
                   text={false}
                   width={8.5} 
                   height={powerWidth} 
