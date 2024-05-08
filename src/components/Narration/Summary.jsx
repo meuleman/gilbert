@@ -22,8 +22,9 @@ function Factor({
   onHover = () => {},
   onClick = () => {}
 } = {}) {
-  let val = factor.field.value.toFixed(2)
-  if(factor.layer.datasetName.indexOf("occ") >= 0) {
+  if(factor.field.field == "top_fields") return null
+  let val = factor?.field?.value?.toFixed(2)
+  if(factor?.layer?.datasetName?.indexOf("occ") >= 0) {
     val = "✅"
   }
   return <>
