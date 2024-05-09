@@ -241,6 +241,7 @@ const Tooltip = forwardRef(({
       ref={tooltipRef}
       style={{
         position: 'fixed',
+        zIndex: 1000,
         background: '#efefef',
         border: `1px solid black`,
         color: 'black',

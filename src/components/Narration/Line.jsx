@@ -123,7 +123,7 @@ export default function Line({
                 // stroke={ p ? "black" : "lightgray"}
                 // paintOrder="stroke"
                 >
-                  { p ? (p.layer.datasetName.indexOf("occ") >= 0 ? ` ✅ ` : "") + (p.layer.datasetName.indexOf("enr") >= 0 ? ` 📊 ` : "") + (text ? p.field.field : "") : null}
+                  { p && p.field.field !== "top_fields" ? (p.layer.datasetName.indexOf("occ") >= 0 ? ` ✅ ` : "") + (p.layer.datasetName.indexOf("enr") >= 0 ? ` 📊 ` : "") + (text ? p.field.field : "") : null}
                 </text>
               </g>
           })}

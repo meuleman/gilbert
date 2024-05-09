@@ -4,6 +4,7 @@ import RegionSets from './pages/RegionSets'
 import RegionSet from './pages/RegionSet'
 import RegionDetail from './pages/RegionDetail'
 import YC240322 from './pages/YC240322'
+import Filter from './pages/Filter'
 import './App.css'
 
 
@@ -18,6 +19,7 @@ function App() {
         <Route path="/regions/:regionset" element={<RegionSet />} />
         <Route path="/region" element={<RegionDetail />} />
         <Route path="/umap" element={<YC240322 />} />
+        <Route path="/filter" element={<Filter />} />
       </Routes>
       </div>
     </Router>

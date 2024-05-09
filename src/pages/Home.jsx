@@ -665,6 +665,30 @@ function Home() {
             searchByFactorInds={searchByFactorInds}
           />
           {selected ? 
+              <PowerOverlay 
+                selected={selected} 
+                zoomOrder={powerOrder}
+                narration={powerNarration}
+                layers={csnLayers}
+                loadingCSN={loadingCSN}
+                mapWidth={width}
+                mapHeight={height}
+                modalPosition={modalPosition}
+                onClose={handleModalClose}
+                >
+                  <SimSearchResultList
+                    simSearch={simSearch}
+                    zoomRegion={region}
+                    searchByFactorInds={searchByFactorInds}
+                    onFactorClick={handleFactorClick}
+                    onZoom={(region) => { 
+                      const hit = fromPosition(region.chromosome, region.start, region.end)
+                      setRegion(null); 
+                      setRegion(hit)}}
+                    onHover={setHover}
+                  />
+            </PowerOverlay> : null}
+          {selected ? 
               <SelectedModal 
                 selected={selected} 
                 k={zoom.transform.k}
@@ -749,30 +773,7 @@ function Home() {
                 />
               )}
             </div>
-            {selected ? 
-              <PowerOverlay 
-                selected={selected} 
-                zoomOrder={powerOrder}
-                narration={powerNarration}
-                layers={csnLayers}
-                loadingCSN={loadingCSN}
-                mapWidth={width}
-                mapHeight={height}
-                modalPosition={modalPosition}
-                onClose={handleModalClose}
-                >
-                  <SimSearchResultList
-                    simSearch={simSearch}
-                    zoomRegion={region}
-                    searchByFactorInds={searchByFactorInds}
-                    onFactorClick={handleFactorClick}
-                    onZoom={(region) => { 
-                      const hit = fromPosition(region.chromosome, region.start, region.end)
-                      setRegion(null); 
-                      setRegion(hit)}}
-                    onHover={setHover}
-                  />
-            </PowerOverlay> : null}
+            
             
           </div>
           <div className="lenses">
