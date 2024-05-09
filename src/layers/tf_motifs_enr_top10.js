@@ -12,6 +12,7 @@ export default {
   datasetName: "tf_enr_top10_c",
   baseURL: `${constants.baseURLPrefix}/20240327`,
   orders: [4,12],
+  filterOrders: [8,12], // CENBP is relevant at order 4
   renderer: CanvasScaledValue,
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()

@@ -12,6 +12,7 @@ export default {
   datasetName: "repeats_enr",
   baseURL: `${constants.baseURLPrefix}/20240327`,
   orders: [4,13],
+  filterOrders: [8,13], // super long repeats can happen at order 4
   renderer: CanvasScaledValue,
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
