@@ -89,8 +89,10 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
               // top field per segment
               const topFields = response.map(d => {
                 let topField = layer.fieldChoice(d)
+                if(!topField) console.log("no top field", layer.name, order)
                 // store layer as integer
                 d.layerInd = l
+                d.topValues = layer.topValues
                 d.topField = topField
                 return d
               })
@@ -167,7 +169,8 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           if(d?.data?.max_field >= 0) {
             let key = `${layerInd},${d.data.max_field}`
             if(d.data.max_value > 0) tracker[key] = Math.max(tracker[key] || 0, d.data.max_value)
-          } else if (d?.data?.top_fields) {  // top x data
+          // } else if (d?.data?.top_fields) {  // top x data
+          } else if (d?.topValues) {  // top x data
             let numFactors = d.bytes.length / 2
             for(let i = 0; i < numFactors; i++) {
               let index = d.bytes[2 * i]
@@ -205,7 +208,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           let key = `${layerInd},${layerInfo.data.max_field}`
           let value = layerInfo.data.max_value
           allFeatures.features[key] = value
-        } else if(layerInfo.data.top_fields) {  // if top data
+        } else if(layerInfo.topValues) {  // if top data
           let numFactors = layerInfo.bytes.length / 2
           for(let i = 0; i < numFactors; i++) {
             let index = layerInfo.bytes[2 * i]

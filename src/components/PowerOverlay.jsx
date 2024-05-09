@@ -100,6 +100,7 @@ const PowerOverlay = ({
               width={34} 
               height={powerHeight} 
               onHover={handleZoom}
+              onClick={(c) => { console.log("narration", c)}}
             />
             <PowerModal 
               csn={narration} 

@@ -5,7 +5,7 @@ import { showPosition, showFloat } from '../../lib/display'
 function defaultContent(region, layer, orientation) {
   // let field = layer.fieldChoice(region)
   let fields = []
-  if(region.data.max_field) {
+  if(region.data.max_field >= 0 && region.data.max_value >= 0) {
     fields.push(layer.fieldChoice(region))
     // fields.push({ field: region.data.max_field, value: region.data.max_value })
   } else if(region.data.bp) {

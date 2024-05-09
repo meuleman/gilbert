@@ -21,7 +21,8 @@ export default {
   // used for the base canvas rendering
   strokeWidthMultiplier: 0.05,
   stroke: "gray",
-  fill: "white"
+  fill: "white",
+  topValues: true
 }
 
 function decodeValue(d) {
@@ -34,8 +35,7 @@ function decodeValue(d) {
   let top = Object.keys(data).map((f) => ({
     field: f,
     value: data[f]
-  }))
-  .sort((a,b) => b.value - a.value)[0]
-  if(top.value <= 0) return { field: "", value: null }
+  })).sort((a,b) => b.value - a.value)[0]
+  if(!top || top.value <= 0) return { field: "", value: null }
   return top
 }

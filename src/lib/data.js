@@ -58,7 +58,7 @@ export default function Data({
             }
             if(fields) {
               // console.log("fields", meta, fields, data)
-              if(fields[0] == "top_fields") {
+              if(fields[0] == "top_fields") { // || fields[0] == "max_field") {
                 // console.log("got them top fields", fields, data, ret)
                 let numFactors = ret.bytes.length / 2
                 for(let i = 0; i < numFactors; i++) {
@@ -68,7 +68,7 @@ export default function Data({
                     ret.data[meta.full_fields[index]] = value
                   }
                 }
-                ret.data.top_fields = true
+                // ret.data.top_fields = true
               } else {
                 fields.forEach((f,i) => ret.data[f] = data[idx + i])
               }
