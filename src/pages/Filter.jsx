@@ -133,12 +133,17 @@ const FilterOrder = ({order, orderSums, showNone, onFieldChange}) => {
       .map(d => ({ label: d[0], options: d[1] }))
       .filter(d => d.options.length)
     setAllFields(grouped)
-    if(selectedField){
-      const selfield = newFields.find(f => f.order == selectedField.order && f.field == selectedField.field && f.layer == selectedField.layer)
-      setSelectedField(selfield)
-    }
-  }, [order, orderSums, selectedField])
+  }, [order, orderSums])
 
+  useEffect(() => {
+    if(selectedField){
+      const selfield = allFields.flatMap(d => d.options).find(f => f.order == selectedField.order && f.i == selectedField.i && f.layer.name == selectedField.layer.name)
+      console.log("selfield", selfield, selectedField)
+      if(selfield && (selfield !== selectedField)){
+        setSelectedField(selfield)
+      }
+    }
+  }, [allFields, selectedField])
 
   return (
     <div className="filter-order">
