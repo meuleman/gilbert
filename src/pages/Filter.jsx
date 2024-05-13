@@ -135,6 +135,7 @@ const FilterOrder = ({order, orderSums, showNone, showUniquePaths, onSelect}) =>
           order,
           layer,
           // label: f + " (" + showInt(c) + " paths) " + layer.name, 
+          label: f + " " + layer.name,
           field: f, 
           index: i, 
           color: layer.fieldColor(f), 
@@ -223,7 +224,8 @@ const Filter = () => {
     const orderSums = Object.keys(counts_order13).map(o => {
       let chrms = Object.keys(counts_order13[o])//.map(chrm => counts[o][chrm])
       // combine each of the objects in each key in the chrms array
-      let total = {}
+      let total = 0
+      let layer_total = {}
       let ret = {}
       let uret = {}
       let maxf = { value: 0 }
@@ -233,14 +235,15 @@ const Filter = () => {
         layers.forEach(l => {
           if(!ret[l]) {
             ret[l] = {}
-            total[l] = 0
+            layer_total[l] = 0
             Object.keys(chrm[l]).forEach(k => {
               ret[l][k] = 0
             })
           }
           Object.keys(chrm[l]).forEach(k => {
             ret[l][k] += chrm[l][k]
-            total[l] += chrm[l][k]
+            total += chrm[l][k]
+            layer_total[l] += chrm[l][k]
             if(chrm[l][k] > maxf.value){
               maxf.value = chrm[l][k]
               maxf.layer = l
@@ -262,7 +265,7 @@ const Filter = () => {
           })
         })
       })
-      return { order: o, counts: ret, total, unique_counts: uret, maxField: maxf }
+      return { order: o, counts: ret, total, layer_total, unique_counts: uret, maxField: maxf }
     })
     console.log("orderSums", orderSums)
     setOrderSums(orderSums)
@@ -327,11 +330,11 @@ const Filter = () => {
             {orderSums.map(o => {
               return (
                   <div className="order-sum" key={o.order}>
-                    <span className="order-sum-order">{o.order}</span>
-                    {Object.keys(o.total).map(l => {
+                    <span className="order-sum-order">{o.order}: {showInt(o.total)}</span>
+                    {Object.keys(o.layer_total).map(l => {
                       return (
                         <div key={l}>
-                          {l}: {showInt(o.total[l])}
+                          {l}: {showInt(o.layer_total[l])}
                         </div>
                       )
                     })}
