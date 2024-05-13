@@ -37,11 +37,13 @@ const PowerOverlay = ({
   const [zOrder, setZoomOrder] = useState(zoomOrder)
   useEffect(() => {
     console.log("zoom order changed", zoomOrder)
+    if(zoomOrder < 4) zoomOrder = 4
     setZoomOrder(zoomOrder)
   }, [zoomOrder])
 
 
   const handleZoom = useCallback((or) => {
+    if(or < 4) or = 4
     setZoomOrder(or)
   }, [setZoomOrder])
 
