@@ -6,7 +6,7 @@ import { min } from "d3-array";
 import { ConsoleLogger } from "@duckdb/duckdb-wasm";
 
 // function to generate cross scale narrations for a provided region.
-async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[]) {
+async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[], occScore=0.01, variantScore=0.1) {
   const fetchData = Data({debug: false}).fetchData;
   
   let orders = Array.from({length: 11}, (a, i) => i + 4);
@@ -277,7 +277,6 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       let totalScoreTime = Date.now()
       let totalTrackerTime = 0
       let forLoopTime = 0
-      let totalSortTime = 0
       for(let i = 0; i < numNodes; i++) {
         // get node from dataTree
         let node = dataTree[i]
@@ -295,12 +294,8 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
             let layerFactor = k.split(',')
             let score = nodeENRTracker[k]
             return {layer: parseInt(layerFactor[0]), factor: parseInt(layerFactor[1]), score: score}
-          })//.sort((a,b) => b.score - a.score)
+          }).sort((a,b) => b.score - a.score)
           totalTrackerTime += window.performance.now() - trackerTime
-
-          let sortTime = window.performance.now()
-          enrTracker.sort((a,b) => b.score - a.score)
-          totalSortTime += window.performance.now() - sortTime
 
           // find the first ENR factor (sorted by score) with nonzero OCC scores
           let forTime = window.performance.now()
@@ -314,8 +309,8 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
               // is the factor the same?
               if((occSegmentData?.data?.max_value > 0) && (occSegmentData?.data?.max_field === enr.factor)) {
                 topLayerForSegment = occSegmentData
-                // setting OCC scores to a constant low value for now
-                topLayerForSegment.topField.value = 0.01
+                // setting OCC scores to a constant value for now
+                topLayerForSegment.topField.value = occScore
                 // go through self and children and set used OCC to include this factor
                 setUsedOCC(node, i, enr.layer, enr.factor)
                 break
@@ -335,7 +330,6 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       console.log("Time to find total scores", Date.now() - totalScoreTime, "ms")
       console.log("Time to find total tracker", totalTrackerTime, "ms")
       console.log("Time to find total for loop", forLoopTime, "ms")
-      console.log("Time to find total tracker sort", totalSortTime, "ms")
       return Promise.resolve(null)
     })
     // console.log("DATATREE", dataTree)
@@ -356,7 +350,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           // if nan, set to 0
           let nodeValue = d.data?.chosen?.topField?.value || 0
           // increase node's score depending on number of variants
-          nodeValue += (Object.keys(d.variants).length * 0.01)
+          nodeValue += (Object.keys(d.variants).length * variantScore)
           if(csnMethod === 'sum') nodeScores[i] += nodeValue
           else if(csnMethod === 'normalizedSum') nodeScores[i] += Math.sqrt(nodeValue)
           else if(csnMethod === 'max') nodeScores[i] = Math.max(nodeScores[i], nodeValue)
