@@ -1,12 +1,18 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
-import { range, max } from 'd3-array';
+import { range, max, groups } from 'd3-array';
+import chroma from 'chroma-js';
+
+import Select from 'react-select';
 
 import { showFloat, showPosition, showKb } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition, sameHilbertRegion } from '../lib/regions';
 import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
 import { calculateCrossScaleNarration, walkTree, findUniquePaths } from '../lib/csn';
 import Data from '../lib/data';
+
+import counts from "../data/counts.native_order_resolution.json"
+console.log("counts", counts)
 
 import layers from '../layers'
 
@@ -45,31 +51,164 @@ const orders = range(4, 15)
 
 import './Filter.css';
 
-const FilterOrder = ({order}) => {
+
+
+const dot = (color = 'transparent') => ({
+  alignItems: 'center',
+  display: 'flex',
+
+  ':before': {
+    backgroundColor: color,
+    borderRadius: 2,
+    content: '" "',
+    display: 'block',
+    marginRight: 8,
+    height: 10,
+    width: 10,
+  },
+});
+
+const colourStyles = {
+  control: (styles) => ({ ...styles, backgroundColor: 'white' }),
+  option: (styles, { data, isDisabled, isFocused, isSelected }) => {
+    const color = chroma(data.color);
+    return {
+      ...styles,
+      backgroundColor: isDisabled
+        ? undefined
+        : isSelected
+        ? data.color
+        : isFocused
+        ? color.alpha(0.1).css()
+        : undefined,
+      color: isDisabled
+        ? '#ccc'
+        : isSelected
+        ? chroma.contrast(color, 'white') > 2
+          ? 'white'
+          : 'black'
+        : data.color,
+      cursor: isDisabled ? 'not-allowed' : 'default',
+
+      ':active': {
+        ...styles[':active'],
+        backgroundColor: !isDisabled
+          ? isSelected
+            ? data.color
+            : color.alpha(0.3).css()
+          : undefined,
+      },
+    };
+  },
+  input: (styles) => ({ ...styles, ...dot() }),
+  placeholder: (styles) => ({ ...styles, ...dot('#ccc') }),
+  singleValue: (styles, { data }) => ({ ...styles, ...dot(data.color) }),
+};
+
+const FilterOrder = ({order, orderSums, showNone, onFieldChange}) => {
+  const [selectedField, setSelectedField] = useState(null)
+  const [allFields, setAllFields] = useState([])
+  useEffect(() => {
+    let newFields = csnLayers.filter(d => d.orders[0] <= order && d.orders[1] >= order).flatMap(layer => {
+      let oc = orderSums.find(o => o.order == order)
+      oc ? oc = oc.counts[layer.datasetName] : oc = null
+      let fields = layer.fieldColor.domain().map((f, i) => {
+        let c = oc ? oc[i] : "?"
+        return { 
+          order,
+          layer,
+          label: f + " (" + c + " unique paths) " + layer.name, 
+          field: f, 
+          index: i, 
+          color: layer.fieldColor(f), 
+          count: c
+        }
+      }).sort((a,b) => {
+        return b.count - a.count
+      })
+      return fields
+    })
+    const grouped = groups(newFields, f => f.layer.name)
+      .map(d => ({ label: d[0], options: d[1] }))
+      .filter(d => d.options.length)
+    console.log("GROUPED", grouped)
+    setAllFields(grouped)
+  }, [order, orderSums])
+
+
   return (
     <div className="filter-order">
-      <h4>Order {order}</h4>
+      <h4>Order {order}</h4> 
+        {selectedField ? 
+          <div>
+            <span className="selected-field">
+              Selected: {selectedField.field} [{selectedField.layer.name}]
+            </span>
+            <button onClick={() => setSelectedField(null)}>
+              Deselect
+            </button>
+          </div>
+        : null}
       <div className="order-summary">
-        {Math.pow(4, order)} total regions
+        {/* {Math.pow(4, order)} total regions */}
       </div>
       <div className="filter-group">
-        {csnLayers.filter(d => d.orders[0] <= order && d.orders[1] >= order).map(layer => {
-          let fields = layer.fieldColor.domain()
-          return (<div key={layer.name} className="layer">
+        <Select
+          options={allFields}
+          styles={colourStyles}
+          value={selectedField}
+          onChange={(selectedOption) => setSelectedField(selectedOption)}
+          formatGroupLabel={data => (
+            <div style={{ fontWeight: 'bold' }}>
+              {data.label}
+            </div>
+          )}
+        />
+
+        {/* {csnLayers.filter(d => d.orders[0] <= order && d.orders[1] >= order).map(layer => {
+          let oc = orderSums.find(o => o.order == order)
+          oc ? oc = oc.counts[layer.datasetName] : oc = null
+          let fields = layer.fieldColor.domain().map((f, i) => {
+            let c = oc ? oc[i] : "?"
+            return { 
+              order,
+              layer,
+              label: f + " (" + c + " unique paths)", 
+              field: f, 
+              index: i, 
+              color: layer.fieldColor(f), 
+              count: c
+            }
+          }).sort((a,b) => {
+            return b.count - a.count
+          })
+          return (<div key={order + "-" + layer.name} className="layer">
             <span className="layer-name">{layer.name}</span><br/>
+            <Select
+              options={fields}
+              styles={colourStyles}
+              onChange={(selectedOption) => setSelectedField(selectedOption)}
+            />
+
             <span className="layer-fields">{fields.map(f => {
-              return (<span className="field" key={f} style={{ 
-                border: `1px solid ${layer.fieldColor(f)}`, 
-                borderBottom: `2px solid ${layer.fieldColor(f)}`,
+              const none = f.count == "?" || f.count == 0
+              return (<span className={"field"} key={f.label} style={{ 
+                border: `1px solid ${f.color}`, 
+                borderBottom: `2px solid ${f.color}`,
                 borderRadius: "4px",
                 padding: "2px 2px",
+                opacity: none ? 0.2 : 1,
+                display: !showNone && none ? "none" : "block"
               }}>
                 <input type="checkbox" ></input>
-                {f}
+                {f.field}
+                ({f.count})
               </span>)
-            })}</span>
+            })}
+            </span>
+
           </div>)
-        })}
+        })} */}
       </div>
     </div>
   )
@@ -83,6 +222,30 @@ const Filter = () => {
   useEffect(() => { document.title = `Gilbert | Filter` }, []);
   const fetchData = useMemo(() => Data({debug: false}).fetchData, []);
 
+  const [showNone, setShowNone] = useState(false)
+
+  const orderSums = Object.keys(counts).map(o => {
+      let chrms = Object.keys(counts[o]).map(chrm => counts[o][chrm])
+      // combine each of the objects in each key in the chrms array
+      let ret = {}
+      chrms.forEach(chrm => {
+        const layers = Object.keys(chrm)
+        layers.forEach(l => {
+          if(ret[l]) {
+            Object.keys(chrm[l]).forEach(k => {
+              ret[l][k] += chrm[l][k]
+            })
+          } else {
+            ret[l] = chrm[l]
+          }
+        })
+      })
+      return { order: o, counts: ret }
+    })
+
+  console.log("orderSums", orderSums)
+
+
   return (
     <div className="filter-page">
       <div className="header">
@@ -91,14 +254,18 @@ const Filter = () => {
         </div>
       </div>
       <div className="content">
-
         <div className="section">
           <h3>
             Filter
           </h3>
           <div className="section-content">
+            <div className="filter-group">
+              <button onClick={() => setShowNone(!showNone)}>
+                {showNone ? "Hide Hidden Fields" : "Show Hidden Fields"}
+              </button>
+            </div>
             {orders.map(order => (
-              <FilterOrder key={order} order={order} />
+              <FilterOrder key={order} order={order} orderSums={orderSums} showNone={showNone} />
             ))}
           </div>
         </div>

@@ -69,3 +69,10 @@
   gap: 4px;
 }
 
+.filter-page .selected-field {
+  margin: 6px;
+  padding: 6px 6px;
+  border-radius: 4px;
+  background: #f0f0f0;
+}
+
