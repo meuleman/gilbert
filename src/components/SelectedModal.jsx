@@ -81,9 +81,12 @@ const SelectedModal = ({
     } 
     setZoomOrder(or)
   }, [selected, k])
-  // useEffect(() => {
-  //   onZoomOrder(zoomOrder)
-  // }, [zoomOrder])
+
+  // emit the initial zoom order based on the selected region
+  useEffect(() => {
+    onZoomOrder(selected.order + 0.5)
+  }, [selected])
+
 
   const handleMainLineHover = useCallback((or) => {
     // console.log("hover", or)
@@ -166,6 +169,7 @@ const SelectedModal = ({
               text={true}
               width={34} 
               height={powerWidth} 
+              onClick={handleLineClick}
               onHover={handleMainLineHover}
               />
               {crossScaleNarration.slice(0, 50).map((n,i) => {
