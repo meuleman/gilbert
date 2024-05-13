@@ -11,8 +11,8 @@ import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome"
 import { calculateCrossScaleNarration, walkTree, findUniquePaths } from '../lib/csn';
 import Data from '../lib/data';
 
-import counts from "../data/counts.native_order_resolution.json"
-console.log("counts", counts)
+import counts_native from "../data/counts.native_order_resolution.json"
+import counts_order13 from "../data/counts.order_13_resolution.json"
 
 import layers from '../layers'
 
@@ -117,7 +117,7 @@ const FilterOrder = ({order, orderSums, showNone, onFieldChange}) => {
         return { 
           order,
           layer,
-          label: f + " (" + c + " unique paths) " + layer.name, 
+          label: f + " (" + c + " paths) " + layer.name, 
           field: f, 
           index: i, 
           color: layer.fieldColor(f), 
@@ -223,8 +223,12 @@ const Filter = () => {
   const fetchData = useMemo(() => Data({debug: false}).fetchData, []);
 
   const [showNone, setShowNone] = useState(false)
+  const [showUniquePaths, setShowUniquePaths] = useState(true)
 
-  const orderSums = Object.keys(counts).map(o => {
+  const [orderSums, setOrderSums] = useState([])
+  useEffect(() => { 
+    const counts = showUniquePaths ? counts_native : counts_order13
+    const orderSums = Object.keys(counts).map(o => {
       let chrms = Object.keys(counts[o]).map(chrm => counts[o][chrm])
       // combine each of the objects in each key in the chrms array
       let ret = {}
@@ -236,12 +240,14 @@ const Filter = () => {
               ret[l][k] += chrm[l][k]
             })
           } else {
-            ret[l] = chrm[l]
+            ret[l] = { ...chrm[l] }
           }
         })
       })
       return { order: o, counts: ret }
     })
+    setOrderSums(orderSums)
+  }, [showUniquePaths])
 
   console.log("orderSums", orderSums)
 
@@ -260,6 +266,9 @@ const Filter = () => {
           </h3>
           <div className="section-content">
             <div className="filter-group">
+              <button onClick={() => setShowUniquePaths(!showUniquePaths)}>
+                {showUniquePaths ? "Show All Paths" : "Show Unique Paths"}
+              </button>
               <button onClick={() => setShowNone(!showNone)}>
                 {showNone ? "Hide Hidden Fields" : "Show Hidden Fields"}
               </button>
