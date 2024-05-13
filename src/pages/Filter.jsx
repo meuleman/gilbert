@@ -121,7 +121,8 @@ const FilterOrder = ({order, orderSums, showNone, onFieldChange}) => {
           field: f, 
           index: i, 
           color: layer.fieldColor(f), 
-          count: c
+          count: c,
+          isDisabled: c == 0 || c == "?"
         }
       }).sort((a,b) => {
         return b.count - a.count
@@ -131,9 +132,12 @@ const FilterOrder = ({order, orderSums, showNone, onFieldChange}) => {
     const grouped = groups(newFields, f => f.layer.name)
       .map(d => ({ label: d[0], options: d[1] }))
       .filter(d => d.options.length)
-    console.log("GROUPED", grouped)
     setAllFields(grouped)
-  }, [order, orderSums])
+    if(selectedField){
+      const selfield = newFields.find(f => f.order == selectedField.order && f.field == selectedField.field && f.layer == selectedField.layer)
+      setSelectedField(selfield)
+    }
+  }, [order, orderSums, selectedField])
 
 
   return (
@@ -142,7 +146,7 @@ const FilterOrder = ({order, orderSums, showNone, onFieldChange}) => {
         {selectedField ? 
           <div>
             <span className="selected-field">
-              Selected: {selectedField.field} [{selectedField.layer.name}]
+              Selected: {selectedField.label}
             </span>
             <button onClick={() => setSelectedField(null)}>
               Deselect
