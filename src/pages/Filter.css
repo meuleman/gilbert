@@ -89,3 +89,15 @@
   border-radius: 4px;
   background: #f0f0f0;
 }
+
+.filter-page .order-sums-table {
+  width: 90%;
+  border-collapse: collapse;
+}
+.filter-page .order-sums-table th {
+  border-bottom: 1px solid #000;
+}
+.filter-page .order-sums-table td {
+  padding: 2px;
+  border: 1px solid gray;
+}

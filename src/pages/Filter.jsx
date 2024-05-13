@@ -114,7 +114,7 @@ const FilterOrder = ({order, orderSums, showNone, showUniquePaths, onSelect}) =>
     return (
       <div>
         <span>{option.field}</span>
-        <span > ({showInt(showUniquePaths ? option.unique_count : option.count)} paths) {option.layer.name}</span>
+        <span > ({showInt(showUniquePaths ? option.unique_count : option.count)} {showUniquePaths ? "unique" : ""} paths) {option.layer.name}</span>
       </div>
     );
   }, [showUniquePaths]);
@@ -141,6 +141,7 @@ const FilterOrder = ({order, orderSums, showNone, showUniquePaths, onSelect}) =>
           color: layer.fieldColor(f), 
           count: counts ? counts[i] : "?",
           unique_count: unique_counts ? unique_counts[i] : "?",
+          percent: counts ? counts[i] / Math.pow(4, 13) * 100: "?",
           isDisabled: counts ? counts[i] == 0 || counts[i] == "?" : true
         }
       }).sort((a,b) => {
@@ -324,23 +325,34 @@ const Filter = () => {
         </div>
         <div className="section">
           <h3>
-            Results 
+            Summary
           </h3>
           <div className="section-content">
-            {orderSums.map(o => {
-              return (
-                  <div className="order-sum" key={o.order}>
-                    <span className="order-sum-order">{o.order}: {showInt(o.total)}</span>
-                    {Object.keys(o.layer_total).map(l => {
-                      return (
-                        <div key={l}>
-                          {l}: {showInt(o.layer_total[l])}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )
-              })}
+            <table className="order-sums-table">
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Total</th>
+                  {Object.keys(orderSums[0]?.layer_total || {}).map(l => <th key={l}>{l}</th>)}
+                </tr>
+              </thead>
+
+              <tbody>
+                {orderSums.map(o => {
+                  return (
+                      <tr key={o.order}>
+                        <td>{o.order}</td>
+                        <td>{showInt(o.total)}</td>
+                        {Object.keys(o.layer_total).map(l => {
+                          return (
+                            <td key={l}>{showInt(o.layer_total[l])}</td>
+                          )
+                        })}
+                      </tr>
+                    )
+                  })}
+              </tbody>
+            </table>
           </div>
         </div>
 
