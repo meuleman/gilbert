@@ -32,10 +32,12 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
   // create a mapping between enr and occ layers
   const enrInds = occMask.map((v, i) => !v ? i : -1).filter(i => i !== -1)
   let enrOccMapping = {}
+  let occEnrMapping = {}
   enrInds.forEach((i) => {
     const baseName = layerNames[i].replace(' (ENR)', '').replace(' (ENR, Full)', '').replace(' (ENR, Top 10)', '')
     const occInd = layerNames.findIndex(d => d.includes(baseName) && d.includes('OCC'))
     enrOccMapping[i] = occInd
+    occEnrMapping[occInd] = i
   })
 
   // if a region is selected, find the possible paths for each region
@@ -366,42 +368,122 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       let leafScores = nodeScores.slice(-numLeaves).map((s, i) => ({score: s, i: i + leafIndexOffset}))
       let leafScoresSorted = leafScores.sort((a, b) => b.score - a.score)
 
-      // function to refactor features for a given node
-      let refactorTopFeature = (d) => {
-        let field = d?.topField
-        // only keep stations with significant scores
-        if(field && field?.value !== null) {
-          field.color = d.layer.fieldColor(field.field)
-          return { 
-            region: d, order: d.order, layer: d.layer, field: field,
-          }
-        } else return null
-      }
-
       // initialize path data
       let topLeafPaths = new Array(leafScoresSorted.length).fill(null).map(d => {
         return {'path': []}
       })
 
-      // function to move through the tree and collect top features for each segment
-      let collectFeatures = (node, i) => {
+      // // function to refactor features for a given node
+      // let refactorTopFeature = (d) => {
+      //   let field = d?.topField
+      //   // only keep stations with significant scores
+      //   if(field && field?.value !== null) {
+      //     field.color = d.layer.fieldColor(field.field)
+      //     return { 
+      //       region: d, order: d.order, layer: d.layer, field: field,
+      //     }
+      //   } else return null
+      // }
+
+      // // function to move through the tree and collect features to show for each segment
+      // let collectFeatures = (node, i) => {
+      //   let treeDataNode = dataTree[node]
+      //   const fullData = treeDataNode.fullDataTracker
+      //   // console.log("features", node, i, nodeAllFeatures, fullData)
+      //   let nodeChosenFeature = treeDataNode.data.chosen
+      //   const refactor = refactorTopFeature(nodeChosenFeature)
+      //   console.log(refactor)
+      //   if(refactor)
+      //     refactor.fullData = fullData.features
+      //   topLeafPaths[i].path.push(refactor)
+      //   // add variants
+      //   if(treeDataNode.variants) {
+      //     let variants = Object.values(treeDataNode.variants).filter(d => d.topField.value !== null && d.topField.value !== 0)
+      //     if(variants.length > 0) {
+      //       topLeafPaths[i]['variants'] ? topLeafPaths[i]['variants'].push(...variants) : topLeafPaths[i]['variants'] = variants
+      //     }
+      //   }
+      //   if(treeDataNode.parent !== null) {
+      //     collectFeatures(treeDataNode.parent, i)
+      //   }
+      // }
+
+      // // collect features for each path
+      // leafScoresSorted.forEach((d, i) => {
+      //   topLeafPaths[i]['score'] = d.score
+      //   topLeafPaths[i]['node'] = d.i
+      //   collectFeatures(d.i, i)
+      // })
+
+      
+      
+      // function to move through the tree and collect potential features to show for each segment
+      let collectFeatures = (node, i, factors) => {
         let treeDataNode = dataTree[node]
         const fullData = treeDataNode.fullDataTracker
-        // console.log("features", node, i, nodeAllFeatures, fullData)
-        let nodeChosenFeature = treeDataNode.data.chosen
-        const refactor = refactorTopFeature(nodeChosenFeature)
-        if(refactor)
-          refactor.fullData = fullData.features
-        topLeafPaths[i].path.push(refactor)
-        // add variants
-        if(treeDataNode.variants) {
-          let variants = Object.values(treeDataNode.variants).filter(d => d.topField.value !== null && d.topField.value !== 0)
-          if(variants.length > 0) {
-            topLeafPaths[i]['variants'] ? topLeafPaths[i]['variants'].push(...variants) : topLeafPaths[i]['variants'] = variants
-          }
-        }
+        const orderFactors = Object.keys(fullData.features).map(d => {
+          let [layerInd, factorInd] = d.split(',').map(Number)
+          return {layer: layerInd, factor: factorInd, score: fullData.features[d], order: fullData.order, node: node}
+        })
+        factors.push(...orderFactors)
+
         if(treeDataNode.parent !== null) {
-          collectFeatures(treeDataNode.parent, i)
+          collectFeatures(treeDataNode.parent, i, factors)
+        }
+      }
+
+      // function to refactor features for a given node
+      let refactorTopFeature = (hit) => {
+        const treeDataNode = dataTree[hit.node]
+        const layer = layers[hit.layer]
+        const layerFactors = layer.fieldColor.domain()
+        const field = {
+          field: layerFactors[hit.factor], 
+          value: hit.score, 
+          color: layer.fieldColor(layerFactors[hit.factor])
+        }
+        const region = treeDataNode.data[hit.layer]
+        const fullData = treeDataNode.fullDataTracker.features
+
+        return { 
+          region: region, order: hit.order, layer: layer, field: field, fullData: fullData
+        }
+      }
+
+      let fillPath = (i, factors) => {
+        // sort by ENR layers first
+        let enrFactorsSorted = factors.filter(d => enrInds.includes(d.layer)).sort((a, b) => b.score - a.score)
+        let occFactors = factors.filter(d => !enrInds.includes(d.layer))//.sort((a, b) => a.order - b.order)
+        let occFactorsSorted = []
+        let usedEnrFactors = []
+        enrFactorsSorted.forEach(d => {
+          if(!usedEnrFactors.includes(`${d.layer},${d.factor}`)) {
+            let occLayer = enrOccMapping[d.layer]
+            let matchingOccHits = occFactors.filter(f => f.layer === occLayer && f.factor === d.factor)
+            if(matchingOccHits.length > 0) {
+              occFactorsSorted.push(...matchingOccHits.sort((a, b) => a.order - b.order))
+            }
+            usedEnrFactors.push(`${d.layer},${d.factor}`)
+          }
+        })
+        let factorsSorted = [
+          ...enrFactorsSorted,
+          ...occFactorsSorted
+        ]
+        while ((factorsSorted.length > 0)) {
+          let hit = factorsSorted[0]
+          let refactor = refactorTopFeature(hit)
+          topLeafPaths[i].path.push(refactor)
+          factorsSorted = factorsSorted.filter(d => (d.order !== hit.order) && !((d.factor === hit.factor) && (d.layer === hit.layer)))
+        }
+
+        // add variant data
+        const nodeData = dataTree[topLeafPaths[i].node]
+        if(nodeData.variants) {
+          let variants = Object.values(nodeData.variants).filter(d => d.topField.value !== null && d.topField.value !== 0)
+          if(variants.length > 0) {
+            topLeafPaths[i]['variants'] = variants
+          }
         }
       }
 
@@ -409,7 +491,9 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       leafScoresSorted.forEach((d, i) => {
         topLeafPaths[i]['score'] = d.score
         topLeafPaths[i]['node'] = d.i
-        collectFeatures(d.i, i)
+        let factors = []
+        collectFeatures(d.i, i, factors)
+        fillPath(i, factors)
       })
 
       // adjust tree to only include selected segment and below
