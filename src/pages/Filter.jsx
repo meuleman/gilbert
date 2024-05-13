@@ -114,7 +114,8 @@ const FilterOrder = ({order, orderSums, showNone, showUniquePaths, onSelect}) =>
     return (
       <div>
         <span>{option.field}</span>
-        <span > ({showInt(showUniquePaths ? option.unique_count : option.count)} {showUniquePaths ? "unique" : ""} paths) {option.layer.name}</span>
+        <span> ({showInt(showUniquePaths ? option.unique_count : option.count)} {showUniquePaths ? "unique" : ""} paths {option.percent?.toFixed(2)}%</span>
+        <span> {option.layer.name}</span>
       </div>
     );
   }, [showUniquePaths]);
@@ -141,7 +142,7 @@ const FilterOrder = ({order, orderSums, showNone, showUniquePaths, onSelect}) =>
           color: layer.fieldColor(f), 
           count: counts ? counts[i] : "?",
           unique_count: unique_counts ? unique_counts[i] : "?",
-          percent: counts ? counts[i] / Math.pow(4, 13) * 100: "?",
+          percent: counts ? counts[i] / 738213034 * 100: "?",
           isDisabled: counts ? counts[i] == 0 || counts[i] == "?" : true
         }
       }).sort((a,b) => {
