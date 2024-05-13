@@ -106,24 +106,41 @@ const colourStyles = {
   singleValue: (styles, { data }) => ({ ...styles, ...dot(data.color) }),
 };
 
-const FilterOrder = ({order, orderSums, showNone, onFieldChange}) => {
+const FilterOrder = ({order, orderSums, showNone, showUniquePaths, onSelect}) => {
   const [selectedField, setSelectedField] = useState(null)
   const [allFields, setAllFields] = useState([])
+
+  const formatLabel = useCallback((option) => {
+    return (
+      <div>
+        <span>{option.field}</span>
+        <span > ({showInt(showUniquePaths ? option.unique_count : option.count)} paths) {option.layer.name}</span>
+      </div>
+    );
+  }, [showUniquePaths]);
+
   useEffect(() => {
     let newFields = csnLayers.filter(d => d.orders[0] <= order && d.orders[1] >= order).flatMap(layer => {
       let oc = orderSums.find(o => o.order == order)
-      oc ? oc = oc.counts[layer.datasetName] : oc = null
+      let counts = null
+      let unique_counts = null;
+      if(oc) {
+        counts = oc.counts[layer.datasetName]
+        unique_counts = oc.unique_counts[layer.datasetName]
+      }
+      // const counts = oc ? (showUniquePaths ? oc.unique_counts : oc.counts) : null
+      // oc ? oc = counts[layer.datasetName] : oc = null
       let fields = layer.fieldColor.domain().map((f, i) => {
-        let c = oc ? oc[i] : "?"
         return { 
           order,
           layer,
-          label: f + " (" + showInt(c) + " paths) " + layer.name, 
+          // label: f + " (" + showInt(c) + " paths) " + layer.name, 
           field: f, 
           index: i, 
           color: layer.fieldColor(f), 
-          count: c,
-          isDisabled: c == 0 || c == "?"
+          count: counts ? counts[i] : "?",
+          unique_count: unique_counts ? unique_counts[i] : "?",
+          isDisabled: counts ? counts[i] == 0 || counts[i] == "?" : true
         }
       }).sort((a,b) => {
         return b.count - a.count
@@ -137,18 +154,24 @@ const FilterOrder = ({order, orderSums, showNone, onFieldChange}) => {
       .map(d => ({ label: d[0], options: d[1] }))
       .filter(d => d.options.length)
     setAllFields(grouped)
-  }, [order, orderSums])
+  }, [order, orderSums, showNone])
+
+  // useEffect(() => {
+  //   if(selectedField){
+  //     console.log("SELECTED", selectedField)
+  //     const selfield = allFields.flatMap(d => d.options).find(f => f.order == selectedField.order && f.field == selectedField.field && f.layer.name == selectedField.layer.name)
+  //     console.log("selfield", selfield)
+  //     if(selfield && (selfield !== selectedField)){
+  //       setSelectedField(selfield)
+  //     }
+  //   }
+  // }, [allFields, selectedField])
 
   useEffect(() => {
     if(selectedField){
-      // console.log("SELECTED", selectedField)
-      const selfield = allFields.flatMap(d => d.options).find(f => f.order == selectedField.order && f.field == selectedField.field && f.layer.name == selectedField.layer.name)
-      // console.log("selfield", selfield)
-      if(selfield && (selfield !== selectedField)){
-        setSelectedField(selfield)
-      }
+      onSelect(selectedField)
     }
-  }, [allFields, selectedField])
+  }, [selectedField])
 
   return (
     <div className="filter-order">
@@ -159,6 +182,7 @@ const FilterOrder = ({order, orderSums, showNone, onFieldChange}) => {
           styles={colourStyles}
           value={selectedField}
           onChange={(selectedOption) => setSelectedField(selectedOption)}
+          formatOptionLabel={formatLabel}
           formatGroupLabel={data => (
             <div style={{ fontWeight: 'bold' }}>
               {data.label}
@@ -192,31 +216,76 @@ const Filter = () => {
   const [showUniquePaths, setShowUniquePaths] = useState(true)
 
   const [orderSums, setOrderSums] = useState([])
+  const [orderSelects, setOrderSelects] = useState({})
+
   useEffect(() => { 
-    const counts = showUniquePaths ? counts_native : counts_order13
-    const orderSums = Object.keys(counts).map(o => {
-      let chrms = Object.keys(counts[o]).map(chrm => counts[o][chrm])
+    // const counts = showUniquePaths ? counts_native : counts_order13
+    const orderSums = Object.keys(counts_order13).map(o => {
+      let chrms = Object.keys(counts_order13[o])//.map(chrm => counts[o][chrm])
       // combine each of the objects in each key in the chrms array
+      let total = {}
       let ret = {}
-      chrms.forEach(chrm => {
+      let uret = {}
+      let maxf = { value: 0 }
+      chrms.forEach(c => {
+        const chrm = counts_order13[o][c]
         const layers = Object.keys(chrm)
         layers.forEach(l => {
-          if(ret[l]) {
+          if(!ret[l]) {
+            ret[l] = {}
+            total[l] = 0
             Object.keys(chrm[l]).forEach(k => {
-              ret[l][k] += chrm[l][k]
+              ret[l][k] = 0
             })
-          } else {
-            ret[l] = { ...chrm[l] }
           }
+          Object.keys(chrm[l]).forEach(k => {
+            ret[l][k] += chrm[l][k]
+            total[l] += chrm[l][k]
+            if(chrm[l][k] > maxf.value){
+              maxf.value = chrm[l][k]
+              maxf.layer = l
+              maxf.field = k
+            }
+          })
+        })
+        // get the unique counts
+        const uchrm = counts_native[o][c]
+        layers.forEach(l => {
+          if(!uret[l]) {
+            uret[l] = {}
+            Object.keys(uchrm[l]).forEach(k => {
+              uret[l][k] = 0
+            })
+          }
+          Object.keys(uchrm[l]).forEach(k => {
+            uret[l][k] += uchrm[l][k]
+          })
         })
       })
-      return { order: o, counts: ret }
+      return { order: o, counts: ret, total, unique_counts: uret, maxField: maxf }
     })
+    console.log("orderSums", orderSums)
     setOrderSums(orderSums)
-  }, [showUniquePaths])
+  }, [])
 
-  console.log("orderSums", orderSums)
 
+  const handleOrderSelect = useCallback((field) => {
+    setOrderSelects({...orderSelects, [field.order]: field})
+  }, [orderSelects])
+
+  useEffect(() => {
+    console.log("orderSelects", orderSelects)
+    // loop through the selected and grab the relevant index files
+    Promise.all(Object.keys(orderSelects).map(o => {
+      const base = `https://d2ppfzsmmsvu7l.cloudfront.net/20240509/csn_index_files`
+      const chrm = 1
+      const url = `${base}/${o}.chr${chrm}.${orderSelects[o].layer.datasetName}.${orderSelects[o].index}.indices.txt`
+      return fetch(url).then(r => r.text().then(txt => txt.split("\n").map(d => +d)))
+    }))
+    .then(indexFiles => {
+      console.log("indexFiles", indexFiles)
+    })
+  }, [orderSelects])
 
   return (
     <div className="filter-page">
@@ -240,7 +309,13 @@ const Filter = () => {
               </button>
             </div>
             {orders.map(order => (
-              <FilterOrder key={order} order={order} orderSums={orderSums} showNone={showNone} />
+              <FilterOrder key={order} 
+                order={order} 
+                orderSums={orderSums} 
+                showNone={showNone} 
+                showUniquePaths={showUniquePaths}
+                onSelect={handleOrderSelect} 
+              />
             ))}
           </div>
         </div>
@@ -249,6 +324,20 @@ const Filter = () => {
             Results 
           </h3>
           <div className="section-content">
+            {orderSums.map(o => {
+              return (
+                  <div className="order-sum" key={o.order}>
+                    <span className="order-sum-order">{o.order}</span>
+                    {Object.keys(o.total).map(l => {
+                      return (
+                        <div key={l}>
+                          {l}: {showInt(o.total[l])}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })}
           </div>
         </div>
 
