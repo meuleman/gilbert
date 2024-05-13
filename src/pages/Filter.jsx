@@ -137,8 +137,9 @@ const FilterOrder = ({order, orderSums, showNone, onFieldChange}) => {
 
   useEffect(() => {
     if(selectedField){
-      const selfield = allFields.flatMap(d => d.options).find(f => f.order == selectedField.order && f.i == selectedField.i && f.layer.name == selectedField.layer.name)
-      console.log("selfield", selfield, selectedField)
+      // console.log("SELECTED", selectedField)
+      const selfield = allFields.flatMap(d => d.options).find(f => f.order == selectedField.order && f.field == selectedField.field && f.layer.name == selectedField.layer.name)
+      // console.log("selfield", selfield)
       if(selfield && (selfield !== selectedField)){
         setSelectedField(selfield)
       }
@@ -147,20 +148,7 @@ const FilterOrder = ({order, orderSums, showNone, onFieldChange}) => {
 
   return (
     <div className="filter-order">
-      <h4>Order {order}</h4> 
-        {selectedField ? 
-          <div>
-            <span className="selected-field">
-              Selected: {selectedField.label}
-            </span>
-            <button onClick={() => setSelectedField(null)}>
-              Deselect
-            </button>
-          </div>
-        : null}
-      <div className="order-summary">
-        {/* {Math.pow(4, order)} total regions */}
-      </div>
+      <span className="order-label">Order {order}</span> 
       <div className="filter-group">
         <Select
           options={allFields}
@@ -173,52 +161,17 @@ const FilterOrder = ({order, orderSums, showNone, onFieldChange}) => {
             </div>
           )}
         />
-
-        {/* {csnLayers.filter(d => d.orders[0] <= order && d.orders[1] >= order).map(layer => {
-          let oc = orderSums.find(o => o.order == order)
-          oc ? oc = oc.counts[layer.datasetName] : oc = null
-          let fields = layer.fieldColor.domain().map((f, i) => {
-            let c = oc ? oc[i] : "?"
-            return { 
-              order,
-              layer,
-              label: f + " (" + c + " unique paths)", 
-              field: f, 
-              index: i, 
-              color: layer.fieldColor(f), 
-              count: c
-            }
-          }).sort((a,b) => {
-            return b.count - a.count
-          })
-          return (<div key={order + "-" + layer.name} className="layer">
-            <span className="layer-name">{layer.name}</span><br/>
-            <Select
-              options={fields}
-              styles={colourStyles}
-              onChange={(selectedOption) => setSelectedField(selectedOption)}
-            />
-
-            <span className="layer-fields">{fields.map(f => {
-              const none = f.count == "?" || f.count == 0
-              return (<span className={"field"} key={f.label} style={{ 
-                border: `1px solid ${f.color}`, 
-                borderBottom: `2px solid ${f.color}`,
-                borderRadius: "4px",
-                padding: "2px 2px",
-                opacity: none ? 0.2 : 1,
-                display: !showNone && none ? "none" : "block"
-              }}>
-                <input type="checkbox" ></input>
-                {f.field}
-                ({f.count})
-              </span>)
-            })}
-            </span>
-
-          </div>)
-        })} */}
       </div>
+          {selectedField ? 
+          <div>
+            {/* <span className="selected-field">
+              Selected: {selectedField.label}
+            </span> */}
+            <button onClick={() => setSelectedField(null)}>
+              Deselect
+            </button>
+          </div>
+        : null}
     </div>
   )
 }
