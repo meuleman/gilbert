@@ -1,4 +1,4 @@
-
+import { format } from 'd3-format';
 
 function showKb10(diff) {
   const log10Diff = Math.log10(diff);
@@ -25,9 +25,10 @@ function showKb(diff) {
   return scaleAsStr
 }
 
-function showFloat(num) {
-  return num.toFixed(2)
-}
+const showFloat = format(".2f")
+
+const showInt = format(",")
+
 
 
 function showPosition(d, full=true) {
@@ -48,5 +49,6 @@ function showPosition(d, full=true) {
 export {
   showKb,
   showPosition,
-  showFloat
+  showFloat,
+  showInt
 }

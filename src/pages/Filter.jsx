@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { range, max, groups } from 'd3-array';
+import { format } from 'd3-format';
 import chroma from 'chroma-js';
 
 import Select from 'react-select';
 
-import { showFloat, showPosition, showKb } from '../lib/display';
+import { showFloat, showInt, showPosition, showKb } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition, sameHilbertRegion } from '../lib/regions';
 import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
 import { calculateCrossScaleNarration, walkTree, findUniquePaths } from '../lib/csn';
@@ -117,7 +118,7 @@ const FilterOrder = ({order, orderSums, showNone, onFieldChange}) => {
         return { 
           order,
           layer,
-          label: f + " (" + c + " paths) " + layer.name, 
+          label: f + " (" + showInt(c) + " paths) " + layer.name, 
           field: f, 
           index: i, 
           color: layer.fieldColor(f), 
@@ -127,6 +128,9 @@ const FilterOrder = ({order, orderSums, showNone, onFieldChange}) => {
       }).sort((a,b) => {
         return b.count - a.count
       })
+      if(!showNone){
+        fields = fields.filter(f => f.count > 0 && f.count != "?")
+      }
       return fields
     })
     const grouped = groups(newFields, f => f.layer.name)
