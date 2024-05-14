@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
-import { range, max, groups } from 'd3-array';
+import { range, max, groups, sum } from 'd3-array';
 import { format } from 'd3-format';
 import chroma from 'chroma-js';
 
@@ -176,9 +176,7 @@ const FilterOrder = ({order, orderSums, showNone, showUniquePaths, onSelect}) =>
   // }, [allFields, selectedField])
 
   useEffect(() => {
-    if(selectedField){
-      onSelect(selectedField)
-    }
+    onSelect(selectedField)
   }, [selectedField])
 
   return (
@@ -239,6 +237,7 @@ const Filter = () => {
       let uret = {}
       let maxf = { value: 0 }
       chrms.forEach(c => {
+        if(c == "totalSegmentCount") return
         const chrm = counts_order13[o][c]
         const layers = Object.keys(chrm)
         layers.forEach(l => {
@@ -295,23 +294,107 @@ const Filter = () => {
   }, [])
 
 
-  const handleOrderSelect = useCallback((field) => {
-    setOrderSelects({...orderSelects, [field.order]: field})
+  const handleOrderSelect = useCallback((field, order) => {
+    if(!field) {
+      delete orderSelects[order]
+      setOrderSelects({...orderSelects})
+    } else {
+      setOrderSelects({...orderSelects, [order]: field})
+    }
   }, [orderSelects])
 
+
+  // intersect a pair of indices arrays {order, indices}
+  function intersectIndices(lower, higher) {
+    const stride = Math.pow(4, higher.order - lower.order)
+    // turn the lower.indices into ranges to intersect
+    const ranges = lower.indices.map(i => ({start: i*stride, end: (i+1)*stride}))
+    console.log(lower, higher, stride, ranges)
+    // we filter the higher indices to only keep the ones that are in a range
+    return { order: higher.order, indices: higher.indices.filter(i => {
+      return ranges.some(r => r.start <= i && r.end >= i)
+    })}
+  }
+
+  const [loadingFilters, setLoadingFilters] = useState(false)
+  const [filteredSegmentCount, setFilteredSegmentCount] = useState(0)
+  const [filteredPathCount, setFilteredPathCount] = useState(0)
+  let chromosomes = Object.keys(counts_native[4]).filter(d => d !== "totalSegmentCount")
   useEffect(() => {
     console.log("orderSelects", orderSelects)
-    // loop through the selected and grab the relevant index files
-    Promise.all(Object.keys(orderSelects).map(o => {
-      const base = `https://d2ppfzsmmsvu7l.cloudfront.net/20240509/csn_index_files`
-      const chrm = 1
-      const url = `${base}/${o}.chr${chrm}.${orderSelects[o].layer.datasetName}.${orderSelects[o].index}.indices.txt`
-      return fetch(url).then(r => r.text().then(txt => txt.split("\n").map(d => +d)))
-    }))
-    .then(indexFiles => {
-      console.log("indexFiles", indexFiles)
+    const orders = Object.keys(orderSelects)
+    console.log("orders", orders)
+    // lets make objects for each of the selects, but pulling chromosomes from orderSums
+    const selects = orders.flatMap(o => {
+      let os = orderSelects[o]
+      let oc = counts_native[o]
+      return chromosomes.map(c => {
+        let chrm = oc[c]
+        let l = os.layer.datasetName
+        let i = os.index
+        return {
+          ...os,
+          chromosome: c,
+          chromosome_count: chrm[l][i]
+        }
+      }).filter(d => d?.chromosome_count > 0)
     })
-  }, [orderSelects])
+    console.log("selects", selects)
+
+    // group by chromosome, we only want to include chromosomes where we have at least one path
+    const groupedSelects = groups(selects, d => d.chromosome)
+    console.log("groupedSelects", groupedSelects)
+    const filteredGroupedSelects = groupedSelects.filter(g => g[1].length == orders.length)
+    console.log("filteredGroupedSelects", filteredGroupedSelects)
+
+    // as long as we have more than one order, we want to do this
+    if(orders.length > 1){
+      setLoadingFilters(true)
+      Promise.all(filteredGroupedSelects.slice(0, 1).map(g => {
+        return Promise.all(g[1].map(os => {
+          const base = `https://d2ppfzsmmsvu7l.cloudfront.net/20240509/csn_index_files`
+          const url = `${base}/${os.order}.${os.chromosome}.${os.layer.datasetName}.${os.index}.indices.txt`
+          return fetch(url).then(r => r.text().then(txt => ({...os, indices: txt.split("\n").map(d => +d)})))
+        }))
+      }))
+      .then(groups => {
+        // loop through each group (chromosome), fetch its indices and then filter each pair of indices
+        const filteredIndices = groups.map(g => {
+          const indices = g.map(d => ({order: d.order, indices: d.indices }))
+          // we compare each pair going down until we are left with the indices that go up all the way to the top
+          let result = indices[0];
+          for (let i = 0; i < indices.length - 1; i++) {
+            result = intersectIndices(result, indices[i+1])
+          }
+          return result;
+        })
+        console.log("intersected indices", filteredIndices)
+        // now we can count everything in a couple ways
+        // 1. count the number of segments by counting the length of indices for each group
+        // 2. count the number of paths by multiplying stride (4^13-order) times the count of segments
+        const segmentCounts = filteredIndices.map(d => d.indices.length)
+        console.log("counts", segmentCounts)
+        const totalSegmentCount = sum(segmentCounts)
+        let order = filteredIndices[0].order // will all have the same order (the highest of the orderSelects)
+        const stride = Math.pow(4, 13 - order)
+        const pathCount = totalSegmentCount * stride
+        console.log("totalSegmentCount", totalSegmentCount)
+        console.log("pathCount", pathCount)
+        setLoadingFilters(false)
+        setFilteredSegmentCount(totalSegmentCount)
+        setFilteredPathCount(pathCount)
+      })
+    } else if(orders.length == 1) {
+      setFilteredSegmentCount(orderSelects[orders[0]].unique_count)
+      setFilteredPathCount(orderSelects[orders[0]].count)
+    } else {
+      setFilteredSegmentCount(0)
+      setFilteredPathCount(0)
+    }
+
+    
+
+  }, [orderSelects, orderSums])
 
   return (
     <div className="filter-page">
@@ -340,9 +423,26 @@ const Filter = () => {
                 orderSums={orderSums} 
                 showNone={showNone} 
                 showUniquePaths={showUniquePaths}
-                onSelect={handleOrderSelect} 
+                onSelect={(field) => {
+                  handleOrderSelect(field, order)
+                }} 
               />
             ))}
+          </div>
+        </div>
+        <div className="section">
+          <h3>
+            {loadingFilters ? "Loading..." : "Filter Results"}
+          </h3>
+          <div className="section-content">
+            {loadingFilters ? "Loading..." : 
+            <>
+              <h4>Segments</h4>
+              <p>{showInt(filteredSegmentCount)} segments found</p>
+              <h4>Paths</h4>
+              <p>{showInt(filteredPathCount)} paths found</p>
+            </>
+            }
           </div>
         </div>
         <div className="section">
