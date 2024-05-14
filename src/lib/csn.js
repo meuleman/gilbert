@@ -340,38 +340,38 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
     let bestPaths = Promise.all([topFieldsAcrossLayers, variantTopFields]).then(() => {
       let bestPathTime = window.performance.now()
 
-      // parse tree and build each path
-      let numLeaves = 4 ** (maxOrderHit - selectedOrder)
-      let numSegments = dataTree.length
-      let leafIndexOffset = numSegments - numLeaves
-      let nodeScores = new Array(numSegments).fill(0)
+      // // parse tree and build each path
+      // let numLeaves = 4 ** (maxOrderHit - selectedOrder)
+      // let numSegments = dataTree.length
+      // let leafIndexOffset = numSegments - numLeaves
+      // let nodeScores = new Array(numSegments).fill(0)
 
-      // function to sum through nodes and collect score at leaves
-      let sumThroughTree = (nodeScores) => {
-        dataTree.forEach((d, i) => {
-          // if nan, set to 0
-          let nodeValue = d.data?.chosen?.topField?.value || 0
-          // increase node's score depending on number of variants
-          nodeValue += (Object.keys(d.variants).length * variantScore)
-          if(csnMethod === 'sum') nodeScores[i] += nodeValue
-          else if(csnMethod === 'normalizedSum') nodeScores[i] += Math.sqrt(nodeValue)
-          else if(csnMethod === 'max') nodeScores[i] = Math.max(nodeScores[i], nodeValue)
-          let children = d.children
-          children.forEach(c => nodeScores[c] += nodeScores[i])
-        })
-        return nodeScores
-      }
-      // score each path
-      nodeScores = sumThroughTree(nodeScores)
+      // // function to sum through nodes and collect score at leaves
+      // let sumThroughTree = (nodeScores) => {
+      //   dataTree.forEach((d, i) => {
+      //     // if nan, set to 0
+      //     let nodeValue = d.data?.chosen?.topField?.value || 0
+      //     // increase node's score depending on number of variants
+      //     nodeValue += (Object.keys(d.variants).length * variantScore)
+      //     if(csnMethod === 'sum') nodeScores[i] += nodeValue
+      //     else if(csnMethod === 'normalizedSum') nodeScores[i] += Math.sqrt(nodeValue)
+      //     else if(csnMethod === 'max') nodeScores[i] = Math.max(nodeScores[i], nodeValue)
+      //     let children = d.children
+      //     children.forEach(c => nodeScores[c] += nodeScores[i])
+      //   })
+      //   return nodeScores
+      // }
+      // // score each path
+      // nodeScores = sumThroughTree(nodeScores)
       
-      // sort paths
-      let leafScores = nodeScores.slice(-numLeaves).map((s, i) => ({score: s, i: i + leafIndexOffset}))
-      let leafScoresSorted = leafScores.sort((a, b) => b.score - a.score)
+      // // sort paths
+      // let leafScores = nodeScores.slice(-numLeaves).map((s, i) => ({score: s, i: i + leafIndexOffset}))
+      // let leafScoresSorted = leafScores.sort((a, b) => b.score - a.score)
 
-      // initialize path data
-      let topLeafPaths = new Array(leafScoresSorted.length).fill(null).map(d => {
-        return {'path': []}
-      })
+      // // initialize path data
+      // let topLeafPaths = new Array(leafScoresSorted.length).fill(null).map(d => {
+      //   return {'path': []}
+      // })
 
       // // function to refactor features for a given node
       // let refactorTopFeature = (d) => {
@@ -470,8 +470,18 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           ...enrFactorsSorted,
           ...occFactorsSorted
         ]
+        // fill path with factors and add up scores
+        let score = 0
         while ((factorsSorted.length > 0)) {
           let hit = factorsSorted[0]
+          
+          // score
+          let hitScore = enrInds.includes(hit.layer) ? hit.score : occScore
+          if(csnMethod === 'sum') score += hitScore
+          else if(csnMethod === 'normalizedSum') score += Math.sqrt(hitScore)
+          else if(csnMethod === 'max') score = Math.max(score, hitScore)
+
+          // get factors
           let refactor = refactorTopFeature(hit)
           topLeafPaths[i].path.push(refactor)
           factorsSorted = factorsSorted.filter(d => (d.order !== hit.order) && !((d.factor === hit.factor) && (d.layer === hit.layer)))
@@ -483,18 +493,32 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           let variants = Object.values(nodeData.variants).filter(d => d.topField.value !== null && d.topField.value !== 0)
           if(variants.length > 0) {
             topLeafPaths[i]['variants'] = variants
+            // increase node's score depending on number of variants
+            score += (variants.length * variantScore)
           }
         }
+        topLeafPaths[i]['score'] = score
       }
 
+      // parse tree and build each path
+      let numLeaves = 4 ** (maxOrderHit - selectedOrder)
+      let numSegments = dataTree.length
+      let leafIndexOffset = numSegments - numLeaves
+
+      // initialize path data
+      let leafIndices = new Array(numLeaves).fill(null).map((d, i) => i + leafIndexOffset)
+      let topLeafPaths = new Array(leafIndices.length).fill(null).map(d => ({'path': []}))
+
       // collect features for each path
-      leafScoresSorted.forEach((d, i) => {
-        topLeafPaths[i]['score'] = d.score
-        topLeafPaths[i]['node'] = d.i
+      leafIndices.forEach((l, i) => {
+        topLeafPaths[i]['node'] = l
         let factors = []
-        collectFeatures(d.i, i, factors)
+        collectFeatures(l, i, factors)
         fillPath(i, factors)
       })
+
+      // sort paths by score
+      topLeafPaths = topLeafPaths.sort((a, b) => b.score - a.score)
 
       // adjust tree to only include selected segment and below
       let returnTree = dataTree.slice(minSelectedDiff).map(d => {
