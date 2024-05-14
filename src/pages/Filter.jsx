@@ -14,6 +14,8 @@ import Data from '../lib/data';
 
 import counts_native from "../data/counts.native_order_resolution.json"
 import counts_order13 from "../data/counts.order_13_resolution.json"
+console.log("native", counts_native)
+console.log("order13", counts_order13)
 
 import layers from '../layers'
 
@@ -113,8 +115,10 @@ const FilterOrder = ({order, orderSums, showNone, showUniquePaths, onSelect}) =>
   const formatLabel = useCallback((option) => {
     return (
       <div>
-        <span>{option.field}</span>
-        <span> ({showInt(showUniquePaths ? option.unique_count : option.count)} {showUniquePaths ? "unique" : ""} paths {option.percent?.toFixed(2)}%</span>
+        <span>{option.field} </span>
+        <span> 
+          {showInt(showUniquePaths ? option.unique_count : option.count)} ({showUniquePaths ? option.unique_percent?.toFixed(2) + ")% unique" : option.percent?.toFixed(2)+")%"} 
+        </span>
         <span> {option.layer.name}</span>
       </div>
     );
@@ -142,7 +146,8 @@ const FilterOrder = ({order, orderSums, showNone, showUniquePaths, onSelect}) =>
           color: layer.fieldColor(f), 
           count: counts ? counts[i] : "?",
           unique_count: unique_counts ? unique_counts[i] : "?",
-          percent: counts ? counts[i] / 738213034 * 100: "?",
+          unique_percent: unique_counts ? unique_counts[i] / oc.totalSegments * 100 : "?",
+          percent: counts ? counts[i] / oc.totalPaths * 100: "?",
           isDisabled: counts ? counts[i] == 0 || counts[i] == "?" : true
         }
       }).sort((a,b) => {
@@ -227,7 +232,9 @@ const Filter = () => {
       let chrms = Object.keys(counts_order13[o])//.map(chrm => counts[o][chrm])
       // combine each of the objects in each key in the chrms array
       let total = 0
+      let total_segments_found = 0
       let layer_total = {}
+      let layer_total_segments = {}
       let ret = {}
       let uret = {}
       let maxf = { value: 0 }
@@ -258,16 +265,30 @@ const Filter = () => {
         layers.forEach(l => {
           if(!uret[l]) {
             uret[l] = {}
+            layer_total_segments[l] = 0
             Object.keys(uchrm[l]).forEach(k => {
               uret[l][k] = 0
             })
           }
           Object.keys(uchrm[l]).forEach(k => {
             uret[l][k] += uchrm[l][k]
+            layer_total_segments[l] += uchrm[l][k]
+            total_segments_found += uchrm[l][k]
           })
         })
       })
-      return { order: o, counts: ret, total, layer_total, unique_counts: uret, maxField: maxf }
+      return { 
+        order: o, 
+        counts: ret, 
+        total, 
+        totalPaths: counts_order13[o].totalSegmentCount, 
+        totalSegments: counts_native[o].totalSegmentCount, 
+        total_segments_found,
+        layer_total, 
+        layer_total_segments, 
+        unique_counts: uret, 
+        maxField: maxf 
+      }
     })
     console.log("orderSums", orderSums)
     setOrderSums(orderSums)
@@ -329,12 +350,14 @@ const Filter = () => {
             Summary
           </h3>
           <div className="section-content">
+            <h4>Paths (order 13 resolution)</h4>
             <table className="order-sums-table">
               <thead>
                 <tr>
-                  <th>Order</th>
-                  <th>Total</th>
-                  {Object.keys(orderSums[0]?.layer_total || {}).map(l => <th key={l}>{l}</th>)}
+                  <th>order</th>
+                  <th>total paths</th>
+                  <th>paths found</th>
+                  {Object.keys(orderSums[0]?.layer_total || {}).map(l => <th key={l}>{l} total</th>)}
                 </tr>
               </thead>
 
@@ -343,10 +366,41 @@ const Filter = () => {
                   return (
                       <tr key={o.order}>
                         <td>{o.order}</td>
+                        <td>{showInt(o.totalPaths)}</td>
                         <td>{showInt(o.total)}</td>
                         {Object.keys(o.layer_total).map(l => {
                           return (
                             <td key={l}>{showInt(o.layer_total[l])}</td>
+                          )
+                        })}
+                      </tr>
+                    )
+                  })}
+              </tbody>
+            </table>
+
+
+            <h4>Segments (native resolution)</h4>
+            <table className="order-sums-table">
+              <thead>
+                <tr>
+                  <th>order</th>
+                  <th>total segments</th>
+                  <th>segments found</th>
+                  {Object.keys(orderSums[0]?.layer_total_segments || {}).map(l => <th key={l}>{l} total</th>)}
+                </tr>
+              </thead>
+
+              <tbody>
+                {orderSums.map(o => {
+                  return (
+                      <tr key={o.order}>
+                        <td>{o.order}</td>
+                        <td>{showInt(o.totalSegments)}</td>
+                        <td>{showInt(o.total_segments_found)}</td>
+                        {Object.keys(o.layer_total_segments).map(l => {
+                          return (
+                            <td key={l}>{showInt(o.layer_total_segments[l])}</td>
                           )
                         })}
                       </tr>
