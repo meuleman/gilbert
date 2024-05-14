@@ -392,8 +392,6 @@ const Filter = () => {
       setFilteredPathCount(0)
     }
 
-    
-
   }, [orderSelects, orderSums])
 
   return (
@@ -438,7 +436,7 @@ const Filter = () => {
             {loadingFilters ? "Loading..." : 
             <>
               <h4>Segments</h4>
-              <p>{showInt(filteredSegmentCount)} segments found</p>
+              <p>{showInt(filteredSegmentCount)} segments found at order {max(Object.keys(orderSelects))}</p>
               <h4>Paths</h4>
               <p>{showInt(filteredPathCount)} paths found</p>
             </>
