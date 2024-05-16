@@ -101,3 +101,22 @@
   padding: 2px;
   border: 1px solid gray;
 }
+.filter-page .by-chromosome {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.filter-page .chromosome-paths {
+  margin: 6px;
+  padding: 6px;
+  border: 1px solid gray;
+  width: 400px;
+}
+.filter-page .chromosome-paths .chromosome-regions {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+

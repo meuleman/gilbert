@@ -53,6 +53,7 @@ const variantLayers = [
 const orders = range(4, 15)
 
 import './Filter.css';
+import hilbert from 'd3-hilbert';
 
 
 
@@ -309,9 +310,9 @@ const Filter = () => {
     const stride = Math.pow(4, higher.order - lower.order)
     // turn the lower.indices into ranges to intersect
     const ranges = lower.indices.map(i => ({start: i*stride, end: (i+1)*stride}))
-    console.log(lower, higher, stride, ranges)
+    // console.log(lower, higher, stride, ranges)
     // we filter the higher indices to only keep the ones that are in a range
-    return { order: higher.order, indices: higher.indices.filter(i => {
+    return { order: higher.order, chromosome: higher.chromosome, indices: higher.indices.filter(i => {
       return ranges.some(r => r.start <= i && r.end >= i)
     })}
   }
@@ -319,6 +320,7 @@ const Filter = () => {
   const [loadingFilters, setLoadingFilters] = useState(false)
   const [filteredSegmentCount, setFilteredSegmentCount] = useState(0)
   const [filteredPathCount, setFilteredPathCount] = useState(0)
+  const [chrFilteredIndices, setChrFilteredIndices] = useState([]) // the indices for each chromosome at highest order
   let chromosomes = Object.keys(counts_native[4]).filter(d => d !== "totalSegmentCount")
   useEffect(() => {
     console.log("orderSelects", orderSelects)
@@ -350,7 +352,7 @@ const Filter = () => {
     // as long as we have more than one order, we want to do this
     if(orders.length > 1){
       setLoadingFilters(true)
-      Promise.all(filteredGroupedSelects.slice(0, 1).map(g => {
+      Promise.all(filteredGroupedSelects.map(g => {
         return Promise.all(g[1].map(os => {
           const base = `https://d2ppfzsmmsvu7l.cloudfront.net/20240509/csn_index_files`
           const url = `${base}/${os.order}.${os.chromosome}.${os.layer.datasetName}.${os.index}.indices.txt`
@@ -358,9 +360,10 @@ const Filter = () => {
         }))
       }))
       .then(groups => {
+        console.log("GROUPS", groups)
         // loop through each group (chromosome), fetch its indices and then filter each pair of indices
         const filteredIndices = groups.map(g => {
-          const indices = g.map(d => ({order: d.order, indices: d.indices }))
+          const indices = g.map(d => ({order: d.order, chromosome: d.chromosome, indices: d.indices }))
           // we compare each pair going down until we are left with the indices that go up all the way to the top
           let result = indices[0];
           for (let i = 0; i < indices.length - 1; i++) {
@@ -380,7 +383,15 @@ const Filter = () => {
         const pathCount = totalSegmentCount * stride
         console.log("totalSegmentCount", totalSegmentCount)
         console.log("pathCount", pathCount)
+
+        // get regions for each index
+        const hilbert = new HilbertChromosome(order)
+        filteredIndices.forEach(d => {
+          d.regions = d.indices.map(i => hilbert.fromRange(d.chromosome, i, i+1)[0])
+        })
+
         setLoadingFilters(false)
+        setChrFilteredIndices(filteredIndices)
         setFilteredSegmentCount(totalSegmentCount)
         setFilteredPathCount(pathCount)
       })
@@ -393,6 +404,18 @@ const Filter = () => {
     }
 
   }, [orderSelects, orderSums])
+
+  // useEffect(() => {
+  //   console.log("chrFilteredIndices", chrFilteredIndices)
+  //   //make a region set from each chromosome's indices
+  //   if(chrFilteredIndices.length > 0){
+  //     const hilbert = new HilbertChromosome(chrFilteredIndices[0].order)
+  //     const regionSets = chrFilteredIndices.map(d => {
+  //       return d.indices.map(i => hilbert.fromRange(d.chromosome, i, i+1)[0])
+  //     })
+  //     console.log("regionSets", regionSets)
+  //   }
+  // }, [chrFilteredIndices])
 
   return (
     <div className="filter-page">
@@ -436,9 +459,26 @@ const Filter = () => {
             {loadingFilters ? "Loading..." : 
             <>
               <h4>Segments</h4>
-              <p>{showInt(filteredSegmentCount)} segments found at order {max(Object.keys(orderSelects))}</p>
+              <p>{showInt(filteredSegmentCount)} segments found at order {max(Object.keys(orderSelects), d => +d)}</p>
               <h4>Paths</h4>
               <p>{showInt(filteredPathCount)} paths found</p>
+              <h4>By Chromosome</h4>
+              <div className="by-chromosome">
+              {chrFilteredIndices.map(d => {
+                return <div className="chromosome-paths" key={d.chromosome}>
+                  <span>{d.chromosome}: {d.indices.length}</span>
+                  <div className="chromosome-regions">
+                    {d.regions.slice(0,10).map(r => {
+                      return <span className="chromosome-region" key={r}>
+                        <Link to={`/region?region=${urlify(r)}`} target="_blank">📄 
+                        {showPosition(r)}
+                        </Link>
+                      </span>
+                    })}
+                  </div>
+                </div>
+              })}
+              </div>
             </>
             }
           </div>
