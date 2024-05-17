@@ -9,7 +9,7 @@ import Select from 'react-select';
 import { showFloat, showInt, showPosition, showKb } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition, sameHilbertRegion } from '../lib/regions';
 import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
-import { calculateCrossScaleNarration, walkTree, findUniquePaths } from '../lib/csn';
+import { calculateCrossScaleNarration, calculateCrossScaleNarrationInWorker, walkTree, findUniquePaths } from '../lib/csn';
 import Data from '../lib/data';
 
 import counts_native from "../data/counts.native_order_resolution.json"
@@ -428,7 +428,7 @@ const Filter = () => {
         return d.regions.slice(0,1)//.map(r => r)
       })
       // Promise.all(sample.slice(0,2).map(r => calculateCrossScaleNarration(r, 'sum', csnLayers, variantLayers,0.01, 0.1, orderSelects)))
-      processInBatches(sample, 5, r => calculateCrossScaleNarration(r, 'sum', csnLayers, variantLayers, 0.01, 0.1, orderSelects))
+      processInBatches(sample, 5, r => calculateCrossScaleNarrationInWorker(r, 'sum', csnLayers, variantLayers, 0.01, 0.1, orderSelects))
       .then(csns => {
         console.log("csns", csns)
         setLoadingCSN(false)

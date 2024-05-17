@@ -3,7 +3,58 @@ import Data from './data';
 import { HilbertChromosome, } from './HilbertChromosome'
 import { fromRegion } from './regions'
 import { min } from "d3-array";
-import { ConsoleLogger } from "@duckdb/duckdb-wasm";
+// import { ConsoleLogger } from "@duckdb/duckdb-wasm";
+
+// Create a new Web Worker instance
+// const worker = new Worker('./csnWorker.js');
+
+import csnWorker from './csnWorker.js?worker'
+function createWorker() {
+  return new Worker(new URL('./csnWorker.js', import.meta.url), { type: 'module' });
+}
+
+// Function to call the Web Worker
+function calculateCrossScaleNarrationInWorker(selected, csnMethod, layers, variantLayers, occScore, variantScore, filters) {
+  // const worker = new Worker(csnWorker, { type: 'module' });
+  const worker = createWorker()
+  console.log("workerrrr", worker)
+  return new Promise((resolve, reject) => {
+    worker.onmessage = function(e) {
+      console.log("RECEIVED DATA", e)
+      worker.terminate()
+      resolve(e.data);
+    };
+
+    worker.onerror = function(e) {
+      console.log("error in worker:", e)
+      worker.terminate()
+      reject(e);
+    };
+
+    function serializeLayer (l) {
+      let ret = {
+        ...l,
+        renderer: null,
+        fieldChoice: l.fieldChoice.toString(),
+        fieldColor: l.fieldColor.toString()
+      }
+      return ret
+    }
+
+    const lyrs = layers.map(serializeLayer)
+    const vlyrs = variantLayers.map(serializeLayer)
+    const fltrs = Object.keys(filters).map(k => {
+      return {
+        ...filters[k],
+        layer: serializeLayer(filters[k].layer)
+      }
+    })
+  
+    console.log("SENDING MESSAGE")
+    worker.postMessage({ selected , csnMethod , layers:lyrs, variantLayers:vlyrs, occScore, variantScore, filters:fltrs });
+    // worker.postMessage({ selected, csnMethod, layers, variantLayers, occScore, variantScore, filters });
+  });
+}
 
 // function to generate cross scale narrations for a provided region.
 async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[], occScore=0.01, variantScore=0.1, filters=null) {
@@ -694,6 +745,7 @@ function findUniquePaths(paths) {
 
 export {
   calculateCrossScaleNarration,
+  calculateCrossScaleNarrationInWorker,
   narrateRegion,
   layerSuggestion,
   walkTree,
