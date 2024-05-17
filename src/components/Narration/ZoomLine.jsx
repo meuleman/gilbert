@@ -75,6 +75,7 @@ ZoomLine.propTypes = {
   selected: PropTypes.bool,
   width: PropTypes.number,
   height: PropTypes.number,
+  tipOrientation: PropTypes.string,
   onHover: PropTypes.func,
   onClick: PropTypes.func
 };
@@ -84,9 +85,12 @@ export default function ZoomLine({
   order,
   highlight=false,
   selected=false,
+  showOrderLine=true,
+  highlightOrders=[],
   text=true,
   width = 50,
   height = 400,
+  tipOrientation="left",
   onHover = () => {},
   onClick = () => {}
 }) {
@@ -118,9 +122,9 @@ export default function ZoomLine({
 
   const depth = 14 - 4
   const spacing = height/(depth + 1)
-  const h = height - spacing
-  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([0, h]), [h])
-  const rw = useMemo(() => yScale(5) - yScale(4), [yScale])
+  const h = height - spacing - 1
+  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([1, h]), [h])
+  const rw = useMemo(() => yScale(5) - yScale(4) - 2, [yScale])
 
   const handleClick = useCallback((e, o) => {
     // const p = path.find(d => d.order === o)
@@ -143,7 +147,8 @@ export default function ZoomLine({
     // console.log("y", y, my, or)//, p, rect)
     if(p) {
 
-      tooltipRef.current.show({...p.region, fullData: p.fullData, layers: csn.layers}, p.layer, rect.x - 5, rect.y + my)
+      const xoff = tipOrientation === "left" ? -5 : width + 5
+      tooltipRef.current.show({...p.region, fullData: p.fullData, layers: csn.layers}, p.layer, rect.x + xoff, rect.y + my)
     }
     // tooltipRef.current.show(tooltipRef.current, csn)
   }, [csn, path, yScale, rw, onHover])
@@ -155,25 +160,42 @@ export default function ZoomLine({
   return (
     <div className="csn-line" onClick={() => onClick(csn)}>
       <svg width={width} height={height}>
+
+
         {path.length && yScale ? <g>
+
+          {/* {highlightOrders.map(o => {
+            return <line 
+            key={o}
+            y1={yScale(o) + rw/2} 
+            y2={yScale(o) + rw/2} 
+            x1={0}
+            x2={width}
+            stroke="black"
+            strokeWidth={rw}
+            pointerEvents="none"
+            />
+          })} */}
+
           {range(4, 15).map(o => {
             let p = path.find(d => d.order == o)
             return <g key={o} onMouseMove={(e) => handleHover(e, o)} onMouseLeave={() => handleLeave()}>
               <rect
                 y={yScale(o)}
                 x={0}
-                height={yScale(5) - yScale(4)}
+                height={rw}
                 width={width}
                 fill={ p ? p.field.color : "white"}
                 fillOpacity={selected ? 0.75 : 0.5}
-                stroke="lightgray"
+                stroke={highlightOrders.indexOf(o) >= 0 ? "black" : "lightgray"}
+                strokeWidth={highlightOrders.indexOf(o) >= 0 ? 2 : 1}
                 // stroke={ highlight ? "black" : "lightgray"}
               />
             </g>
           })}
         </g> : null}
 
-        <line 
+        {showOrderLine ? <line 
           y1={yScale(or)} 
           y2={yScale(or)} 
           x1={0}
@@ -181,7 +203,8 @@ export default function ZoomLine({
           stroke="black"
           strokeWidth={2}
           pointerEvents="none"
-           />
+          /> : null}
+          
         {path.length && yScale && text ? <g>
           {range(4, 15).map(o => {
             let bp = showKb(Math.pow(4, 14 - o))
@@ -203,7 +226,7 @@ export default function ZoomLine({
         </g> : null}
 
       </svg>
-      <Tooltip ref={tooltipRef} orientation="left" contentFn={tooltipContent} enforceBounds={false} />
+      <Tooltip ref={tooltipRef} orientation={tipOrientation} contentFn={tooltipContent} enforceBounds={false} />
     </div>
   )
 }

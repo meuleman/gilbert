@@ -26,7 +26,7 @@ import Sankey from '../components/Narration/Sankey';
 import CSNLine from '../components/Narration/Line';
 import Summary from '../components/Narration/Summary';
 import Power from '../components/Narration/Power';
-
+import ZoomLine from '../components/Narration/ZoomLine';
 
 const csnLayers = [
   // layers.find(d => d.name == "DHS Components (ENR)"),
@@ -405,17 +405,44 @@ const Filter = () => {
 
   }, [orderSelects, orderSums])
 
-  // useEffect(() => {
-  //   console.log("chrFilteredIndices", chrFilteredIndices)
-  //   //make a region set from each chromosome's indices
-  //   if(chrFilteredIndices.length > 0){
-  //     const hilbert = new HilbertChromosome(chrFilteredIndices[0].order)
-  //     const regionSets = chrFilteredIndices.map(d => {
-  //       return d.indices.map(i => hilbert.fromRange(d.chromosome, i, i+1)[0])
-  //     })
-  //     console.log("regionSets", regionSets)
-  //   }
-  // }, [chrFilteredIndices])
+  const processInBatches = async (items, batchSize, processFunction) => {
+    let results = [];
+    for (let i = 0; i < items.length; i += batchSize) {
+      const batch = items.slice(i, i + batchSize);
+      const batchResults = await Promise.all(batch.map(processFunction));
+      results = results.concat(batchResults);
+    }
+    return results;
+  };
+
+  const [loadingCSN, setLoadingCSN] = useState(false)
+  const [csns, setCSNs] = useState([])
+  useEffect(() => {
+    //make a region set from each chromosome's indices
+    if(chrFilteredIndices.length > 0){
+      console.log("chrFilteredIndices", chrFilteredIndices)
+      setLoadingCSN(true)
+      setCSNs([])
+      // calculate csn for a sample of regions, lets start with 1 per chromosome
+      const sample = chrFilteredIndices.flatMap(d => {
+        return d.regions.slice(0,1)//.map(r => r)
+      })
+      // Promise.all(sample.slice(0,2).map(r => calculateCrossScaleNarration(r, 'sum', csnLayers, variantLayers,0.01, 0.1, orderSelects)))
+      processInBatches(sample, 5, r => calculateCrossScaleNarration(r, 'sum', csnLayers, variantLayers, 0.01, 0.1, orderSelects))
+      .then(csns => {
+        console.log("csns", csns)
+        setLoadingCSN(false)
+        let uniques = csns.flatMap(d => findUniquePaths(d.paths)).flatMap(d => d.uniquePaths)
+        console.log("UNIQUES", uniques)
+        setCSNs(uniques)
+      })
+      // processInBatches(sample, 5, r => calculateCrossScaleNarration(r, 'sum', csnLayers, variantLayers))
+      // .then(csns => {
+      //   console.log("csns", csns);
+      //   // let uniques = findUniquePaths(crossScaleResponse.paths)
+      // });
+    }
+  }, [chrFilteredIndices, csnLayers, variantLayers, orderSelects])
 
   return (
     <div className="filter-page">
@@ -462,6 +489,30 @@ const Filter = () => {
               <p>{showInt(filteredSegmentCount)} segments found at order {max(Object.keys(orderSelects), d => +d)}</p>
               <h4>Paths</h4>
               <p>{showInt(filteredPathCount)} paths found</p>
+
+              <h4>CSN Samples</h4>
+              <p>{csns.length} unique paths sampled</p>
+              {loadingCSN ? "Loading..." : 
+              <div className="csn-lines">
+                {csns.map((n,i) => {
+                  return (<ZoomLine 
+                    key={i}
+                    csn={n} 
+                    order={max(Object.keys(orderSelects), d => +d) + 0.5} // max order
+                    highlight={true}
+                    // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
+                    text={false}
+                    width={8.5} 
+                    height={300}
+                    tipOrientation="right"
+                    showOrderLine={false}
+                    highlightOrders={Object.keys(orderSelects).map(d => +d)} 
+                    // onClick={handleLineClick}
+                    // onHover={handleLineHover(i)}
+                    />)
+                  })
+                }
+              </div>}
               <h4>By Chromosome</h4>
               <div className="by-chromosome">
               {chrFilteredIndices.map(d => {

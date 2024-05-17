@@ -6,7 +6,7 @@ import { min } from "d3-array";
 import { ConsoleLogger } from "@duckdb/duckdb-wasm";
 
 // function to generate cross scale narrations for a provided region.
-async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[], occScore=0.01, variantScore=0.1) {
+async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[], occScore=0.01, variantScore=0.1, filters=null) {
   const fetchData = Data({debug: false}).fetchData;
   
   let orders = Array.from({length: 11}, (a, i) => i + 4);
@@ -82,6 +82,9 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       let topFieldsAllOrders = Promise.all(orders.map((order) => {
         // if the layer includes current order
         if((layer.orders[0] <= order) && (layer.orders[1] >= order)) {
+          if(filters && filters[order]?.layer && filters[order].layer.datasetName !== layer.datasetName) {
+            return Promise.resolve(null)
+          }
           // get hilbert ranges
           const orderRange = getRange(selected, order)
           // fetch data for hilbert segments
@@ -91,6 +94,14 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
               // top field per segment
               const topFields = response.map(d => {
                 let topField = layer.fieldChoice(d)
+                if(filters && filters[order]?.field) {
+                  if(topField.field !== filters[order].field) {
+                    topField = {
+                      field: filters[order].field, 
+                      value: d.data[filters[order].field]
+                    }
+                  }
+                }
                 if(!topField) console.log("no top field", layer.name, order)
                 // store layer as integer
                 d.layerInd = l
@@ -423,11 +434,25 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       let collectFeatures = (node, i, factors) => {
         let treeDataNode = dataTree[node]
         const fullData = treeDataNode.fullDataTracker
-        const orderFactors = Object.keys(fullData.features).map(d => {
-          let [layerInd, factorInd] = d.split(',').map(Number)
-          return {layer: layerInd, factor: factorInd, score: fullData.features[d], order: fullData.order, node: node}
-        })
-        factors.push(...orderFactors)
+        if(filters && filters[fullData.order]?.field) {
+          if(fullData.features[filters[fullData.order].field] !== 0) {
+            let layerInd = layers.findIndex(l => l.datasetName === filters[fullData.order].layer.datasetName)
+            let factorInd = filters[fullData.order].index
+            factors.push({
+              layer: layerInd, 
+              factor: factorInd, 
+              score: fullData.features[`${layerInd},${factorInd}`], 
+              order: fullData.order, 
+              node: node
+            })
+          }
+        } else {
+          const orderFactors = Object.keys(fullData.features).map(d => {
+            let [layerInd, factorInd] = d.split(',').map(Number)
+            return {layer: layerInd, factor: factorInd, score: fullData.features[d], order: fullData.order, node: node}
+          })
+          factors.push(...orderFactors)
+        }
 
         if(treeDataNode.parent !== null) {
           collectFeatures(treeDataNode.parent, i, factors)
