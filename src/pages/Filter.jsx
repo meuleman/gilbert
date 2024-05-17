@@ -356,7 +356,7 @@ const Filter = () => {
         return Promise.all(g[1].map(os => {
           const base = `https://d2ppfzsmmsvu7l.cloudfront.net/20240509/csn_index_files`
           const url = `${base}/${os.order}.${os.chromosome}.${os.layer.datasetName}.${os.index}.indices.txt`
-          return fetch(url).then(r => r.text().then(txt => ({...os, indices: txt.split("\n").map(d => +d)})))
+          return fetch(url).then(r => r.text().then(txt => ({...os, indices: txt.split("\n").map(d => d ? +d : null).filter(d => d)})))
         }))
       }))
       .then(groups => {
@@ -469,7 +469,7 @@ const Filter = () => {
                   <span>{d.chromosome}: {d.indices.length}</span>
                   <div className="chromosome-regions">
                     {d.regions.slice(0,10).map(r => {
-                      return <span className="chromosome-region" key={r}>
+                      return <span className="chromosome-region" key={r.i}>
                         <Link to={`/region?region=${urlify(r)}`} target="_blank">📄 
                         {showPosition(r)}
                         </Link>
