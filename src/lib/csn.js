@@ -6,7 +6,7 @@ import { min } from "d3-array";
 import { ConsoleLogger } from "@duckdb/duckdb-wasm";
 
 // function to generate cross scale narrations for a provided region.
-async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[], occScore=0.01, variantScore=0.1, filters=null) {
+async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[], occScore=0.01, variantScore=0.1, filters=null, minEnrScore=1) {
   const fetchData = Data({debug: false}).fetchData;
   
   let orders = Array.from({length: 11}, (a, i) => i + 4);
@@ -39,6 +39,9 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
     enrOccMapping[i] = occInd
     occEnrMapping[occInd] = i
   })
+
+  // filters
+  let filtersArr = filters ? Object.values(filters) : null
 
   // if a region is selected, find the possible paths for each region
   if(selected) {
@@ -215,9 +218,11 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       let allFeatures = {order: segmentOrder, features: {}}
       // for each layer...
       keys.forEach(layerInd => {
+        // if layer is ENR, set a threshold for the score
+        let scoreThresh = enrInds.includes(parseInt(layerInd)) ? 0 : 0 // minEnrScore : 0
         let layerInfo = d[layerInd]
         // save the nonzero data for each layer
-        if(layerInfo.data.max_value > 0) {  // if max data and not 0
+        if((layerInfo.data.max_value >= scoreThresh) && (layerInfo.data.max_value != 0)) {  // if max data and not 0
           let key = `${layerInd},${layerInfo.data.max_field}`
           let value = layerInfo.data.max_value
           allFeatures.features[key] = value
@@ -226,7 +231,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           for(let i = 0; i < numFactors; i++) {
             let index = layerInfo.bytes[2 * i]
             let value = layerInfo.bytes[(2 * i) + 1]
-            if (value > 0) {
+            if ((value >= scoreThresh) && (value != 0)) {
               let key = `${layerInd},${index}`
               allFeatures.features[key] = value
             }
@@ -234,7 +239,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
         } else if(!layerInfo.data.max_value) {  // full data
           // filter byte array for nonzero values and add to tracker
           [...layerInfo.bytes].forEach((value, index) => {
-            if (value > 0) {
+            if ((value >= scoreThresh) && (value != 0)) {
               let key = `${layerInd},${index}`
               allFeatures.features[key] = value
             }
@@ -504,6 +509,10 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
           
           // score
           let hitScore = enrInds.includes(hit.layer) ? hit.score : occScore
+          // if filter exists and this hit is not in the filter, set score to 0
+          if((filtersArr) && (filtersArr.filter(d => ((d.layer.name === layers[hit.layer].name) && (d.index === hit.factor) && (d.order === hit.order))).length === 0)) {
+            hitScore = 0
+          }
           if(csnMethod === 'sum') score += hitScore
           else if(csnMethod === 'normalizedSum') score += Math.sqrt(hitScore)
           else if(csnMethod === 'max') score = Math.max(score, hitScore)
