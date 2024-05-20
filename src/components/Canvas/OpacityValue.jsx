@@ -1,5 +1,5 @@
 // import { scaleLinear } from "d3-scale";
-import { getOffsets } from "../lib/segments"
+import { getOffsets } from "../../lib/segments"
 import { line } from "d3-shape";
 
 // function that scales input to alpha values linearly, but 

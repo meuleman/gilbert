@@ -69,7 +69,7 @@ function tooltipContent(region, layer, orientation) {
   )
 }
 ZoomLine.propTypes = {
-  csn: PropTypes.object.isRequired,
+  csn: PropTypes.object,
   order: PropTypes.number.isRequired,
   highlight: PropTypes.bool,
   selected: PropTypes.bool,

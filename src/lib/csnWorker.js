@@ -3,8 +3,57 @@ import Data from './data';
 import { HilbertChromosome, } from './HilbertChromosome'
 import { fromRegion } from './regions'
 import { min } from "d3-array";
+// import * as referenceLayers from "../layers";
+import dhs_components_enr from "../layers/dhs_components_enr";
+import chromatin_states_enr from "../layers/chromatin_states_enr";
+import tf_motifs_enr_top10 from "../layers/tf_motifs_enr_top10";
+import repeats_enr from "../layers/repeats_enr";
+import dhs_occ from "../layers/dhs_occ";
+import chromatin_states_occ from "../layers/chromatin_states_occ";
+import tf_motifs_occ from "../layers/tf_motifs_occ";
+import repeats_occ from "../layers/repeats_occ";
+import variants_categorical from "../layers/variants_categorical";
+import variants_apc from "../layers/variants_apc";
+import variants_gwas from "../layers/variants_gwas";
 
-console.log("loading in the worker")
+// import fields from "../layers/variants_gwas_fields.json";
+
+// function gwasDecodeValue(d) {
+//   let data = d.data;
+//   if(!data) return { field: "", value: null }
+//   let top = {
+//     field: fields.fields[data.max_field],
+//     value: data.max_value
+//   }
+//   if(top.value <= 0) return { field: "", value: null }
+//   return top
+// }
+
+// function decodeValueTF(d) {
+//   let data = d.data;
+//   if(!data) return { field: "", value: null }
+//   let top = Object.keys(data).map((f) => ({
+//     field: f,
+//     value: data[f]
+//   })).sort((a,b) => b.value - a.value)[0]
+//   if(!top || top.value <= 0) return { field: "", value: null }
+//   return top
+// }
+
+const referenceLayers = [
+  dhs_components_enr,
+  chromatin_states_enr,
+  tf_motifs_enr_top10,
+  repeats_enr,
+  dhs_occ,
+  chromatin_states_occ,
+  tf_motifs_occ,
+  repeats_occ,
+  variants_categorical,
+  variants_apc,
+  variants_gwas,
+  // { ...variants_gwas, fieldChoice: gwasDecodeValue },
+]
 
 onmessage = async function(e) {
   console.log("GOT THE MESSAGE", e)
@@ -224,7 +273,7 @@ onmessage = async function(e) {
       let topFieldsAcrossLayersTime = Date.now()
       let bestPaths = Promise.all([trackerPromise, variantTopFields]).then(() => {
         console.log("Time to load all data", Date.now() - topFieldsAcrossLayersTime, "ms")
-        // let bestPathTime = window.performance.now()     
+        // let bestPathTime = performance.now()     
         
         // function to move through the tree and collect potential features to show for each segment
         let collectFeatures = (node, i, factors) => {
@@ -355,7 +404,7 @@ onmessage = async function(e) {
         topLeafPaths.forEach((d) => {
           d.node -= minSelectedDiff
         })
-        // console.log("Time to find best paths", window.performance.now() - bestPathTime, "ms")
+        // console.log("Time to find best paths", performance.now() - bestPathTime, "ms")
         return {'paths': topLeafPaths, 'tree': returnTree}
       })
       return bestPaths
@@ -363,13 +412,9 @@ onmessage = async function(e) {
   }
 
   
+  
   function deserializeLayer(l) {
-    let ret = {
-      ...l,
-      fieldChoice: eval(`(${l.fieldChoice})`),
-      fieldColor: eval(`(${l.fieldColor})`)
-    }
-    return ret
+    return referenceLayers.find(d => d.datasetName == l)
   }
   const lyrs = layers.map(deserializeLayer)
   const vlyrs = variantLayers.map(deserializeLayer)
@@ -382,6 +427,7 @@ onmessage = async function(e) {
 
   console.log("WEB WORKER WORKING")
   const result = await calculateCrossScaleNarration(selected, csnMethod, lyrs, vlyrs, occScore, variantScore, fltrs);
+  console.log("RESULT", result)
   postMessage(result);
 };
 

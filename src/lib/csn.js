@@ -26,19 +26,13 @@ function calculateCrossScaleNarrationInWorker(selected, csnMethod, layers, varia
     };
 
     worker.onerror = function(e) {
-      console.log("error in worker:", e)
+      console.log("worker error:", e)
       worker.terminate()
       reject(e);
     };
 
     function serializeLayer (l) {
-      let ret = {
-        ...l,
-        renderer: null,
-        fieldChoice: l.fieldChoice.toString(),
-        fieldColor: l.fieldColor.toString()
-      }
-      return ret
+      return l.datasetName
     }
 
     const lyrs = layers.map(serializeLayer)

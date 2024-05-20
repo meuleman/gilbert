@@ -1,5 +1,4 @@
 import { scaleOrdinal } from "d3-scale";
-import CanvasScaledValue from "../components/CanvasScaledValue";
 import * as constants from "../lib/constants";
 
 const csFields = ["Active TSS","Flanking TSS","Flanking TSS Upstream","Flanking TSS Downstream","Strong transcription","Weak transcription","Genic Enhancer 1","Genic Enhancer 2","Active Enhancer 1","Active Enhancer 2","Weak Enhancer","ZNF genes + repeats","Heterochromatin","Bivalent/Poised TSS","Bivalent Enhancer","Repressed PolyComb","Weak Repressed PolyComb","Quiescent/Low"]
@@ -11,7 +10,7 @@ export default {
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseURLPrefix}/20240223`,
   orders: [4,13],
-  renderer: CanvasScaledValue,
+  renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()
     .domain(csFields)

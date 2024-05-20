@@ -3,7 +3,6 @@ import { scaleSequential, scaleOrdinal } from "d3-scale";
 import { range } from "d3-array";
 import { interpolateViridis } from "d3-scale-chromatic";
 import { csv } from "d3-fetch";
-import CanvasScaledValue from "../components/CanvasScaledValue";
 
 let phenotypes = (await csv("src/data/phenotypes.csv")).map(d => d.phenotype)
 
@@ -12,7 +11,7 @@ export default {
   datasetName: "ukbb_gwas",
   baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   orders: [12,13],
-  renderer: CanvasScaledValue,    
+  renderer: "CanvasScaledValue",    
   fieldChoice,
   fieldSummary,
   fieldColor: scaleOrdinal()

@@ -1,11 +1,10 @@
 import { scaleOrdinal } from "d3-scale";
-import { color as d3Color } from 'd3-color';
-import { hsv as d3Hsv } from 'd3-hsv';
-import CanvasScaledValue from "../components/CanvasScaledValue";
+// import { color as d3Color } from 'd3-color';
+// import { hsv as d3Hsv } from 'd3-hsv';
 import * as constants from "../lib/constants";
 
-const dhsFields = ["Placental / trophoblast","Lymphoid","Myeloid / erythroid","Cardiac","Musculoskeletal","Vascular / endothelial","Primitive / embryonic","Neural","Digestive","Stromal A","Stromal B","Renal / cancer","Cancer / epithelial","Pulmonary devel.","Organ devel. / renal","Tissue invariant"]
-const dhsColors = ["#ffe500","#fe8102","#ff0000","#07af00","#4c7d14","#414613","#05c1d9","#0467fd","#009588","#bb2dd4","#7a00ff","#4a6876","#08245b","#b9461d","#692108","#c3c3c3"]
+// const dhsFields = ["Placental / trophoblast","Lymphoid","Myeloid / erythroid","Cardiac","Musculoskeletal","Vascular / endothelial","Primitive / embryonic","Neural","Digestive","Stromal A","Stromal B","Renal / cancer","Cancer / epithelial","Pulmonary devel.","Organ devel. / renal","Tissue invariant"]
+// const dhsColors = ["#ffe500","#fe8102","#ff0000","#07af00","#4c7d14","#414613","#05c1d9","#0467fd","#009588","#bb2dd4","#7a00ff","#4a6876","#08245b","#b9461d","#692108","#c3c3c3"]
 
 export default {
   name: "DHS Components (ENR, Full)",
@@ -13,11 +12,15 @@ export default {
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseURLPrefix}/20240327`,
   orders: [4,12],
-  renderer: CanvasScaledValue,
+  renderer: "CanvasScaledValue",
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
-    .domain(dhsFields)
-    .range(dhsColors)
+    .domain(
+      ["Placental / trophoblast","Lymphoid","Myeloid / erythroid","Cardiac","Musculoskeletal","Vascular / endothelial","Primitive / embryonic","Neural","Digestive","Stromal A","Stromal B","Renal / cancer","Cancer / epithelial","Pulmonary devel.","Organ devel. / renal","Tissue invariant"]
+    )
+    .range(
+      ["#ffe500","#fe8102","#ff0000","#07af00","#4c7d14","#414613","#05c1d9","#0467fd","#009588","#bb2dd4","#7a00ff","#4a6876","#08245b","#b9461d","#692108","#c3c3c3"]
+    )
     .unknown("#eee"),
   // used for the base canvas rendering
   strokeWidthMultiplier: 0.05,

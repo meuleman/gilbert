@@ -1,5 +1,5 @@
 import { scaleLinear } from "d3-scale";
-import { getOffsets } from "../lib/segments"
+import { getOffsets } from "../../lib/segments"
 import { line } from "d3-shape";
 
 // const f = Math.floor

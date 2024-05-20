@@ -19,7 +19,7 @@ import variants_gwas from '../../layers/variants_gwas';
 import order_14 from '../../layers/order_14';
 
 
-import CanvasBase from '../CanvasBase';
+import { Renderer as CanvasRenderer } from '../Canvas/Renderer';
 
 import './Power.css';
 
@@ -315,7 +315,7 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
         // render the current layer
         ctx.globalAlpha = 1
         if(d.layer){
-          d.layer.renderer({ 
+          CanvasRenderer(d.layer.renderer, { 
             scales, 
             state: { 
               data: d.data,
@@ -343,7 +343,7 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
           ctx.lineWidth = 0.5
           ctx.globalAlpha = oscale(or - o)
           if(pd.layer){
-            pd.layer.renderer({ 
+            CanvasRenderer(pd.layer.renderer, { 
               scales, 
               state: { 
                 data: pd.data,

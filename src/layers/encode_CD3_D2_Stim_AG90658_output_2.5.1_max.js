@@ -1,7 +1,6 @@
 import { scaleOrdinal } from "d3-scale";
 // import { d3Interpolate } from 'd3-interpolate';
 import { schemeTableau10 } from "d3-scale-chromatic";
-import CanvasOpacityValue from "../components/CanvasOpacityValue";
 import * as constants from "../lib/constants";
 
 export default {
@@ -9,7 +8,7 @@ export default {
   datasetName: "encode_CD3_D2_Stim_AG90658_output_2.5.1_max",
   baseURL: `${constants.baseURLPrefix}/20231030`,
   orders: [4,13],
-  renderer: CanvasOpacityValue,
+  renderer: "CanvasOpacityValue",
   fieldChoice: d => ({ field: "max", value: d.data?.max}),
   fieldColor: scaleOrdinal()
     .domain(["max"])

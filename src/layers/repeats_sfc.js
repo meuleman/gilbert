@@ -1,5 +1,4 @@
 import { scaleOrdinal } from "d3-scale";
-import CanvasScaledValue from "../components/CanvasScaledValue";
 import * as constants from "../lib/constants";
 
 const repeatsFields = ["DNA", "DNA?", "LINE",  "LTR", "LTR?", "Low_complexity", "RC", "RC?", "RNA", "Retroposon", "SINE", "SINE?", "Satellite", "Simple_repeat", "Unknown", "rRNA", "scRNA", "snRNA", "srpRNA", "tRNA"];
@@ -11,7 +10,7 @@ export default {
   datasetName: "repeats_sfc",
   baseURL: `${constants.baseURLPrefix}/20240223`,
   orders: [4,13],
-  renderer: CanvasScaledValue,
+  renderer: "CanvasScaledValue",
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
     .domain(repeatsFields)

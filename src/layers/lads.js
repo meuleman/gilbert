@@ -1,6 +1,5 @@
 
 import { scaleOrdinal } from "d3-scale";
-import CanvasSimpleValue from "../components/CanvasSimpleValue";
 import * as constants from "../lib/constants";
 
 export default {
@@ -8,7 +7,7 @@ export default {
   datasetName: "aggregated_LADs",
   baseURL: `${constants.baseURLPrefix}/20231030`,
   orders: [4,8],
-  renderer: CanvasSimpleValue,    
+  renderer: "CanvasSimpleValue",    
   fieldChoice: bandsValue,
   fieldColor: scaleOrdinal()
     .domain(["Constitutive", "Constitutive_Inter", "Facultative"])
