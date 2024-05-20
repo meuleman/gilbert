@@ -382,6 +382,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
             CanvasRenderer(pd.layer.renderer, { 
               scales, 
               state: { 
+                // data: { [pd.p.field.field]: pd.p.field.value },
                 data: pd.data,
                 loading: false,
                 points: pd.points,

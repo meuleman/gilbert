@@ -5,7 +5,7 @@ import Data from '../lib/data';
 import { urlify, jsonify, fromPosition, fromCoordinates } from '../lib/regions'
 import { HilbertChromosome, checkRanges } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
-import { calculateCrossScaleNarration, narrateRegion } from '../lib/csn'
+import { calculateCrossScaleNarrationInWorker, narrateRegion } from '../lib/csn'
 import { range } from 'd3-array'
 
 import './Home.css'
@@ -391,7 +391,7 @@ function Home() {
       setCrossScaleNarration([])
       setCsn({path: [], layers: csnLayers})
       setLoadingCSN(true)
-      calculateCrossScaleNarration(selected, csnMethod, csnLayers, variantLayers).then(crossScaleResponse => {
+      calculateCrossScaleNarrationInWorker(selected, csnMethod, csnLayers, variantLayers).then(crossScaleResponse => {
         // filter to just unique paths
         const filteredPaths = findUniquePaths(crossScaleResponse.paths).slice(0, 100)
         // setFullCSNPaths(crossScaleResponse.paths)

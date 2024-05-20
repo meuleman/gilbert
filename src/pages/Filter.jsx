@@ -433,8 +433,9 @@ const Filter = () => {
         console.log("csns", csns)
         setLoadingCSN(false)
         let uniques = csns.flatMap(d => findUniquePaths(d.paths)).flatMap(d => d.uniquePaths)
-        console.log("UNIQUES", uniques)
+        // console.log("UNIQUES", uniques)
         setCSNs(uniques)
+        // setCSNs(csns.flatMap(d => d))
       })
       // processInBatches(sample, 5, r => calculateCrossScaleNarration(r, 'sum', csnLayers, variantLayers))
       // .then(csns => {

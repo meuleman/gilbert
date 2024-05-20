@@ -16,6 +16,7 @@ const Sentence = ({
       let orderDownFeatures = csnPath.filter(n => n?.order < order)
 
       if(orderFeature.length == 1) {
+        console.log("ORDER FEATURE", orderFeature[0])
         sentence += ` is best characterized by ${orderFeature[0].field.field} ${orderFeature[0].layer.name}`
       }
 
