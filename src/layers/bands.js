@@ -1,13 +1,12 @@
 
 import { scaleOrdinal } from "d3-scale";
-import CanvasSimpleValue from "../components/CanvasSimpleValue";
 
 export default {
   name: "Bands",
   datasetName: "bands",
   baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   orders: [4,8],
-  renderer: CanvasSimpleValue,    
+  renderer: "CanvasSimpleValue",    
   fieldChoice: bandsValue,
   fieldColor: scaleOrdinal()
     .domain(["gpos25", "gpos50", "gpos75", "gpos100", "gneg", "acen"])

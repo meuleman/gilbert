@@ -1,5 +1,4 @@
 import { scaleOrdinal } from "d3-scale";
-import CanvasOrder14 from "../components/CanvasOrder14";
 import Badge from "../components/Tooltips/Badge";
 
 const decoder = new TextDecoder('ascii');
@@ -46,7 +45,7 @@ export default {
   datasetName: "badges",
   baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   orders: [14,14],
-  renderer: CanvasOrder14,    
+  renderer: "CanvasOrder14",    
   tooltip: Badge,
   // this is a combination layer that will fetch data from multiple layers
   layers,

@@ -1,7 +1,6 @@
 import { scaleOrdinal } from "d3-scale";
 import { color as d3Color } from 'd3-color';
 import { hsv as d3Hsv } from 'd3-hsv';
-import CanvasScaledValue from "../components/CanvasScaledValue";
 import * as constants from "../lib/constants";
 
 const csFields = ["Active TSS","Flanking TSS","Flanking TSS Upstream","Flanking TSS Downstream","Strong transcription","Weak transcription","Genic Enhancer 1","Genic Enhancer 2","Active Enhancer 1","Active Enhancer 2","Weak Enhancer","ZNF genes + repeats","Heterochromatin","Bivalent/Poised TSS","Bivalent Enhancer","Repressed PolyComb","Weak Repressed PolyComb","Quiescent/Low"]
@@ -13,7 +12,7 @@ export default {
   datasetName: "cs_enr_max",
   baseURL: `${constants.baseURLPrefix}/20240327`,
   orders: [4,10],
-  renderer: CanvasScaledValue,
+  renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()
     .domain(csFields)

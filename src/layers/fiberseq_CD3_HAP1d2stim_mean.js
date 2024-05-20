@@ -1,7 +1,6 @@
 import { scaleOrdinal } from "d3-scale";
 // import { d3Interpolate } from 'd3-interpolate';
 import { schemeTableau10 } from "d3-scale-chromatic";
-import CanvasOpacityValue from "../components/CanvasOpacityValue";
 import * as constants from "../lib/constants";
 
 export default {
@@ -9,7 +8,7 @@ export default {
   datasetName: "fs_CD3_HAP1d2stim_mean",
   baseURL: `${constants.baseURLPrefix}/20231101`,
   orders: [4,13],
-  renderer: CanvasOpacityValue,
+  renderer: "CanvasOpacityValue",
   fieldChoice: d => ({ field: "mean", value: d.data?.mean}),
   fieldColor: scaleOrdinal()
     .domain(["mean"])

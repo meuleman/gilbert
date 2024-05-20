@@ -13,7 +13,7 @@ import { getBboxDomain, untransform } from '../lib/bbox';
 import Data from '../lib/data';
 import { debouncer, debouncerTimed } from '../lib/debounce'
 import scaleCanvas from '../lib/canvas';
-import CanvasBase from './CanvasBase';
+import { Renderer as CanvasRenderer } from './Canvas/Renderer';
 
 import './HilbertGenome.css';
 
@@ -313,24 +313,33 @@ const HilbertGenome = ({
       // all of the data we are rendering is associated with the currently loaded data in state 
       // (including layer, order and meta at time data was loaded)
 
-      CanvasBase({ scales, state: { 
-        data: state.data, 
-        loading: state.loading,
-        points, 
-        order: state.order, 
-        // points: state.dataPoints,
-        // order: state.dataOrder,
-        transform
-      }, layer: state.dataLayer, canvasRef })
+      CanvasRenderer("Base", { 
+        scales, 
+        state: { 
+          data: state.data, 
+          loading: state.loading,
+          points, 
+          order: state.order, 
+          // points: state.dataPoints,
+          // order: state.dataOrder,
+          transform
+        }, 
+        layer: state.dataLayer, 
+        canvasRef 
+      })
 
-      state.dataLayer.renderer({ scales, state: { 
-        data: state.data, 
-        loading: state.loading,
-        points: state.dataPoints, 
-        meta: state.dataMeta, 
-        order: state.dataOrder, 
-        transform
-      }, layer: state.dataLayer, canvasRef })
+      CanvasRenderer(state.dataLayer.renderer, { 
+        scales, 
+        state: { 
+          data: state.data, 
+          loading: state.loading,
+          points: state.dataPoints, 
+          meta: state.dataMeta, 
+          order: state.dataOrder, 
+          transform
+        }, 
+        layer: state.dataLayer, canvasRef 
+      })
     }
   }, [state.data, state.loading, state.order, state.dataOrder, state.dataMeta, scales, state.dataLayer, canvasRef])
 

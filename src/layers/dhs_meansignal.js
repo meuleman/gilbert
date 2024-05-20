@@ -1,6 +1,5 @@
 import { scaleOrdinal } from "d3-scale";
 import { schemeTableau10 } from "d3-scale-chromatic";
-import CanvasOpacityValue from "../components/CanvasOpacityValue";
 import * as constants from "../lib/constants";
 
 export default {
@@ -8,7 +7,7 @@ export default {
   datasetName: "dhs_meansignal",
   baseURL: `${constants.baseURLPrefix}/20230724`,
   orders: [4,14],
-  renderer: CanvasOpacityValue,
+  renderer: "CanvasOpacityValue",
   fieldChoice: d => ({ 
     field: "mean", 
     value: d.data?.mean

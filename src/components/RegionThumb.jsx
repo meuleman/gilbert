@@ -8,7 +8,7 @@ import { getOffsets } from "../lib/segments"
 import { HilbertChromosome } from '../lib/HilbertChromosome';
 import Data from '../lib/data';
 
-import CanvasBase from './CanvasBase';
+import { Renderer as CanvasRenderer } from './Canvas/Renderer';
 
 import './RegionThumb.css';
 
@@ -139,7 +139,7 @@ function RegionThumb({ region, highlights, layer, width, height }) {
     if(data && layer) {
       let t = {...transform}
 
-      CanvasBase({ 
+      CanvasRenderer("Base", { 
         scales, 
         state: { 
           data,
@@ -152,7 +152,7 @@ function RegionThumb({ region, highlights, layer, width, height }) {
         canvasRef 
       })
 
-      layer.renderer({ 
+      CanvasRenderer(layer.renderer, { 
         scales, 
         state: { 
           data,

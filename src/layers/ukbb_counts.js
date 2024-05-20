@@ -1,7 +1,6 @@
 
 import { scaleOrdinal } from "d3-scale";
 import { schemeTableau10 } from "d3-scale-chromatic";
-import CanvasOpacityValue from "../components/CanvasOpacityValue";
 
 
 export default {
@@ -9,7 +8,7 @@ export default {
   datasetName: "ukbb_gwas_counts",
   baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   orders: [4,10],
-  renderer: CanvasOpacityValue,    
+  renderer: "CanvasOpacityValue",    
   fieldChoice: d => ({ field: "count", value: d.data?.count}),
   fieldColor: scaleOrdinal()
     .domain(["count"])

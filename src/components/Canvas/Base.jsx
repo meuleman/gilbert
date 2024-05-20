@@ -4,7 +4,7 @@
 // It could also draw the hilbert path if we wanted for performance (tho it would get covered)
 import { line } from "d3-shape"
 import { groups} from "d3-array"
-import { createSegments } from "../lib/segments"
+import { createSegments } from "../../lib/segments"
 
 export default function CanvasBaseComponent({ canvasRef, state, scales, layer }) {
   if(canvasRef.current) {

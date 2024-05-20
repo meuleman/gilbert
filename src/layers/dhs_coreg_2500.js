@@ -1,6 +1,5 @@
 import { scaleOrdinal } from "d3-scale";
 import { schemeTableau10 } from "d3-scale-chromatic";
-import CanvasOpacityValue from "../components/CanvasOpacityValue";
 import * as constants from "../lib/constants";
 
 export default {
@@ -8,7 +7,7 @@ export default {
   datasetName: "dhs_coreg_2500",
   baseURL: `${constants.baseURLPrefix}/20230802`,
   orders: [4,9],
-  renderer: CanvasOpacityValue,
+  renderer: "CanvasOpacityValue",
   fieldChoice: d => ({ 
     field: "max", 
     value: d.data?.max

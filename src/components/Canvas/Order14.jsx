@@ -1,4 +1,4 @@
-import { getOffsets } from "../lib/segments"
+import { getOffsets } from "../../lib/segments"
 import { line } from "d3-shape";
 // A canvas rendering function that renders a letter with a single colored rectangle for each data point
 

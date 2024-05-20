@@ -1,6 +1,5 @@
 
 import { scaleOrdinal } from "d3-scale";
-import CanvasSimpleValue from "../components/CanvasSimpleValue";
 import * as constants from "../lib/constants";
 
 export default {
@@ -9,7 +8,7 @@ export default {
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseURLPrefix}/20240223`,
   orders: [4,13],
-  renderer: CanvasSimpleValue,
+  renderer: "CanvasSimpleValue",
   fieldChoice: topValue,
   fieldColor: scaleOrdinal()
     .domain(["Constitutive", "Constitutive_Inter", "Facultative"])

@@ -1,7 +1,6 @@
 import { scaleOrdinal } from "d3-scale";
 import { color as d3Color } from 'd3-color';
 import { hsv as d3Hsv } from 'd3-hsv';
-import CanvasScaledValue from "../components/CanvasScaledValue";
 import * as constants from "../lib/constants";
 
 const repeatsFields = ["DNA", "DNA?", "LINE",  "LTR", "LTR?", "Low_complexity", "RC", "RC?", "RNA", "Retroposon", "SINE", "SINE?", "Satellite", "Simple_repeat", "Unknown", "rRNA", "scRNA", "snRNA", "srpRNA", "tRNA"];
@@ -12,7 +11,7 @@ export default {
   datasetName: "repeats_enr_max",
   baseURL: `${constants.baseURLPrefix}/20240327`,
   orders: [4,13],
-  renderer: CanvasScaledValue,
+  renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()
     .domain(repeatsFields)

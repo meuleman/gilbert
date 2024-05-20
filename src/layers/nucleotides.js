@@ -1,5 +1,4 @@
 import { scaleOrdinal } from "d3-scale";
-import CanvasTextValue from "../components/CanvasTextValue";
 
 const decoder = new TextDecoder('ascii');
 
@@ -8,7 +7,7 @@ export default {
   datasetName: "grc",
   baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   orders: [14,14],
-  renderer: CanvasTextValue,
+  renderer: "CanvasTextValue",
   fieldChoice: d => ({ field: "basepair", value: decoder.decode(d.bytes)[0] }),
   fieldColor: scaleOrdinal()
     .domain(['A', 'C', 'G', 'T'])

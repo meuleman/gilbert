@@ -6,7 +6,7 @@ import { showFloat, showPosition, showKb } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition, sameHilbertRegion } from '../lib/regions';
 import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
-import { calculateCrossScaleNarration, walkTree, findUniquePaths } from '../lib/csn';
+import { calculateCrossScaleNarrationInWorker, walkTree, findUniquePaths } from '../lib/csn';
 import Data from '../lib/data';
 
 import layers from '../layers'
@@ -185,7 +185,7 @@ const RegionDetail = () => {
       })
 
       if(region.order < 14) {
-        calculateCrossScaleNarration(rs[1], csnMethod, csnLayers, variantLayers).then(crossScaleResponse => {
+        calculateCrossScaleNarrationInWorker(rs[1], csnMethod, csnLayers, variantLayers).then(crossScaleResponse => {
           setCrossScaleNarration(crossScaleResponse)
           console.log("CSN", crossScaleResponse)
           let uniques = findUniquePaths(crossScaleResponse.paths)

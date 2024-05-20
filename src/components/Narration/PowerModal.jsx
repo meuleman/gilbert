@@ -14,6 +14,8 @@ import { variantChooser } from '../../lib/csn';
 
 import order_14 from '../../layers/order_14';
 
+import { Renderer as CanvasRenderer } from '../Canvas/Renderer';
+
 
 import Tooltip from '../Tooltips/Tooltip';
 
@@ -349,7 +351,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
         // render the current layer
         ctx.globalAlpha = 1
         if(d.layer){
-          d.layer.renderer({ 
+          CanvasRenderer(d.layer.renderer, { 
             scales, 
             state: { 
               data: d.data,
@@ -377,9 +379,10 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
           ctx.lineWidth = 0.5
           ctx.globalAlpha = oscale(or - o)
           if(pd.layer){
-            pd.layer.renderer({ 
+            CanvasRenderer(pd.layer.renderer, { 
               scales, 
               state: { 
+                // data: { [pd.p.field.field]: pd.p.field.value },
                 data: pd.data,
                 loading: false,
                 points: pd.points,
