@@ -6,7 +6,7 @@ import { min } from "d3-array";
 import { ConsoleLogger } from "@duckdb/duckdb-wasm";
 
 // function to generate cross scale narrations for a provided region.
-async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[], occScore=0.01, variantScore=0.1, filters=null, minEnrScore=1) {
+async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[], occScore=0.01, variantScore=0.1, filters=null, minEnrScore=0) {
   const fetchData = Data({debug: false}).fetchData;
   
   let orders = Array.from({length: 11}, (a, i) => i + 4);
@@ -219,7 +219,7 @@ async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, v
       // for each layer...
       keys.forEach(layerInd => {
         // if layer is ENR, set a threshold for the score
-        let scoreThresh = enrInds.includes(parseInt(layerInd)) ? 0 : 0 // minEnrScore : 0
+        let scoreThresh = enrInds.includes(parseInt(layerInd)) ? minEnrScore : 0
         let layerInfo = d[layerInd]
         // save the nonzero data for each layer
         if((layerInfo.data.max_value >= scoreThresh) && (layerInfo.data.max_value != 0)) {  // if max data and not 0
