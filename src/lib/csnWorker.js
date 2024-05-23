@@ -5,26 +5,26 @@ import dhs_components_enr from "../layers/dhs_components_enr";
 import chromatin_states_enr from "../layers/chromatin_states_enr";
 import tf_motifs_enr_top10 from "../layers/tf_motifs_enr_top10";
 import repeats_enr from "../layers/repeats_enr";
-import dhs_occ from "../layers/dhs_occ";
-import chromatin_states_occ from "../layers/chromatin_states_occ";
-import tf_motifs_occ from "../layers/tf_motifs_occ";
-import repeats_occ from "../layers/repeats_occ";
-import variants_categorical from "../layers/variants_categorical";
-import variants_apc from "../layers/variants_apc";
-import variants_gwas from "../layers/variants_gwas";
+import dhs_rank_occ from "../layers/dhs_rank_occ";
+import chromatin_states_rank_occ from "../layers/chromatin_states_rank_occ";
+import tf_motifs_rank_occ from "../layers/tf_motifs_rank_occ";
+import repeats_rank_occ from "../layers/repeats_rank_occ";
+import variants_rank_categorical from "../layers/variants_rank_categorical";
+import variants_rank_apc from "../layers/variants_rank_apc";
+import variants_rank_gwas from "../layers/variants_rank_gwas";
 
 const referenceLayers = [
   dhs_components_enr,
   chromatin_states_enr,
   tf_motifs_enr_top10,
   repeats_enr,
-  dhs_occ,
-  chromatin_states_occ,
-  tf_motifs_occ,
-  repeats_occ,
-  variants_categorical,
-  variants_apc,
-  variants_gwas,
+  dhs_rank_occ,
+  chromatin_states_rank_occ,
+  tf_motifs_rank_occ,
+  repeats_rank_occ,
+  variants_rank_categorical,
+  variants_rank_apc,
+  variants_rank_gwas,
 ]
 
 onmessage = async function(e) {
