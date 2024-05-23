@@ -20,12 +20,8 @@ console.log("order14", counts_order14)
 import layers from '../layers'
 
 import LogoNav from '../components/LogoNav';
-import CSNSentence from '../components/Narration/Sentence'
-import RegionStrip from '../components/RegionStrip';
-import Sankey from '../components/Narration/Sankey';
-import CSNLine from '../components/Narration/Line';
-import Summary from '../components/Narration/Summary';
-import Power from '../components/Narration/Power';
+import PowerModal from '../components/Narration/PowerModal';
+import PowerOverlay from '../components/PowerOverlay';
 import ZoomLine from '../components/Narration/ZoomLine';
 
 const csnLayers = [
@@ -456,6 +452,7 @@ const Filter = () => {
   const [numSamples, setNumSamples] = useState(-1)
   const [sampleStatus, setSampleStatus] = useState(0)
   const [csns, setCSNs] = useState([])
+  const [selectedCSN, setSelectedCSN] = useState(null)
   const csnRequest = useRef(0)
   useEffect(() => {
     //make a region set from each chromosome's indices
@@ -465,6 +462,7 @@ const Filter = () => {
       setNumSamples(-1)
       setSampleStatus(0)
       setCSNs([])
+      setSelectedCSN(null)
       csnRequest.current += 1
       const requestNum = csnRequest.current
       // calculate csn for a sample of regions, lets start with 1 per chromosome
@@ -482,8 +480,8 @@ const Filter = () => {
         setSampleStatus(csns.length)
         console.log("csns", csns)
         let uniques = csns.flatMap(d => findUniquePaths(d.paths)).flatMap(d => d.uniquePaths)
-        console.log("UNIQUES", uniques)
-        setCSNs(uniques.sort((a,b) => b.score - a.score))
+        uniques.sort((a,b) => b.score - a.score)
+        setCSNs(uniques)
         // setCSNs(csns.flatMap(d => d))
       }
       const processFn = (r) => {
@@ -496,11 +494,15 @@ const Filter = () => {
       processInBatches(sample, 3, processFn, handleCSNResults)
         .then(csns => {
           setLoadingCSN(false)
+          let uniques = csns.flatMap(d => findUniquePaths(d.paths)).flatMap(d => d.uniquePaths)
+          uniques.sort((a,b) => b.score - a.score)
+          setSelectedCSN(uniques[0])
         })
       
     } else {
       setNumSamples(-1)
       setCSNs([])
+      setSelectedCSN(null)
       csnRequest.current += 1
     }
       // TODO: we dont depend on orderSelects here, chrFilteredIndices will always update but we should probably use a ref then?
@@ -558,6 +560,21 @@ const Filter = () => {
               {loadingCSN ? `Loading... ${sampleStatus}/${numSamples}` : null}
               {csns.length ? 
               <div className="csn-lines">
+                {selectedCSN ?
+                  <ZoomLine 
+                    csn={selectedCSN} 
+                    order={max(Object.keys(orderSelects), d => +d) + 0.5} // max order
+                    highlight={true}
+                    // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
+                    text={true}
+                    width={32} 
+                    height={300}
+                    tipOrientation="right"
+                    showOrderLine={false}
+                    highlightOrders={Object.keys(orderSelects).map(d => +d)} 
+                    // onClick={() => setSelectedCSN(n)}
+                    // onHover={handleLineHover(i)}
+                    /> : null}
                 {csns.map((n,i) => {
                   return (<ZoomLine 
                     key={i}
@@ -571,12 +588,41 @@ const Filter = () => {
                     tipOrientation="right"
                     showOrderLine={false}
                     highlightOrders={Object.keys(orderSelects).map(d => +d)} 
-                    // onClick={handleLineClick}
+                    onClick={() => setSelectedCSN(n)}
                     // onHover={handleLineHover(i)}
                     />)
                   })
                 }
               </div>: null }
+              
+              {selectedCSN ? 
+              <div className="selected-csn">
+                <h4>Selected CSN</h4>
+                <p>Index: {csns.indexOf(selectedCSN)}</p>
+                <p>Score: {selectedCSN.score} </p>
+                <PowerOverlay 
+                  selected={selectedCSN} 
+                  zoomOrder={max(Object.keys(orderSelects), d => +d) + 0.5}
+                  narration={selectedCSN}
+                  layers={csnLayers}
+                  loadingCSN={loadingCSN}
+                  mapWidth={340}
+                  mapHeight={340}
+                  tipOrientation="right"
+                  modalPosition={{top: 0, left: 0}}
+                  onClose={() => {}}
+                ></PowerOverlay>
+                {/* <PowerModal 
+                  csn={selectedCSN} 
+                  width={400} 
+                  height={400} 
+                  userOrder={max(Object.keys(orderSelects), d => +d) + 0.5}
+                  onOrder={(o) => {
+                    // console.log("o", o)
+                  }}
+                  /> */}
+              </div>
+              : null }
 
               <h4>Segments (debug)</h4>
               <p>{showInt(filteredSegmentCount)} segments found at order {max(Object.keys(orderSelects), d => +d)}</p>
@@ -589,9 +635,9 @@ const Filter = () => {
                   <div className="chromosome-regions">
                     {d.regions.slice(0,10).map(r => {
                       return <span className="chromosome-region" key={r.i}>
-                        <Link to={`/region?region=${urlify(r)}`} target="_blank">📄 
+                        <Link to={`/region?region=${urlify(r)}`} target="_blank">📄 </Link>
+                        <Link to={`/?region=${urlify(region)}`}>🗺️</Link>
                         {showPosition(r)}
-                        </Link>
                       </span>
                     })}
                   </div>
