@@ -7,7 +7,7 @@ const ladColors = ["#D82A2A", "blue", "#A0A0A0"]
 export default {
   name: "LADs (OCC)",
   datasetName: "lads_occ",
-  baseURL: `${constants.baseURLPrefix}/20240419`,
+  baseURL: `${constants.baseAltiusURLPrefix}`,
   orders: [4,14],
   renderer: "CanvasSimpleValue",
   fieldChoice: decodeValue,

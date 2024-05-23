@@ -9,7 +9,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "TF Motifs (ENR, Top 10)",
   datasetName: "tf_enr_top10_c",
-  baseURL: `${constants.baseURLPrefix}/20240327`,
+  baseURL: `${constants.baseAltiusURLPrefix}`,
   orders: [4,13],
   filterOrders: [8,13], // CENBP is relevant at order 4
   renderer: "CanvasScaledValue",

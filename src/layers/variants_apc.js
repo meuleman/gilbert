@@ -5,7 +5,7 @@ export default {
   name: "Variants (aPC)",
   datasetName: "variants_favor_apc",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseURLPrefix}/20240321`,
+  baseURL: `${constants.baseAltiusURLPrefix}`,
   orders: [14,14],
   renderer: "CanvasSimpleValue",
   // fieldChoice: topValue,

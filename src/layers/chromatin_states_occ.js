@@ -8,7 +8,7 @@ export default {
   name: "Chromatin States (OCC)",
   datasetName: "cs_occ",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseURLPrefix}/20240404`,
+  baseURL: `${constants.baseAltiusURLPrefix}`,
   orders: [4,14],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,

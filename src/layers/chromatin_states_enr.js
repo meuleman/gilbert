@@ -11,7 +11,7 @@ export default {
   name: "Chromatin States (ENR, Full)",
   datasetName: "cs_enr",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseURLPrefix}/20240327`,
+  baseURL: `${constants.baseAltiusURLPrefix}`,
   orders: [4,10],
   renderer: "CanvasScaledValue",
   fieldChoice: topValue,

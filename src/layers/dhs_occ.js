@@ -7,7 +7,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "DHS Components (OCC)",
   datasetName: "dhs_occ",
-  baseURL: `${constants.baseURLPrefix}/20240404`,
+  baseURL: `${constants.baseAltiusURLPrefix}`,
   orders: [4,14],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,

@@ -8,7 +8,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "Repeats (OCC)",
   datasetName: "repeats_occ",
-  baseURL: `${constants.baseURLPrefix}/20240401`,
+  baseURL: `${constants.baseAltiusURLPrefix}`,
   orders: [4,14],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
