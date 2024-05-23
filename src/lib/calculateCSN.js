@@ -3,7 +3,7 @@ import { fromRegion } from './regions'
 import Data from './data';
 
 // function to generate cross scale narrations for a provided region.
-export default async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[], variantScore=0.1, filters=null, minEnrScore=0) {
+export default async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[], filters=null, minEnrScore=0) {
   const fetchData = Data({debug: false}).fetchData;
   
   let orders = Array.from({length: 11}, (a, i) => i + 4);
@@ -317,8 +317,17 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
           let variants = Object.values(nodeData.variants).filter(d => d.topField.value !== null && d.topField.value !== 0)
           if(variants.length > 0) {
             topLeafPaths[i]['variants'] = variants
-            // increase node's score depending on number of variants
-            score += (variants.length * variantScore)
+            // increase node's score depending on chosen variant
+            let categoricalVariants = variants.filter(d => d.layerDataset == "variants_favor_categorical_rank")
+            let gwasVariants = variants.filter(d => d.layerDataset == "variants_gwas_rank")
+            let apcVariants = variants.filter(d => d.layerDataset == "variants_favor_apc_rank")
+            if(categoricalVariants.length) {
+              score += categoricalVariants.sort((a,b) => b.topField.value - a.topField.value)[0].topField.value
+            } else if (gwasVariants.length) {
+              score += gwasVariants.sort((a,b) => b.topField.value - a.topField.value)[0].topField.value
+            } else if (apcVariants.length) {
+              score += apcVariants.sort((a,b) => b.topField.value - a.topField.value)[0].topField.value
+            }
           }
         }
         topLeafPaths[i]['score'] = score
