@@ -129,7 +129,14 @@
 .filter-page .csn-lines {
   display: flex;
   flex-direction: row;
-  gap: 1px;
+  gap: 0px;
   overflow-x: auto;
 }
 
+.filter-page .power-overlay {
+  position: relative !important;
+  max-width: 360px;
+}
+.filter-page .power-overlay .csn-line {
+  margin-left: 4px;
+}

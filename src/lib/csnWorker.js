@@ -29,7 +29,7 @@ const referenceLayers = [
 
 onmessage = async function(e) {
   console.log("GOT THE MESSAGE", e)
-  const { selected, csnMethod, layers, variantLayers, occScore, variantScore, filters } = e.data;
+  const { selected, csnMethod, layers, variantLayers, variantScore, filters } = e.data;
 
   function deserializeLayer(l) {
     return referenceLayers.find(d => d.datasetName == l)
@@ -47,7 +47,7 @@ onmessage = async function(e) {
   }
 
   console.log("WEB WORKER WORKING")
-  const result = await calculateCrossScaleNarration(selected, csnMethod, lyrs, vlyrs, occScore, variantScore, fltrs);
+  const result = await calculateCrossScaleNarration(selected, csnMethod, lyrs, vlyrs, variantScore, fltrs);
   console.log("RESULT", result)
   postMessage(result)
   // const unique = findUniquePaths(result.paths).uniquePaths

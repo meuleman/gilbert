@@ -20,6 +20,7 @@ const PowerOverlay = ({
   mapWidth,
   mapHeight,
   modalPosition,
+  tipOrientation="left",
   onCSNIndex=()=>{},
   onClose=()=>{},
   onZoom=()=>{},
@@ -58,7 +59,7 @@ const PowerOverlay = ({
         zr = {field: v.topField, layer: v.layer, order: 14, region: v}
       }
       setZoomedPathRegion(zr)
-      console.log("NARRATION IN OVERLAY", narration)
+      // console.log("NARRATION IN OVERLAY", narration)
     }
   }, [narration, zOrder])
   
@@ -94,7 +95,7 @@ const PowerOverlay = ({
         <div className="csn">
           <div className="power-container">
            
-            <ZoomLine 
+            {tipOrientation == "left" ? <ZoomLine 
               csn={narration} 
               order={zOrder} 
               highlight={true}
@@ -102,9 +103,10 @@ const PowerOverlay = ({
               text={true}
               width={34} 
               height={powerHeight} 
+              tipOrientation={tipOrientation}
               onHover={handleZoom}
               onClick={(c) => { console.log("narration", c)}}
-            />
+            /> : null}
             <PowerModal 
               csn={narration} 
               width={powerWidth} 
@@ -112,6 +114,18 @@ const PowerOverlay = ({
               userOrder={zOrder}
               onOrder={handleZoom}
               />
+            {tipOrientation == "right" ? <ZoomLine 
+              csn={narration} 
+              order={zOrder} 
+              highlight={true}
+              selected={true}
+              text={true}
+              width={34} 
+              height={powerHeight} 
+              tipOrientation={tipOrientation}
+              onHover={handleZoom}
+              onClick={(c) => { console.log("narration", c)}}
+            /> : null}
               
           </div>
           <div className="zoom-text">
