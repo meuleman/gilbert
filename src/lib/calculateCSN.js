@@ -3,7 +3,7 @@ import { fromRegion } from './regions'
 import Data from './data';
 
 // function to generate cross scale narrations for a provided region.
-export default async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[], occScore=0.01, variantScore=0.1, filters=null, minEnrScore=0) {
+export default async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[], variantScore=0.1, filters=null, minEnrScore=0) {
   const fetchData = Data({debug: false}).fetchData;
   
   let orders = Array.from({length: 11}, (a, i) => i + 4);
@@ -296,7 +296,7 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
           let hit = factorsSorted[0]
           
           // score
-          let hitScore = enrInds.includes(hit.layerInd) ? hit.score : occScore
+          let hitScore = hit.score
           // if filter exists and this hit is not in the filter, set score to 0
           if((filtersArr) && (filtersArr.filter(d => ((d.layer.name === layers[hit.layerInd].name) && (d.index === hit.factor) && (d.order === hit.order))).length === 0)) {
             hitScore = 0
