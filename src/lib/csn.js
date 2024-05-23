@@ -16,7 +16,7 @@ function createWorker() {
 }
 
 // Function to call the Web Worker
-function calculateCrossScaleNarrationInWorker(selected, csnMethod, layers, variantLayers, variantScore, filters) {
+function calculateCrossScaleNarrationInWorker(selected, csnMethod, layers, variantLayers, filters) {
   // const worker = new Worker(csnWorker, { type: 'module' });
   const worker = createWorker()
   console.log("workerrrr", worker)
@@ -54,7 +54,7 @@ function calculateCrossScaleNarrationInWorker(selected, csnMethod, layers, varia
     }
   
     console.log("SENDING MESSAGE")
-    worker.postMessage({ selected , csnMethod , layers:lyrs, variantLayers:vlyrs, variantScore, filters:fltrs });
+    worker.postMessage({ selected , csnMethod , layers:lyrs, variantLayers:vlyrs, filters:fltrs });
     // worker.postMessage({ selected, csnMethod, layers, variantLayers, occScore, variantScore, filters });
   });
 }
