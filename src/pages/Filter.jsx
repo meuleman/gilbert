@@ -487,8 +487,8 @@ const Filter = () => {
         setSampleStatus(csns.length)
         console.log("csns", csns)
         let uniques = csns.flatMap(d => findUniquePaths(d.paths)).flatMap(d => d.uniquePaths)
-        // console.log("UNIQUES", uniques)
-        setCSNs(uniques)
+        console.log("UNIQUES", uniques)
+        setCSNs(uniques.sort((a,b) => b.score - a.score))
         // setCSNs(csns.flatMap(d => d))
       }
       const processFn = (r) => {
