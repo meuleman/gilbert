@@ -580,14 +580,14 @@ const Filter = () => {
                     key={i}
                     csn={n} 
                     order={max(Object.keys(orderSelects), d => +d) + 0.5} // max order
-                    highlight={true}
+                    // highlight={true}
                     // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
                     text={false}
                     width={8.5} 
                     height={300}
                     tipOrientation="right"
                     showOrderLine={false}
-                    highlightOrders={Object.keys(orderSelects).map(d => +d)} 
+                    // highlightOrders={Object.keys(orderSelects).map(d => +d)} 
                     onClick={() => setSelectedCSN(n)}
                     // onHover={handleLineHover(i)}
                     />)
