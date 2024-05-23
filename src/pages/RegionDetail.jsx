@@ -78,15 +78,15 @@ const RegionDetail = () => {
     layers.find(d => d.name == "TF Motifs (ENR, Top 10)"),
     // layers.find(d => d.name == "TF Motifs (ENR, Full)"),
     layers.find(d => d.name == "Repeats (ENR, Full)"),
-    layers.find(d => d.name == "DHS Components (OCC)"),
-    layers.find(d => d.name == "Chromatin States (OCC)"),
-    layers.find(d => d.name == "TF Motifs (OCC)"),
-    layers.find(d => d.name == "Repeats (OCC)"),
+    layers.find(d => d.name == "DHS Components (OCC, Ranked)"),
+    layers.find(d => d.name == "Chromatin States (OCC, Ranked)"),
+    layers.find(d => d.name == "TF Motifs (OCC, Ranked)"),
+    layers.find(d => d.name == "Repeats (OCC, Ranked)"),
   ]
   const variantLayers = [
-    layers.find(d => d.datasetName == "variants_favor_categorical"),
-    layers.find(d => d.datasetName == "variants_favor_apc"),
-    layers.find(d => d.datasetName == "variants_gwas"),
+    layers.find(d => d.datasetName == "variants_favor_categorical_rank"),
+    layers.find(d => d.datasetName == "variants_favor_apc_rank"),
+    layers.find(d => d.datasetName == "variants_gwas_rank"),
     // layers.find(d => d.datasetName == "grc"),
   ]
   
