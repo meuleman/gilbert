@@ -58,6 +58,7 @@ const PowerOverlay = ({
         zr = {field: v.topField, layer: v.layer, order: 14, region: v}
       }
       setZoomedPathRegion(zr)
+      console.log("NARRATION IN OVERLAY", narration)
     }
   }, [narration, zOrder])
   

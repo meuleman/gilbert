@@ -237,11 +237,14 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
           points
         }
       })
+      console.log("in power", csn)
+      console.log("order points", orderPoints)
 
       Promise.all(orderPoints.map(p => {
         if(p.layer?.layers){ 
           return Promise.all(p.layer.layers.map(l => dataClient.fetchData(l, p.order, p.points)))
         } else {
+          console.log("P", p.order, p.layer)
           return dataClient.fetchData(p.layer, p.order, p.points)
         }
       }))
@@ -250,6 +253,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
             const order = orderPoints[i].order
             const layer = orderPoints[i].layer
             const region = orderPoints[i].region
+            console.log("set data", order, layer)
             if(order == 14) {
                 // combine the data
                 d = layer.combiner(d)
@@ -351,6 +355,17 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
         // render the current layer
         ctx.globalAlpha = 1
         if(d.layer){
+          console.log("RENDER o", o, d)
+          let rd = {}
+          if(o < 14) {
+            // if(d.layer.topValues) {
+            //   rd["max_field"] = d.layer.fieldColor.domain().indexOf(d.p.field.field)
+            //   rd["max_value"] = d.p.field.value
+            // } else {
+            //   rd[d.p.field.field] = d.p.field.value
+            // }
+            d.data.find(r => r.i == d.p.region.i).data = d.region.data
+          }
           CanvasRenderer(d.layer.renderer, { 
             scales, 
             state: { 
@@ -379,6 +394,8 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
           ctx.lineWidth = 0.5
           ctx.globalAlpha = oscale(or - o)
           if(pd.layer){
+
+            // pd.data.find(r => r.i == pd.p.region.i).data = pd.region.data
             CanvasRenderer(pd.layer.renderer, { 
               scales, 
               state: { 

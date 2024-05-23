@@ -61,6 +61,12 @@
   margin: 0 4px;
   width: 70px;
   font-family: monospace;
+  text-align: right;
+}
+.filter-order .disabled {
+  color: gray;
+  line-height: 38px;
+  margin: 0 4px;
 }
 
 .filter-page .filter-group {
