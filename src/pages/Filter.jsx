@@ -127,7 +127,7 @@ const FilterOrder = ({order, orderSums, showNone, showUniquePaths, disabled, sel
   }, [showUniquePaths]);
 
   useEffect(() => {
-    const lyrs = csnLayers.concat(variantLayers.slice(0, 2))
+    const lyrs = csnLayers.concat(variantLayers.slice(0, 1))
     let newFields = lyrs.filter(d => d.orders[0] <= order && d.orders[1] >= order).flatMap(layer => {
       let oc = orderSums.find(o => o.order == order)
       let counts = null
