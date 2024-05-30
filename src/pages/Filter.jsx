@@ -114,6 +114,10 @@ const FilterOrder = ({order, orderSums, showNone, showUniquePaths, disabled, sel
     return (
       <div>
         <span>{option.field} </span>
+        <span> 
+          {showUniquePaths ? showInt(option.unique_count) + "(segments)" : ""} 
+        </span>
+
         {/* <span> 
           {showInt(showUniquePaths ? option.unique_count : option.count)} ({showUniquePaths ? option.unique_percent?.toFixed(2) + ")% unique" : option.percent?.toFixed(2)+")%"} 
         </span> */}
@@ -123,13 +127,18 @@ const FilterOrder = ({order, orderSums, showNone, showUniquePaths, disabled, sel
   }, [showUniquePaths]);
 
   useEffect(() => {
-    let newFields = csnLayers.filter(d => d.orders[0] <= order && d.orders[1] >= order).flatMap(layer => {
+    const lyrs = csnLayers.concat(variantLayers.slice(0, 1))
+    let newFields = lyrs.filter(d => d.orders[0] <= order && d.orders[1] >= order).flatMap(layer => {
       let oc = orderSums.find(o => o.order == order)
       let counts = null
       let unique_counts = null;
+      let dsName = layer.datasetName
+      if(dsName.includes("rank")){
+        dsName = dsName.replace("_rank", "")
+      }
       if(oc) {
-        counts = oc.counts[layer.datasetName]
-        unique_counts = oc.unique_counts[layer.datasetName]
+        counts = oc.counts[dsName]
+        unique_counts = oc.unique_counts[dsName]
       }
       // const counts = oc ? (showUniquePaths ? oc.unique_counts : oc.counts) : null
       // oc ? oc = counts[layer.datasetName] : oc = null
@@ -350,6 +359,9 @@ const Filter = () => {
       return chromosomes.map(c => {
         let chrm = oc[c]
         let l = os.layer.datasetName
+        if(l.includes("rank")){
+          l = l.replace("_rank", "")
+        }
         let i = os.index
         return {
           ...os,
@@ -371,9 +383,14 @@ const Filter = () => {
       setLoadingFilters(true)
       Promise.all(filteredGroupedSelects.map(g => {
         return Promise.all(g[1].map(os => {
-          const base = `https://d2ppfzsmmsvu7l.cloudfront.net/20240516/csn_index_files`
+          // const base = `https://d2ppfzsmmsvu7l.cloudfront.net/20240516/csn_index_files`
+          const base = `https://resources.altius.org/~ctrader/public/gilbert/data/precomputed_csn_paths/index_files`
           // const base = `https://d2ppfzsmmsvu7l.cloudfront.net/20240509/csn_index_files`
-          const url = `${base}/${os.order}.${os.chromosome}.${os.layer.datasetName}.${os.index}.native_order_resolution.indices.int32.bytes`
+          let dsName = os.layer.datasetName
+          if(dsName.includes("rank")){
+            dsName = dsName.replace("_rank", "")
+          }
+          const url = `${base}/${os.order}.${os.chromosome}.${dsName}.${os.index}.native_order_resolution.indices.int32.bytes`
           // const url = `${base}/${os.order}.${os.chromosome}.${os.layer.datasetName}.${os.index}.order_14_resolution.indices.int32.bytes`
           return fetch(url).then(r => r.arrayBuffer().then(buffer => {
             const int32Array = new Int32Array(buffer);
@@ -523,7 +540,7 @@ const Filter = () => {
           <div className="section-content">
             <div className="filter-group">
               <button onClick={() => setShowUniquePaths(!showUniquePaths)}>
-                {showUniquePaths ? "Show All Paths" : "Show Unique Paths"}
+                {showUniquePaths ? "hide segments" : "show segments (debug)"}
               </button>
               <button onClick={() => setShowNone(!showNone)}>
                 {showNone ? "Hide Hidden Fields" : "Show Hidden Fields"}
@@ -580,14 +597,14 @@ const Filter = () => {
                     key={i}
                     csn={n} 
                     order={max(Object.keys(orderSelects), d => +d) + 0.5} // max order
-                    highlight={true}
+                    // highlight={true}
                     // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
                     text={false}
                     width={8.5} 
                     height={300}
                     tipOrientation="right"
                     showOrderLine={false}
-                    highlightOrders={Object.keys(orderSelects).map(d => +d)} 
+                    // highlightOrders={Object.keys(orderSelects).map(d => +d)} 
                     onClick={() => setSelectedCSN(n)}
                     // onHover={handleLineHover(i)}
                     />)

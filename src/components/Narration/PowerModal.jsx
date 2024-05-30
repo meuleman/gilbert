@@ -237,14 +237,14 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
           points
         }
       })
-      console.log("in power", csn)
-      console.log("order points", orderPoints)
+      // console.log("in power", csn)
+      // console.log("order points", orderPoints)
 
       Promise.all(orderPoints.map(p => {
         if(p.layer?.layers){ 
           return Promise.all(p.layer.layers.map(l => dataClient.fetchData(l, p.order, p.points)))
         } else {
-          console.log("P", p.order, p.layer)
+          // console.log("P", p.order, p.layer)
           return dataClient.fetchData(p.layer, p.order, p.points)
         }
       }))
@@ -253,7 +253,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
             const order = orderPoints[i].order
             const layer = orderPoints[i].layer
             const region = orderPoints[i].region
-            console.log("set data", order, layer)
+            // console.log("set data", order, layer)
             if(order == 14) {
                 // combine the data
                 d = layer.combiner(d)
