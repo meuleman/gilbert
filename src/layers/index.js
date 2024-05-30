@@ -42,6 +42,7 @@ import Repeats_Sfc from './repeats_sfc'
 import Repeats_Sfc_max from './repeats_sfc_max'
 import Repeats_enr from './repeats_enr'
 import Repeats_enr_max from './repeats_enr_max'
+import Repeats_enr_counts from './repeats_enr_counts'
 import Repeats_occ from './repeats_occ'
 import Repeats_rank_occ from './repeats_rank_occ'
 import CpG_Island_Density from './cpg_islands_density'
@@ -102,6 +103,7 @@ export default [
   Repeats_Sfc_max,
   Repeats_enr,
   Repeats_enr_max,
+  Repeats_enr_counts,
   Repeats_occ,
   Repeats_rank_occ,
   UKBB,
