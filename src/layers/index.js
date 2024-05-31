@@ -15,6 +15,7 @@ import DHS_OCC from './dhs_occ'
 import DHS_rank_OCC from './dhs_rank_occ'
 import DHS_enr from './dhs_components_enr'
 import DHS_enr_max from './dhs_components_enr_max'
+import DHS_enr_counts from './dhs_components_enr_counts'
 import DHS_Mean_Signal from './dhs_meansignal'
 import DHS_Density from './dhs_density'
 // import Chromatin_OE_Chi from './chromatin_oe_chi'
@@ -24,6 +25,7 @@ import chromatin_states_occ from './chromatin_states_occ'
 import chromatin_states_rank_occ from './chromatin_states_rank_occ'
 import chromatin_states_enr from './chromatin_states_enr'
 import chromatin_states_enr_max from './chromatin_states_enr_max'
+import chromatin_states_enr_counts from './chromatin_states_enr_counts'
 // import TF_Motifs_OE_Chi from './tf_motifs_oe_chi'
 import TF_Motifs_Sfc from './tf_motifs_sfc'
 import TF_Motifs_Sfc_max from './tf_motifs_sfc_max'
@@ -40,6 +42,7 @@ import Repeats_Sfc from './repeats_sfc'
 import Repeats_Sfc_max from './repeats_sfc_max'
 import Repeats_enr from './repeats_enr'
 import Repeats_enr_max from './repeats_enr_max'
+import Repeats_enr_counts from './repeats_enr_counts'
 import Repeats_occ from './repeats_occ'
 import Repeats_rank_occ from './repeats_rank_occ'
 import CpG_Island_Density from './cpg_islands_density'
@@ -72,6 +75,7 @@ export default [
   DHS_rank_OCC,
   DHS_enr,
   DHS_enr_max,
+  DHS_enr_counts,
   DHS_Mean_Signal,
   DHS_Density,
   // DHS_Coreg_2500,
@@ -84,6 +88,7 @@ export default [
   chromatin_states_rank_occ,
   chromatin_states_enr,
   chromatin_states_enr_max,
+  chromatin_states_enr_counts,
   // TF_Motifs_OE_Chi,
   TF_Motifs_Sfc,
   TF_Motifs_Sfc_max,
@@ -98,6 +103,7 @@ export default [
   Repeats_Sfc_max,
   Repeats_enr,
   Repeats_enr_max,
+  Repeats_enr_counts,
   Repeats_occ,
   Repeats_rank_occ,
   UKBB,
