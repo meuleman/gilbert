@@ -39,7 +39,8 @@ function tooltipContent(region, layer, orientation) {
   return (
     <div style={{display: 'flex', flexDirection: 'column'}}>
       <span>{showPosition(region)}</span>
-      <span className="position">Order: {region.order}</span>
+      <span className="position">[{showKb(Math.pow(4, 14 - region.order))}]</span>
+      {/* <span className="position">Order: {region.order}</span> */}
       <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
       {fields.map((f,i) => (
         <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>

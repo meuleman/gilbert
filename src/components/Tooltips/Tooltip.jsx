@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useImperativeHandle, forwardRef, useMemo } from 'react';
-import { showPosition, showFloat } from '../../lib/display'
+import { showPosition, showFloat, showKb } from '../../lib/display'
 
 
 function defaultContent(region, layer, orientation) {
@@ -24,7 +24,8 @@ function defaultContent(region, layer, orientation) {
       {orientation == "bottom" ? <div>
         {showPosition(region)}
         <br/>
-        <span className="position">Order: {region.order}</span>
+        {/* <span className="position">Order: {region.order}</span> */}
+        <span className="position">[{showKb(Math.pow(4, 14 - region.order))}]</span>
         <br/>
         <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
       </div> : null}
@@ -43,7 +44,8 @@ function defaultContent(region, layer, orientation) {
       {orientation !== "bottom" ? <div>
         <span style={{borderTop: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
         <br/>
-        <span className="position">Order: {region.order}</span>
+        {/* <span className="position">Order: {region.order}</span> */}
+        <span className="position">[{showKb(Math.pow(4, 14 - region.order))}]</span>
         <br/>
         {showPosition(region)}
       </div> : null}
