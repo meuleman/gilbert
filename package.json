@@ -33,6 +33,7 @@
     "react-router-dom": "^6.21.3",
     "react-select": "^5.8.0",
     "react-table": "^7.8.0",
+    "react-tooltip": "^5.26.4",
     "react-window": "^1.8.10",
     "regl-scatterplot": "^1.8.5",
     "vite-plugin-svgr": "^4.2.0"

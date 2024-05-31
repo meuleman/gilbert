@@ -23,6 +23,7 @@ import LogoNav from '../components/LogoNav';
 import PowerModal from '../components/Narration/PowerModal';
 import PowerOverlay from '../components/PowerOverlay';
 import ZoomLine from '../components/Narration/ZoomLine';
+import Selects from '../components/ComboLock/Selects';
 
 const csnLayers = [
   layers.find(d => d.name == "DHS Components (ENR, Full)"),
@@ -34,6 +35,7 @@ const csnLayers = [
   layers.find(d => d.name == "TF Motifs (OCC, Ranked)"),
   layers.find(d => d.name == "Repeats (OCC, Ranked)"),
 ]
+console.log("CSN LAYERS", csnLayers)
 const variantLayers = [
   layers.find(d => d.datasetName == "variants_favor_categorical_rank"),
   layers.find(d => d.datasetName == "variants_favor_apc_rank"),
@@ -41,186 +43,9 @@ const variantLayers = [
   // layers.find(d => d.datasetName == "grc"),
 ]
 
-const orders = range(4, 15)
-
 import './Filter.css';
-import hilbert from 'd3-hilbert';
 
 
-
-const dot = (color = 'transparent') => ({
-  alignItems: 'center',
-  display: 'flex',
-
-  ':before': {
-    backgroundColor: color,
-    borderRadius: 2,
-    content: '" "',
-    display: 'block',
-    marginRight: 8,
-    height: 10,
-    width: 10,
-  },
-});
-
-const colourStyles = {
-  control: (styles) => ({ ...styles, backgroundColor: 'white' }),
-  option: (styles, { data, isDisabled, isFocused, isSelected }) => {
-    const color = chroma(data.color);
-    return {
-      ...styles,
-      backgroundColor: isDisabled
-        ? undefined
-        // : isSelected
-        // ? data.color
-        : isFocused
-        ? color.alpha(0.1).css()
-        : undefined,
-      color: isDisabled
-        ? '#ccc'
-        // : isSelected
-        // ? chroma.contrast(color, 'white') > 2
-        //   ? 'white'
-        //   : 'black'
-        : data.color,
-      cursor: isDisabled ? 'not-allowed' : 'default',
-
-      ':active': {
-        ...styles[':active'],
-        backgroundColor: !isDisabled
-          ? isSelected
-            ? data.color
-            : color.alpha(0.3).css()
-          : undefined,
-      },
-    };
-  },
-  input: (styles) => ({ ...styles, ...dot() }),
-  placeholder: (styles) => ({ ...styles, ...dot('#ccc') }),
-  singleValue: (styles, { data }) => ({ ...styles, ...dot(data.color) }),
-};
-
-const FilterOrder = ({order, orderSums, showNone, showUniquePaths, disabled, selected, onSelect}) => {
-  const [selectedField, setSelectedField] = useState(null)
-
-  useEffect(() => {
-    console.log("selected", selected)
-    setSelectedField(selected || null)
-  }, [selected])
-
-  const [allFields, setAllFields] = useState([])
-
-  const formatLabel = useCallback((option) => {
-    return (
-      <div>
-        <span>{option.field} </span>
-        <span> 
-          {showUniquePaths ? showInt(option.unique_count) + "(segments)" : ""} 
-        </span>
-
-        {/* <span> 
-          {showInt(showUniquePaths ? option.unique_count : option.count)} ({showUniquePaths ? option.unique_percent?.toFixed(2) + ")% unique" : option.percent?.toFixed(2)+")%"} 
-        </span> */}
-        <span>[{option.layer.name}]</span>
-      </div>
-    );
-  }, [showUniquePaths]);
-
-  useEffect(() => {
-    const lyrs = csnLayers.concat(variantLayers.slice(0, 1))
-    let newFields = lyrs.filter(d => d.orders[0] <= order && d.orders[1] >= order).flatMap(layer => {
-      let oc = orderSums.find(o => o.order == order)
-      let counts = null
-      let unique_counts = null;
-      let dsName = layer.datasetName
-      if(dsName.includes("rank")){
-        dsName = dsName.replace("_rank", "")
-      }
-      if(oc) {
-        counts = oc.counts[dsName]
-        unique_counts = oc.unique_counts[dsName]
-      }
-      // const counts = oc ? (showUniquePaths ? oc.unique_counts : oc.counts) : null
-      // oc ? oc = counts[layer.datasetName] : oc = null
-      let fields = layer.fieldColor.domain().map((f, i) => {
-        return { 
-          order,
-          layer,
-          // label: f + " (" + showInt(c) + " paths) " + layer.name, 
-          label: f + " " + layer.name,
-          field: f, 
-          index: i, 
-          color: layer.fieldColor(f), 
-          count: counts ? counts[i] : "?",
-          unique_count: unique_counts ? unique_counts[i] : "?",
-          unique_percent: unique_counts ? unique_counts[i] / oc.totalSegments * 100 : "?",
-          percent: counts ? counts[i] / oc.totalPaths * 100: "?",
-          isDisabled: counts ? counts[i] == 0 || counts[i] == "?" : true
-        }
-      }).sort((a,b) => {
-        return b.count - a.count
-      })
-      if(!showNone){
-        fields = fields.filter(f => f.count > 0 && f.count != "?")
-      }
-      return fields
-    })
-    const grouped = groups(newFields, f => f.layer.name)
-      .map(d => ({ label: d[0], options: d[1] }))
-      .filter(d => d.options.length)
-    setAllFields(grouped)
-  }, [order, orderSums, showNone])
-
-  // useEffect(() => {
-  //   if(selectedField){
-  //     console.log("SELECTED", selectedField)
-  //     const selfield = allFields.flatMap(d => d.options).find(f => f.order == selectedField.order && f.field == selectedField.field && f.layer.name == selectedField.layer.name)
-  //     console.log("selfield", selfield)
-  //     if(selfield && (selfield !== selectedField)){
-  //       setSelectedField(selfield)
-  //     }
-  //   }
-  // }, [allFields, selectedField])
-
-  useEffect(() => {
-    onSelect(selectedField)
-  }, [selectedField])
-
-  return (
-    <div className="filter-order">
-      <span className="order-label">
-        {/* Order {order} */}
-        {showKb(Math.pow(4, 14 - order))}
-      </span> 
-      <div className="filter-group">
-        <Select
-          options={allFields}
-          styles={colourStyles}
-          value={selectedField}
-          isDisabled={disabled}
-          onChange={(selectedOption) => setSelectedField(selectedOption)}
-          formatOptionLabel={formatLabel}
-          formatGroupLabel={data => (
-            <div style={{ fontWeight: 'bold' }}>
-              {data.label}
-            </div>
-          )}
-        />
-      </div>
-        {disabled ? <div className="disabled">Select at least one higher resolution filter</div> : null}
-        {selectedField ? 
-        <div>
-          {/* <span className="selected-field">
-            Selected: {selectedField.label}
-          </span> */}
-          <button onClick={() => setSelectedField(null)}>
-            Deselect
-          </button>
-        </div>
-      : null}
-    </div>
-  )
-}
 
 const Filter = () => {
   const navigate = useNavigate();
@@ -228,7 +53,7 @@ const Filter = () => {
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location]);
   const region = useMemo(() => {return jsonify(queryParams.get('region'))}, [queryParams]);
   useEffect(() => { document.title = `Gilbert | Filter` }, []);
-  const fetchData = useMemo(() => Data({debug: false}).fetchData, []);
+  // const fetchData = useMemo(() => Data({debug: false}).fetchData, []);
 
   const [showNone, setShowNone] = useState(false)
   const [showUniquePaths, setShowUniquePaths] = useState(true)
@@ -359,9 +184,9 @@ const Filter = () => {
       return chromosomes.map(c => {
         let chrm = oc[c]
         let l = os.layer.datasetName
-        if(l.includes("rank")){
-          l = l.replace("_rank", "")
-        }
+        // if(l.includes("rank")){
+        //   l = l.replace("_rank", "")
+        // }
         let i = os.index
         return {
           ...os,
@@ -387,9 +212,9 @@ const Filter = () => {
           const base = `https://resources.altius.org/~ctrader/public/gilbert/data/precomputed_csn_paths/index_files`
           // const base = `https://d2ppfzsmmsvu7l.cloudfront.net/20240509/csn_index_files`
           let dsName = os.layer.datasetName
-          if(dsName.includes("rank")){
-            dsName = dsName.replace("_rank", "")
-          }
+          // if(dsName.includes("rank")){
+          //   dsName = dsName.replace("_rank", "")
+          // }
           const url = `${base}/${os.order}.${os.chromosome}.${dsName}.${os.index}.native_order_resolution.indices.int32.bytes`
           // const url = `${base}/${os.order}.${os.chromosome}.${os.layer.datasetName}.${os.index}.order_14_resolution.indices.int32.bytes`
           return fetch(url).then(r => r.arrayBuffer().then(buffer => {
@@ -546,7 +371,17 @@ const Filter = () => {
                 {showNone ? "Hide Hidden Fields" : "Show Hidden Fields"}
               </button>
             </div>
-            {orders.map(order => (
+            <Selects
+              selected={orderSelects}
+              orderSums={orderSums} 
+              layers={csnLayers.concat(variantLayers.slice(0,1))}
+              showNone={showNone} 
+              showUniquePaths={showUniquePaths}
+              onSelect={(os) => {
+                setOrderSelects(os)
+              }}
+            />
+            {/* {orders.map(order => (
               <FilterOrder key={order} 
                 order={order} 
                 orderSums={orderSums} 
@@ -558,7 +393,7 @@ const Filter = () => {
                   handleOrderSelect(field, order)
                 }} 
               />
-            ))}
+            ))} */}
           </div>
         </div>
         <div className="section">
