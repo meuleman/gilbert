@@ -95,6 +95,18 @@ const FilterOrder = ({order, orderSums, layers, previewField, showNone, showUniq
   }, [showUniquePaths]);
 
   useEffect(() => {
+    const layerjson = layers.map(d => {
+      return {
+        name: d.name,
+        datasetName: d.datasetName,
+        fields: d.fieldColor.domain(),
+        colors: d.fieldColor.range()
+      }
+    })
+    console.log("LAYERS", layerjson)
+  }, [layers])
+
+  useEffect(() => {
     // const lyrs = csnLayers.concat(variantLayers.slice(0, 1))
     let newFields = layers.filter(d => d.orders[0] <= order && d.orders[1] >= order).flatMap(layer => {
       let oc = orderSums.find(o => o.order == order)

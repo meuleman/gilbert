@@ -5,6 +5,7 @@ import { showKb } from '../lib/display'
 import CSNSentence from './Narration/Sentence'
 import CSNLine from './Narration/Line'
 import ZoomLine from './Narration/ZoomLine'
+import ScoreBars from './Narration/ScoreBars'
 import PowerModal from './Narration/PowerModal'
 import { scaleLinear } from 'd3-scale'
 import { variantChooser } from '../lib/csn'
@@ -20,13 +21,14 @@ const PowerOverlay = ({
   mapWidth,
   mapHeight,
   modalPosition,
-  tipOrientation="left",
+  // tipOrientation="left",
   onCSNIndex=()=>{},
   onClose=()=>{},
   onZoom=()=>{},
   children=null
 } = {}) => {
 
+  const tipOrientation = "right"
   const powerWidth = 300
   const powerHeight = 300 //Math.round(powerWidth / mapWidth * mapHeight);
 
@@ -95,7 +97,7 @@ const PowerOverlay = ({
         <div className="csn">
           <div className="power-container">
            
-            {tipOrientation == "left" ? <ZoomLine 
+            {/* {tipOrientation == "left" ? <ZoomLine 
               csn={narration} 
               order={zOrder} 
               highlight={true}
@@ -106,7 +108,7 @@ const PowerOverlay = ({
               tipOrientation={tipOrientation}
               onHover={handleZoom}
               onClick={(c) => { console.log("narration", c)}}
-            /> : null}
+            /> : null} */}
             <PowerModal 
               csn={narration} 
               width={powerWidth} 
@@ -114,18 +116,34 @@ const PowerOverlay = ({
               userOrder={zOrder}
               onOrder={handleZoom}
               />
-            {tipOrientation == "right" ? <ZoomLine 
-              csn={narration} 
-              order={zOrder} 
-              highlight={true}
-              selected={true}
-              text={true}
-              width={34} 
-              height={powerHeight} 
-              tipOrientation={tipOrientation}
-              onHover={handleZoom}
-              onClick={(c) => { console.log("narration", c)}}
-            /> : null}
+            {/* {tipOrientation == "right" ?  */}
+            <div className="zoom-scores">
+              <ZoomLine 
+                csn={narration} 
+                order={zOrder} 
+                highlight={true}
+                selected={true}
+                text={true}
+                width={34} 
+                height={powerHeight} 
+                tipOrientation={tipOrientation}
+                onHover={handleZoom}
+                onClick={(c) => { console.log("narration", c)}}
+                /> 
+              <ScoreBars
+                csn={narration} 
+                order={zOrder} 
+                highlight={true}
+                selected={true}
+                text={true}
+                width={34} 
+                height={powerHeight} 
+                tipOrientation={tipOrientation}
+                onHover={handleZoom}
+                onClick={(c) => { console.log("narration", c)}}
+                />
+              </div>
+            {/* : null} */}
               
           </div>
           <div className="zoom-text">
