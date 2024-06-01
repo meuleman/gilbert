@@ -41,8 +41,8 @@ const colourStyles = (isActive) => ({
         // : isSelected
         // ? chroma.contrast(color, 'white') > 2
         //   ? 'white'
-        //   : 'black'
-        : data.color,
+          : 'black',
+        // : data.color,
       cursor: isDisabled ? 'not-allowed' : 'default',
 
       ':active': {
@@ -53,6 +53,7 @@ const colourStyles = (isActive) => ({
             : color.alpha(0.3).css()
           : undefined,
       },
+      ...dot(data.color)
     };
   },
   input: (styles) => ({ ...styles, ...dot(), width: isActive ? '500px' : '10px' }),
@@ -66,7 +67,7 @@ const colourStyles = (isActive) => ({
   }),
 });
 
-const FilterOrder = ({order, orderSums, layers, showNone, showUniquePaths, disabled, selected, onSelect}) => {
+const FilterOrder = ({order, orderSums, layers, previewField, showNone, showUniquePaths, disabled, selected, onSelect}) => {
   const [selectedField, setSelectedField] = useState(null)
 
   useEffect(() => {
@@ -75,6 +76,7 @@ const FilterOrder = ({order, orderSums, layers, showNone, showUniquePaths, disab
   }, [selected])
 
   const [allFields, setAllFields] = useState([])
+  const [allFieldsGrouped, setAllFieldsGrouped] = useState([])
 
   const formatLabel = useCallback((option) => {
     return (
@@ -123,6 +125,7 @@ const FilterOrder = ({order, orderSums, layers, showNone, showUniquePaths, disab
           unique_count: unique_counts ? unique_counts[i] : "?",
           unique_percent: unique_counts ? unique_counts[i] / oc.totalSegments * 100 : "?",
           percent: counts ? counts[i] / oc.totalPaths * 100: "?",
+          layerPercent: counts ? counts[i] / oc.layer_total[layer.datasetName] * 100 : "?",
           isDisabled: counts ? counts[i] == 0 || counts[i] == "?" : true
         }
       }).sort((a,b) => {
@@ -133,10 +136,11 @@ const FilterOrder = ({order, orderSums, layers, showNone, showUniquePaths, disab
       }
       return fields
     })
+    setAllFields(newFields)
     const grouped = groups(newFields, f => f.layer.name)
       .map(d => ({ label: d[0], options: d[1] }))
       .filter(d => d.options.length)
-    setAllFields(grouped)
+    setAllFieldsGrouped(grouped)
   }, [order, orderSums, showNone, layers])
 
   useEffect(() => {
@@ -145,16 +149,46 @@ const FilterOrder = ({order, orderSums, layers, showNone, showUniquePaths, disab
 
   const [isActive, setIsActive] = useState(false);
 
+  const [previewBar, setPreviewBar] = useState(null)
+  useEffect(() => {
+    if(previewField) {
+      const matchingField = allFields.find(field => field.label === previewField.label);
+      setPreviewBar(matchingField)
+    } else {
+      setPreviewBar(null)
+    }
+  }, [previewField])
+
 
   return (
     <div className="filter-order">
       <span className="order-label">
-        {/* Order {order} */}
+        {/* Order {order} */} 
         {showKb(Math.pow(4, 14 - order))}
       </span> 
+      <div className="button-column">
+      {disabled ? <div className="disabled" data-tooltip-id="higher-filter">🚫</div> : null}
+        <Tooltip id="higher-filter" place="right" effect="solid">
+          Select at least one higher resolution filter
+        </Tooltip>
+      {selectedField && !previewBar ? 
+        <div>
+          <button className="deselect" data-tooltip-id="deselect" onClick={() => setSelectedField(null)}>
+            ❌
+          </button>
+          <Tooltip id="deselect" place="top" effect="solid">
+            Deselect
+          </Tooltip>
+        </div>
+      : null }
+      {!disabled && previewBar ? 
+      <div><button className="select" onClick={() => setSelectedField(previewBar)}>✅</button></div>
+      : null}
+      </div>
+
       <div className="filter-group">
         <Select
-          options={allFields}
+          options={allFieldsGrouped}
           styles={colourStyles(isActive)}
           value={selectedField}
           isDisabled={disabled}
@@ -173,20 +207,25 @@ const FilterOrder = ({order, orderSums, layers, showNone, showUniquePaths, disab
           )}
         />
       </div>
-        {disabled ? <div className="disabled" data-tooltip-id="higher-filter">🚫</div> : null}
-        <Tooltip id="higher-filter" place="right" effect="solid">
-          Select at least one higher resolution filter
-        </Tooltip>
-        {selectedField ? 
-        <div>
-          <button data-tooltip-id="deselect" onClick={() => setSelectedField(null)}>
-            ❌
-          </button>
-          <Tooltip id="deselect" place="top" effect="solid">
-            Deselect
-          </Tooltip>
+
+      <div className="preview-bar-container">
+        {previewBar && (
+          <div
+            className="preview-bar"
+            style={{
+              width: `${previewBar.layerPercent}%`,
+              backgroundColor: chroma(previewBar.color).alpha(0.5).css(),
+              height: '20px',
+              marginTop: '10px'
+            }}
+          >
+
+          <span>{showFloat(previewBar.layerPercent)}%</span>
+          </div>
+        )}
+
         </div>
-      : null}
+        
     </div>
   )
 }
@@ -213,12 +252,8 @@ const FilterFields = ({layers, selected, onSelect}) => {
   }, []);
 
   useEffect(() => {
-    // const lyrs = csnLayers.concat(variantLayers.slice(0, 1))
     let newFields = layers.flatMap(layer => {
       let dsName = layer.datasetName
-      // if(dsName.includes("rank")){
-      //   dsName = dsName.replace("_rank", "")
-      // }
       let fields = layer.fieldColor.domain().map((f, i) => {
         return { 
           layer,
@@ -242,8 +277,6 @@ const FilterFields = ({layers, selected, onSelect}) => {
 
   return (
     <div className="filter-fields">
-      <span className="order-label">
-      </span> 
       <div className="filter-group">
         <Select
           options={allFields}
@@ -291,6 +324,7 @@ const Selects = ({orderSums, layers, showNone, showUniquePaths, onSelect}) => {
       }
     } else {
       setOrderSelects({...orderSelects, [order]: field})
+      setPreviewField(null)
     }
   }, [orderSelects])
 
@@ -303,23 +337,29 @@ const Selects = ({orderSums, layers, showNone, showUniquePaths, onSelect}) => {
     onSelect(orderSelects)
   }, [orderSelects])
 
+  const [previewField, setPreviewField] = useState(null)
+
   return (
     <div className="selects">
-      {/* <div className="select-factor">
+      <div className="select-factor">
         <FilterFields
           layers={layers}
-          selected={null}
+          selected={previewField}
           onSelect={(field) => {
             console.log("field", field)
+            setPreviewField(field)
           }} 
         />
-      </div> */}
+        <div className="preview">
+        </div>
+      </div>
 
       {orders.map(order => (
         <FilterOrder key={order} 
           order={order} 
           orderSums={orderSums} 
           layers={layers}
+          previewField={previewField}
           showNone={showNone} 
           showUniquePaths={showUniquePaths}
           selected={orderSelects[order]}

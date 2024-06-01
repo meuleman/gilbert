@@ -237,6 +237,13 @@ const Filter = () => {
           return result;
         })
         console.log("intersected indices", filteredIndices)
+        if(filteredIndices.length === 0){
+          setLoadingFilters(false)
+          setChrFilteredIndices(filteredIndices)
+          setFilteredSegmentCount(0)
+          setFilteredPathCount(0)
+          return
+        }
         // now we can count everything in a couple ways
         // 1. count the number of segments by counting the length of indices for each group
         // 2. count the number of paths by multiplying stride (4^13-order) times the count of segments
@@ -364,12 +371,12 @@ const Filter = () => {
           </h3>
           <div className="section-content">
             <div className="filter-group">
-              <button onClick={() => setShowUniquePaths(!showUniquePaths)}>
+              {/* <button onClick={() => setShowUniquePaths(!showUniquePaths)}>
                 {showUniquePaths ? "hide segments" : "show segments (debug)"}
               </button>
               <button onClick={() => setShowNone(!showNone)}>
                 {showNone ? "Hide Hidden Fields" : "Show Hidden Fields"}
-              </button>
+              </button> */}
             </div>
             <Selects
               selected={orderSelects}
@@ -505,7 +512,7 @@ const Filter = () => {
             Summary
           </h3>
           <div className="section-content">
-            <h4>Paths (order 13 resolution)</h4>
+            <h4>Paths (order 14 resolution)</h4>
             <table className="order-sums-table">
               <thead>
                 <tr>
