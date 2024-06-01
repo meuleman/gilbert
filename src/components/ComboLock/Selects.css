@@ -1,4 +1,8 @@
 
+.tooltip-custom {
+  z-index: 999;
+}
+
 /*  */
 .selects .select-factor {
   display: flex;

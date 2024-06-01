@@ -176,13 +176,18 @@ const FilterOrder = ({order, orderSums, layers, previewField, showNone, showUniq
           <button className="deselect" data-tooltip-id="deselect" onClick={() => setSelectedField(null)}>
             ❌
           </button>
-          <Tooltip id="deselect" place="top" effect="solid">
+          <Tooltip id="deselect" place="top" effect="solid" className="tooltip-custom">
             Deselect
           </Tooltip>
         </div>
       : null }
       {!disabled && previewBar ? 
-      <div><button className="select" onClick={() => setSelectedField(previewBar)}>✅</button></div>
+      <div>
+        <button className="select" data-tooltip-id="select" onClick={() => setSelectedField(previewBar)}>✅</button>
+        <Tooltip id="select" place="top" effect="solid" className="tooltip-custom">
+          Select {previewBar.label} at {showKb(Math.pow(4, 14 - previewBar.order))}
+        </Tooltip>
+      </div>
       : null}
       </div>
 
