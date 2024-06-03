@@ -25,17 +25,17 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
 
   // determine which layers are OCC
   const occMask = layers.map(d => d.datasetName.includes('occ'))
-  const layerNames = layers.map(d => d.name)
+  // const layerNames = layers.map(d => d.name)
   // create a mapping between enr and occ layers
   const enrInds = occMask.map((v, i) => !v ? i : -1).filter(i => i !== -1)
-  let enrOccMapping = {}
-  let occEnrMapping = {}
-  enrInds.forEach((i) => {
-    const baseName = layerNames[i].replace(' (ENR)', '').replace(' (ENR, Full)', '').replace(' (ENR, Top 10)', '')
-    const occInd = layerNames.findIndex(d => d.includes(baseName) && d.includes('OCC'))
-    enrOccMapping[i] = occInd
-    occEnrMapping[occInd] = i
-  })
+  // let enrOccMapping = {}
+  // let occEnrMapping = {}
+  // enrInds.forEach((i) => {
+    // const baseName = layerNames[i].replace(' (ENR)', '').replace(' (ENR, Full)', '').replace(' (ENR, Top 10)', '')
+    // const occInd = layerNames.findIndex(d => d.includes(baseName) && d.includes('OCC'))
+    // enrOccMapping[i] = occInd
+    // occEnrMapping[occInd] = i
+  // })
 
   // filters
   let filtersArr = filters ? Object.values(filters) : null
@@ -271,25 +271,18 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
       }
 
       let fillPath = (i, factors) => {
-        // sort by ENR layers first
-        let enrFactorsSorted = factors.filter(d => enrInds.includes(d.layerInd)).sort((a, b) => b.score - a.score)
-        let occFactors = factors.filter(d => !enrInds.includes(d.layerInd))//.sort((a, b) => a.order - b.order)
-        let occFactorsSorted = []
-        let usedEnrFactors = []
-        enrFactorsSorted.forEach(d => {
-          if(!usedEnrFactors.includes(`${d.layerInd},${d.factor}`)) {
-            let occLayer = enrOccMapping[d.layerInd]
-            let matchingOccHits = occFactors.filter(f => f.layerInd === occLayer && f.factor === d.factor)
-            if(matchingOccHits.length > 0) {
-              occFactorsSorted.push(...matchingOccHits.sort((a, b) => a.order - b.order))
-            }
-            usedEnrFactors.push(`${d.layerInd},${d.factor}`)
-          }
-        })
+        // seperate factors into ENR and OCC
+        let enrFactors = factors.filter(d => enrInds.includes(d.layerInd))
+        let occFactors = factors.filter(d => !enrInds.includes(d.layerInd))
+        // reduce OCC factors to unique, prioritizing the lowest order for each factor
+        let occFactorsNative = occFactors.sort((a, b) => a.order - b.order).filter((d, i, self) => 
+          i === self.findIndex((t) => t.layerInd === d.layerInd && t.factor === d.factor)
+        )
+        // combine OCC and ENR and sort by score
         let factorsSorted = [
-          ...enrFactorsSorted,
-          ...occFactorsSorted
-        ]
+          ...enrFactors,
+          ...occFactorsNative
+        ].sort((a, b) => b.score - a.score)
         // fill path with factors and add up scores
         let score = 0
         while ((factorsSorted.length > 0)) {
