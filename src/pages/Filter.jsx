@@ -331,10 +331,24 @@ const Filter = () => {
       csnRequest.current += 1
       const requestNum = csnRequest.current
       // calculate csn for a sample of regions, lets start with 1 per chromosome
-      const sample = chrFilteredIndices.flatMap(d => {
-        return d.regions.slice(0,1)//.map(r => r)
-      })
-      setNumSamples(sample.length)
+      const totalSamples = 48;
+      const nonEmptyIndices = chrFilteredIndices.filter(d => d.regions.length > 0);
+      const baseSamplesPerIndex = Math.floor(totalSamples / nonEmptyIndices.length);
+      const remainder = totalSamples % nonEmptyIndices.length;
+
+      const sample = nonEmptyIndices.flatMap((d, idx) => {
+        const extraSample = idx < remainder ? 1 : 0;
+        const sampleSize = baseSamplesPerIndex + extraSample;
+        // const step = Math.ceil(d.regions.length / sampleSize);
+        // return d.regions.filter((_, index) => index % step === 0);
+        return d.regions.slice(0, sampleSize)
+      });
+
+      setNumSamples(sample.length);
+      // const sample = chrFilteredIndices.flatMap(d => {
+      //   return d.regions.slice(0,1)//.map(r => r)
+      // })
+      // setNumSamples(sample.length)
       console.log("SAMPLE", sample)
       // Promise.all(sample.slice(0,2).map(r => calculateCrossScaleNarration(r, 'sum', csnLayers, variantLayers,0.01, 0.1, orderSelects)))
       const handleCSNResults = (csns) => {
@@ -499,8 +513,8 @@ const Filter = () => {
               </div>
               : null }
 
-              <h4>Segments (debug)</h4>
-              <p>{showInt(filteredSegmentCount)} segments found at order {max(Object.keys(orderSelects), d => +d)}</p>
+              {/* <h4>Segments (debug)</h4>
+              <p>{showInt(filteredSegmentCount)} segments found at order {max(Object.keys(orderSelects), d => +d)}</p> */}
 
               <h4>By Chromosome</h4>
               <div className="by-chromosome">
