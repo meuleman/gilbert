@@ -26,6 +26,7 @@ function tooltipContent(region, layer, orientation) {
   }
   let layers = region.layers;
   // figure out fullData, which is an object with layerIndex,fieldIndex for each key
+  console.log("FULL DATA", region, region.layers, region.fullData)
   let fullData = region.layers && region.fullData ? Object.keys(region.fullData).map(key => {
     let [layerIndex, fieldIndex] = key.split(",")
     let layer = layers[+layerIndex]

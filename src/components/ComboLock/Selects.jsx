@@ -24,7 +24,8 @@ const dot = (color = 'transparent') => ({
 });
 
 const colourStyles = (isActive) => ({
-  control: (styles) => ({ ...styles, backgroundColor: 'white', width: isActive ? '570px' : '70px'  }),
+  // TODO: make 2nd options 70px if want to make short again
+  control: (styles) => ({ ...styles, backgroundColor: 'white', width: isActive ? '570px' : '570px'  }),
   option: (styles, { data, isDisabled, isFocused, isSelected }) => {
     const color = chroma(data.color);
     return {
@@ -56,14 +57,15 @@ const colourStyles = (isActive) => ({
       ...dot(data.color)
     };
   },
-  input: (styles) => ({ ...styles, ...dot(), width: isActive ? '500px' : '10px' }),
+  // TODO: change 2nd option to 10px to make short again
+  input: (styles) => ({ ...styles, ...dot(), width: isActive ? '500px' : '510px' }),
   placeholder: (styles) => ({ ...styles, ...dot('#ccc') }),
   singleValue: (styles, { data }) => ({ 
     ...styles, 
     ...dot(data.color), 
-    color: isActive ? 'black' : 'transparent', 
+    // TODO uncomment this if want mini lock ui
+    // color: isActive ? 'black' : 'transparent', 
     overflow: 'visible',
-    // width: '18px'
   }),
 });
 

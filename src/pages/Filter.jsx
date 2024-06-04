@@ -375,6 +375,7 @@ const Filter = () => {
           setLoadingCSN(false)
           let uniques = csns.flatMap(d => findUniquePaths(d.paths)).flatMap(d => d.uniquePaths)
           uniques.sort((a,b) => b.score - a.score)
+          uniques.forEach(u => u.layers = csnLayers)
           setSelectedCSN(uniques[0])
         })
       
@@ -525,7 +526,7 @@ const Filter = () => {
                     {d.regions.slice(0,10).map(r => {
                       return <span className="chromosome-region" key={r.i}>
                         <Link to={`/region?region=${urlify(r)}`} target="_blank">📄 </Link>
-                        <Link to={`/?region=${urlify(region)}`}>🗺️</Link>
+                        <Link to={`/?region=${urlify(r)}`}>🗺️</Link>
                         {showPosition(r)}
                       </span>
                     })}
