@@ -330,26 +330,73 @@ const Filter = () => {
       setSelectedCSN(null)
       csnRequest.current += 1
       const requestNum = csnRequest.current
-      // calculate csn for a sample of regions, lets start with 1 per chromosome
-      const totalSamples = 48;
-      const nonEmptyIndices = chrFilteredIndices.filter(d => d.regions.length > 0);
-      const baseSamplesPerIndex = Math.floor(totalSamples / nonEmptyIndices.length);
-      const remainder = totalSamples % nonEmptyIndices.length;
 
-      const sample = nonEmptyIndices.flatMap((d, idx) => {
-        const extraSample = idx < remainder ? 1 : 0;
-        const sampleSize = baseSamplesPerIndex + extraSample;
-        // const step = Math.ceil(d.regions.length / sampleSize);
-        // return d.regions.filter((_, index) => index % step === 0);
-        return d.regions.slice(0, sampleSize)
+
+      const totalRegionsNeeded = 48;
+      const regionsPerElement = 2;
+      let result = [];
+      let additionalRegions = [];
+
+      // First pass: collect up to 2 regions from each element if available
+      chrFilteredIndices.forEach(item => {
+        if (item.regions.length >= regionsPerElement) {
+          result.push(...item.regions.slice(0, regionsPerElement));
+        } else {
+          result.push(...item.regions);
+          // Note how many additional regions we need from this item
+          for (let i = item.regions.length; i < regionsPerElement; i++) {
+            additionalRegions.push(item);
+          }
+        }
       });
 
+      // Calculate how many more regions are needed
+      let regionsNeeded = totalRegionsNeeded - result.length;
+
+      // Second pass: evenly distribute the extraction of additional regions
+      while (regionsNeeded > 0) {
+        let foundRegionsThisRound = 0;
+
+        for (let item of chrFilteredIndices) {
+          if (item.regions.length > regionsPerElement) {
+            let alreadyTaken = result.filter(r => item.regions.includes(r)).length;
+            let availableRegions = item.regions.slice(alreadyTaken, alreadyTaken + 1);
+            if (availableRegions.length > 0) {
+              result.push(...availableRegions);
+              foundRegionsThisRound += availableRegions.length;
+              regionsNeeded -= availableRegions.length;
+              if (regionsNeeded <= 0) break;
+            }
+          }
+        }
+
+        // If no regions were found in a full round, break to avoid infinite loop
+        if (foundRegionsThisRound === 0) {
+          break;
+        }
+      }
+
+      const sample = result.slice(0, totalRegionsNeeded);
+
       setNumSamples(sample.length);
+      console.log("SAMPLE", sample);
+
+      // const nonEmptyIndices = chrFilteredIndices.filter(d => d.regions.length > 0);
+      // const baseSamplesPerIndex = Math.floor(totalSamples / nonEmptyIndices.length);
+      // const remainder = totalSamples % nonEmptyIndices.length;
+
+      // const sample = nonEmptyIndices.flatMap((d, idx) => {
+      //   const extraSample = idx < remainder ? 1 : 0;
+      //   const sampleSize = baseSamplesPerIndex + extraSample;
+      //   return d.regions.slice(0, sampleSize)
+      // });
+      // setNumSamples(sample.length);
+
       // const sample = chrFilteredIndices.flatMap(d => {
       //   return d.regions.slice(0,1)//.map(r => r)
       // })
       // setNumSamples(sample.length)
-      console.log("SAMPLE", sample)
+      // console.log("SAMPLE", sample)
       // Promise.all(sample.slice(0,2).map(r => calculateCrossScaleNarration(r, 'sum', csnLayers, variantLayers,0.01, 0.1, orderSelects)))
       const handleCSNResults = (csns) => {
         if(csnRequest.current !== requestNum) {
