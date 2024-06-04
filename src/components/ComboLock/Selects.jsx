@@ -103,7 +103,7 @@ const FilterOrder = ({order, orderSums, layers, previewField, showNone, showUniq
         colors: d.fieldColor.range()
       }
     })
-    console.log("LAYERS", layerjson)
+    // console.log("LAYERS", layerjson)
   }, [layers])
 
   useEffect(() => {
@@ -195,8 +195,8 @@ const FilterOrder = ({order, orderSums, layers, previewField, showNone, showUniq
       : null }
       {!disabled && previewBar ? 
       <div>
-        <button className="select" data-tooltip-id="select" onClick={() => setSelectedField(previewBar)}>✅</button>
-        <Tooltip id="select" place="top" effect="solid" className="tooltip-custom">
+        <button className="select" data-tooltip-id={"select"+order} onClick={() => setSelectedField(previewBar)}>✅</button>
+        <Tooltip id={"select"+order} place="top" effect="solid" className="tooltip-custom">
           Select {previewBar.label} at {showKb(Math.pow(4, 14 - previewBar.order))}
         </Tooltip>
       </div>

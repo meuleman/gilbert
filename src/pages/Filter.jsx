@@ -180,7 +180,8 @@ const Filter = () => {
     // lets make objects for each of the selects, but pulling chromosomes from orderSums
     const selects = orders.flatMap(o => {
       let os = orderSelects[o]
-      let oc = counts_native[o]
+      // let oc = counts_native[o]
+      let oc = counts_order14[o]
       return chromosomes.map(c => {
         let chrm = oc[c]
         let l = os.layer.datasetName
@@ -215,12 +216,20 @@ const Filter = () => {
           // if(dsName.includes("rank")){
           //   dsName = dsName.replace("_rank", "")
           // }
-          const url = `${base}/${os.order}.${os.chromosome}.${dsName}.${os.index}.native_order_resolution.indices.int32.bytes`
-          // const url = `${base}/${os.order}.${os.chromosome}.${os.layer.datasetName}.${os.index}.order_14_resolution.indices.int32.bytes`
-          return fetch(url).then(r => r.arrayBuffer().then(buffer => {
-            const int32Array = new Int32Array(buffer);
-            return {...os, indices: Array.from(int32Array)}//.filter(d => d)};
-          }))
+          // const url = `${base}/${os.order}.${os.chromosome}.${dsName}.${os.index}.native_order_resolution.indices.int32.bytes`
+          const url = `${base}/${os.order}.${os.chromosome}.${dsName}.${os.index}.order_14_resolution.indices.int32.bytes`
+          // check the counts14 to see if we would expect indices before fetching
+
+          return fetch(url)
+            .then(r => r.arrayBuffer())
+            .then(buffer => {
+              const int32Array = new Int32Array(buffer);
+              return {...os, indices: Array.from(int32Array)};
+            })
+            .catch(error => {
+              console.error('Error fetching indices:', error);
+              return {...os, indices: []};
+            });
         }))
       }))
       .then(groups => {
@@ -231,8 +240,8 @@ const Filter = () => {
           // we compare each pair going down until we are left with the indices that go up all the way to the top
           let result = indices[0];
           for (let i = 0; i < indices.length - 1; i++) {
-            result = intersectIndices(result, indices[i+1])
-            // result = intersectIndices14(result, indices[i+1])
+            // result = intersectIndices(result, indices[i+1])
+            result = intersectIndices14(result, indices[i+1])
           }
           return result;
         })
@@ -250,17 +259,24 @@ const Filter = () => {
         const segmentCounts = filteredIndices.map(d => d.indices.length)
         console.log("counts", segmentCounts)
         const totalSegmentCount = sum(segmentCounts)
-        let order = filteredIndices[0].order // will all have the same order (the highest of the orderSelects)
-        const stride = Math.pow(4, 13 - order)
-        const pathCount = totalSegmentCount * stride
+        // let order = filteredIndices[0].order // will all have the same order (the highest of the orderSelects)
+        // const stride = Math.pow(4, 14 - order)
+        const pathCount = totalSegmentCount // * stride
         console.log("totalSegmentCount", totalSegmentCount)
         console.log("pathCount", pathCount)
 
         // get regions for each index
-        const hilbert = new HilbertChromosome(order)
+        // const hilbert = new HilbertChromosome(order)
+        // filteredIndices.forEach(d => {
+        //   d.regions = d.indices.map(i => hilbert.fromRange(d.chromosome, i, i+1)[0])
+        // })
+        // TODO: this is based on the order 14 indices logic
+        const hilbert = new HilbertChromosome(14)
         filteredIndices.forEach(d => {
-          d.regions = d.indices.map(i => hilbert.fromRange(d.chromosome, i, i+1)[0])
+          d.regions = d.indices.slice(0, 100)
+            .map(i => hilbert.fromRange(d.chromosome, i, i+1)[0])
         })
+        console.log("FILTERED INDICES", filteredIndices)
 
         setLoadingFilters(false)
         setChrFilteredIndices(filteredIndices)
@@ -338,9 +354,9 @@ const Filter = () => {
           console.log("ABORTING CSN CALCULATION, stale request")
           return Promise.resolve([])
         }
-        return calculateCrossScaleNarrationInWorker(r, 'sum', csnLayers, variantLayers, 0.1, orderSelects)
+        return calculateCrossScaleNarrationInWorker(r, 'sum', csnLayers, variantLayers, orderSelects)
       }
-      processInBatches(sample, 3, processFn, handleCSNResults)
+      processInBatches(sample, 4, processFn, handleCSNResults)
         .then(csns => {
           setLoadingCSN(false)
           let uniques = csns.flatMap(d => findUniquePaths(d.paths)).flatMap(d => d.uniquePaths)

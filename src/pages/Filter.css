@@ -98,7 +98,7 @@
 
 .filter-page .power-overlay {
   position: relative !important;
-  max-width: 360px;
+  /* max-width: 360px; */
 }
 .filter-page .power-overlay .csn-line {
   margin-left: 4px;

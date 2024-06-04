@@ -15,19 +15,45 @@ function createWorker() {
   return new Worker(new URL('./csnWorker.js', import.meta.url), { type: 'module' });
 }
 
+const workerPool = [];
+const maxWorkers = 4; // Adjust the number of workers as needed
+
+// Initialize the worker pool
+for (let i = 0; i < maxWorkers; i++) {
+  workerPool.push(createWorker());
+}
+
+// Function to get an available worker from the pool
+function getAvailableWorker() {
+  return new Promise((resolve) => {
+    const checkWorker = () => {
+      for (const worker of workerPool) {
+        if (!worker.busy) {
+          worker.busy = true;
+          return resolve(worker);
+        }
+      }
+      setTimeout(checkWorker, 100); // Check again after a short delay if no worker is available
+    };
+    checkWorker();
+  });
+}
+
 // Function to call the Web Worker
-function calculateCrossScaleNarrationInWorker(selected, csnMethod, layers, variantLayers, filters) {
+async function calculateCrossScaleNarrationInWorker(selected, csnMethod, layers, variantLayers, filters) {
   // const worker = new Worker(csnWorker, { type: 'module' });
-  const worker = createWorker()
+  // const worker = createWorker()
+  const worker = await getAvailableWorker()
   console.log("workerrrr", worker)
   return new Promise((resolve, reject) => {
     worker.onmessage = function(e) {
       console.log("RECEIVED DATA", e)
-      worker.terminate()
+      // worker.terminate()
       e.data.paths.forEach(d => {
         d.path.forEach(p => p.layer = layersMap[p.layerDataset])
         d.variants?.forEach(p => p.layer = layersMap[p.layerDataset])
       })
+      worker.busy = false
       resolve(e.data);
     };
 

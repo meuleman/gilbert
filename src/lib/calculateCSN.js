@@ -87,6 +87,7 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
           }
           // get hilbert ranges
           const orderRange = getRange(selected, order)
+          // console.log("ORDER RANGE", order, orderRange)
           // fetch data for hilbert segments
           return fetchData(layer, order, orderRange)
             .then((response) => {
