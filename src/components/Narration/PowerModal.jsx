@@ -197,10 +197,23 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
           region = p.region
           lastRegion = region
         } else {
-          const i = lastRegion.i * 4
-          region = hilbert.fromRange(lastRegion.chromosome, i, i+1)[0]
-          let start = lastRegion.start
-          let end = lastRegion.end
+          let start, end, chromosome
+          if(!lastRegion) {
+            // look at closest existing region we can base current order off of
+            const np = csn.path.find(d => d.order > o)
+            const orderDiff = np.order - o
+            const i = parseInt(np.region.i / (4 ** orderDiff))
+            region = hilbert.fromRange(np.region.chromosome, i, i+1)[0]
+            chromosome = region.chromosome
+            start = region.start
+            end = region.end
+          } else {
+            const i = lastRegion.i * 4
+            chromosome = lastRegion.chromosome
+            region = hilbert.fromRange(chromosome, i, i+1)[0]
+            start = lastRegion.start
+            end = lastRegion.end
+          }
           if(o < 14) {
             let np = csn.path.find(d => d.order > o)
             if(o == 13 && csn.variants) {
@@ -214,7 +227,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
               end = np.region.end
             }
           }
-          const regions = hilbert.fromRegion(lastRegion.chromosome, start, end)
+          const regions = hilbert.fromRegion(chromosome, start, end)
           region = regions[0]
           lastRegion = region
         }
