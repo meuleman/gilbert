@@ -283,7 +283,10 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
         let factorsSorted = [
           ...enrFactors,
           ...occFactorsNative
-        ].sort((a, b) => b.score - a.score)
+        ].sort((a, b) => {
+          let sortOrder = (b.score === a.score) ? a.order - b.order : b.score - a.score
+          return sortOrder
+        })
         // fill path with factors and add up scores
         let score = 0
         while ((factorsSorted.length > 0)) {
