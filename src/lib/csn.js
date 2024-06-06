@@ -40,7 +40,7 @@ function getAvailableWorker() {
 }
 
 // Function to call the Web Worker
-async function calculateCrossScaleNarrationInWorker(selected, csnMethod, layers, variantLayers, filters) {
+async function calculateCrossScaleNarrationInWorker(selected, csnMethod, layers, variantLayers, countLayers, filters) {
   // const worker = new Worker(csnWorker, { type: 'module' });
   // const worker = createWorker()
   const worker = await getAvailableWorker()
@@ -69,6 +69,7 @@ async function calculateCrossScaleNarrationInWorker(selected, csnMethod, layers,
 
     const lyrs = layers.map(serializeLayer)
     const vlyrs = variantLayers.map(serializeLayer)
+    const clyrs = countLayers.map(serializeLayer)
     let fltrs = null
     if(filters) {
       fltrs = Object.keys(filters).map(k => {
@@ -80,7 +81,7 @@ async function calculateCrossScaleNarrationInWorker(selected, csnMethod, layers,
     }
   
     console.log("SENDING MESSAGE")
-    worker.postMessage({ selected , csnMethod , layers:lyrs, variantLayers:vlyrs, filters:fltrs });
+    worker.postMessage({ selected , csnMethod , layers:lyrs, variantLayers:vlyrs, countLayers:clyrs, filters:fltrs });
     // worker.postMessage({ selected, csnMethod, layers, variantLayers, occScore, variantScore, filters });
   });
 }

@@ -12,6 +12,10 @@ import repeats_rank_occ from "../layers/repeats_rank_occ";
 import variants_rank_categorical from "../layers/variants_rank_categorical";
 import variants_rank_apc from "../layers/variants_rank_apc";
 import variants_rank_gwas from "../layers/variants_rank_gwas";
+import dhs_components_enr_counts from '../layers/dhs_components_enr_counts';
+import chromatin_states_enr_counts from '../layers/chromatin_states_enr_counts';
+import tf_motifs_enr_counts from '../layers/tf_motifs_enr_counts';
+import repeats_enr_counts from '../layers/repeats_enr_counts';
 
 const referenceLayers = [
   dhs_components_enr,
@@ -22,6 +26,10 @@ const referenceLayers = [
   chromatin_states_rank_occ,
   tf_motifs_rank_occ,
   repeats_rank_occ,
+  dhs_components_enr_counts,
+  chromatin_states_enr_counts,
+  tf_motifs_enr_counts,
+  repeats_enr_counts,
   variants_rank_categorical,
   variants_rank_apc,
   variants_rank_gwas,
@@ -29,13 +37,14 @@ const referenceLayers = [
 
 onmessage = async function(e) {
   console.log("GOT THE MESSAGE", e)
-  const { selected, csnMethod, layers, variantLayers, filters } = e.data;
+  const { selected, csnMethod, layers, variantLayers, countLayers, filters } = e.data;
 
   function deserializeLayer(l) {
     return referenceLayers.find(d => d.datasetName == l)
   }
   const lyrs = layers.map(deserializeLayer)
   const vlyrs = variantLayers.map(deserializeLayer)
+  const clyrs = countLayers.map(deserializeLayer)
   let fltrs = null
   if(filters) {
     fltrs = Object.keys(filters).map(k => {
@@ -47,7 +56,7 @@ onmessage = async function(e) {
   }
 
   console.log("WEB WORKER WORKING")
-  const result = await calculateCrossScaleNarration(selected, csnMethod, lyrs, vlyrs, fltrs);
+  const result = await calculateCrossScaleNarration(selected, csnMethod, lyrs, vlyrs, clyrs, fltrs);
   console.log("RESULT", result)
   postMessage(result)
   // const unique = findUniquePaths(result.paths).uniquePaths

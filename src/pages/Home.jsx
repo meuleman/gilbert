@@ -386,12 +386,18 @@ function Home() {
       layers.find(d => d.datasetName == "variants_gwas_rank"),
       // layers.find(d => d.datasetName == "grc"),
     ]
+    const countLayers = [
+      layers.find(d => d.datasetName == "dhs_enr_counts"),
+      layers.find(d => d.datasetName == "cs_enr_counts"),
+      layers.find(d => d.datasetName == "tf_enr_counts"),
+      layers.find(d => d.datasetName == "repeats_enr_counts"),
+    ]
     if(selected && selected.order > 4){
       // clear the cross scale narration first
       setCrossScaleNarration([])
       setCsn({path: [], layers: csnLayers})
       setLoadingCSN(true)
-      calculateCrossScaleNarrationInWorker(selected, csnMethod, csnLayers, variantLayers).then(crossScaleResponse => {
+      calculateCrossScaleNarrationInWorker(selected, csnMethod, csnLayers, variantLayers, countLayers).then(crossScaleResponse => {
         // filter to just unique paths
         const filteredPaths = findUniquePaths(crossScaleResponse.paths).slice(0, 100)
         // setFullCSNPaths(crossScaleResponse.paths)

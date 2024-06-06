@@ -89,6 +89,12 @@ const RegionDetail = () => {
     layers.find(d => d.datasetName == "variants_gwas_rank"),
     // layers.find(d => d.datasetName == "grc"),
   ]
+  const countLayers = [
+    layers.find(d => d.datasetName == "dhs_enr_counts"),
+    layers.find(d => d.datasetName == "cs_enr_counts"),
+    layers.find(d => d.datasetName == "tf_enr_counts"),
+    layers.find(d => d.datasetName == "repeats_enr_counts"),
+  ]
   
 
   const [stripsWidth, setStripsWidth] = useState(0);
@@ -185,7 +191,7 @@ const RegionDetail = () => {
       })
 
       if(region.order < 14) {
-        calculateCrossScaleNarrationInWorker(rs[1], csnMethod, csnLayers, variantLayers).then(crossScaleResponse => {
+        calculateCrossScaleNarrationInWorker(rs[1], csnMethod, csnLayers, variantLayers, countLayers).then(crossScaleResponse => {
           setCrossScaleNarration(crossScaleResponse)
           console.log("CSN", crossScaleResponse)
           let uniques = findUniquePaths(crossScaleResponse.paths)

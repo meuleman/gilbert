@@ -3,7 +3,7 @@ import { fromRegion } from './regions'
 import Data from './data';
 
 // function to generate cross scale narrations for a provided region.
-export default async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[], filters=null, minEnrScore=0) {
+export default async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[], countLayers=[], filters=null, minEnrScore=0) {
   const fetchData = Data({debug: false}).fetchData;
   
   let orders = Array.from({length: 11}, (a, i) => i + 4);
@@ -25,7 +25,7 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
 
   // determine which layers are OCC
   const occMask = layers.map(d => d.datasetName.includes('occ'))
-  // const layerNames = layers.map(d => d.name)
+  const layerNames = layers.map(d => d.name)
   // create a mapping between enr and occ layers
   const enrInds = occMask.map((v, i) => !v ? i : -1).filter(i => i !== -1)
   // let enrOccMapping = {}
@@ -36,6 +36,12 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
     // enrOccMapping[i] = occInd
     // occEnrMapping[occInd] = i
   // })
+  let enrCountMapping = {}
+  enrInds.forEach((i) => {
+    const baseName = layerNames[i].replace(' (ENR)', '').replace(' (ENR, Full)', '').replace(' (ENR, Top 10)', '')
+    const countInd = countLayers.map(d => d.name).findIndex(d => d.includes(baseName))
+    enrCountMapping[i] = countInd
+  })
 
   // filters
   let filtersArr = filters ? Object.values(filters) : null
@@ -53,7 +59,7 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
     for(let o = minOrderHit; o <= maxOrderHit; o++) {numNodes += 4 ** Math.max(0, (o - selectedOrder))}
     
     // initialize tree
-    let dataTree = new Array(numNodes).fill(null).map(d => ({'children': [], 'parent': null, data: {}, variants: {}, order: null}))
+    let dataTree = new Array(numNodes).fill(null).map(d => ({'children': [], 'parent': null, data: {}, variants: {}, counts: {}, order: null}))
     
     // fill tree with parents, children, and order
     let minSelectedDiff = selectedOrder - minOrderHit
@@ -131,6 +137,47 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
         }
       }))
       return topFieldsAllOrders.then((response) => {
+        return Promise.resolve(null)
+      })
+    }))
+
+
+    // collect data for each segment across count layers and orders
+    let allCountLayers = Promise.all(countLayers.map((layer, l) => {
+      let countsAllOrders = Promise.all(orders.map((order) => {
+        // if the layer includes current order
+        if((layer.orders[0] <= order) && (layer.orders[1] >= order)) {
+          if(filters && filters[order]?.layer && filters[order].layer.datasetName !== layer.datasetName) {
+            return Promise.resolve(null)
+          }
+          // get hilbert ranges
+          const orderRange = getRange(selected, order)
+          // console.log("ORDER RANGE", order, orderRange)
+          // fetch data for hilbert segments
+          return fetchData(layer, order, orderRange)
+            .then((response) => {
+              let counts = response.map(d => d.bytes)
+              // add data to tree
+              // we need to set a subset of the dataTree
+              let i = 0
+              dataTree.forEach((d) => {
+                if (d.order == order) {
+                  d.counts[l] = counts[i]
+                  i++
+                }
+              })
+              // console.log(Date.now() - loadDataTime, "ms to load data", layer.name, order)
+              Promise.resolve(null)
+            })
+            .catch((error) => {
+              console.error(`Error fetching CSN data: ${error}`);
+              return null
+            })
+        } else {
+          return Promise.resolve(null)
+        }
+      }))
+      return countsAllOrders.then((response) => {
         return Promise.resolve(null)
       })
     }))
@@ -220,7 +267,7 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
 
     // get the paths for each leaf of tree
     let topFieldsAcrossLayersTime = Date.now()
-    let bestPaths = Promise.all([trackerPromise, variantTopFields]).then(() => {
+    let bestPaths = Promise.all([trackerPromise, variantTopFields, allCountLayers]).then(() => {
       console.log("Time to load all data", Date.now() - topFieldsAcrossLayersTime, "ms")
       let bestPathTime = Date.now()
       
@@ -261,7 +308,8 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
         const field = {
           field: layerFactors[hit.factor], 
           value: hit.score, 
-          color: layer.fieldColor(layerFactors[hit.factor])
+          color: layer.fieldColor(layerFactors[hit.factor]),
+          count: hit.count
         }
         const region = treeDataNode.data[hit.layerInd]
         const fullData = treeDataNode.fullDataTracker.features
@@ -272,6 +320,15 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
       }
 
       let fillPath = (i, factors) => {
+        // get count data
+        let counts = {}
+        // leaf node
+        let treeNode = dataTree[topLeafPaths[i].node]
+        counts[treeNode.order] = treeNode.counts
+        while(treeNode.parent !== null) {
+          treeNode = dataTree[treeNode.parent]
+          counts[treeNode.order] = treeNode.counts
+        }
         // seperate factors into ENR and OCC
         let enrFactors = factors.filter(d => enrInds.includes(d.layerInd))
         let occFactors = factors.filter(d => !enrInds.includes(d.layerInd))
@@ -291,6 +348,10 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
         let score = 0
         while ((factorsSorted.length > 0)) {
           let hit = factorsSorted[0]
+          
+          // add count to hit
+          let orderLayerCounts = counts[hit.order][enrCountMapping[hit.layerInd]]
+          hit.count = orderLayerCounts ? orderLayerCounts[hit.factor] : null
           
           // score
           let hitScore = hit.score
