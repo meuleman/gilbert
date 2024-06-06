@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { scaleLinear } from 'd3-scale';
 import { range } from 'd3-array';
-import { showFloat, showPosition, showKb } from '../../lib/display';
+import { showFloat, showInt, showPosition, showKb } from '../../lib/display';
 import { variantChooser } from '../../lib/csn';
 import './Line.css';
 
@@ -20,7 +20,17 @@ function tooltipContent(region, layer, orientation) {
   } else if(region.data.bp) {
     fields.push(layer.fieldChoice(region))
   } else {
-    fields = Object.keys(region.data).map(key => ({ field: key, value: region.data[key] }))
+    fields = Object.keys(region.data).map(key => { 
+      let layers = region.layers
+      let factorCount = null
+      if(layers) {
+        let layer = layers[region['layerInd']]
+        let factors = layer.fieldColor.domain()
+        let factorIndex = factors.indexOf(key)
+        factorCount = region['counts'][region['layerInd']][factorIndex]
+      }
+      return { field: key, value: region.data[key], count: factorCount}
+    })
       .sort((a,b) => b.value - a.value)
       .filter(d => d.value > 0 && d.field !== "top_fields")
   }
@@ -31,7 +41,8 @@ function tooltipContent(region, layer, orientation) {
     let [layerIndex, fieldIndex] = key.split(",")
     let layer = layers[+layerIndex]
     let field = layer.fieldColor.domain()[+fieldIndex]
-    return { layer, field, value: region.fullData[key] }
+    let count = layerIndex in region.counts ? region.counts[layerIndex][fieldIndex] : null
+    return { layer, field, value: region.fullData[key], count }
   }).filter(d => fields.find(f => f.field !== d.field && layer.name !== d.layer.name))
   : []
 
@@ -51,6 +62,7 @@ function tooltipContent(region, layer, orientation) {
           </span>
           <span>
             {typeof f.value == "number" ? showFloat(f.value) : f.value}
+            {typeof f.count == "number" && ` (${showInt(f.count)})`}
           </span>
         </div>
       ))}
@@ -64,6 +76,7 @@ function tooltipContent(region, layer, orientation) {
           <span>{f.layer.name}</span>
           <span>
             {typeof f.value == "number" ? showFloat(f.value) : f.value}
+            {typeof f.count == "number" && ` (${showInt(f.count)})`}
           </span>
         </div>
       ))}

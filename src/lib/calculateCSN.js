@@ -37,10 +37,12 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
     // occEnrMapping[occInd] = i
   // })
   let enrCountMapping = {}
+  let countEnrMapping = {}
   enrInds.forEach((i) => {
     const baseName = layerNames[i].replace(' (ENR)', '').replace(' (ENR, Full)', '').replace(' (ENR, Top 10)', '')
     const countInd = countLayers.map(d => d.name).findIndex(d => d.includes(baseName))
     enrCountMapping[i] = countInd
+    countEnrMapping[countInd] = i
   })
 
   // filters
@@ -162,7 +164,8 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
               let i = 0
               dataTree.forEach((d) => {
                 if (d.order == order) {
-                  d.counts[l] = counts[i]
+                  // count layer index keys converted to enr layer index
+                  d.counts[countEnrMapping[l]] = counts[i]
                   i++
                 }
               })
@@ -303,32 +306,31 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
       // function to refactor features for a given node
       let refactorTopFeature = (hit) => {
         const treeDataNode = dataTree[hit.node]
+        
         const layer = layers[hit.layerInd]
         const layerFactors = layer.fieldColor.domain()
+
+        // counts
+        let nodeChosenLayerCounts = treeDataNode.counts[hit.layerInd]
+
         const field = {
           field: layerFactors[hit.factor], 
           value: hit.score, 
           color: layer.fieldColor(layerFactors[hit.factor]),
-          count: hit.count
+          count: nodeChosenLayerCounts ? nodeChosenLayerCounts[hit.factor] : null 
         }
-        const region = treeDataNode.data[hit.layerInd]
         const fullData = treeDataNode.fullDataTracker.features
-
+        const region = treeDataNode.data[hit.layerInd]
+        // add count data to region
+        region['counts'] = treeDataNode.counts
+        
         return { 
           region: region, order: hit.order, layerDataset: layer.datasetName, field: field, fullData: fullData
         }
       }
 
       let fillPath = (i, factors) => {
-        // get count data
-        let counts = {}
-        // leaf node
-        let treeNode = dataTree[topLeafPaths[i].node]
-        counts[treeNode.order] = treeNode.counts
-        while(treeNode.parent !== null) {
-          treeNode = dataTree[treeNode.parent]
-          counts[treeNode.order] = treeNode.counts
-        }
+
         // seperate factors into ENR and OCC
         let enrFactors = factors.filter(d => enrInds.includes(d.layerInd))
         let occFactors = factors.filter(d => !enrInds.includes(d.layerInd))
@@ -348,10 +350,6 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
         let score = 0
         while ((factorsSorted.length > 0)) {
           let hit = factorsSorted[0]
-          
-          // add count to hit
-          let orderLayerCounts = counts[hit.order][enrCountMapping[hit.layerInd]]
-          hit.count = orderLayerCounts ? orderLayerCounts[hit.factor] : null
           
           // score
           let hitScore = hit.score
