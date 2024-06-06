@@ -23,7 +23,7 @@ function tooltipContent(region, layer, orientation) {
     fields = Object.keys(region.data).map(key => { 
       let layers = region.layers
       let factorCount = null
-      if(layers) {
+      if(layers && region['counts']) {
         let layer = layers[region['layerInd']]
         let factors = layer.fieldColor.domain()
         let factorIndex = factors.indexOf(key)
