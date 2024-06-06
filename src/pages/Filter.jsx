@@ -42,6 +42,12 @@ const variantLayers = [
   layers.find(d => d.datasetName == "variants_gwas_rank"),
   // layers.find(d => d.datasetName == "grc"),
 ]
+const countLayers = [
+  layers.find(d => d.datasetName == "dhs_enr_counts"),
+  layers.find(d => d.datasetName == "cs_enr_counts"),
+  layers.find(d => d.datasetName == "tf_enr_counts"),
+  layers.find(d => d.datasetName == "repeats_enr_counts"),
+]
 
 import './Filter.css';
 
@@ -415,7 +421,7 @@ const Filter = () => {
           console.log("ABORTING CSN CALCULATION, stale request")
           return Promise.resolve([])
         }
-        return calculateCrossScaleNarrationInWorker(r, 'sum', csnLayers, variantLayers, orderSelects)
+        return calculateCrossScaleNarrationInWorker(r, 'sum', csnLayers, variantLayers, countLayers, orderSelects)
       }
       processInBatches(sample, 4, processFn, handleCSNResults)
         .then(csns => {
@@ -433,7 +439,7 @@ const Filter = () => {
       csnRequest.current += 1
     }
       // TODO: we dont depend on orderSelects here, chrFilteredIndices will always update but we should probably use a ref then?
-  }, [chrFilteredIndices, csnLayers, variantLayers])
+  }, [chrFilteredIndices, csnLayers, variantLayers, countLayers])
 
   return (
     <div className="filter-page">
