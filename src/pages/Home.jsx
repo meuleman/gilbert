@@ -780,7 +780,7 @@ function Home() {
                   SVGRenderers={[
                     SVGChromosomeNames({ }),
                     showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
-                    RegionMask({ regions: [selected, ...similarRegions]}),
+                    RegionMask({ regions: [selected, ...similarRegions, ...filteredRegions]}),
                     SVGSelected({ hit: hover, dataOrder: zoom.order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
                     (
                       (checkRanges(selected, similarRegionListHover)) ? 
