@@ -129,12 +129,12 @@ const Filter = () => {
   }, [orderSelects])
 
   // calculate the regions at each order
-  const rbo = useMemo(() => {
-    if(chrFilteredIndices.length === 0) return []
-    const rbo = range(4, 14).map(o => regionsByOrder(chrFilteredIndices, o))
-    console.log("RBO", rbo)
-    return rbo
-  }, [chrFilteredIndices])
+  // const rbo = useMemo(() => {
+  //   if(chrFilteredIndices.length === 0) return []
+  //   const rbo = range(4, 14).map(o => regionsByOrder(chrFilteredIndices, o))
+  //   console.log("RBO", rbo)
+  //   return rbo
+  // }, [chrFilteredIndices])
 
   const processInBatches = async (items, batchSize, processFunction, statusFunction) => {
     let results = [];

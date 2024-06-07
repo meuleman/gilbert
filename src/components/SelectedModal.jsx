@@ -8,6 +8,7 @@ import CSNLine from './Narration/Line'
 import ZoomLine from './Narration/ZoomLine'
 import PowerModal from './Narration/Power'
 import { scaleLinear } from 'd3-scale'
+import { max } from 'd3-array'
 
 import './SelectedModal.css'
 
@@ -118,6 +119,13 @@ const SelectedModal = ({
     console.log("filtered?????", filtered)
     return filtered
   }, [filteredRegions, selected])
+
+  const [maxPathScore, setMaxPathScore] = useState(0)
+  useEffect(() => {
+    if(crossScaleNarration.length > 0) {
+      setMaxPathScore(max(crossScaleNarration.slice(0, 50), n => n.score))
+    }
+  }, [crossScaleNarration])
   
   return (
     <>
@@ -178,6 +186,7 @@ const SelectedModal = ({
             <ZoomLine 
               csn={crossScaleNarration[selectedNarrationIndex]} 
               order={zoomOrder} 
+              maxPathScore={maxPathScore}
               highlight={true}
               selected={true}
               text={true}
@@ -191,6 +200,7 @@ const SelectedModal = ({
                   key={i}
                   csn={n} 
                   order={zoomOrder} 
+                  maxPathScore={maxPathScore}
                   highlight={true}
                   selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
                   text={false}
