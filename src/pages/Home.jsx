@@ -207,6 +207,7 @@ function Home() {
   const [crossScaleNarration, setCrossScaleNarration] = useState(new Array(1).fill({'path': []}))
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
   const [csnMethod, setCsnMethod] = useState("sum")
+  const [csnEnrThreshold, setCsnEnrThreshold] = useState(0)
   const [loadingCSN, setLoadingCSN] = useState(false)
   const [genesetEnrichment, setGenesetEnrichment] = useState(null)
 
@@ -354,6 +355,8 @@ function Home() {
   const handleChangeCSNIndex = (e) => setCrossScaleNarrationIndex(e.target.value)
   // function to handle the change of the method in which CSN paths are scored
   const handleCsnMethodChange = (e) => setCsnMethod(e.target.value)
+  // function to change the ENR threshold for CSN
+  const handleCsnEnrThresholdChange = (e) => setCsnEnrThreshold(e.target.value)
   // function to subset our CSN results to just unique paths
   function findUniquePaths(paths) {
     const uniquePaths = []
@@ -397,7 +400,7 @@ function Home() {
       setCrossScaleNarration([])
       setCsn({path: [], layers: csnLayers})
       setLoadingCSN(true)
-      calculateCrossScaleNarrationInWorker(selected, csnMethod, csnLayers, variantLayers, countLayers).then(crossScaleResponse => {
+      calculateCrossScaleNarrationInWorker(selected, csnMethod, csnEnrThreshold, csnLayers, variantLayers, countLayers).then(crossScaleResponse => {
         // filter to just unique paths
         const filteredPaths = findUniquePaths(crossScaleResponse.paths).slice(0, 100)
         // setFullCSNPaths(crossScaleResponse.paths)
@@ -412,7 +415,7 @@ function Home() {
       }
       console.log("else selected")
     }
-  }, [selected, csnMethod])  // layerOrderNatural
+  }, [selected, csnMethod, csnEnrThreshold])  // layerOrderNatural
 
   const [csn, setCsn] = useState({path: [], layers: csnLayers})
   useEffect(() => {
@@ -854,6 +857,8 @@ function Home() {
             crossScaleNarrationIndex={crossScaleNarrationIndex}
             csnMethod={csnMethod}
             handleCsnMethodChange={handleCsnMethodChange}
+            csnEnrThreshold={csnEnrThreshold}
+            handleCsnEnrThresholdChange={handleCsnEnrThresholdChange}
           /> : null }
         </div>
       </div>

@@ -17,6 +17,8 @@ const SettingsPanel = ({
   handleChangeCSNIndex=()=>{},
   csnMethod,
   handleCsnMethodChange=()=>{},
+  csnEnrThreshold,
+  handleCsnEnrThresholdChange=()=>{},
 } = {}) => {
   return (
     <div className="settings-panel">
@@ -53,6 +55,10 @@ const SettingsPanel = ({
             {/* <option value="rank">Rank</option> */}
           </select>
           CSN Method
+        </label>
+        <label>
+          <input type="number" value={csnEnrThreshold} onChange={handleCsnEnrThresholdChange} min="0" step="0.1"></input>
+          CSN ENR Threshold
         </label>
       </div>
     </div>

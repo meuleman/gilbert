@@ -3,7 +3,7 @@ import { fromRegion } from './regions'
 import Data from './data';
 
 // function to generate cross scale narrations for a provided region.
-export default async function calculateCrossScaleNarration(selected, csnMethod='sum', layers, variantLayers=[], countLayers=[], filters=null, minEnrScore=0) {
+export default async function calculateCrossScaleNarration(selected, csnMethod='sum', enrThreshold=0, layers, variantLayers=[], countLayers=[], filters=null) {
   const fetchData = Data({debug: false}).fetchData;
   
   let orders = Array.from({length: 11}, (a, i) => i + 4);
@@ -229,7 +229,7 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
       // for each layer...
       keys.forEach(layerInd => {
         // if layer is ENR, set a threshold for the score
-        let scoreThresh = enrInds.includes(parseInt(layerInd)) ? minEnrScore : 0
+        let scoreThresh = enrInds.includes(parseInt(layerInd)) ? enrThreshold : 0
         let layerInfo = d[layerInd]
         // save the nonzero data for each layer
         if((layerInfo.data.max_value >= scoreThresh) && (layerInfo.data.max_value != 0)) {  // if max data and not 0

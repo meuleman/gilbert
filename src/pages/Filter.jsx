@@ -48,6 +48,8 @@ const countLayers = [
   layers.find(d => d.datasetName == "tf_enr_counts"),
   layers.find(d => d.datasetName == "repeats_enr_counts"),
 ]
+// can also make this an input parameter
+const enrThreshold = 0
 
 import './Filter.css';
 
@@ -421,7 +423,7 @@ const Filter = () => {
           console.log("ABORTING CSN CALCULATION, stale request")
           return Promise.resolve([])
         }
-        return calculateCrossScaleNarrationInWorker(r, 'sum', csnLayers, variantLayers, countLayers, orderSelects)
+        return calculateCrossScaleNarrationInWorker(r, 'sum', enrThreshold, csnLayers, variantLayers, countLayers, orderSelects)
       }
       processInBatches(sample, 4, processFn, handleCSNResults)
         .then(csns => {

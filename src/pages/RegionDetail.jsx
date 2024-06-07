@@ -95,6 +95,8 @@ const RegionDetail = () => {
     layers.find(d => d.datasetName == "tf_enr_counts"),
     layers.find(d => d.datasetName == "repeats_enr_counts"),
   ]
+  // can also make this an input parameter
+  const enrThreshold = 0
   
 
   const [stripsWidth, setStripsWidth] = useState(0);
@@ -191,7 +193,7 @@ const RegionDetail = () => {
       })
 
       if(region.order < 14) {
-        calculateCrossScaleNarrationInWorker(rs[1], csnMethod, csnLayers, variantLayers, countLayers).then(crossScaleResponse => {
+        calculateCrossScaleNarrationInWorker(rs[1], csnMethod, enrThreshold, csnLayers, variantLayers, countLayers).then(crossScaleResponse => {
           setCrossScaleNarration(crossScaleResponse)
           console.log("CSN", crossScaleResponse)
           let uniques = findUniquePaths(crossScaleResponse.paths)
