@@ -144,10 +144,10 @@ export default function ScoreBars({
   }, [csn, order])
 
 
-  const depth = 14 - 4
+  const depth = 15 - 4
   const spacing = height/(depth + 1)
   const h = height - spacing - 1
-  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([1, h]), [h])
+  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([spacing + 3, h + 3]), [h])
   const rw = useMemo(() => yScale(5) - yScale(4) - 2, [yScale])
 
   const handleClick = useCallback((e, o) => {
@@ -234,7 +234,7 @@ export default function ScoreBars({
                 paintOrder="stroke"
                 fontWeight={highlightOrders.indexOf(o) >= 0 ? "bold" : "normal"}
                 >
-                {showFloat(p?.field?.value)}
+                {p?.field ? showFloat(p.field.value) : ""}
               </text>
             </g>
           })}

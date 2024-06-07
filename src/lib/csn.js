@@ -44,10 +44,9 @@ async function calculateCrossScaleNarrationInWorker(selected, csnMethod, enrThre
   // const worker = new Worker(csnWorker, { type: 'module' });
   // const worker = createWorker()
   const worker = await getAvailableWorker()
-  console.log("workerrrr", worker)
   return new Promise((resolve, reject) => {
     worker.onmessage = function(e) {
-      console.log("RECEIVED DATA", e)
+      // console.log("RECEIVED DATA", e)
       // worker.terminate()
       e.data.paths.forEach(d => {
         d.path.forEach(p => p.layer = layersMap[p.layerDataset])
@@ -80,7 +79,7 @@ async function calculateCrossScaleNarrationInWorker(selected, csnMethod, enrThre
       })
     }
   
-    console.log("SENDING MESSAGE")
+    // console.log("SENDING MESSAGE")
     worker.postMessage({ selected , csnMethod , enrThreshold , layers:lyrs, variantLayers:vlyrs, countLayers:clyrs, filters:fltrs });
     // worker.postMessage({ selected, csnMethod, layers, variantLayers, occScore, variantScore, filters });
   });

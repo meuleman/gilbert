@@ -36,7 +36,7 @@ const referenceLayers = [
 ]
 
 onmessage = async function(e) {
-  console.log("GOT THE MESSAGE", e)
+  // console.log("GOT THE MESSAGE", e)
   const { selected, csnMethod, enrThreshold, layers, variantLayers, countLayers, filters, } = e.data;
 
   function deserializeLayer(l) {
@@ -55,9 +55,9 @@ onmessage = async function(e) {
     })
   }
 
-  console.log("WEB WORKER WORKING")
+  // console.log("WEB WORKER WORKING")
   const result = await calculateCrossScaleNarration(selected, csnMethod, enrThreshold, lyrs, vlyrs, clyrs, fltrs, );
-  console.log("RESULT", result)
+  // console.log("RESULT", result)
   postMessage(result)
   // const unique = findUniquePaths(result.paths).uniquePaths
   // console.log("UNIQUE", unique)

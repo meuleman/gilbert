@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
-import { range, max, groups, sum } from 'd3-array';
+import { max, range } from 'd3-array';
 import { format } from 'd3-format';
 import chroma from 'chroma-js';
 
@@ -12,10 +12,11 @@ import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome"
 import { calculateCrossScaleNarration, calculateCrossScaleNarrationInWorker, walkTree, findUniquePaths } from '../lib/csn';
 import Data from '../lib/data';
 
-import counts_native from "../data/counts.native_order_resolution.json"
-import counts_order14 from "../data/counts.order_14_resolution.json"
-console.log("native", counts_native)
-console.log("order14", counts_order14)
+import { 
+  calculateOrderSums, 
+  filterIndices, 
+  sampleRegions
+} from '../lib/filters';
 
 import layers from '../layers'
 
@@ -70,240 +71,83 @@ const Filter = () => {
   const [orderSelects, setOrderSelects] = useState({})
 
   useEffect(() => { 
-    // const counts = showUniquePaths ? counts_native : counts_order13
-    const orderSums = Object.keys(counts_order14).map(o => {
-      let chrms = Object.keys(counts_order14[o])//.map(chrm => counts[o][chrm])
-      // combine each of the objects in each key in the chrms array
-      let total = 0
-      let total_segments_found = 0
-      let layer_total = {}
-      let layer_total_segments = {}
-      let ret = {}
-      let uret = {}
-      let maxf = { value: 0 }
-      chrms.forEach(c => {
-        if(c == "totalSegmentCount") return
-        const chrm = counts_order14[o][c]
-        const layers = Object.keys(chrm)
-        layers.forEach(l => {
-          if(!ret[l]) {
-            ret[l] = {}
-            layer_total[l] = 0
-            Object.keys(chrm[l]).forEach(k => {
-              ret[l][k] = 0
-            })
-          }
-          Object.keys(chrm[l]).forEach(k => {
-            ret[l][k] += chrm[l][k]
-            total += chrm[l][k]
-            layer_total[l] += chrm[l][k]
-            if(chrm[l][k] > maxf.value){
-              maxf.value = chrm[l][k]
-              maxf.layer = l
-              maxf.field = k
-            }
-          })
-        })
-        // get the unique counts
-        const uchrm = counts_native[o][c]
-        layers.forEach(l => {
-          if(!uret[l]) {
-            uret[l] = {}
-            layer_total_segments[l] = 0
-            Object.keys(uchrm[l]).forEach(k => {
-              uret[l][k] = 0
-            })
-          }
-          Object.keys(uchrm[l]).forEach(k => {
-            uret[l][k] += uchrm[l][k]
-            layer_total_segments[l] += uchrm[l][k]
-            total_segments_found += uchrm[l][k]
-          })
-        })
-      })
-      return { 
-        order: o, 
-        counts: ret, 
-        total, 
-        totalPaths: counts_order14[o].totalSegmentCount, 
-        totalSegments: counts_native[o].totalSegmentCount, 
-        total_segments_found,
-        layer_total, 
-        layer_total_segments, 
-        unique_counts: uret, 
-        maxField: maxf 
-      }
-    })
+    const orderSums = calculateOrderSums() 
     console.log("orderSums", orderSums)
     setOrderSums(orderSums)
   }, [])
 
-
-  const handleOrderSelect = useCallback((field, order) => {
-    if(!field) {
-      delete orderSelects[order]
-      const hasOrdersGreaterThanSix = Object.keys(orderSelects).some(order => +order > 6);
-      if (!hasOrdersGreaterThanSix) {
-        setOrderSelects({})
-      } else {
-        setOrderSelects({...orderSelects})
-      }
-    } else {
-      setOrderSelects({...orderSelects, [order]: field})
-    }
-  }, [orderSelects])
-
-
-  // intersect a pair of indices arrays {order, indices}
-  // this version of the function expects the indices to be in native order
-  // that is: each index is in the order given by the orderSelects
-  const intersectIndices = (lower, higher) => {
-    const stride = Math.pow(4, higher.order - lower.order)
-    // turn the lower.indices into ranges to intersect
-    const ranges = lower.indices.map(i => ({start: i*stride, end: (i+1)*stride}))
-    // console.log(lower, higher, stride, ranges)
-    // we filter the higher indices to only keep the ones that are in a range
-    return { order: higher.order, chromosome: higher.chromosome, indices: higher.indices.filter(i => {
-      return ranges.some(r => r.start <= i && r.end >= i)
-    })}
-  }
-
-  // this version of the intersection function expects the indices to be order 14
-  // this means we can directly compare the indices without converting them to ranges
-  const intersectIndices14 = (lower, higher) => {
-    const lowerSet = new Set(lower.indices);
-    const commonIndices = higher.indices.filter(index => lowerSet.has(index));
-    return { order: higher.order, chromosome: higher.chromosome, indices: commonIndices };
-  }
-
-  const [loadingFilters, setLoadingFilters] = useState(false)
-  const [filteredSegmentCount, setFilteredSegmentCount] = useState(0)
+  const [filterLoadingMessage, setFilterLoadingMessage] = useState("")
   const [filteredPathCount, setFilteredPathCount] = useState(0)
   const [chrFilteredIndices, setChrFilteredIndices] = useState([]) // the indices for each chromosome at highest order
-  let chromosomes = Object.keys(counts_native[4]).filter(d => d !== "totalSegmentCount")
   useEffect(() => {
-    console.log("orderSelects", orderSelects)
-    const orders = Object.keys(orderSelects)
-    console.log("orders", orders)
-    // lets make objects for each of the selects, but pulling chromosomes from orderSums
-    const selects = orders.flatMap(o => {
-      let os = orderSelects[o]
-      // let oc = counts_native[o]
-      let oc = counts_order14[o]
-      return chromosomes.map(c => {
-        let chrm = oc[c]
-        let l = os.layer.datasetName
-        // if(l.includes("rank")){
-        //   l = l.replace("_rank", "")
-        // }
-        let i = os.index
-        return {
-          ...os,
-          chromosome: c,
-          chromosome_count: chrm[l][i]
-        }
-      }).filter(d => d?.chromosome_count > 0)
-    })
-    console.log("selects", selects)
 
-    // group by chromosome, we only want to include chromosomes where we have at least one path
-    const groupedSelects = groups(selects, d => d.chromosome)
-    console.log("groupedSelects", groupedSelects)
-    const filteredGroupedSelects = groupedSelects.filter(g => g[1].length == orders.length)
-    console.log("filteredGroupedSelects", filteredGroupedSelects)
+    let totalIndices = 0
+    let indexCount = 0
+    let loadingMessage = ""
+    filterIndices(orderSelects, function(state, value) {
+      // console.log("progress", state, value)
+      if(state == "loading_filters_start") {
+        loadingMessage = "Loading filters..."
+      }
+      else if(state == "grouped_selects") {
+        totalIndices = value.flatMap(d => d[1].map(a => a)).length
+        loadingMessage = `Loading filters 0/${totalIndices}`
+      } else if(state == "got_index"){
+        indexCount += 1
+        loadingMessage = `Loading filters ${indexCount}/${totalIndices}`
+      } else if(state == "filtering_start") {
+        loadingMessage = "Filtering..."
+      } else if(state == "filtering_end") {
+        loadingMessage = "Filtering Complete"
+      }
+      setFilterLoadingMessage(loadingMessage)
 
-    // as long as we have more than one order, we want to do this
-    if(orders.length){
-      setLoadingFilters(true)
-      Promise.all(filteredGroupedSelects.map(g => {
-        return Promise.all(g[1].map(os => {
-          // const base = `https://d2ppfzsmmsvu7l.cloudfront.net/20240516/csn_index_files`
-          const base = `https://resources.altius.org/~ctrader/public/gilbert/data/precomputed_csn_paths/index_files`
-          // const base = `https://d2ppfzsmmsvu7l.cloudfront.net/20240509/csn_index_files`
-          let dsName = os.layer.datasetName
-          // if(dsName.includes("rank")){
-          //   dsName = dsName.replace("_rank", "")
-          // }
-          // const url = `${base}/${os.order}.${os.chromosome}.${dsName}.${os.index}.native_order_resolution.indices.int32.bytes`
-          const url = `${base}/${os.order}.${os.chromosome}.${dsName}.${os.index}.order_14_resolution.indices.int32.bytes`
-          // check the counts14 to see if we would expect indices before fetching
+    }, function(results) {
+      const { filteredIndices, segmentCount, pathCount} = results
+      if(results.filteredIndices.length > 0) {
 
-          return fetch(url)
-            .then(r => r.arrayBuffer())
-            .then(buffer => {
-              const int32Array = new Int32Array(buffer);
-              return {...os, indices: Array.from(int32Array)};
-            })
-            .catch(error => {
-              console.error('Error fetching indices:', error);
-              return {...os, indices: []};
-            });
-        }))
-      }))
-      .then(groups => {
-        console.log("GROUPS", groups)
-        // loop through each group (chromosome), fetch its indices and then filter each pair of indices
-        const filteredIndices = groups.map(g => {
-          const indices = g.map(d => ({order: d.order, chromosome: d.chromosome, indices: d.indices }))
-          // we compare each pair going down until we are left with the indices that go up all the way to the top
-          let result = indices[0];
-          for (let i = 0; i < indices.length - 1; i++) {
-            // result = intersectIndices(result, indices[i+1])
-            result = intersectIndices14(result, indices[i+1])
-          }
-          return result;
-        })
-        console.log("intersected indices", filteredIndices)
-        if(filteredIndices.length === 0){
-          setLoadingFilters(false)
-          setChrFilteredIndices(filteredIndices)
-          setFilteredSegmentCount(0)
-          setFilteredPathCount(0)
-          return
-        }
-        // now we can count everything in a couple ways
-        // 1. count the number of segments by counting the length of indices for each group
-        // 2. count the number of paths by multiplying stride (4^13-order) times the count of segments
-        const segmentCounts = filteredIndices.map(d => d.indices.length)
-        console.log("counts", segmentCounts)
-        const totalSegmentCount = sum(segmentCounts)
-        // let order = filteredIndices[0].order // will all have the same order (the highest of the orderSelects)
-        // const stride = Math.pow(4, 14 - order)
-        const pathCount = totalSegmentCount // * stride
-        console.log("totalSegmentCount", totalSegmentCount)
-        console.log("pathCount", pathCount)
-
-        // get regions for each index
-        // const hilbert = new HilbertChromosome(order)
-        // filteredIndices.forEach(d => {
-        //   d.regions = d.indices.map(i => hilbert.fromRange(d.chromosome, i, i+1)[0])
-        // })
-        // TODO: this is based on the order 14 indices logic
+        // we only grab regions for the top 100 in each chromosome for efficiency
         const hilbert = new HilbertChromosome(14)
         filteredIndices.forEach(d => {
           d.regions = d.indices.slice(0, 100)
             .map(i => hilbert.fromRange(d.chromosome, i, i+1)[0])
         })
-        console.log("FILTERED INDICES", filteredIndices)
 
-        setLoadingFilters(false)
+        setFilterLoadingMessage("")
         setChrFilteredIndices(filteredIndices)
-        setFilteredSegmentCount(totalSegmentCount)
         setFilteredPathCount(pathCount)
-      })
-    // } else if(orders.length == 1) {
-    //   setFilteredSegmentCount(orderSelects[orders[0]].unique_count)
-    //   setFilteredPathCount(orderSelects[orders[0]].count)
-    } else {
-      console.log("deselecting everything")
-      setChrFilteredIndices([])
-      setFilteredSegmentCount(0)
-      setFilteredPathCount(0)
-      setNumSamples(-1)
-      setCSNs([])
-    }
+      } else {
+        setFilterLoadingMessage("")
+        setChrFilteredIndices([])
+        setFilteredPathCount(0)
 
-  }, [orderSelects, orderSums])
+        setNumSamples(-1)
+        setCSNs([])
+      }
+    })
+  }, [orderSelects])
+
+  // calculate the regions at each order
+  const regionsByOrder = useMemo(() => {
+    if(chrFilteredIndices.length === 0) return []
+    const rbo = range(4, 14).map(o => {
+      let total = 0
+      let chrms = chrFilteredIndices.map(d => {
+        let no = d.indices.map(i => hilbertPosToOrder(i, {from: 14, to: o}))
+        let unique = Array.from(new Set(no))
+        let count = unique.length
+        total += count
+        return { chromosome: d.chromosome, indices: unique }
+      })
+      return {
+        order: o,
+        total: total,
+        chrms: chrms
+      }
+    })
+    console.log("RBO", rbo)
+    return rbo
+  }, [chrFilteredIndices])
 
   const processInBatches = async (items, batchSize, processFunction, statusFunction) => {
     let results = [];
@@ -315,11 +159,6 @@ const Filter = () => {
     }
     return results;
   };
-
-  const [selectedOrders, setSelectedOrders] = useState([])
-  useEffect(() => {
-    setSelectedOrders(Object.keys(orderSelects).map(d => +d))
-  }, [orderSelects])
 
   const [loadingCSN, setLoadingCSN] = useState(false)
   const [numSamples, setNumSamples] = useState(-1)
@@ -339,80 +178,17 @@ const Filter = () => {
       csnRequest.current += 1
       const requestNum = csnRequest.current
 
-
-      const totalRegionsNeeded = 48;
-      const regionsPerElement = 2;
-      let result = [];
-      let additionalRegions = [];
-
-      // First pass: collect up to 2 regions from each element if available
-      chrFilteredIndices.forEach(item => {
-        if (item.regions.length >= regionsPerElement) {
-          result.push(...item.regions.slice(0, regionsPerElement));
-        } else {
-          result.push(...item.regions);
-          // Note how many additional regions we need from this item
-          for (let i = item.regions.length; i < regionsPerElement; i++) {
-            additionalRegions.push(item);
-          }
-        }
-      });
-
-      // Calculate how many more regions are needed
-      let regionsNeeded = totalRegionsNeeded - result.length;
-
-      // Second pass: evenly distribute the extraction of additional regions
-      while (regionsNeeded > 0) {
-        let foundRegionsThisRound = 0;
-
-        for (let item of chrFilteredIndices) {
-          if (item.regions.length > regionsPerElement) {
-            let alreadyTaken = result.filter(r => item.regions.includes(r)).length;
-            let availableRegions = item.regions.slice(alreadyTaken, alreadyTaken + 1);
-            if (availableRegions.length > 0) {
-              result.push(...availableRegions);
-              foundRegionsThisRound += availableRegions.length;
-              regionsNeeded -= availableRegions.length;
-              if (regionsNeeded <= 0) break;
-            }
-          }
-        }
-
-        // If no regions were found in a full round, break to avoid infinite loop
-        if (foundRegionsThisRound === 0) {
-          break;
-        }
-      }
-
-      const sample = result.slice(0, totalRegionsNeeded);
-
+      const sample = sampleRegions(chrFilteredIndices, 48, 2)
       setNumSamples(sample.length);
       console.log("SAMPLE", sample);
 
-      // const nonEmptyIndices = chrFilteredIndices.filter(d => d.regions.length > 0);
-      // const baseSamplesPerIndex = Math.floor(totalSamples / nonEmptyIndices.length);
-      // const remainder = totalSamples % nonEmptyIndices.length;
-
-      // const sample = nonEmptyIndices.flatMap((d, idx) => {
-      //   const extraSample = idx < remainder ? 1 : 0;
-      //   const sampleSize = baseSamplesPerIndex + extraSample;
-      //   return d.regions.slice(0, sampleSize)
-      // });
-      // setNumSamples(sample.length);
-
-      // const sample = chrFilteredIndices.flatMap(d => {
-      //   return d.regions.slice(0,1)//.map(r => r)
-      // })
-      // setNumSamples(sample.length)
-      // console.log("SAMPLE", sample)
-      // Promise.all(sample.slice(0,2).map(r => calculateCrossScaleNarration(r, 'sum', csnLayers, variantLayers,0.01, 0.1, orderSelects)))
       const handleCSNResults = (csns) => {
         if(csnRequest.current !== requestNum) {
           console.log("ABORTING CSN CALCULATION, stale request")
           return
         }
         setSampleStatus(csns.length)
-        console.log("csns", csns)
+        // console.log("csns", csns)
         let uniques = csns.flatMap(d => findUniquePaths(d.paths)).flatMap(d => d.uniquePaths)
         uniques.sort((a,b) => b.score - a.score)
         setCSNs(uniques)
@@ -442,6 +218,13 @@ const Filter = () => {
     }
       // TODO: we dont depend on orderSelects here, chrFilteredIndices will always update but we should probably use a ref then?
   }, [chrFilteredIndices, csnLayers, variantLayers, countLayers])
+
+  const [maxPathScore, setMaxPathScore] = useState(null)
+  useEffect(() => {
+    if(csns.length) {
+      setMaxPathScore(max(csns, d => d.score))
+    }
+  }, [csns])
 
   return (
     <div className="filter-page">
@@ -474,27 +257,15 @@ const Filter = () => {
                 setOrderSelects(os)
               }}
             />
-            {/* {orders.map(order => (
-              <FilterOrder key={order} 
-                order={order} 
-                orderSums={orderSums} 
-                showNone={showNone} 
-                showUniquePaths={showUniquePaths}
-                selected={orderSelects[order]}
-                disabled={order < 7 && selectedOrders.length === 0}
-                onSelect={(field) => {
-                  handleOrderSelect(field, order)
-                }} 
-              />
-            ))} */}
+          
           </div>
         </div>
         <div className="section">
           <h3>
-            {loadingFilters ? "Loading..." : "Filter Results"}
+            Filter Results
           </h3>
           <div className="section-content">
-            {loadingFilters ? "Loading..." : 
+            {filterLoadingMessage ? filterLoadingMessage : 
             <>
               
               <h4>Paths</h4>
@@ -509,6 +280,7 @@ const Filter = () => {
                   <ZoomLine 
                     csn={selectedCSN} 
                     order={max(Object.keys(orderSelects), d => +d) + 0.5} // max order
+                    maxPathScore={maxPathScore}
                     highlight={true}
                     // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
                     text={true}
@@ -524,6 +296,7 @@ const Filter = () => {
                   return (<ZoomLine 
                     key={i}
                     csn={n} 
+                    maxPathScore={maxPathScore}
                     order={max(Object.keys(orderSelects), d => +d) + 0.5} // max order
                     // highlight={true}
                     // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
@@ -549,6 +322,7 @@ const Filter = () => {
                   selected={selectedCSN} 
                   zoomOrder={max(Object.keys(orderSelects), d => +d) + 0.5}
                   narration={selectedCSN}
+                  maxPathScore={maxPathScore}
                   layers={csnLayers}
                   loadingCSN={loadingCSN}
                   mapWidth={340}

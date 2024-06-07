@@ -10,6 +10,13 @@ import Tooltip from '../Tooltips/Tooltip';
 import PropTypes from 'prop-types';
 
 
+function scoreTooltipContent(score, layer, orientation) {
+  return (
+    <div style={{display: 'flex', flexDirection: 'column'}}>
+      <span>Score: {showFloat(score)}</span>
+    </div>
+  )
+}
 
 function tooltipContent(region, layer, orientation) {
   // let field = layer.fieldChoice(region)
@@ -86,6 +93,7 @@ function tooltipContent(region, layer, orientation) {
 ZoomLine.propTypes = {
   csn: PropTypes.object,
   order: PropTypes.number.isRequired,
+  maxPathScore: PropTypes.number,
   highlight: PropTypes.bool,
   selected: PropTypes.bool,
   width: PropTypes.number,
@@ -98,6 +106,7 @@ ZoomLine.propTypes = {
 export default function ZoomLine({
   csn,
   order,
+  maxPathScore,
   highlight=false,
   selected=false,
   showOrderLine=true,
@@ -110,6 +119,7 @@ export default function ZoomLine({
   onClick = () => {}
 }) {
   const tooltipRef = useRef(null)
+  const scoreTooltipRef = useRef(null)
   
   const [or, setOr] = useState(order)
   useEffect(() => {
@@ -135,10 +145,11 @@ export default function ZoomLine({
   }, [csn, order])
 
 
-  const depth = 14 - 4
+  // we create an extra space for the score bar
+  const depth = 15 - 4
   const spacing = height/(depth + 1)
   const h = height - spacing - 1
-  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([1, h]), [h])
+  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([spacing + 3, h + 3]), [h])
   const rw = useMemo(() => yScale(5) - yScale(4) - 2, [yScale])
 
   const handleClick = useCallback((e, o) => {
@@ -172,29 +183,38 @@ export default function ZoomLine({
     tooltipRef.current.hide()
   }, [])
 
+  const handleScoreHover = useCallback((e) => {
+    const svg = e.target.ownerSVGElement
+    const rect = svg.getBoundingClientRect();
+    const xoff = tipOrientation === "left" ? -5 : width + 5
+    scoreTooltipRef.current.show(csn.score, null, rect.x + xoff, rect.y + rw - rw * (csn.score/maxPathScore)/2)
+  }, [csn, maxPathScore, rw])
+
+  const handleScoreLeave = useCallback(() => {
+    scoreTooltipRef.current.hide()
+  }, [])
+
   return (
     <div className="csn-line" onClick={() => onClick(csn)}>
       <svg width={width} height={height}>
-
-
         {path.length && yScale ? <g>
-
-          {/* {highlightOrders.map(o => {
-            return <line 
-            key={o}
-            y1={yScale(o) + rw/2} 
-            y2={yScale(o) + rw/2} 
-            x1={0}
-            x2={width}
-            stroke="black"
-            strokeWidth={rw}
-            pointerEvents="none"
-            />
-          })} */}
+          {maxPathScore && <rect
+            y={rw - rw * (csn.score/maxPathScore) + 3}
+            x={0}
+            height={rw * (csn.score/maxPathScore)}
+            width={width}
+            fill="lightgray"
+            stroke="white"
+            fillOpacity={0.5}
+            onMouseMove={(e) => handleScoreHover(e)} 
+            onMouseLeave={() => handleScoreLeave()}
+            />}
 
           {range(4, 15).map(o => {
             let p = path.find(d => d.order == o)
-            return <g key={o} onMouseMove={(e) => handleHover(e, o)} onMouseLeave={() => handleLeave()}>
+            return <g key={o} 
+              onMouseMove={(e) => handleHover(e, o)} 
+              onMouseLeave={() => handleLeave()}>
               <rect
                 y={yScale(o)}
                 x={0}
@@ -244,6 +264,7 @@ export default function ZoomLine({
 
       </svg>
       <Tooltip ref={tooltipRef} orientation={tipOrientation} contentFn={tooltipContent} enforceBounds={false} />
+      <Tooltip ref={scoreTooltipRef} orientation={tipOrientation} contentFn={scoreTooltipContent} enforceBounds={false} />
     </div>
   )
 }

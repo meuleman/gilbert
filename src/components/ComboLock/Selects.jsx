@@ -83,15 +83,11 @@ const FilterOrder = ({order, orderSums, layers, previewField, showNone, showUniq
   const formatLabel = useCallback((option) => {
     return (
       <div>
-        <span>{option.field} </span>
-        <span> 
-          {showUniquePaths ? "(" + showInt(option.unique_count) + " segments)" : ""} 
+        <b>{option.field} </b>
+        <i>{option.layer.name} </i>
+        <span style={{color: "gray"}}> 
+          {showUniquePaths ? " " + showInt(option.count) + " paths " : " "} 
         </span>
-
-        {/* <span> 
-          {showInt(showUniquePaths ? option.unique_count : option.count)} ({showUniquePaths ? option.unique_percent?.toFixed(2) + ")% unique" : option.percent?.toFixed(2)+")%"} 
-        </span> */}
-        <span>[{option.layer.name}]</span>
       </div>
     );
   }, [showUniquePaths]);
