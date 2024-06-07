@@ -732,6 +732,7 @@ function Home() {
           {selected ? 
               <SelectedModal 
                 selected={selected} 
+                filteredRegions={filteredRegions}
                 k={zoom.transform.k}
                 layers={csnLayers}
                 crossScaleNarration={crossScaleNarration}

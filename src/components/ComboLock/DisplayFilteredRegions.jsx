@@ -1,6 +1,7 @@
 import SVGSelected from '../SVGSelected'
-import { scaleLinear } from 'd3-scale'
-import { max } from 'd3-array'
+import { scaleSequential } from 'd3-scale';
+import { interpolateBlues } from 'd3-scale-chromatic';
+import { max, min} from 'd3-array'
 
 const DisplayFilteredRegions = ({
   regions,
@@ -13,13 +14,14 @@ const DisplayFilteredRegions = ({
   radiusMultiplier=0.325,
 } = {}) => {
   if(regions.length) {
-    const maxScore = max(regions, (r => r.p?.count || 0))
-    const colorScale = scaleLinear()
-      .domain([0, maxScore])
-      .range(["white", fill])
-    
+    const maxCount = max(regions, (r => r.path?.count || 0))
+    const minCount = min(regions, (r => r.path?.count || 0))
+
+    const colorScale = scaleSequential(interpolateBlues)
+      .domain([minCount, maxCount]);
+
     const SVGExampleArr = regions.map((r) => { 
-      let c = colorScale(r.p?.count|| 0)
+      let c = colorScale(r.path?.count|| 0)
       return SVGSelected({ 
         hit: r, 
         stroke,

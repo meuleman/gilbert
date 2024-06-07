@@ -13,6 +13,7 @@ import './SelectedModal.css'
 
 const SelectedModal = ({
   selected = null,
+  filteredRegions = [],
   k,
   crossScaleNarration = [],
   layers = [],
@@ -110,6 +111,13 @@ const SelectedModal = ({
     }
     setZoomOrder(or)
   }, [crossScaleNarrationIndex, setCrossScaleNarrationIndex, setZoomOrder])
+
+  const filtered = useMemo(() => {
+    if(!selected || filteredRegions.length == 0) return null
+    const filtered = filteredRegions.find(r => r.chromosome == selected.chromosome && r.i === selected.i)
+    console.log("filtered?????", filtered)
+    return filtered
+  }, [filteredRegions, selected])
   
   return (
     <>
@@ -134,6 +142,12 @@ const SelectedModal = ({
           <Link to={`/region?region=${urlify(selected)}`} target="_blank">📄 Details️ Page</Link>
           <Link onClick={() => onZoom(selected)} alt="Zoom to region">🔍 Zoom to region</Link>         
         </div>
+
+        {filtered ? <div>
+          {filtered.path.count} filtered paths in this region.
+        </div>: null}
+
+        <br></br>
         
         {loadingCSN ? <div>Loading CSN...</div> : 
         <div className="csn">
