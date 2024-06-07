@@ -6,6 +6,7 @@ import { urlify, jsonify, fromPosition, fromCoordinates } from '../lib/regions'
 import { HilbertChromosome, checkRanges } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
 import { calculateCrossScaleNarrationInWorker, narrateRegion } from '../lib/csn'
+import { regionsByOrder } from '../lib/filters'
 import { range } from 'd3-array'
 
 import './Home.css'
@@ -60,6 +61,7 @@ import SimSearchByFactor from '../components/SimSearch/SimSearchByFactor'
 
 import DisplaySimSearchRegions from '../components/SimSearch/DisplaySimSearchRegions'
 import DisplayExampleRegions from '../components/ExampleRegions/DisplayExampleRegions';
+import DisplayFilteredRegions from '../components/ComboLock/DisplayFilteredRegions';
 
 import { getSet } from '../components/Regions/localstorage'
 import SelectedModal from '../components/SelectedModal'
@@ -525,7 +527,7 @@ function Home() {
   const handleChangeShowHilbert = (e) => {
     setShowHilbert(!showHilbert)
   }
-  const [showFilter, setShowFilter] = useState(false)
+  const [showFilter, setShowFilter] = useState(true)
   const handleChangeShowFilter = (e) => {
     setShowFilter(!showFilter)
   }
@@ -598,10 +600,6 @@ function Home() {
 
   // console.log("tracks?", trackMinus1, trackPlus1)
 
-  
-
-
-
   // When data or selected changes, we want to update the tracks
   useEffect(() => {
     if(!dataRef.current) return
@@ -623,6 +621,42 @@ function Home() {
   // make sure this updates only when the data changes
   // the pyramid will lag behind a little bit but wont make too many requests
   }, [zoom, data, isZooming, fetchLayerData]) 
+
+
+  const [filteredIndices, setFilteredIndices] = useState([])
+  const [rbos, setRbos] = useState({})
+  // calculate the filtered regions at the current order
+  useEffect(() => {
+    // console.log("order", zoom.order)
+    if(filteredIndices.length) {
+      // console.log("filteredIndices", filteredIndices)
+      const regions = regionsByOrder(filteredIndices, zoom.order)
+      console.log("filtered regions by order", regions)
+      setRbos(regions)
+    }
+  }, [zoom.order, filteredIndices])
+
+  const [filteredRegions, setFilteredRegions] = useState([])
+  // calculate the regions in view that have paths, and collect those paths
+  useEffect(() => {
+    if(data && rbos.total && data.data?.length) {
+      console.log("rbos", rbos, data)
+      const inview = data.data.filter(d => d.inview == true)
+      // for each region in view, lets see if it shows up in the rbos
+      const inRbos = inview.map(d => {
+        const p = rbos.chrmsMap[d.chromosome]?.indices?.find(i => i.i == d.i)
+        if(p) {
+          return {...d, path: p}
+        } else {
+          return null
+        }
+      }).filter(d => d)
+      console.log("inRbos", inRbos)
+      setFilteredRegions(inRbos)
+    } else {
+      setFilteredRegions([])
+    }
+  }, [rbos, data])
 
   return (
     <>
@@ -682,7 +716,7 @@ function Home() {
             searchByFactorInds={searchByFactorInds}
           />
           
-          {selected ? 
+          {selected && powerNarration ? 
               <PowerOverlay 
                 selected={selected} 
                 zoomOrder={powerOrder}
@@ -694,17 +728,6 @@ function Home() {
                 modalPosition={modalPosition}
                 onClose={handleModalClose}
                 >
-                  <SimSearchResultList
-                    simSearch={simSearch}
-                    zoomRegion={region}
-                    searchByFactorInds={searchByFactorInds}
-                    onFactorClick={handleFactorClick}
-                    onZoom={(region) => { 
-                      const hit = fromPosition(region.chromosome, region.start, region.end)
-                      setRegion(null); 
-                      setRegion(hit)}}
-                    onHover={setHover}
-                  />
             </PowerOverlay> : null}
           {selected ? 
               <SelectedModal 
@@ -734,7 +757,9 @@ function Home() {
             </SelectedModal> : null}
             
             {showFilter ? <div>
-            <FilterModal></FilterModal>
+            <FilterModal 
+              onIndices={setFilteredIndices}>
+            </FilterModal>
           </div> : null}
             <div ref={containerRef} className="hilbert-container">
               {containerRef.current && ( 
@@ -782,6 +807,10 @@ function Home() {
                       width: 0.2,
                       color: "red",
                       numRegions: 100,
+                    }),
+                    ...DisplayFilteredRegions({
+                      regions: filteredRegions,
+                      order: zoom.order,
                     }),
                     showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
                   ]}

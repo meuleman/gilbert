@@ -244,19 +244,27 @@ function sampleRegions(filteredIndices, totalRegionsNeeded = 48, regionsPerEleme
 function regionsByOrder(filteredIndices, order) {
   let total = 0
   let chrms = filteredIndices.map(d => {
-    // let no = d.indices.map(i => ({i, oi: hilbertPosToOrder(i, {from: 14, to: o})}))
+    // let no = d.indices.map(i => ({i, oi: hilbertPosToOrder(i, {from: 14, to: order})}))
     // let nog = groups(no, i => i.oi)
     // let count = nog.length
     let no = d.indices.map(i => hilbertPosToOrder(i, {from: 14, to: order}))
-    let unique = Array.from(new Set(no))
-    let count = unique.length
+    // let unique = Array.from(new Set(no))
+    // let count = unique.length
+    let nog = groups(no, i => i).map(i => ({i: i[0], count: i[1].length}))
+    let count = nog.length
     total += count
-    return { chromosome: d.chromosome, indices: unique}
+    return { chromosome: d.chromosome, indices: nog}
   })
+  const chrmsMap = chrms.reduce((acc, d) => {
+    acc[d.chromosome] = d
+    return acc
+  }, {})
+
   return {
     order,
     total,
-    chrms
+    chrms,
+    chrmsMap
   }
 }
 

@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react'
 import Selects from './Selects'
 
-import { calculateOrderSums } from '../../lib/filters'
+import { calculateOrderSums, filterIndices } from '../../lib/filters'
+import { showInt } from '../../lib/display'
 
 import './Modal.css'
 
@@ -32,6 +33,7 @@ const countLayers = [
 ]
 
 const FilterModal = ({
+  onIndices = () => {},
   onClose = () => {}
 } = {}) => {
 
@@ -47,6 +49,51 @@ const FilterModal = ({
     console.log("orderSums", orderSums)
     setOrderSums(orderSums)
   }, [])
+
+
+  const [filterLoadingMessage, setFilterLoadingMessage] = useState("")
+  const [filteredPathCount, setFilteredPathCount] = useState(0)
+  const [filteredIndices, setFilteredIndices] = useState([]) // the indices for each chromosome at highest order
+  useEffect(() => {
+
+    let totalIndices = 0
+    let indexCount = 0
+    let loadingMessage = ""
+    filterIndices(orderSelects, function(state, value) {
+      // console.log("progress", state, value)
+      if(state == "loading_filters_start") {
+        loadingMessage = "Loading filters..."
+      }
+      else if(state == "grouped_selects") {
+        totalIndices = value.flatMap(d => d[1].map(a => a)).length
+        loadingMessage = `Loading filters 0/${totalIndices}`
+      } else if(state == "got_index"){
+        indexCount += 1
+        loadingMessage = `Loading filters ${indexCount}/${totalIndices}`
+      } else if(state == "filtering_start") {
+        loadingMessage = "Filtering..."
+      } else if(state == "filtering_end") {
+        loadingMessage = "Filtering Complete"
+      }
+      setFilterLoadingMessage(loadingMessage)
+
+    }, function(results) {
+      const { filteredIndices, pathCount} = results
+      if(results.filteredIndices.length > 0) {
+        setFilterLoadingMessage("")
+        setFilteredIndices(filteredIndices)
+        setFilteredPathCount(pathCount)
+      } else {
+        setFilterLoadingMessage("")
+        setFilteredIndices([])
+        setFilteredPathCount(0)
+      }
+    })
+  }, [orderSelects])
+
+  useEffect(() => {
+    onIndices(filteredIndices)
+  }, [filteredIndices])
   
   return (
     <div className="filter-modal">
@@ -69,7 +116,10 @@ const FilterModal = ({
           />
       </div>
       <div className="filter-results">
-        RESULTS
+        <h3>Filtered paths</h3>
+        {filterLoadingMessage ? filterLoadingMessage : <div>
+          {showInt(filteredPathCount)} ({(filteredPathCount/orderSums[4]?.totalPaths*100).toFixed(2)}%) paths found
+        </div>}
       </div>
       </div>
   </div>
