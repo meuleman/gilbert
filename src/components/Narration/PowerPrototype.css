@@ -1,32 +1,32 @@
 
-.power-modal {
+.power-prototype {
   display: flex;
   flex-direction: column;
-  width: fit-content;
+  width: auto;
 }
 
-.power-modal .power-container {
+.power-prototype .power-container {
   display: flex;
   flex-direction: row;
 }
-.power-modal .power-canvas {
+.power-prototype .power-canvas {
   border: 1px solid lightgray;
 }
-.power-modal .power-scroll {
+.power-prototype .scroll {
   margin-left: 24px;
   overflow-y: hidden;
   position: relative;
 }
-.power-modal .power-order {
+.power-prototype .power-order {
   position: absolute;
 }
-.power-modal .power input {
+.power-prototype .power input {
   width: 100%;
 }
-.power-modal .power-canvas-1d {
+.power-prototype .power-canvas-1d {
   border: 1px solid lightgray;
 }
-.power-modal .power-canvas-strip {
+.power-prototype .power-canvas-strip {
   margin-top: 4px;
   border: 1px solid lightgray;
 }

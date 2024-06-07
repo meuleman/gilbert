@@ -10,9 +10,11 @@ const StatusBar = ({
   hover = null,
   layer,
   zoom,
+  showFilter = false,
   showDebug = false,
   showSettings = false,
   orderOffset,
+  onFilter=()=>{},
   onDebug=()=>{},
   onSettings=()=>{},
   onOrderOffset=()=>{},
@@ -63,6 +65,12 @@ const StatusBar = ({
     }}>
 
       <div className="status-bar-row">
+        <div style={{width: '30px'}}>
+        <button className={`filter-button ${showFilter ? 'active' : null}`}
+          onClick={() => onFilter(!showFilter)}>
+          🔒
+        </button>
+        </div>
         <div className="status-bar-hover">
           {hover && (
             <>

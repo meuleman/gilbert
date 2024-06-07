@@ -60,3 +60,14 @@
   background: white;
   /* border: 1px solid blue; */
 }
+
+.filter-button {
+  /* border: 1px solid gray; */
+  background: #eee;
+  padding: 0px 12px;
+  height: 38px;
+}
+.filter-button.active {
+  background: white;
+  /* border: 1px solid blue; */
+}

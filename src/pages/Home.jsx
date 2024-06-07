@@ -29,6 +29,7 @@ import SVGSelected from '../components/SVGSelected'
 import RegionMask from '../components/RegionMask'
 import SVGChromosomeNames from '../components/SVGChromosomeNames'
 // import SVGBBox from '../components/SVGBBox'
+import FilterModal from '../components/ComboLock/Modal'
 
 // layer configurations
 import layers from '../layers'
@@ -524,6 +525,12 @@ function Home() {
   const handleChangeShowHilbert = (e) => {
     setShowHilbert(!showHilbert)
   }
+  const [showFilter, setShowFilter] = useState(false)
+  const handleChangeShowFilter = (e) => {
+    setShowFilter(!showFilter)
+  }
+
+
   const [showDebug, setShowDebug] = useState(true)
   const handleChangeShowDebug = (e) => {
     setShowDebug(!showDebug)
@@ -564,6 +571,7 @@ function Home() {
 
   
   const onData = useCallback((payload) => {
+    console.log("data payload", payload)
     setData(payload)
   }, [setData])
 
@@ -673,6 +681,7 @@ function Home() {
             handleFactorClick={handleFactorClick}
             searchByFactorInds={searchByFactorInds}
           />
+          
           {selected ? 
               <PowerOverlay 
                 selected={selected} 
@@ -723,6 +732,10 @@ function Home() {
                     onHover={setHover}
                   />
             </SelectedModal> : null}
+            
+            {showFilter ? <div>
+            <FilterModal></FilterModal>
+          </div> : null}
             <div ref={containerRef} className="hilbert-container">
               {containerRef.current && ( 
                 <HilbertGenome 
@@ -837,6 +850,7 @@ function Home() {
             hover={hover} // the information about the cell the mouse is over
             layer={layer} 
             zoom={zoom} 
+            showFilter={showFilter}
             showDebug={showDebug}
             showSettings={showSettings}
             orderOffset={orderOffset}
@@ -844,6 +858,7 @@ function Home() {
             onDebug={handleChangeShowDebug}
             onSettings={handleChangeShowSettings}
             onOrderOffset={setOrderOffset}
+            onFilter={handleChangeShowFilter}
           />
           { showSettings ? <SettingsPanel 
             showHilbert={showHilbert}

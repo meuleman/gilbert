@@ -6,7 +6,7 @@ import { showKb } from '../lib/display'
 import CSNSentence from './Narration/Sentence'
 import CSNLine from './Narration/Line'
 import ZoomLine from './Narration/ZoomLine'
-import PowerModal from './Narration/PowerModal'
+import PowerModal from './Narration/Power'
 import { scaleLinear } from 'd3-scale'
 
 import './SelectedModal.css'

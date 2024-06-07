@@ -1,5 +1,6 @@
 
-import { groups, sum } from 'd3-array';
+import { range, groups, sum } from 'd3-array';
+import { hilbertPosToOrder } from './HilbertChromosome';
 
 import counts_native from "../data/counts.native_order_resolution.json"
 import counts_order14 from "../data/counts.order_14_resolution.json"
@@ -240,11 +241,31 @@ function sampleRegions(filteredIndices, totalRegionsNeeded = 48, regionsPerEleme
   return sample
 }
 
+function regionsByOrder(filteredIndices, order) {
+  let total = 0
+  let chrms = filteredIndices.map(d => {
+    // let no = d.indices.map(i => ({i, oi: hilbertPosToOrder(i, {from: 14, to: o})}))
+    // let nog = groups(no, i => i.oi)
+    // let count = nog.length
+    let no = d.indices.map(i => hilbertPosToOrder(i, {from: 14, to: order}))
+    let unique = Array.from(new Set(no))
+    let count = unique.length
+    total += count
+    return { chromosome: d.chromosome, indices: unique}
+  })
+  return {
+    order,
+    total,
+    chrms
+  }
+}
+
 export {
   counts_native,
   counts_order14,
   calculateOrderSums,
   filterIndices,
-  sampleRegions
+  sampleRegions,
+  regionsByOrder
 }
 

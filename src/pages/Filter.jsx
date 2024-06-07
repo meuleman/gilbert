@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
-import { max, range } from 'd3-array';
+import { max, range, groups } from 'd3-array';
 import { format } from 'd3-format';
 import chroma from 'chroma-js';
 
@@ -15,13 +15,14 @@ import Data from '../lib/data';
 import { 
   calculateOrderSums, 
   filterIndices, 
-  sampleRegions
+  sampleRegions,
+  regionsByOrder
 } from '../lib/filters';
 
 import layers from '../layers'
 
 import LogoNav from '../components/LogoNav';
-import PowerModal from '../components/Narration/PowerModal';
+import PowerModal from '../components/Narration/Power';
 import PowerOverlay from '../components/PowerOverlay';
 import ZoomLine from '../components/Narration/ZoomLine';
 import Selects from '../components/ComboLock/Selects';
@@ -128,23 +129,9 @@ const Filter = () => {
   }, [orderSelects])
 
   // calculate the regions at each order
-  const regionsByOrder = useMemo(() => {
+  const rbo = useMemo(() => {
     if(chrFilteredIndices.length === 0) return []
-    const rbo = range(4, 14).map(o => {
-      let total = 0
-      let chrms = chrFilteredIndices.map(d => {
-        let no = d.indices.map(i => hilbertPosToOrder(i, {from: 14, to: o}))
-        let unique = Array.from(new Set(no))
-        let count = unique.length
-        total += count
-        return { chromosome: d.chromosome, indices: unique }
-      })
-      return {
-        order: o,
-        total: total,
-        chrms: chrms
-      }
-    })
+    const rbo = range(4, 14).map(o => regionsByOrder(chrFilteredIndices, o))
     console.log("RBO", rbo)
     return rbo
   }, [chrFilteredIndices])

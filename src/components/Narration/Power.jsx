@@ -12,14 +12,12 @@ import scaleCanvas from '../../lib/canvas'
 import { getOffsets } from "../../lib/segments"
 import { variantChooser } from '../../lib/csn';
 
-import nucleotides from '../../layers/nucleotides';
-import variants_categorical from '../../layers/variants_categorical';
-import variants_apc from '../../layers/variants_apc';
-import variants_gwas from '../../layers/variants_gwas';
 import order_14 from '../../layers/order_14';
 
-
 import { Renderer as CanvasRenderer } from '../Canvas/Renderer';
+
+
+import Tooltip from '../Tooltips/Tooltip';
 
 import './Power.css';
 
@@ -99,26 +97,34 @@ function renderPipes(ctx, points, t, o, scales, stroke, sizeMultiple=1) {
 
 import PropTypes from 'prop-types';
 
-Power.propTypes = {
+PowerModal.propTypes = {
   csn: PropTypes.object.isRequired,
   width: PropTypes.number.isRequired,
   height: PropTypes.number.isRequired,
   sheight: PropTypes.number,
   userOrder: PropTypes.number,
   onData: PropTypes.func,
+  onOrder: PropTypes.func,
+  onPercent: PropTypes.func,
   // percent: PropTypes.number
 };
 
 
-function Power({ csn, width, height, sheight=30, userOrder, onData }) {
+function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder, onPercent }) {
 
   const canvasRef = useRef(null);
-  const canvasRef1D = useRef(null);
+  // const canvasRef1D = useRef(null);
   const canvasRefStrip = useRef(null);
+  const tooltipRef = useRef(null)
 
   const percentScale = useMemo(() => scaleLinear().domain([1, 100]).range([4, 14.999]), [])
 
-  const [percent, setPercent] = useState(userOrder ? percentScale.invert(userOrder + .5) : 1)
+  const [percent, setPercent] = useState(userOrder ? percentScale.invert(userOrder) : 1)
+
+  useEffect(() => {
+    setPercent(userOrder ? percentScale.invert(userOrder) : 1)
+  }, [userOrder, percentScale])
+
   const [order, setOrder] = useState(userOrder ? userOrder : 4)
 
   const [data, setData] = useState(null)
@@ -145,6 +151,8 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
   const orderZoomScale = useMemo(() =>  scaleLinear().domain(zoomExtent).range([1, Math.pow(2, orderDomain[1] - orderDomain[0] + 0.999)]), [orderDomain, zoomExtent])
   const scales = useMemo(() => ({ xScale, yScale, sizeScale, orderZoomScale, width, height }), [xScale, yScale, sizeScale, orderZoomScale, width, height])
 
+  const [interpXScale, setInterpXScale] = useState(() => scaleLinear())
+
   const zoomToBox = useCallback((x0,y0,x1,y1,order,scaleMultiplier=1) => {
     let tw = sizeScale(x1 - x0)
     let scale = Math.pow(2, order)  * scaleMultiplier
@@ -158,9 +166,9 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
   useEffect(() => {
     scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
   }, [canvasRef, width, height])
-  useEffect(() => {
-    scaleCanvas(canvasRef1D.current, canvasRef1D.current.getContext("2d"), width, height)
-  }, [canvasRef1D, width, height])
+  // useEffect(() => {
+  //   scaleCanvas(canvasRef1D.current, canvasRef1D.current.getContext("2d"), width, height)
+  // }, [canvasRef1D, width, height])
   useEffect(() => {
     scaleCanvas(canvasRefStrip.current, canvasRefStrip.current.getContext("2d"), width, sheight)
   }, [canvasRefStrip, width, sheight])
@@ -189,10 +197,23 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
           region = p.region
           lastRegion = region
         } else {
-          const i = lastRegion.i * 4
-          region = hilbert.fromRange(lastRegion.chromosome, i, i+1)[0]
-          let start = lastRegion.start
-          let end = lastRegion.end
+          let start, end, chromosome
+          if(!lastRegion) {
+            // look at closest existing region we can base current order off of
+            const np = csn.path.find(d => d.order > o)
+            const orderDiff = np.order - o
+            const i = parseInt(np.region.i / (4 ** orderDiff))
+            region = hilbert.fromRange(np.region.chromosome, i, i+1)[0]
+            chromosome = region.chromosome
+            start = region.start
+            end = region.end
+          } else {
+            const i = lastRegion.i * 4
+            chromosome = lastRegion.chromosome
+            region = hilbert.fromRange(chromosome, i, i+1)[0]
+            start = lastRegion.start
+            end = lastRegion.end
+          }
           if(o < 14) {
             let np = csn.path.find(d => d.order > o)
             if(o == 13 && csn.variants) {
@@ -206,7 +227,7 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
               end = np.region.end
             }
           }
-          const regions = hilbert.fromRegion(lastRegion.chromosome, start, end)
+          const regions = hilbert.fromRegion(chromosome, start, end)
           region = regions[0]
           lastRegion = region
         }
@@ -229,11 +250,14 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
           points
         }
       })
+      // console.log("in power", csn)
+      // console.log("order points", orderPoints)
 
       Promise.all(orderPoints.map(p => {
         if(p.layer?.layers){ 
           return Promise.all(p.layer.layers.map(l => dataClient.fetchData(l, p.order, p.points)))
         } else {
+          // console.log("P", p.order, p.layer)
           return dataClient.fetchData(p.layer, p.order, p.points)
         }
       }))
@@ -242,6 +266,7 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
             const order = orderPoints[i].order
             const layer = orderPoints[i].layer
             const region = orderPoints[i].region
+            // console.log("set data", order, layer)
             if(order == 14) {
                 // combine the data
                 d = layer.combiner(d)
@@ -267,10 +292,38 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
       onData(data)
   }, [data, onData])
 
+  // useEffect(() => {
+  //   onOrder && onOrder(order)
+  // }, [order, onOrder])
+
+  // useEffect(() => {
+  //   onPercent && onPercent(percent)
+  // }, [percent, onPercent])
+
+  const handleWheel = useCallback((event) => {
+    event.preventDefault();
+    const delta = -event.deltaY;
+    setPercent(prevPercent => {
+      let newPercent = prevPercent + delta * 0.01; // Adjust the 0.01 to control the sensitivity of the scroll
+      newPercent = Math.max(0, Math.min(100, newPercent));
+      onOrder(percentScale(newPercent))
+      return newPercent
+    });
+  }, [setPercent, onOrder]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (canvas) {
+      canvas.addEventListener('wheel', handleWheel, { passive: false });
+      return () => {
+        canvas.removeEventListener('wheel', handleWheel);
+      };
+    }
+  }, [handleWheel]);
+
+
 
   const oscale = useMemo(() => scaleLinear().domain([0, 0.5]).range([1, 0]).clamp(true), [])
-  const scrollScale = useMemo(() => scaleLinear().domain([0.8, 1]).range([0, 1]).clamp(true), [])
-  const nextScrollScale = useMemo(() => scaleLinear().domain([0.5, 1]).range([1, 0]).clamp(true), [])
   
 
   // Render the 2D power visualization
@@ -315,6 +368,17 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
         // render the current layer
         ctx.globalAlpha = 1
         if(d.layer){
+          console.log("RENDER o", o, d)
+          let rd = {}
+          if(o < 14) {
+            // if(d.layer.topValues) {
+            //   rd["max_field"] = d.layer.fieldColor.domain().indexOf(d.p.field.field)
+            //   rd["max_value"] = d.p.field.value
+            // } else {
+            //   rd[d.p.field.field] = d.p.field.value
+            // }
+            d.data.find(r => r.i == d.p.region.i).data = d.region.data
+          }
           CanvasRenderer(d.layer.renderer, { 
             scales, 
             state: { 
@@ -343,9 +407,12 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
           ctx.lineWidth = 0.5
           ctx.globalAlpha = oscale(or - o)
           if(pd.layer){
+
+            // pd.data.find(r => r.i == pd.p.region.i).data = pd.region.data
             CanvasRenderer(pd.layer.renderer, { 
               scales, 
               state: { 
+                // data: { [pd.p.field.field]: pd.p.field.value },
                 data: pd.data,
                 loading: false,
                 points: pd.points,
@@ -376,7 +443,7 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
     }
   }, [percent, percentScale, csn, data, oscale, width, height, zoomToBox, scales])
 
-  // Render the 1D pyramid visualization (and 1D Strip)
+  // Render the 1D Strip
   useEffect(() => {
     const or = percentScale(percent)
     const o = Math.floor(or)
@@ -385,15 +452,12 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
 
     let rh = height / (15 - 4) // one row per order
 
-    if(csn && csn.path && canvasRef1D.current && canvasRefStrip.current && data) {
-
+    if(csn && csn.path && canvasRefStrip.current && data) {
       // the region at the current order
       const dorder = data.find(d => d.order === o)
       if(dorder) {
         const r = dorder.region
 
-        const ctx = canvasRef1D.current.getContext('2d');
-        ctx.clearRect(0, 0, width, height)
         const ctxs = canvasRefStrip.current.getContext('2d');
         ctxs.clearRect(0, 0, width, sheight)
 
@@ -405,6 +469,7 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
         const xExtentEnd = extent(pointso, d => d.end)
         // the x scale is based on the start of the earliest point and the end of the latest point
         let xs = scaleLinear().domain([xExtentStart[0], xExtentEnd[1]]).range([0, width])
+        setInterpXScale(() => xs)
 
         // we interpolate between this zoom and the next zoom region to get the scale we use
         const no = o + 1
@@ -423,13 +488,16 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
           nxExtentStart = [r.start - rw*16, 0]
           nxExtentEnd = [0, r.end + rw*16]
         }
-          // the x scale is interpolated based on the difference between the raw order and order (0 to 1)
-          const interpolateStart = interpolateNumber(xExtentStart[0], nxExtentStart[0]);
-          const interpolateEnd = interpolateNumber(xExtentEnd[1], nxExtentEnd[1]);
-          xs = scaleLinear().domain([
-            interpolateStart(or - o), 
-            interpolateEnd(or - o)
-          ]).range([0, width]);
+
+        // the x scale is interpolated based on the difference between the raw order and order (0 to 1)
+        const interpolateStart = interpolateNumber(xExtentStart[0], nxExtentStart[0]);
+        const interpolateEnd = interpolateNumber(xExtentEnd[1], nxExtentEnd[1]);
+        xs = scaleLinear().domain([
+          interpolateStart(or - o), 
+          interpolateEnd(or - o)
+        ]).range([0, width]);
+        setInterpXScale(() => xs)
+
 
         // we want a global coordinate system essentially for the 1D visualization
         data.map(d => {
@@ -438,56 +506,30 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
           const y = i * rh
           const h = rh
           const w = width
-          ctx.fillStyle = "white"
-          ctx.fillRect(0, y, w, h)
           ctxs.fillStyle = "white"
           ctxs.fillRect(0, y, w, h)
           const layer = d.layer
-          // if(layer) {
-            // loop over the data poitns
-            // const meta = d.data.metas.find((meta) => meta.chromosome === r.chromosome)
-            // const { min, max } = getDataBounds(meta)
 
-            // console.log("data", d)
-            const data = d.data
-            const dhdistance = 16 + 4 * (d.order - 4)
-            d.points.filter(p => p.i > d.region.i - dhdistance && p.i < d.region.i + dhdistance).map(p => {
-              const dp = data.find(d => d.i == p.i)
-              if(dp && layer) {
-                const sample = layer.fieldChoice(dp);
-                if(sample && sample.field){
-                  // let fi = meta.fields.indexOf(sample.field)
-                  // let domain = [meta.min[fi] < 0 ? 0 : meta.min[fi], meta.max[fi]]
-                  // TODO: we could scale height
-                  // TODO or we could scale opacity
-                  if(layer.name == "Nucleotides") {
-                    ctx.fillStyle = layer.fieldColor(sample.value)
-                    ctxs.fillStyle = layer.fieldColor(sample.value)
-                  } else {
-                    ctx.fillStyle = layer.fieldColor(sample.field)
-                    ctxs.fillStyle = layer.fieldColor(sample.field)
-                  }
-                  const x = xs(p.start)
-                  let w = xs(p.end) - x
-                  if(w < 1) w = 1
-                  ctx.fillRect(x, y, w-0.5, h-1)
-                  if(d.order == o) {
-                    ctxs.globalAlpha = 1
-                    ctxs.fillRect(x, 0, w-0.5, h-1)
-                  }
-                  if(d.order == o-1) {
-                    ctxs.globalAlpha = oscale(or - o)
-                    ctxs.fillRect(x, 0, w-0.5, h-1)
-                  }
+          const data = d.data
+          const dhdistance = 16 + 4 * (d.order - 4)
+          d.points.filter(p => p.i > d.region.i - dhdistance && p.i < d.region.i + dhdistance).map(p => {
+            const dp = data.find(d => d.i == p.i)
+            if(dp && layer) {
+              const sample = layer.fieldChoice(dp);
+              if(sample && sample.field){
+                // let fi = meta.fields.indexOf(sample.field)
+                // let domain = [meta.min[fi] < 0 ? 0 : meta.min[fi], meta.max[fi]]
+                // TODO: we could scale height
+                // TODO or we could scale opacity
+                if(layer.name == "Nucleotides") {
+                  ctxs.fillStyle = layer.fieldColor(sample.value)
+                } else {
+                  ctxs.fillStyle = layer.fieldColor(sample.field)
                 }
-              } else {
-                ctx.fillStyle = "#eee"
-                ctxs.fillStyle = "#eee"
                 const x = xs(p.start)
                 let w = xs(p.end) - x
                 if(w < 1) w = 1
-                ctx.fillRect(x, y, w-0.5, h-1)
-                if(d.order == o){ 
+                if(d.order == o) {
                   ctxs.globalAlpha = 1
                   ctxs.fillRect(x, 0, w-0.5, h-1)
                 }
@@ -496,28 +538,58 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
                   ctxs.fillRect(x, 0, w-0.5, h-1)
                 }
               }
-            })
-          // }
-          // render the region being highlighted
-          ctx.strokeStyle = "black"
-          // ctx.globalAlpha = 0.75
-          ctx.lineWidth = 1;
-          ctx.strokeRect(xs(d.region.start), i*rh, xs(d.region.end) - xs(d.region.start)-0.5, rh-1)
+            } else {
+              ctxs.fillStyle = "#eee"
+              const x = xs(p.start)
+              let w = xs(p.end) - x
+              if(w < 1) w = 1
+              if(d.order == o){ 
+                ctxs.globalAlpha = 1
+                ctxs.fillRect(x, 0, w-0.5, h-1)
+              }
+              if(d.order == o-1) {
+                ctxs.globalAlpha = oscale(or - o)
+                ctxs.fillRect(x, 0, w-0.5, h-1)
+              }
+            }
+          })
         })
 
         // render the region being highlighted
-        ctx.strokeStyle = "black"
         ctxs.strokeStyle = "black"
-        // ctx.globalAlpha = 0.75
-        ctx.lineWidth = 2;
         ctxs.lineWidth = 2;
-        ctx.strokeRect(xs(r.start), (r.order - 4)*rh, xs(r.end) - xs(r.start)-0.5, rh-1)
         ctxs.strokeRect(xs(r.start), 0, xs(r.end) - xs(r.start)-0.5, rh-1)
-
       }
     }
   }, [percent, percentScale, csn, data, width, height, zoomToBox, scales])
 
+  const handleMouseMove = useCallback((e) => {
+    // if(!xScaleRef.current || !data?.length) return
+    const { clientX } = e;
+    const rect = e.target.getBoundingClientRect();
+    const x = clientX - rect.x; // x position within the element.
+
+    let start = interpXScale.invert(x)
+
+    const dataregions = data.find(d => d.order == order)
+    // console.log("DATA REGIONS", dataregions)
+    // console.log("domain", interpXScale.domain(), "range", interpXScale.range(), x, start)
+    const d = dataregions.data.find(d => {
+      return d.start <= start && start <= d.end
+    });
+    // console.log("mouse move", x, start)//, d?.region.start)
+    // console.log("d", d, d.start, interpXScale(d.start), interpXScale.domain())
+
+    if(d) {
+      // const bw = interpXScale(d.end) - interpXScale(d.start)
+      const tx = clientX//interpXScale(d.start) + bw// + 12 + 20;
+      tooltipRef.current.show(d, dataregions.layer, tx, rect.top + sheight + 5)
+    }
+  }, [data, interpXScale, order, sheight])
+
+  const handleMouseLeave = useCallback(() => {
+    tooltipRef.current.hide()
+  }, [])
 
   return (
     <div className="power">
@@ -529,7 +601,7 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
           style={{width: width + "px", height: height + "px"}}
           ref={canvasRef}
         />
-        <div className="power-scroll" style={{width: 350 + "px", height: height + "px"}}>
+        {/* <div className="power-scroll" style={{width: 350 + "px", height: height + "px"}}>
           {data && data.map((d) => {
             const or = percentScale(percent)
             const o = Math.floor(or)
@@ -551,38 +623,37 @@ function Power({ csn, width, height, sheight=30, userOrder, onData }) {
             }
             let field = d.p?.field
             return (<div className="power-order" key={d.order} style={{top: offset + "px"}}>
-              {/* ({showKb(4 ** (14 - d.order))})<br/> */}
               {showPosition(d.region)}<br/>
               Order {d.order} <br/> 
               {d.layer?.name}<br/>
               <span style={{color: field?.color}}>{field?.field} </span>
-              {/* {field?.value}<br/> */}
-              {/* {t} {or} */}
             </div>)
           })}
-        </div>
-        <canvas 
+        </div> */}
+        {/* <canvas 
           className="power-canvas-1d"
           width={width + "px"}
           height={height + "px"}
           style={{width: width + "px", height: height + "px"}}
           ref={canvasRef1D}
-        />
+        /> */}
       </div>
       <canvas 
           className="power-canvas-strip"
           width={width + "px"}
-          height={20 + "px"}
+          height={sheight + "px"}
           style={{width: width + "px", height: sheight + "px"}}
           ref={canvasRefStrip}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
         />
-      <label>
+      {/* <label>
         <input style={{width: (width*1) + "px"}} type="range" min={1} max={100} value={percent} onChange={(e) => setPercent(e.target.value)}></input>
         {order}
-        {/* {percentScale(percent)} */}
-      </label>
+      </label> */}
+      <Tooltip ref={tooltipRef} orientation="bottom" enforceBounds={false} />
     </div>
   );
 }
 
-export default Power;
+export default PowerModal;

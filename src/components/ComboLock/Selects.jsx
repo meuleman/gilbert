@@ -23,9 +23,9 @@ const dot = (color = 'transparent') => ({
   },
 });
 
-const colourStyles = (isActive) => ({
+const colourStyles = (isActive, restingWidth = 65, activeWidth = 570) => ({
   // TODO: make 2nd options 70px if want to make short again
-  control: (styles) => ({ ...styles, backgroundColor: 'white', width: isActive ? '570px' : '570px'  }),
+  control: (styles) => ({ ...styles, backgroundColor: 'white', width: isActive ? activeWidth + "px" : restingWidth + "px"  }),
   option: (styles, { data, isDisabled, isFocused, isSelected }) => {
     const color = chroma(data.color);
     return {
@@ -58,7 +58,7 @@ const colourStyles = (isActive) => ({
     };
   },
   // TODO: change 2nd option to 10px to make short again
-  input: (styles) => ({ ...styles, ...dot(), width: isActive ? '500px' : '510px' }),
+  input: (styles) => ({ ...styles, ...dot(), width: isActive ? activeWidth + "px" : '10px' }),
   placeholder: (styles) => ({ ...styles, ...dot('#ccc') }),
   singleValue: (styles, { data }) => ({ 
     ...styles, 
@@ -69,7 +69,19 @@ const colourStyles = (isActive) => ({
   }),
 });
 
-const FilterOrder = ({order, orderSums, layers, previewField, showNone, showUniquePaths, disabled, selected, onSelect}) => {
+const FilterOrder = ({
+  order, 
+  orderSums, 
+  layers, 
+  previewField, 
+  showNone, 
+  showUniquePaths, 
+  disabled, 
+  selected, 
+  activeWidth, 
+  restingWidth, 
+  onSelect
+}) => {
   const [selectedField, setSelectedField] = useState(null)
 
   useEffect(() => {
@@ -204,7 +216,7 @@ const FilterOrder = ({order, orderSums, layers, previewField, showNone, showUniq
       <div className="filter-group">
         <Select
           options={allFieldsGrouped}
-          styles={colourStyles(isActive)}
+          styles={colourStyles(isActive, restingWidth, activeWidth)}
           value={selectedField}
           isDisabled={disabled}
           onChange={(selectedOption) => {
@@ -245,10 +257,10 @@ const FilterOrder = ({order, orderSums, layers, previewField, showNone, showUniq
   )
 }
 
-
-
-const FilterFields = ({layers, selected, onSelect}) => {
+const FilterFields = ({layers, selected, activeWidth, restingWidth, onSelect}) => {
   const [selectedField, setSelectedField] = useState(null)
+
+  const [isActive, setIsActive] = useState(false);
 
   useEffect(() => {
     console.log("selected", selected)
@@ -295,11 +307,13 @@ const FilterFields = ({layers, selected, onSelect}) => {
       <div className="filter-group">
         <Select
           options={allFields}
-          styles={colourStyles(true)}
+          styles={colourStyles(isActive, restingWidth, activeWidth)}
           value={selectedField}
           onChange={(selectedOption) => {
             setSelectedField(selectedOption)
           }}
+          onFocus={() => setIsActive(true)}
+          onBlur={() => setIsActive(false)}
           placeholder={<div>Select a factor</div>}
           formatOptionLabel={formatLabel}
           formatGroupLabel={data => (
@@ -324,7 +338,15 @@ const FilterFields = ({layers, selected, onSelect}) => {
 }
 
 
-const Selects = ({orderSums, layers, showNone, showUniquePaths, onSelect}) => {
+const Selects = ({
+  orderSums, 
+  layers, 
+  showNone, 
+  showUniquePaths, 
+  activeWidth = 585,
+  restingWidth = 585,
+  onSelect
+} = {}) => {
   const orders = range(4, 15)
   const [orderSelects, setOrderSelects] = useState({})
 
@@ -360,6 +382,8 @@ const Selects = ({orderSums, layers, showNone, showUniquePaths, onSelect}) => {
         <FilterFields
           layers={layers}
           selected={previewField}
+          activeWidth={activeWidth + 85}
+          restingWidth={restingWidth + 85}
           onSelect={(field) => {
             console.log("field", field)
             setPreviewField(field)
@@ -375,6 +399,8 @@ const Selects = ({orderSums, layers, showNone, showUniquePaths, onSelect}) => {
           orderSums={orderSums} 
           layers={layers}
           previewField={previewField}
+          activeWidth={activeWidth}
+          restingWidth={restingWidth}
           showNone={showNone} 
           showUniquePaths={showUniquePaths}
           selected={orderSelects[order]}

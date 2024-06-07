@@ -6,7 +6,7 @@ import CSNSentence from './Narration/Sentence'
 import CSNLine from './Narration/Line'
 import ZoomLine from './Narration/ZoomLine'
 import ScoreBars from './Narration/ScoreBars'
-import PowerModal from './Narration/PowerModal'
+import Power from './Narration/Power'
 import { scaleLinear } from 'd3-scale'
 import { variantChooser } from '../lib/csn'
 
@@ -85,7 +85,7 @@ const PowerOverlay = ({
         {loadingCSN ? <div>Loading CSN...</div> : 
         <div className="csn">
           <div className="power-container">
-            <PowerModal 
+            <Power 
               csn={narration} 
               width={powerWidth} 
               height={powerHeight} 

@@ -2,31 +2,31 @@
 .power {
   display: flex;
   flex-direction: column;
-  width: auto;
+  width: fit-content;
 }
 
 .power-container {
   display: flex;
   flex-direction: row;
 }
-.power-canvas {
+.power .power-canvas {
   border: 1px solid lightgray;
 }
-.power-scroll {
+.power .power-scroll {
   margin-left: 24px;
   overflow-y: hidden;
   position: relative;
 }
-.power-order {
+.power .power-order {
   position: absolute;
 }
-.power input {
+.power .power input {
   width: 100%;
 }
-.power-canvas-1d {
+.power .power-canvas-1d {
   border: 1px solid lightgray;
 }
-.power-canvas-strip {
+.power .power-canvas-strip {
   margin-top: 4px;
   border: 1px solid lightgray;
 }
