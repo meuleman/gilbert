@@ -10,7 +10,7 @@ export default {
   name: "DHS Components (ENR, Full)",
   datasetName: "dhs_enr",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseAltiusURLPrefix}`,
+  baseURL: `${constants.baseS3URLPrefix}/20240327`,
   orders: [4,12],
   renderer: "CanvasScaledValue",
   fieldChoice: topValue,

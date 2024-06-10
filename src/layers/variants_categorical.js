@@ -5,7 +5,7 @@ export default {
   name: "Variants (Categorical)",
   datasetName: "variants_favor_categorical",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseAltiusURLPrefix}`,
+  baseURL: `${constants.baseS3URLPrefix}/20240325`,
   orders: [14,14],
   renderer: "CanvasSimpleValue",
   fieldChoice: topValue,

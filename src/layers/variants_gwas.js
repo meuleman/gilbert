@@ -6,7 +6,7 @@ export default {
   name: "Variants (GWAS)",
   datasetName: "variants_gwas",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseAltiusURLPrefix}`,
+  baseURL: `${constants.baseS3URLPrefix}/20240327`,
   orders: [14,14],
   renderer: "CanvasSimpleValue",
   fieldChoice: decodeValue,

@@ -10,7 +10,7 @@ const csColors = ["#ff0000","#ff4500","#ff4500","#ff4500","#008000","#006400","#
 export default {
   name: "Chromatin States (ENR)",
   datasetName: "cs_enr_max",
-  baseURL: `${constants.baseAltiusURLPrefix}`,
+  baseURL: `${constants.baseS3URLPrefix}/20240327`,
   orders: [4,10],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,

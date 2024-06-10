@@ -8,7 +8,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "TF Motifs (OCC)",
   datasetName: "tf_occ",
-  baseURL: `${constants.baseAltiusURLPrefix}`,
+  baseURL: `${constants.baseS3URLPrefix}/20240329`,
   orders: [4,14],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
