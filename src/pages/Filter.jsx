@@ -352,7 +352,7 @@ const Filter = () => {
                       return <span className="chromosome-region" key={r.i}>
                         <Link to={`/region?region=${urlify(r)}`} target="_blank">📄 </Link>
                         <Link to={`/?region=${urlify(r)}`}>🗺️</Link>
-                        {showPosition(r)}
+                        {showPosition(r)} ({r.representedPaths})
                       </span>
                     })}
                   </div>
