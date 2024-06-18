@@ -156,6 +156,8 @@ function rehydrate(index, list) {
     layerName = "cs_enr"
   } else if(layerName == "chromatin_states_occ") {
     layerName = "cs_rank_occ"
+  } else if(layerName == "repeats_occ") {
+    layerName = "repeats_rank_occ"
   } else if(layerName == "variants_cat"){
     layerName = "variants_favor_categorical_rank"
   } else if(layerName == "variants_apc"){

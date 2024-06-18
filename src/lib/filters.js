@@ -2,7 +2,7 @@
 import { range, groups, sum } from 'd3-array';
 import Data from './data'
 import { createSegments, joinSegments } from "./segments.js"
-import { hilbertPosToOrder } from './HilbertChromosome';
+import { HilbertChromosome, hilbertPosToOrder } from './HilbertChromosome';
 
 import counts_native from "../data/counts.native_order_resolution.json"
 import counts_order14 from "../data/counts.order_14_resolution.json"
@@ -100,7 +100,7 @@ const intersectIndices14 = (lower, higher) => {
 // fetch the index files for the selected order filters and calculate intersections
 // the resulting data structure is an array with an object per chromosome
 // containing an array of indices 
-function filterIndices(orderSelects, progressCb, resultsCb) {
+function filterIndices(orderSelects, progressCb, resultsCb, regionsThreshold = 100) {
   let chromosomes = Object.keys(counts_order14[4]).filter(d => d !== "totalSegmentCount")
   // console.log("orderSelects", orderSelects)
   const orders = Object.keys(orderSelects)
@@ -184,6 +184,36 @@ function filterIndices(orderSelects, progressCb, resultsCb) {
       // console.log("pathCount", pathCount) 
       // console.log("FILTERED INDICES", filteredIndices)
 
+      // first we want to keep only the highest scoring indices in the highest resolution order of the filter
+      // console.log("SAMPLE SCORE REGION", filteredIndices)
+      const order = filteredIndices[0].order
+      const hilbert = new HilbertChromosome(14)
+      filteredIndices.forEach(d => {
+        let seen = {}
+        let seenCount = 0
+        let i = 0;
+        // iterate through the indices, 
+        let regions = []
+        let idx;
+        let r;
+        if(!d.indices.length) return d.regions = []
+        while(seenCount < regionsThreshold && i < d.indices.length) {
+          idx = d.indices[i]
+          let io = hilbertPosToOrder(idx, {from: 14, to: order})
+          if(!seen[io]) {
+            seenCount += 1
+            r = hilbert.fromRange(d.chromosome, idx, idx+1)[0]
+            r.representedPaths = 1
+            regions.push(r)
+            seen[io] = r
+          } else {
+            seen[io].representedPaths += 1
+          }
+          i += 1
+        }
+        d.regions = regions
+      })
+
       progressCb("loading_filters", false)
       resultsCb({filteredIndices, segmentCount: totalSegmentCount, pathCount})
     })
@@ -193,8 +223,45 @@ function filterIndices(orderSelects, progressCb, resultsCb) {
   }
 }
 
-// TODO: emit progress
-// TODO: this uses the regions, which are sliced in the calling code (we should probably make the slicing and creating of regions from the indices standard)
+
+async function throttleRequests(requests, fetchFunction, maxConcurrent = 10) {
+  let activeRequests = 0;
+  let index = 0;
+  const results = [];
+
+  return new Promise((resolve, reject) => {
+      function next() {
+          if (index >= requests.length) {
+              if (activeRequests === 0) {
+                  resolve(results);
+              }
+              return;
+          }
+
+          if (activeRequests < maxConcurrent) {
+              const currentIndex = index++;
+              activeRequests++;
+
+              fetchFunction(requests[currentIndex])
+                  .then(data => {
+                      results[currentIndex] = data;
+                      activeRequests--;
+                      next();
+                  })
+                  .catch(error => {
+                      reject(error);
+                  });
+
+              next();
+          }
+      }
+
+      for (let i = 0; i < maxConcurrent; i++) {
+          next();
+      }
+  });
+}
+
 async function sampleScoredRegions(filteredIndices, progressCb) {
   // fetch the scores via byte arrays
   // first grab the first chromosomeThreshold regions from each chromosome
@@ -215,7 +282,9 @@ async function sampleScoredRegions(filteredIndices, progressCb) {
     const segments = createSegments(indices)
     const joined = joinSegments(segments)
     // console.log("SEGMENTS", joined)
-    const requests = joined.map(s => {
+
+    const fetchFn = (s) => {
+    // const requests = joined.map(s => {
       const from = s.start
       const to = s.stop
       return Data.fetchBytes(url, from*bpv*stride, to*bpv*stride - 1).then((buffer,si) => {
@@ -228,8 +297,10 @@ async function sampleScoredRegions(filteredIndices, progressCb) {
           }
         }).filter(d => !!d.score)
       })
-    })
-    const scores = await Promise.all(requests).then(scoredSegments => {
+    // })
+    }
+    // const scores = await Promise.all(requests).then(scoredSegments => {
+    const scores = await throttleRequests(joined, fetchFn).then(scoredSegments => {
       count +=1
       if(progressCb) progressCb(count)
 
@@ -249,6 +320,7 @@ async function sampleScoredRegions(filteredIndices, progressCb) {
 // Given a large and potentially imbalanced list of regions by chromosome
 // we want to pull samples from each chromosome, but pull more from those that have more regions
 // if some chromosomes are empty or have less
+// TODO: we aren't using this method anymore
 function sampleRegions(filteredIndices, totalRegionsNeeded = 48, regionsPerElement = 2) {
   let result = [];
   let additionalRegions = [];

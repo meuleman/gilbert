@@ -82,14 +82,6 @@ const Filter = () => {
     }, function(results) {
       const { filteredIndices, segmentCount, pathCount} = results
       if(results.filteredIndices.length > 0) {
-
-        // we only grab regions for the top 100 in each chromosome for efficiency
-        const hilbert = new HilbertChromosome(14)
-        filteredIndices.forEach(d => {
-          d.regions = d.indices.slice(0, 100)
-            .map(i => hilbert.fromRange(d.chromosome, i, i+1)[0])
-        })
-
         setFilterLoadingMessage("")
         setChrFilteredIndices(filteredIndices)
         setFilteredPathCount(pathCount)
@@ -101,7 +93,7 @@ const Filter = () => {
         setNumSamples(-1)
         setCSNs([])
       }
-    })
+    }, 50) //number of regions to keep per chromosome
   }, [orderSelects])
 
   // calculate the regions at each order
@@ -152,7 +144,7 @@ const Filter = () => {
         const scored = scoredIndices.flatMap(d => d.scores).sort((a,b) => b.score - a.score)
         console.log("SCOREDDD", scored)
         // setNumSamples(sample.length);
-        const sample = scored.slice(0, 100)
+        const sample = scored.slice(0, 200)
       
         // const sample = sampleRegions(chrFilteredIndices, 12, 2)
         setNumSamples(sample.length);
@@ -305,7 +297,7 @@ const Filter = () => {
                     // highlight={true}
                     // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
                     text={false}
-                    width={8.5} 
+                    width={4.25} 
                     height={300}
                     tipOrientation="right"
                     showOrderLine={false}
