@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
-import { max, range, groups } from 'd3-array';
+import { max, range, groups, sum } from 'd3-array';
 import { format } from 'd3-format';
 import chroma from 'chroma-js';
 
@@ -93,7 +93,7 @@ const Filter = () => {
         setNumSamples(-1)
         setCSNs([])
       }
-    }, 50) //number of regions to keep per chromosome
+    }, 100) //number of regions to keep per chromosome
   }, [orderSelects])
 
   // calculate the regions at each order
@@ -144,7 +144,7 @@ const Filter = () => {
         const scored = scoredIndices.flatMap(d => d.scores).sort((a,b) => b.score - a.score)
         console.log("SCOREDDD", scored)
         // setNumSamples(sample.length);
-        const sample = scored.slice(0, 200)
+        const sample = scored.slice(0, 100)
       
         // const sample = sampleRegions(chrFilteredIndices, 12, 2)
         setNumSamples(sample.length);
@@ -267,7 +267,7 @@ const Filter = () => {
               <p>{showInt(filteredPathCount)} ({(filteredPathCount/orderSums[4]?.totalPaths*100).toFixed(2)}%) paths found</p>
 
               <h4>{numSamples >= 0 ? numSamples : ""} CSN Samples</h4>
-              <p>{csns.length} unique paths sampled</p>
+              <p>{csns.length} unique paths from {sum(chrFilteredIndices, d => d.regions.length)} top scoring paths across genome</p>
               {loadingCSN && sampleStatus == 0 ? <p className="loading">Scoring paths... {sampleScoredStatus}/{chrFilteredIndices.filter(d => d.regions.length).length}</p> : null}
               {loadingCSN && sampleStatus > 0 ? <p className="loading">Loading samples... {sampleStatus}/{numSamples}</p> : null}
               {csns.length ? 
@@ -346,7 +346,7 @@ const Filter = () => {
               <div className="by-chromosome">
               {chrFilteredIndices.map(d => {
                 return <div className="chromosome-paths" key={d.chromosome}>
-                  <span>{d.chromosome}: {d.indices.length}</span>
+                  <span>{d.chromosome}: {d.indices.length} paths ({d.regions.length} sampled, {sum(d.regions, r => r.representedPaths)} represented)</span>
                   <div className="chromosome-regions">
                     {d.regions.slice(0,10).map(r => {
                       return <span className="chromosome-region" key={r.i}>
