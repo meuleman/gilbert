@@ -6,31 +6,7 @@ import { showInt } from '../../lib/display'
 
 import './Modal.css'
 
-import layers from '../../layers'
-
-const csnLayers = [
-  layers.find(d => d.name == "DHS Components (ENR, Full)"),
-  layers.find(d => d.name == "Chromatin States (ENR, Full)"),
-  layers.find(d => d.name == "TF Motifs (ENR, Top 10)"),
-  layers.find(d => d.name == "Repeats (ENR, Full)"),
-  layers.find(d => d.name == "DHS Components (OCC, Ranked)"),
-  layers.find(d => d.name == "Chromatin States (OCC, Ranked)"),
-  layers.find(d => d.name == "TF Motifs (OCC, Ranked)"),
-  layers.find(d => d.name == "Repeats (OCC, Ranked)"),
-]
-console.log("CSN LAYERS", csnLayers)
-const variantLayers = [
-  layers.find(d => d.datasetName == "variants_favor_categorical_rank"),
-  layers.find(d => d.datasetName == "variants_favor_apc_rank"),
-  layers.find(d => d.datasetName == "variants_gwas_rank"),
-  // layers.find(d => d.datasetName == "grc"),
-]
-const countLayers = [
-  layers.find(d => d.datasetName == "dhs_enr_counts"),
-  layers.find(d => d.datasetName == "cs_enr_counts"),
-  layers.find(d => d.datasetName == "tf_enr_counts"),
-  layers.find(d => d.datasetName == "repeats_enr_counts"),
-]
+import { csnLayers, variantLayers } from '../../layers'
 
 const FilterModal = ({
   onIndices = () => {},

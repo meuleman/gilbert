@@ -26,7 +26,7 @@ const layers = {
   "chromatin_states": chromatin_states,
   "TF": tf,
 }
-import layersAll from '../layers'
+import {fullList as layersAll} from '../layers'
 import lenses from '../components/Lenses/lenses.json'
 
 // ---------------- DUCK DB INITIALIZATION ----------------

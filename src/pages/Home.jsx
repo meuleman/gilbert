@@ -33,22 +33,7 @@ import SVGChromosomeNames from '../components/SVGChromosomeNames'
 import FilterModal from '../components/ComboLock/Modal'
 
 // layer configurations
-import layers from '../layers'
-const csnLayers = [
-  // layers.find(d => d.name == "DHS Components (ENR)"),
-  // layers.find(d => d.name == "Chromatin States (ENR)"),
-  // layers.find(d => d.name == "TF Motifs (ENR)"),
-  // layers.find(d => d.name == "Repeats (ENR)"),
-  layers.find(d => d.name == "DHS Components (ENR, Full)"),
-  layers.find(d => d.name == "Chromatin States (ENR, Full)"),
-  layers.find(d => d.name == "TF Motifs (ENR, Top 10)"),
-  // layers.find(d => d.name == "TF Motifs (ENR, Full)"),
-  layers.find(d => d.name == "Repeats (ENR, Full)"),
-  layers.find(d => d.name == "DHS Components (OCC, Ranked)"),
-  layers.find(d => d.name == "Chromatin States (OCC, Ranked)"),
-  layers.find(d => d.name == "TF Motifs (OCC, Ranked)"),
-  layers.find(d => d.name == "Repeats (OCC, Ranked)"),
-]
+import { fullList as layers, csnLayers, variantLayers, countLayers } from '../layers'
 
 import RegionFilesSelect from '../components/Regions/RegionFilesSelect'
 // autocomplete
@@ -386,18 +371,6 @@ function Home() {
   useEffect(() => {
     setCrossScaleNarrationIndex(0)
     
-    const variantLayers = [
-      layers.find(d => d.datasetName == "variants_favor_categorical_rank"),
-      layers.find(d => d.datasetName == "variants_favor_apc_rank"),
-      layers.find(d => d.datasetName == "variants_gwas_rank"),
-      // layers.find(d => d.datasetName == "grc"),
-    ]
-    const countLayers = [
-      layers.find(d => d.datasetName == "dhs_enr_counts"),
-      layers.find(d => d.datasetName == "cs_enr_counts"),
-      layers.find(d => d.datasetName == "tf_enr_counts"),
-      layers.find(d => d.datasetName == "repeats_enr_counts"),
-    ]
     if(selected && selected.order > 4){
       // clear the cross scale narration first
       setCrossScaleNarration([])

@@ -404,7 +404,7 @@ const Selects = ({
           showNone={showNone} 
           showUniquePaths={showUniquePaths}
           selected={orderSelects[order]}
-          disabled={order < 7 && selectedOrders.length === 0}
+          // disabled={order < 7 && selectedOrders.length === 0}
           onSelect={(field) => {
             handleOrderSelect(field, order)
           }} 

@@ -4,7 +4,7 @@ import { createSegments, joinSegments } from "./segments.js"
 
 // TODO: alternatively, make these functions part of a class which has configuration options
 
-export default function Data({
+function Data({
   baseURL = "https://storage.googleapis.com/fun-data/hilbert/chromosomes",
   debug = false
 } = {}) {
@@ -136,7 +136,7 @@ export default function Data({
   return {
     fetchMeta,
     fetchData,
-    fetchOrder
+    fetchOrder, 
   }
 }
 
@@ -163,10 +163,14 @@ function numpyDtypeToTypedArray(dtype) {
   }
 }
 
-
 function fetchBytes(url, from, to, options = {}) {
   // the way this works, "to" is inclusive
   let headers = options.headers || {}
   headers["range"] = `bytes=${from}-${to}`
   return fetch(url, { headers }).then(response => response.arrayBuffer())
 }
+
+Data.fetchBytes = fetchBytes
+
+export default Data
+

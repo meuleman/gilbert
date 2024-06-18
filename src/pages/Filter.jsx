@@ -9,17 +9,18 @@ import Select from 'react-select';
 import { showFloat, showInt, showPosition, showKb } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition, sameHilbertRegion } from '../lib/regions';
 import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
-import { calculateCrossScaleNarration, calculateCrossScaleNarrationInWorker, walkTree, findUniquePaths } from '../lib/csn';
+import { fetchDehydratedCSN, findUniquePaths, rehydrateCSN } from '../lib/csn';
 import Data from '../lib/data';
 
 import { 
   calculateOrderSums, 
   filterIndices, 
   sampleRegions,
-  regionsByOrder
+  regionsByOrder,
+  sampleScoredRegions
 } from '../lib/filters';
 
-import layers from '../layers'
+import { csnLayers, variantLayers} from '../layers'
 
 import LogoNav from '../components/LogoNav';
 import PowerModal from '../components/Narration/Power';
@@ -27,31 +28,6 @@ import PowerOverlay from '../components/PowerOverlay';
 import ZoomLine from '../components/Narration/ZoomLine';
 import Selects from '../components/ComboLock/Selects';
 
-const csnLayers = [
-  layers.find(d => d.name == "DHS Components (ENR, Full)"),
-  layers.find(d => d.name == "Chromatin States (ENR, Full)"),
-  layers.find(d => d.name == "TF Motifs (ENR, Top 10)"),
-  layers.find(d => d.name == "Repeats (ENR, Full)"),
-  layers.find(d => d.name == "DHS Components (OCC, Ranked)"),
-  layers.find(d => d.name == "Chromatin States (OCC, Ranked)"),
-  layers.find(d => d.name == "TF Motifs (OCC, Ranked)"),
-  layers.find(d => d.name == "Repeats (OCC, Ranked)"),
-]
-console.log("CSN LAYERS", csnLayers)
-const variantLayers = [
-  layers.find(d => d.datasetName == "variants_favor_categorical_rank"),
-  layers.find(d => d.datasetName == "variants_favor_apc_rank"),
-  layers.find(d => d.datasetName == "variants_gwas_rank"),
-  // layers.find(d => d.datasetName == "grc"),
-]
-const countLayers = [
-  layers.find(d => d.datasetName == "dhs_enr_counts"),
-  layers.find(d => d.datasetName == "cs_enr_counts"),
-  layers.find(d => d.datasetName == "tf_enr_counts"),
-  layers.find(d => d.datasetName == "repeats_enr_counts"),
-]
-// can also make this an input parameter
-const enrThreshold = 0
 
 import './Filter.css';
 
@@ -150,6 +126,7 @@ const Filter = () => {
   const [loadingCSN, setLoadingCSN] = useState(false)
   const [numSamples, setNumSamples] = useState(-1)
   const [sampleStatus, setSampleStatus] = useState(0)
+  const [sampleScoredStatus, setSampleScoredStatus] = useState(0)
   const [csns, setCSNs] = useState([])
   const [selectedCSN, setSelectedCSN] = useState(null)
   const csnRequest = useRef(0)
@@ -160,42 +137,81 @@ const Filter = () => {
       setLoadingCSN(true)
       setNumSamples(-1)
       setSampleStatus(0)
+      setSampleScoredStatus(0)
       setCSNs([])
       setSelectedCSN(null)
       csnRequest.current += 1
       const requestNum = csnRequest.current
 
-      const sample = sampleRegions(chrFilteredIndices, 48, 2)
-      setNumSamples(sample.length);
-      console.log("SAMPLE", sample);
+      // const sample = sampleRegions(chrFilteredIndices, 48, 2)
+      sampleScoredRegions(chrFilteredIndices, (done) => {
+        console.log("done??", done)
+        setSampleScoredStatus(done)
+      }).then(scoredIndices => {
+        console.log("scored indices", scoredIndices)
+        const scored = scoredIndices.flatMap(d => d.scores).sort((a,b) => b.score - a.score)
+        console.log("SCOREDDD", scored)
+        // setNumSamples(sample.length);
+        const sample = scored.slice(0, 100)
+      
+        // const sample = sampleRegions(chrFilteredIndices, 12, 2)
+        setNumSamples(sample.length);
+        console.log("SAMPLE", sample);
 
-      const handleCSNResults = (csns) => {
-        if(csnRequest.current !== requestNum) {
-          console.log("ABORTING CSN CALCULATION, stale request")
-          return
+        const handleCSNResults = (csns) => {
+          if(csnRequest.current !== requestNum) {
+            console.log("ABORTING CSN CALCULATION, stale request")
+            return
+          }
+          // console.log("csns", csns)
+          const layers = [...csnLayers, ...variantLayers]
+          // const hydrated = csns.map(csn => range(0, 11).map(i => rehydrate(csn.csn[i], layers)))
+          const hydrated = csns.map(csn => rehydrateCSN(csn, layers))
+          setSampleStatus(csns.length)
+          console.log("hydrated", hydrated)
+          setCSNs(hydrated)
+          // setSelectedCSN(hydrated[0])
         }
-        setSampleStatus(csns.length)
-        // console.log("csns", csns)
-        let uniques = csns.flatMap(d => findUniquePaths(d.paths)).flatMap(d => d.uniquePaths)
-        uniques.sort((a,b) => b.score - a.score)
-        setCSNs(uniques)
-        // setCSNs(csns.flatMap(d => d))
-      }
-      const processFn = (r) => {
-        if(csnRequest.current !== requestNum) {
-          console.log("ABORTING CSN CALCULATION, stale request")
-          return Promise.resolve([])
+        const processFun = (r) => {
+          if(csnRequest.current !== requestNum) {
+            console.log("ABORTING CSN CALCULATION, stale request")
+            return Promise.resolve([])
+          }
+          return fetchDehydratedCSN(r)
         }
-        return calculateCrossScaleNarrationInWorker(r, 'sum', enrThreshold, csnLayers, variantLayers, countLayers, orderSelects)
-      }
-      processInBatches(sample, 4, processFn, handleCSNResults)
-        .then(csns => {
+        processInBatches(sample, 12, processFun, handleCSNResults).then(csns => {
+          // console.log("CSNS", csns)
           setLoadingCSN(false)
-          let uniques = csns.flatMap(d => findUniquePaths(d.paths)).flatMap(d => d.uniquePaths)
-          uniques.sort((a,b) => b.score - a.score)
-          uniques.forEach(u => u.layers = csnLayers)
-          setSelectedCSN(uniques[0])
+          // setSelectedCSN(csns[0])
         })
+        // const handleCSNResults = (csns) => {
+        //   if(csnRequest.current !== requestNum) {
+        //     console.log("ABORTING CSN CALCULATION, stale request")
+        //     return
+        //   }
+        //   setSampleStatus(csns.length)
+        //   // console.log("csns", csns)
+        //   let uniques = csns.flatMap(d => findUniquePaths(d.paths)).flatMap(d => d.uniquePaths)
+        //   uniques.sort((a,b) => b.score - a.score)
+        //   setCSNs(uniques)
+        //   // setCSNs(csns.flatMap(d => d))
+        // }
+        // const processFn = (r) => {
+        //   if(csnRequest.current !== requestNum) {
+        //     console.log("ABORTING CSN CALCULATION, stale request")
+        //     return Promise.resolve([])
+        //   }
+        //   return calculateCrossScaleNarrationInWorker(r, 'sum', enrThreshold, csnLayers, variantLayers, countLayers, orderSelects)
+        // }
+        // processInBatches(sample, 4, processFn, handleCSNResults)
+        //   .then(csns => {
+        //     setLoadingCSN(false)
+        //     let uniques = csns.flatMap(d => findUniquePaths(d.paths || [])).flatMap(d => d.uniquePaths)
+        //     uniques.sort((a,b) => b.score - a.score)
+        //     uniques.forEach(u => u.layers = csnLayers)
+        //     setSelectedCSN(uniques[0])
+        //   })
+      })
       
     } else {
       setNumSamples(-1)
@@ -204,7 +220,7 @@ const Filter = () => {
       csnRequest.current += 1
     }
       // TODO: we dont depend on orderSelects here, chrFilteredIndices will always update but we should probably use a ref then?
-  }, [chrFilteredIndices, csnLayers, variantLayers, countLayers])
+  }, [chrFilteredIndices])
 
   const [maxPathScore, setMaxPathScore] = useState(null)
   useEffect(() => {
@@ -260,7 +276,8 @@ const Filter = () => {
 
               <h4>{numSamples >= 0 ? numSamples : ""} CSN Samples</h4>
               <p>{csns.length} unique paths sampled</p>
-              {loadingCSN ? `Loading... ${sampleStatus}/${numSamples}` : null}
+              {loadingCSN && sampleStatus == 0 ? <p className="loading">Scoring paths... {sampleScoredStatus}/{chrFilteredIndices.filter(d => d.regions.length).length}</p> : null}
+              {loadingCSN && sampleStatus > 0 ? <p className="loading">Loading samples... {sampleStatus}/{numSamples}</p> : null}
               {csns.length ? 
               <div className="csn-lines">
                 {selectedCSN ?

@@ -9,7 +9,7 @@ import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome"
 import { calculateCrossScaleNarrationInWorker, walkTree, findUniquePaths } from '../lib/csn';
 import Data from '../lib/data';
 
-import layers from '../layers'
+import { csnLayers, variantLayers, countLayers } from '../layers'
 
 import DHS_Components_Sfc_max from '../layers/dhs_components_sfc_max'
 import Chromatin_States_Sfc_max from '../layers/chromatin_states_sfc_max';
@@ -68,37 +68,9 @@ const RegionDetail = () => {
     }
   }, [selectedCSNIndex, hoveredCSNIndex])
 
-  const csnLayers = [
-    // layers.find(d => d.name == "DHS Components (ENR)"),
-    // layers.find(d => d.name == "Chromatin States (ENR)"),
-    // layers.find(d => d.name == "TF Motifs (ENR)"),
-    // layers.find(d => d.name == "Repeats (ENR)"),
-    layers.find(d => d.name == "DHS Components (ENR, Full)"),
-    layers.find(d => d.name == "Chromatin States (ENR, Full)"),
-    layers.find(d => d.name == "TF Motifs (ENR, Top 10)"),
-    // layers.find(d => d.name == "TF Motifs (ENR, Full)"),
-    layers.find(d => d.name == "Repeats (ENR, Full)"),
-    layers.find(d => d.name == "DHS Components (OCC, Ranked)"),
-    layers.find(d => d.name == "Chromatin States (OCC, Ranked)"),
-    layers.find(d => d.name == "TF Motifs (OCC, Ranked)"),
-    layers.find(d => d.name == "Repeats (OCC, Ranked)"),
-  ]
-  const variantLayers = [
-    layers.find(d => d.datasetName == "variants_favor_categorical_rank"),
-    layers.find(d => d.datasetName == "variants_favor_apc_rank"),
-    layers.find(d => d.datasetName == "variants_gwas_rank"),
-    // layers.find(d => d.datasetName == "grc"),
-  ]
-  const countLayers = [
-    layers.find(d => d.datasetName == "dhs_enr_counts"),
-    layers.find(d => d.datasetName == "cs_enr_counts"),
-    layers.find(d => d.datasetName == "tf_enr_counts"),
-    layers.find(d => d.datasetName == "repeats_enr_counts"),
-  ]
   // can also make this an input parameter
   const enrThreshold = 0
   
-
   const [stripsWidth, setStripsWidth] = useState(0);
   useEffect(() => {
     const handleResize = () => {

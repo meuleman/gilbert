@@ -1,9 +1,11 @@
 import axios from "axios";
 import Data from './data';
+import { range } from 'd3-array';
 
-import layers from '../layers'
+import { fullList as layers, csnLayers, variantLayers, countLayers, rehydrate } from '../layers'
 
 import calculateCrossScaleNarration from './calculateCSN'
+import { HilbertChromosome, hilbertPosToOrder } from "./HilbertChromosome";
 
 const layersMap = layers.reduce((acc, layer) => {
   acc[layer.datasetName] = layer
@@ -84,6 +86,58 @@ async function calculateCrossScaleNarrationInWorker(selected, csnMethod, enrThre
     // worker.postMessage({ selected, csnMethod, layers, variantLayers, occScore, variantScore, filters });
   });
 }
+
+
+
+
+// i is the hilbert position
+function fetchDehydratedCSN(r) {
+  const cachebust = 1
+  const burl = "https://resources.altius.org/~ctrader/public/gilbert/data/precomputed_csn_paths/paths"
+  let url = `${burl}/${r.chromosome}.bytes?cachebust=${cachebust}`
+
+  let arrayType = Int16Array;
+  let stride = 11
+  let bpv = 2
+  const from = r.i
+  const to = r.i + 1
+  return Data.fetchBytes(url, from*bpv*stride, to*bpv*stride - 1).then(buffer => {
+    return {
+      csn: new arrayType(buffer),
+      ...r,
+    }
+  })
+}
+
+function rehydrateCSN(csn, layers) {
+  const hydrated = range(0, 11).map(i => {
+    const order = i + 4
+    const l = rehydrate(csn.csn[i], layers)
+    const hilbert = new HilbertChromosome(order)
+    const pos = hilbertPosToOrder(csn.i, {from: 14, to: order})
+    const region = hilbert.fromRange(csn.chromosome, pos, pos+1)[0]
+    let field = null
+    if(l) {
+      field = {
+        field: l.fieldName,
+        index: l.fieldIndex,
+        color: l.layer.fieldColor(l.fieldName)
+      }
+      region.field = field
+    }
+    return {
+      field,
+      layer: l?.layer,
+      order,
+      region
+    }
+  })
+  return {
+    ...csn,
+    path: hydrated,
+  }
+}
+
 
 // function to generate narration results for a provided region with Genomic Narration tool. 
 function narrateRegion(selected, order) {
@@ -218,7 +272,9 @@ export {
   narrateRegion,
   layerSuggestion,
   walkTree,
-  findUniquePaths
+  findUniquePaths,
+  fetchDehydratedCSN,
+  rehydrateCSN
 }
 
 

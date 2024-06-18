@@ -124,7 +124,7 @@ export default function ScoreBars({
       // console.log("csn.path",csn)
       let p = csn.path.filter(d => !!d).sort((a, b) => a.order - b.order) 
       p.forEach(d => {
-        if(d.layer.datasetName.indexOf("enr") > -1) {
+        if(d.layer && d.layer.datasetName.indexOf("enr") > -1) {
           if(d.field.value > maxenr) {
             maxenr = d.field.value
           }
@@ -188,7 +188,7 @@ export default function ScoreBars({
           {range(4, 15).map(o => {
             let p = path.find(d => d.order == o)
             let w = 0
-            if(p) {
+            if(p && p.layer) {
               w = p.layer.datasetName.indexOf("enr") > -1 ? width * (p.field.value / maxENR) : width * (p.field.value)
             }
             return <g key={o} onMouseMove={(e) => handleHover(e, o)} onMouseLeave={() => handleLeave()}>
@@ -197,7 +197,7 @@ export default function ScoreBars({
                 x={0}
                 height={rw}
                 width={w}
-                fill={ p ? p.field.color : "white"}
+                fill={ p && p.field ? p.field.color : "white"}
                 fillOpacity={selected ? 0.75 : 0.5}
                 stroke="lightgray"
                 // stroke={highlightOrders.indexOf(o) >= 0 ? "black" : "lightgray"}

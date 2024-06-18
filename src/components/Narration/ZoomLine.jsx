@@ -21,7 +21,12 @@ function scoreTooltipContent(score, layer, orientation) {
 function tooltipContent(region, layer, orientation) {
   // let field = layer.fieldChoice(region)
   let fields = []
-  if(region.data.max_field >= 0) {
+  if(!region.data) {
+    // for dehydrated csns we dont have any actual data
+    if(region.field) {
+      fields.push(region.field)
+    }
+  } else if(region.data.max_field >= 0) {
     fields.push(layer.fieldChoice(region))
     // fields.push({ field: region.data.max_field, value: region.data.max_value })
   } else if(region.data.bp) {
@@ -60,7 +65,7 @@ function tooltipContent(region, layer, orientation) {
       <span>{showPosition(region)}</span>
       <span className="position">[{showKb(Math.pow(4, 14 - region.order))}]</span>
       {/* <span className="position">Order: {region.order}</span> */}
-      <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
+      <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer?.name}</span>
       {fields.map((f,i) => (
         <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
           <span>
@@ -220,7 +225,7 @@ export default function ZoomLine({
                 x={0}
                 height={rw}
                 width={width}
-                fill={ p ? p.field.color : "white"}
+                fill={ p && p.field ? p.field.color : "white"}
                 fillOpacity={selected ? 0.75 : 0.5}
                 stroke="lightgray"
                 // stroke={highlightOrders.indexOf(o) >= 0 ? "black" : "lightgray"}

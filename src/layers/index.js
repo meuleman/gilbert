@@ -1,3 +1,5 @@
+import fieldMapping from './field_mapping.json'
+
 import Bands from './bands'
 import GCContent from './gc_content'
 import GeneCounts from './gene_counts'
@@ -57,7 +59,7 @@ import NucleotideBadges from './order_14'
 
 
 
-export default [
+const fullList = [
   Bands,
   GeneCounts,
   GCContent,
@@ -118,4 +120,65 @@ export default [
   LADs_new,
   LADs_occ,
 ]
+
+const csnLayers = [
+  fullList.find(d => d.name == "DHS Components (ENR, Full)"),
+  fullList.find(d => d.name == "Chromatin States (ENR, Full)"),
+  fullList.find(d => d.name == "TF Motifs (ENR, Top 10)"),
+  fullList.find(d => d.name == "Repeats (ENR, Full)"),
+  fullList.find(d => d.name == "DHS Components (OCC, Ranked)"),
+  fullList.find(d => d.name == "Chromatin States (OCC, Ranked)"),
+  fullList.find(d => d.name == "TF Motifs (OCC, Ranked)"),
+  fullList.find(d => d.name == "Repeats (OCC, Ranked)"),
+]
+const variantLayers = [
+  fullList.find(d => d.datasetName == "variants_favor_categorical_rank"),
+  fullList.find(d => d.datasetName == "variants_favor_apc_rank"),
+  fullList.find(d => d.datasetName == "variants_gwas_rank"),
+  // fullList.find(d => d.datasetName == "grc"),
+]
+const countLayers = [
+  fullList.find(d => d.datasetName == "dhs_enr_counts"),
+  fullList.find(d => d.datasetName == "cs_enr_counts"),
+  fullList.find(d => d.datasetName == "tf_enr_counts"),
+  fullList.find(d => d.datasetName == "repeats_enr_counts"),
+]
+
+function rehydrate(index, list) {
+  if(index < 0) return null
+  const field = fieldMapping[index]
+  let layerName = field[0]
+  if(layerName == "tf_motifs") {
+    layerName = "tf_enr_top10_c"
+  } else if(layerName == "tf_motifs_occ") {
+    layerName = "tf_rank_occ"
+  } else if(layerName == "chromatin_states") {
+    layerName = "cs_enr"
+  } else if(layerName == "chromatin_states_occ") {
+    layerName = "cs_rank_occ"
+  } else if(layerName == "variants_cat"){
+    layerName = "variants_favor_categorical_rank"
+  } else if(layerName == "variants_apc"){
+    layerName = "variants_favor_apc_rank"
+  } else if(layerName == "variants_gwas"){
+    layerName = "variants_gwas_rank"
+  }
+  let layer = list.find(l => l.datasetName.indexOf(layerName) == 0)
+  if(!layer) {
+    console.log("not found", field, layerName, list)
+    return null
+  }
+  const fieldName = field[1]
+  let fieldIndex = layer.fieldColor.domain().indexOf(fieldName)
+  return {layer, fieldIndex, fieldName}
+}
+
+export {
+  fullList,
+  csnLayers,
+  variantLayers,
+  countLayers,
+  fieldMapping,
+  rehydrate,
+}
 

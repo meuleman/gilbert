@@ -1,5 +1,7 @@
 
 import { range, groups, sum } from 'd3-array';
+import Data from './data'
+import { createSegments, joinSegments } from "./segments.js"
 import { hilbertPosToOrder } from './HilbertChromosome';
 
 import counts_native from "../data/counts.native_order_resolution.json"
@@ -191,6 +193,59 @@ function filterIndices(orderSelects, progressCb, resultsCb) {
   }
 }
 
+// TODO: emit progress
+// TODO: this uses the regions, which are sliced in the calling code (we should probably make the slicing and creating of regions from the indices standard)
+async function sampleScoredRegions(filteredIndices, progressCb) {
+  // fetch the scores via byte arrays
+  // first grab the first chromosomeThreshold regions from each chromosome
+  const base = `https://resources.altius.org/~ctrader/public/gilbert/data/precomputed_csn_paths/path_scores`
+  let arrayType = Float32Array;
+  let stride = 1
+  let bpv = 4
+  let count = 0
+  const scored = filteredIndices.filter(d => d.regions.length).map(async d => {
+    const url = `${base}/path_scores.${d.chromosome}.order_14_resolution.float32.bytes`
+    // let indices = d.indices.slice(0, chromosomeThreshold).sort((a,b) => a - b).map(i => ({i}))
+    let indices = d.regions.sort((a,b) => a.i - b.i)
+    // const requests = indices.map(i => {
+    //   return Data.fetchBytes(url, i.i*bpv*stride, (i.i+1)*bpv*stride - 1).then(buffer => {
+    //     return new arrayType(buffer)[0]
+    //   })
+    // })
+    const segments = createSegments(indices)
+    const joined = joinSegments(segments)
+    // console.log("SEGMENTS", joined)
+    const requests = joined.map(s => {
+      const from = s.start
+      const to = s.stop
+      return Data.fetchBytes(url, from*bpv*stride, to*bpv*stride - 1).then((buffer,si) => {
+        let data = new arrayType(buffer)
+        return s.segments.map(p => {
+          let idx = (p.i - s.start)
+          return {
+            ...p,
+            score: data[idx]
+          }
+        }).filter(d => !!d.score)
+      })
+    })
+    const scores = await Promise.all(requests).then(scoredSegments => {
+      count +=1
+      if(progressCb) progressCb(count)
+
+      // console.log("SCORES", d, scoredSegments)
+      const scores = scoredSegments.flatMap(d => d)
+      console.log("scores", d, scores)
+      return {
+        ...d,
+        scores
+      }
+    })
+    return scores
+  })
+  return Promise.all(scored)
+}
+
 // Given a large and potentially imbalanced list of regions by chromosome
 // we want to pull samples from each chromosome, but pull more from those that have more regions
 // if some chromosomes are empty or have less
@@ -274,6 +329,7 @@ export {
   calculateOrderSums,
   filterIndices,
   sampleRegions,
+  sampleScoredRegions,
   regionsByOrder
 }
 

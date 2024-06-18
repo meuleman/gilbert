@@ -377,7 +377,17 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
             // } else {
             //   rd[d.p.field.field] = d.p.field.value
             // }
-            d.data.find(r => r.i == d.p.region.i).data = d.region.data
+            // set the central region's data to the field we chose 
+            const central = d.data.find(r => r.i == d.p.region.i)
+            if(d.region.data) {
+              central.data = d.region.data
+            } else {
+              // TODO: this doesn't work because of max_field layers...
+              // console.log("central", d.region, central)
+              let centralData = {}
+              centralData[d.region.field.field] = central.data[d.region.field.field]
+              central.data = centralData
+            }
           }
           CanvasRenderer(d.layer.renderer, { 
             scales, 
