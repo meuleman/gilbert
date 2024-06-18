@@ -125,7 +125,7 @@ const PowerOverlay = ({
             At the {showKb(Math.pow(4, 14 - Math.floor(zOrder)))} scale, 
             {zoomedPathRegion ? " the dominant factor is " : "no factors are significant for this path."}
             {zoomedPathRegion ? <span>
-              {zoomedPathRegion.layer.name}: {zoomedPathRegion.field.field}
+              {zoomedPathRegion.layer?.name}: {zoomedPathRegion.field?.field}
             </span>: ""}
           </div>
         </div>}
