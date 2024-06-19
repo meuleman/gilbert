@@ -24,6 +24,7 @@ import { csnLayers, variantLayers} from '../layers'
 
 import LogoNav from '../components/LogoNav';
 import PowerModal from '../components/Narration/Power';
+import VerticalSankey from '../components/Narration/VerticalSankey';
 import PowerOverlay from '../components/PowerOverlay';
 import ZoomLine from '../components/Narration/ZoomLine';
 import Selects from '../components/ComboLock/Selects';
@@ -307,6 +308,10 @@ const Filter = () => {
                     />)
                   })
                 }
+
+              <div className="sankey-container" style={{marginTop: "30px"}}>
+                <VerticalSankey width={600} height={320} csns={csns} shrinkNone={true} />
+              </div>
               </div>: null }
               
               {selectedCSN ? 
