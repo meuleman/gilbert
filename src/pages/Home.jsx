@@ -31,6 +31,7 @@ import RegionMask from '../components/RegionMask'
 import SVGChromosomeNames from '../components/SVGChromosomeNames'
 // import SVGBBox from '../components/SVGBBox'
 import FilterModal from '../components/ComboLock/Modal'
+import SankeyModal from '../components/Narration/SankeyModal';
 
 // layer configurations
 import { fullList as layers, csnLayers, variantLayers, countLayers } from '../layers'
@@ -597,7 +598,7 @@ function Home() {
 
 
   const [filteredIndices, setFilteredIndices] = useState([])
-  const [rbos, setRbos] = useState({})
+  const [rbos, setRbos] = useState({}) // regions by order
   // calculate the filtered regions at the current order
   useEffect(() => {
     // console.log("order", zoom.order)
@@ -606,6 +607,8 @@ function Home() {
       const regions = regionsByOrder(filteredIndices, zoom.order)
       console.log("filtered regions by order", regions)
       setRbos(regions)
+    } else {
+      setRbos([])
     }
   }, [zoom.order, filteredIndices])
 
@@ -630,6 +633,8 @@ function Home() {
       setFilteredRegions([])
     }
   }, [rbos, data])
+
+  // sample and fetch CSNs for sankey
 
   return (
     <>
@@ -731,10 +736,13 @@ function Home() {
             </SelectedModal> : null}
             
             {showFilter ? <div>
-            <FilterModal 
-              onIndices={setFilteredIndices}>
-            </FilterModal>
-          </div> : null}
+              <FilterModal 
+                onIndices={setFilteredIndices}>
+              </FilterModal>
+              <SankeyModal width={400} height={height - 45} filteredIndices={filteredIndices} shrinkNone={true} />
+            </div> : null}
+
+
             <div ref={containerRef} className="hilbert-container">
               {containerRef.current && ( 
                 <HilbertGenome 

@@ -8,8 +8,7 @@ import Select from 'react-select';
 
 import { showFloat, showInt, showPosition, showKb } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition, sameHilbertRegion } from '../lib/regions';
-import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
-import { fetchDehydratedCSN, findUniquePaths, rehydrateCSN } from '../lib/csn';
+import { fetchDehydratedCSN, rehydrateCSN } from '../lib/csn';
 import Data from '../lib/data';
 
 import { 

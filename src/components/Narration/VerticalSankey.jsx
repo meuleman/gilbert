@@ -74,6 +74,8 @@ export default function CSNVerticalSankey({
   selected,
   shrinkNone = true,
   tipOrientation = "bottom",
+  nodeWidth = 15,
+  nodePadding = 5,
   filter = [],
   onFilter=() => {},
 }) {
@@ -142,13 +144,13 @@ export default function CSNVerticalSankey({
       const sankeyHeight = height - spacing*2
       const s = sankey()
         .nodeId(d => d.id)
-        .nodeWidth(15)
-        .nodePadding(5)
+        .nodeWidth(nodeWidth)
+        .nodePadding(nodePadding)
         .nodeAlign(sankeyJustify)
         // .nodeAlign(sankeyCenter)
         // .nodeSort((a,b) => b.value - a.value)
         .nodeSort((a,b) => a.dataLayer.name.localeCompare(b.dataLayer.name))
-        .extent([[0, 20], [sankeyHeight, width - 20]])
+        .extent([[5, 5], [height - 5, width - 5]])
         ({ nodes, links })
       // console.log("sank", s)
 
@@ -254,10 +256,11 @@ export default function CSNVerticalSankey({
 
   return (
     <div className="path-sankey-container">
-      {sank ? <svg className="path-sankey" width={width - 10} height={height} onClick={() => {
+      {sank ? <svg className="path-sankey" width={width} height={height} onClick={() => {
         console.log("sankey", sank)
       }}>
         <g className="rotate" 
+          // transform={`translate(0, ${width/4})rotate(90, ${width/2}, ${width/2})`}
           transform={`rotate(90, ${width/2}, ${width/2})`}
           >
           {/* <g className="orders">

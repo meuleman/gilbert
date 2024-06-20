@@ -1,0 +1,18 @@
+.sankey-modal {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid lightgray;
+  border-radius: 6px;
+  padding: 6px 6px 12px 6px;
+  height: auto;
+  z-index: 1
+}
+
+.sankey-modal .csn-lines {
+  display: flex;
+  flex-direction: row;
+  gap: 0px;
+  overflow-x: auto;
+}
