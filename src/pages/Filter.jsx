@@ -309,7 +309,7 @@ const Filter = () => {
                 }
 
               <div className="sankey-container" style={{marginTop: "30px"}}>
-                <VerticalSankey width={600} height={320} csns={csns} shrinkNone={true} />
+                <VerticalSankey width={600} height={320} csns={csns} shrinkNone={false} />
               </div>
               </div>: null }
               

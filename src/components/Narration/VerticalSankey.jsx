@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef} from 'react'
 import { sankey, sankeyJustify, sankeyCenter, sankeyLinkHorizontal } from 'd3-sankey';
-import { range } from 'd3-array';
+import { range, max } from 'd3-array';
 import { path as d3path } from 'd3-path';
 import Tooltip from '../Tooltips/Tooltip';
 
@@ -44,12 +44,18 @@ function sankeyLinkPath(link, offset=0, debug=false) {
 
 
 function tooltipContent(node, layer, orientation) {
+  if(node.children) {
+    node.children.sort((a,b) => b.count - a.count)
+  }
   return (
     <div style={{display: 'flex', flexDirection: 'column'}}>
       <span>
         <span style={{color: node.color, marginRight: '4px'}}>⏺</span>
         {node.field}: {node.value} paths</span>
       <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer?.name}</span>
+      {node.children ? node.children.map(c => {
+        return <div key={c.id}>{c.field}: {c.count} paths</div>
+      }) : null}
     </div>
   )
 }
@@ -73,6 +79,7 @@ export default function CSNVerticalSankey({
   csns,
   selected,
   shrinkNone = true,
+  collapseThreshold = 10,
   tipOrientation = "bottom",
   nodeWidth = 15,
   nodePadding = 5,
@@ -106,8 +113,11 @@ export default function CSNVerticalSankey({
               order: p.order,
               dataLayer: p.layer,
               field: p.field.field,
-              color: p.field.color
+              color: p.field.color,
+              count: 1
             }
+          } else {
+            nodesMap[id].count += 1
           }
           return nodesMap[id]
         })
@@ -132,16 +142,59 @@ export default function CSNVerticalSankey({
         })
       })
 
+      // we want to collapse nodes into their layer if they have less than collapseThreshold paths
+      Object.keys(nodesMap).forEach(id => {
+        let n = nodesMap[id]
+        console.log("N", n, n.count, n.count < collapseThreshold)
+        if(n.count < collapseThreshold) {
+          let lid = `${n.order}-${n.dataLayer.name}`
+          // first we either update the layer node or create a new one
+          let nl = nodesMap[lid]
+          if(nl) {
+            nl.value += n.value
+            let mv = max(nl.children, d => d.value)
+            if(n.value > mv) {
+              nl.color = n.color
+            }
+            nl.children.push(n)
+          } else {
+            // create a new layer node
+            nodesMap[lid] = {
+              id: lid,
+              order: n.order,
+              dataLayer: n.dataLayer,
+              field: "Layer",
+              children: [n],
+              color: n.color
+            }
+          }
+          nl = nodesMap[lid]
+          // remove the factor node from the nodesMap
+          delete nodesMap[id]
+
+          // now we need to update any links affected
+          Object.keys(linksMap).forEach(linkId => {
+            let l = linksMap[linkId]
+            if(l.source == n.id) {
+              l.source = nl.id
+            }
+            if(l.target == n.id) {
+              l.target = nl.id
+            }
+          })
+
+        }
+      })
+
       const nodes = Object.values(nodesMap).sort((a,b) => a.order - b.order)
       const links = Object.values(linksMap)
 
-      // console.log("nodes", nodes)
-      // console.log("links", links)
+      console.log("nodes", nodes)
+      console.log("links", links)
 
       // const depth = maxOrder - order
       const depth = 11
       const spacing = height/(depth + 1)
-      const sankeyHeight = height - spacing*2
       const s = sankey()
         .nodeId(d => d.id)
         .nodeWidth(nodeWidth)
@@ -339,8 +392,8 @@ export default function CSNVerticalSankey({
                   height={node.y1 - node.y0} 
                   fill={ node.color }
                   stroke="black"
-                  fillOpacity="0.75"
-                  strokeWidth={filter.find(d => d.id == node.id) ? 2 : 1 }
+                  fillOpacity={node.children ? .5 : .75}
+                  strokeWidth={!node.children && node.dataLayer.name !== "ZNone" ? 2 : 1 }
                   onClick={() => handleNodeFilter(node)}
                   onMouseMove={(e) => handleHover(e, node)}
                   onMouseLeave={handleLeave}

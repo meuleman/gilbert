@@ -128,10 +128,10 @@ const SankeyModal = ({
         {csns.length && !loadingCSN ? 
           <div className="sankey-container">
             <VerticalSankey 
-              width={400} 
+              width={width} 
               height={height} 
               csns={csns} 
-              shrinkNone={true} 
+              shrinkNone={shrinkNone} 
               nodeWidth={height/11 - 60}
             />
           </div> :null }

@@ -739,7 +739,7 @@ function Home() {
               <FilterModal 
                 onIndices={setFilteredIndices}>
               </FilterModal>
-              <SankeyModal width={400} height={height - 45} filteredIndices={filteredIndices} shrinkNone={true} />
+              <SankeyModal width={500} height={height - 45} filteredIndices={filteredIndices} shrinkNone={false} />
             </div> : null}
 
 
