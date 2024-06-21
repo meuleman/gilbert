@@ -25,6 +25,7 @@ const processInBatches = async (items, batchSize, processFunction, statusFunctio
 
 const SankeyModal = ({
   filteredIndices = [],
+  filters = {},
   order = 4,
   width = 400,
   height = 320,
@@ -49,6 +50,7 @@ const SankeyModal = ({
       setSelectedCSN(null)
       csnRequest.current += 1
       const requestNum = csnRequest.current
+      console.log("filtered indices", filteredIndices)
 
       sampleScoredRegions(filteredIndices, (done) => {
         setSampleScoredStatus(done)
@@ -94,6 +96,10 @@ const SankeyModal = ({
     }
   }, [csns])
 
+  useEffect(() => {
+    console.log("filters", filters)
+  }, [filters])
+
   return (
     <div className="sankey-modal">
       <div className="content">
@@ -133,6 +139,7 @@ const SankeyModal = ({
               csns={csns} 
               shrinkNone={shrinkNone} 
               nodeWidth={height/11 - 60}
+              filters={filters}
             />
           </div> :null }
       </div>

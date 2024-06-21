@@ -3,6 +3,7 @@ import { sankey, sankeyJustify, sankeyCenter, sankeyLinkHorizontal } from 'd3-sa
 import { range, max } from 'd3-array';
 import { path as d3path } from 'd3-path';
 import Tooltip from '../Tooltips/Tooltip';
+import { showKb } from '../../lib/display'
 
 // TODO: make this drop in for sankeyLinkVertical()
 function sankeyLinkPath(link, offset=0, debug=false) {
@@ -50,6 +51,9 @@ function tooltipContent(node, layer, orientation) {
   return (
     <div style={{display: 'flex', flexDirection: 'column'}}>
       <span>
+        {showKb(Math.pow(4, 14 - node.order))}
+      </span>
+      <span>
         <span style={{color: node.color, marginRight: '4px'}}>⏺</span>
         {node.field}: {node.value} paths</span>
       <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer?.name}</span>
@@ -67,6 +71,7 @@ CSNVerticalSankey.propTypes = {
   height: PropTypes.number.isRequired,
   csns: PropTypes.array.isRequired,
   selected: PropTypes.object,
+  filters: PropTypes.object,
   shrinkNone: PropTypes.bool,
   filter: PropTypes.array,
   onFilter: PropTypes.func
@@ -83,6 +88,7 @@ export default function CSNVerticalSankey({
   tipOrientation = "bottom",
   nodeWidth = 15,
   nodePadding = 5,
+  filters = {},
   filter = [],
   onFilter=() => {},
 }) {
@@ -145,7 +151,6 @@ export default function CSNVerticalSankey({
       // we want to collapse nodes into their layer if they have less than collapseThreshold paths
       Object.keys(nodesMap).forEach(id => {
         let n = nodesMap[id]
-        console.log("N", n, n.count, n.count < collapseThreshold)
         if(n.count < collapseThreshold) {
           let lid = `${n.order}-${n.dataLayer.name}`
           // first we either update the layer node or create a new one
@@ -189,8 +194,8 @@ export default function CSNVerticalSankey({
       const nodes = Object.values(nodesMap).sort((a,b) => a.order - b.order)
       const links = Object.values(linksMap)
 
-      console.log("nodes", nodes)
-      console.log("links", links)
+      // console.log("nodes", nodes)
+      // console.log("links", links)
 
       // const depth = maxOrder - order
       const depth = 11
@@ -264,9 +269,20 @@ export default function CSNVerticalSankey({
       //   })
       // })
 
+      nodes.forEach(d => {
+        if(!d.children && d.dataLayer.name !== "ZNone") {
+          d.strokeWidth = 1
+        } else {
+          d.strokeWidth = 0
+        }
+        if(filters[d.order]?.field == d.field) {
+          d.strokeWidth = 3
+        }
+      })
+
       setSank(s)
     }
-  }, [ csns, shrinkNone, width, height])
+  }, [ csns, shrinkNone, width, height, filters])
 
   const handleNodeFilter = useCallback((node) => {
     console.log("handling filter", node)
@@ -289,13 +305,13 @@ export default function CSNVerticalSankey({
   }, [])
   const handleHover = useCallback((e, n) => {
     const svg = e.target.ownerSVGElement
-    const rect = svg.getBoundingClientRect();
+    const rect = e.target.getBoundingClientRect();
     const my = e.clientY - rect.y
     const mx = e.clientX - rect.x
     if(n) {
       // const xoff = tipOrientation === "left" ? -5 : width + 5
       const xoff = 5
-      tooltipRef.current.show(n, n.dataLayer, rect.x + xoff + mx, rect.y + my + height/12/2)
+      tooltipRef.current.show(n, n.dataLayer, rect.x + xoff + mx, rect.y + height/24 + 5)
     }
     // tooltipRef.current.show(tooltipRef.current, csn)
   }, [height])
@@ -303,9 +319,6 @@ export default function CSNVerticalSankey({
   const handleLeave = useCallback(() => {
     tooltipRef.current.hide()
   }, [])
-
-
-
 
   return (
     <div className="path-sankey-container">
@@ -393,7 +406,7 @@ export default function CSNVerticalSankey({
                   fill={ node.color }
                   stroke="black"
                   fillOpacity={node.children ? .5 : .75}
-                  strokeWidth={!node.children && node.dataLayer.name !== "ZNone" ? 2 : 1 }
+                  strokeWidth={node.strokeWidth}
                   onClick={() => handleNodeFilter(node)}
                   onMouseMove={(e) => handleHover(e, node)}
                   onMouseLeave={handleLeave}

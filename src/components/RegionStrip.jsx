@@ -251,6 +251,11 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
           render(region, response, points)
         })
       }
+    } else {
+      if(canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        ctx.clearRect(0, 0, width, height)
+      }
     }
   }, [region, layer, segments, render])
 

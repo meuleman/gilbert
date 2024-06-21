@@ -597,6 +597,7 @@ function Home() {
   }, [zoom, data, isZooming, fetchLayerData]) 
 
 
+  const [filters, setFilters] = useState([])
   const [filteredIndices, setFilteredIndices] = useState([])
   const [rbos, setRbos] = useState({}) // regions by order
   // calculate the filtered regions at the current order
@@ -737,9 +738,16 @@ function Home() {
             
             {showFilter ? <div>
               <FilterModal 
+                onFilters={setFilters}
                 onIndices={setFilteredIndices}>
               </FilterModal>
-              <SankeyModal width={500} height={height - 45} filteredIndices={filteredIndices} shrinkNone={false} />
+              <SankeyModal 
+                width={500} 
+                height={height - 45} 
+                filteredIndices={filteredIndices} 
+                filters={filters} 
+                shrinkNone={false} 
+              />
             </div> : null}
 
 
@@ -842,7 +850,7 @@ function Home() {
           <div className='footer-row'>
             <div className='linear-tracks'>
               {selected  && <RegionStrip region={selected} segments={100} layer={layer} width={width} height={40} /> }
-              {hover && !selected && <RegionStrip region={hover} segments={100} layer={layer} width={width} height={40} /> }
+              {!selected && <RegionStrip region={hover} segments={100} layer={layer} width={width} height={40} /> }
               {/* <TrackPyramid
                 state={trackState} 
                 tracks={tracks}

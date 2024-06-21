@@ -9,6 +9,7 @@ import './Modal.css'
 import { csnLayers, variantLayers } from '../../layers'
 
 const FilterModal = ({
+  onFilters = () => {},
   onIndices = () => {},
   onClose = () => {}
 } = {}) => {
@@ -65,6 +66,10 @@ const FilterModal = ({
         setFilteredPathCount(0)
       }
     })
+  }, [orderSelects])
+
+  useEffect(() => {
+    onFilters(orderSelects)
   }, [orderSelects])
 
   useEffect(() => {
