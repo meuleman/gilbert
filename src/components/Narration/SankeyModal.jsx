@@ -104,7 +104,7 @@ const SankeyModal = ({
     <div className="sankey-modal">
       <div className="content">
         <div className="loading-info">
-            {/* {!loadingCSN && csns.length ? <p>{csns.length} unique paths from {sum(filteredIndices, d => d.regions.length)} top scoring paths across genome</p> : null } */}
+            {!loadingCSN && csns.length ? <p>{csns.length} unique paths from {sum(filteredIndices, d => d.regions.length)} top scoring paths across genome</p> : null }
             {loadingCSN && sampleStatus == 0 ? <p className="loading">Scoring paths... {sampleScoredStatus}/{filteredIndices.filter(d => d.regions.length).length}</p> : null}
             {loadingCSN && sampleStatus > 0 ? <p className="loading">Loading samples... {sampleStatus}/{numSamples}</p> : null}
         </div>
@@ -120,7 +120,7 @@ const SankeyModal = ({
                 // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
                 text={false}
                 width={4.25} 
-                height={height}
+                height={height-100}
                 tipOrientation="right"
                 showOrderLine={false}
                 // highlightOrders={Object.keys(orderSelects).map(d => +d)} 
@@ -135,7 +135,7 @@ const SankeyModal = ({
           <div className="sankey-container">
             <VerticalSankey 
               width={width} 
-              height={height} 
+              height={height - 100} 
               csns={csns} 
               shrinkNone={shrinkNone} 
               nodeWidth={height/11 - 60}

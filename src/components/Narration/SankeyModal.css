@@ -6,8 +6,15 @@
   border: 1px solid lightgray;
   border-radius: 6px;
   padding: 6px 6px 12px 6px;
-  height: auto;
+  height: calc(100% - 40px);
   z-index: 1
+}
+
+.sankey-modal .loading-info {
+  height: 90px;
+  max-height: 90px;
+  width: 400px;
+  max-width: 400px;
 }
 
 .sankey-modal .csn-lines {

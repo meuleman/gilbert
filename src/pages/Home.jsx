@@ -738,11 +738,12 @@ function Home() {
             
             {showFilter ? <div>
               <FilterModal 
+                orderMargin={(height - 11*38 - 120)/11}
                 onFilters={setFilters}
                 onIndices={setFilteredIndices}>
               </FilterModal>
               <SankeyModal 
-                width={500} 
+                width={400} 
                 height={height - 45} 
                 filteredIndices={filteredIndices} 
                 filters={filters} 

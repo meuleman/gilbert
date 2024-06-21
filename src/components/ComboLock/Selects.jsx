@@ -80,6 +80,7 @@ const FilterOrder = ({
   selected, 
   activeWidth, 
   restingWidth, 
+  orderMargin = 0,
   onSelect
 }) => {
   const [selectedField, setSelectedField] = useState(null)
@@ -182,8 +183,13 @@ const FilterOrder = ({
   }, [previewField])
 
 
+
+
   return (
-    <div className="filter-order">
+    <div className="filter-order" style={{ 
+        marginBottom: order == 14 ? "0px" : orderMargin + "px",
+        marginTop: order == 4 ? orderMargin/2 + "px" : 0
+      }}>
       <span className="order-label">
         {/* Order {order} */} 
         {showKb(Math.pow(4, 14 - order))}
@@ -345,6 +351,7 @@ const Selects = ({
   showUniquePaths, 
   activeWidth = 585,
   restingWidth = 585,
+  orderMargin = 0,
   onSelect
 } = {}) => {
   const orders = range(4, 15)
@@ -383,7 +390,7 @@ const Selects = ({
           layers={layers}
           selected={previewField}
           activeWidth={activeWidth + 85}
-          restingWidth={restingWidth + 85}
+          restingWidth={restingWidth + 165}
           onSelect={(field) => {
             console.log("field", field)
             setPreviewField(field)
@@ -395,6 +402,7 @@ const Selects = ({
 
       {orders.map(order => (
         <FilterOrder key={order} 
+          orderMargin={orderMargin}
           order={order} 
           orderSums={orderSums} 
           layers={layers}

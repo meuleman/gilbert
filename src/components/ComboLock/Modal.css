@@ -1,23 +1,21 @@
 .filter-modal {
   position: absolute;
-  bottom: 20px;
-  left: 20px;
-  background-color: rgba(255, 255, 255, 0.8);
+  bottom: 5px;
+  right: 426px;
+  background-color: rgba(255, 255, 255, 0.95);
   border: 1px solid lightgray;
   border-radius: 6px;
   padding: 6px 6px 12px 6px;
   max-width: 240px;
   width: 240px;
-  height: auto;
- 
-  z-index: 1
+  height: calc(100% - 40px);
+  z-index: 10
 }
 
-.filter-inputs {
 
+.filter-modal .filter-results {
+  height: 52px;
 }
-.filter-results {
-  margin-top: 12px;
-  height: 80px;
+.filter-modal .select-factor {
+  margin-bottom: 12px;
 }
-

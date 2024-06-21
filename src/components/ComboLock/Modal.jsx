@@ -9,6 +9,7 @@ import './Modal.css'
 import { csnLayers, variantLayers } from '../../layers'
 
 const FilterModal = ({
+  orderMargin = 0,
   onFilters = () => {},
   onIndices = () => {},
   onClose = () => {}
@@ -81,6 +82,11 @@ const FilterModal = ({
       {/* <div className="header">
         FILTERS
       </div> */}
+      <div className="filter-results">
+        {filterLoadingMessage ? filterLoadingMessage : <div>
+          {showInt(filteredPathCount)} ({(filteredPathCount/orderSums[4]?.totalPaths*100).toFixed(2)}%) paths found
+        </div>}
+      </div>
       <div className={`content ${minimized ? "minimized" : ""}`}>
         <div className="filter-inputs">
           <Selects
@@ -91,18 +97,13 @@ const FilterModal = ({
             showUniquePaths={true}
             activeWidth={585}
             restingWidth={65}
+            orderMargin={orderMargin}
             onSelect={(os) => {
               setOrderSelects(os)
             }}
           />
-      </div>
-      <div className="filter-results">
-        <h3>Filtered paths</h3>
-        {filterLoadingMessage ? filterLoadingMessage : <div>
-          {showInt(filteredPathCount)} ({(filteredPathCount/orderSums[4]?.totalPaths*100).toFixed(2)}%) paths found
-        </div>}
-      </div>
-      </div>
+      </div> 
+    </div>
   </div>
   )
 }
