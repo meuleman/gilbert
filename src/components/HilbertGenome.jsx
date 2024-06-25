@@ -127,6 +127,7 @@ const HilbertGenome = ({
     pinOrder = 0,
     orderOffset = 0,
     SVGRenderers = [],
+    CanvasRenderers = [],
     onZoom = () => {},
     onScales = () => {},
     onHover = () => {},
@@ -340,8 +341,18 @@ const HilbertGenome = ({
         }, 
         layer: state.dataLayer, canvasRef 
       })
+
+      CanvasRenderers.forEach(cr => {
+        cr(canvasRef, scales, { 
+          data: state.data, 
+          loading: state.loading,
+          points, 
+          order: state.order, 
+          transform
+        })
+      })
     }
-  }, [state.data, state.loading, state.order, state.dataOrder, state.dataMeta, scales, state.dataLayer, canvasRef])
+  }, [state.data, state.loading, state.order, state.dataOrder, state.dataMeta, scales, state.dataLayer, canvasRef, CanvasRenderers])
 
 
   // Zoom event handler

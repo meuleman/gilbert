@@ -306,7 +306,7 @@ async function sampleScoredRegions(filteredIndices, progressCb) {
 
       // console.log("SCORES", d, scoredSegments)
       const scores = scoredSegments.flatMap(d => d)
-      console.log("scores", d, scores)
+      // console.log("scores", d, scores)
       return {
         ...d,
         scores

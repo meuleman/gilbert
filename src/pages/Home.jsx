@@ -48,6 +48,7 @@ import SimSearchByFactor from '../components/SimSearch/SimSearchByFactor'
 import DisplaySimSearchRegions from '../components/SimSearch/DisplaySimSearchRegions'
 import DisplayExampleRegions from '../components/ExampleRegions/DisplayExampleRegions';
 import DisplayFilteredRegions from '../components/ComboLock/DisplayFilteredRegions';
+import useCanvasFilteredRegions from '../components/ComboLock/CanvasFilteredRegions';
 
 import { getSet } from '../components/Regions/localstorage'
 import SelectedModal from '../components/SelectedModal'
@@ -635,7 +636,7 @@ function Home() {
     }
   }, [rbos, data])
 
-  // sample and fetch CSNs for sankey
+  const drawFilteredRegions = useCanvasFilteredRegions(filteredRegions)
 
   return (
     <>
@@ -767,10 +768,13 @@ function Home() {
                   orderOffset={orderOffset}
                   zoomDuration={duration}
                   onScales={setScales}
+                  CanvasRenderers={[
+                    drawFilteredRegions,
+                  ]}
                   SVGRenderers={[
                     SVGChromosomeNames({ }),
                     showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
-                    RegionMask({ regions: [selected, ...similarRegions, ...filteredRegions]}),
+                    RegionMask({ regions: [selected, ...similarRegions ]}),
                     SVGSelected({ hit: hover, dataOrder: zoom.order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
                     (
                       (checkRanges(selected, similarRegionListHover)) ? 
@@ -799,10 +803,10 @@ function Home() {
                       color: "red",
                       numRegions: 100,
                     }),
-                    ...DisplayFilteredRegions({
-                      regions: filteredRegions,
-                      order: zoom.order,
-                    }),
+                    // ...DisplayFilteredRegions({
+                    //   regions: filteredRegions,
+                    //   order: zoom.order,
+                    // }),
                     showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
                   ]}
                   onZoom={handleZoom}
