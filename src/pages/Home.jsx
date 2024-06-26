@@ -3,11 +3,11 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import Data from '../lib/data';
 import { urlify, jsonify, fromPosition, fromCoordinates } from '../lib/regions'
-import { HilbertChromosome, checkRanges } from '../lib/HilbertChromosome'
+import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
 import { calculateCrossScaleNarrationInWorker, narrateRegion } from '../lib/csn'
 import { regionsByOrder } from '../lib/filters'
-import { range } from 'd3-array'
+import { range, groups, group } from 'd3-array'
 
 import './Home.css'
 
@@ -636,7 +636,18 @@ function Home() {
     }
   }, [rbos, data])
 
-  const drawFilteredRegions = useCanvasFilteredRegions(filteredRegions)
+  const [topCSNS, setTopCSNS] = useState([])
+  const [topCSNSByCurrentOrder, setTopCSNSByCurrentOrder] = useState(new Map())
+  // we want to group the top csns by the current order
+  useEffect(() => {
+    if(topCSNS.length) {
+      const grouped = group(topCSNS, d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
+      console.log("grouped", grouped)
+      setTopCSNSByCurrentOrder(grouped)
+    }
+  }, [zoom.order, topCSNS])
+
+  const drawFilteredRegions = useCanvasFilteredRegions(filteredRegions, topCSNSByCurrentOrder)
 
   return (
     <>
@@ -713,6 +724,7 @@ function Home() {
               <SelectedModal 
                 selected={selected} 
                 filteredRegions={filteredRegions}
+                topCSNS={topCSNSByCurrentOrder}
                 k={zoom.transform.k}
                 layers={csnLayers}
                 crossScaleNarration={crossScaleNarration}
@@ -749,6 +761,9 @@ function Home() {
                 filteredIndices={filteredIndices} 
                 filters={filters} 
                 shrinkNone={false} 
+                onCSNS={(csns) => {
+                  setTopCSNS(csns)
+                }}
               />
             </div> : null}
 
@@ -803,10 +818,6 @@ function Home() {
                       color: "red",
                       numRegions: 100,
                     }),
-                    // ...DisplayFilteredRegions({
-                    //   regions: filteredRegions,
-                    //   order: zoom.order,
-                    // }),
                     showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
                   ]}
                   onZoom={handleZoom}
@@ -872,6 +883,8 @@ function Home() {
           <StatusBar 
             width={width + 12 + 30} 
             hover={hover} // the information about the cell the mouse is over
+            filteredRegions={filteredRegions}
+            topCSNS={topCSNSByCurrentOrder}
             layer={layer} 
             zoom={zoom} 
             showFilter={showFilter}

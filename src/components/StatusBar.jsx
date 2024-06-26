@@ -1,6 +1,7 @@
 // A component to display some information below the map when hovering over hilbert cells
 import LayerDropdown from './LayerDropdown'
 import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
+import { sum } from 'd3-array'
 import './StatusBar.css'
 
 import { format } from "d3-format"
@@ -8,6 +9,8 @@ import { format } from "d3-format"
 const StatusBar = ({
   width = 800,
   hover = null,
+  filteredRegions = [],
+  topCSNS = new Map(),
   layer,
   zoom,
   showFilter = false,
@@ -45,6 +48,9 @@ const StatusBar = ({
   }
 
   let inside,outside;
+  let filteredPathCount = 0;
+  let topCSNCount = 0;
+  let topCSNRepresented = 0;
   if(hover) {
     inside = getGenesInCell(hover, zoom.order)
     if(inside.length > 3) {
@@ -58,6 +64,21 @@ const StatusBar = ({
     } else {
       outside = outside.map(d => d.hgnc).join(", ")
     }
+    if(filteredRegions?.length) {
+      let filteredRegion = filteredRegions.find(d => hover.i == d.i && hover.chromosome == d.chromosome)
+      filteredPathCount = filteredRegion?.path?.count
+    } else {
+      filteredPathCount = 0
+    }
+    let topCSN = topCSNS.get(hover.chromosome + ":" + hover.i)
+    if(topCSN) {
+      topCSNCount = topCSN.length
+      topCSNRepresented = sum(topCSN, d => d.representedPaths)
+    }
+  } else {
+    filteredPathCount = 0
+    topCSNCount = 0
+    topCSNRepresented = 0
   }
 
   return (
@@ -70,6 +91,10 @@ const StatusBar = ({
           onClick={() => onFilter(!showFilter)}>
           🔒
         </button>
+        </div>
+        <div className="filtered-regions">
+          {topCSNCount ? <span>{topCSNCount} top path{topCSNCount > 1 ? "s" : ""} (representing {topCSNRepresented} paths)</span> : null}
+          {filteredPathCount ? <span> {filteredPathCount} total filtered paths</span> : null}
         </div>
         <div className="status-bar-hover">
           {hover && (

@@ -3,7 +3,7 @@ import { scaleSequential } from 'd3-scale';
 import { interpolateBlues } from 'd3-scale-chromatic';
 import { max, min } from 'd3-array';
 
-const useCanvasFilteredRegions = (regions) => {
+const useCanvasFilteredRegions = (regions, topPathsMap = new Map()) => {
   const drawRegions = useCallback((canvasRef, scales, state) => {
     let {xScale ,yScale ,sizeScale} = scales
     // console.log("going to render", regions.length, canvasRef.current)
@@ -51,8 +51,12 @@ const useCanvasFilteredRegions = (regions) => {
     ctx.drawImage(tempCanvas, 0, 0);
 
     
+    console.log("regions", regions, topPathsMap)
     regions.forEach(r => {
-      const color = colorScale(r.path?.count || 0);
+      let color = colorScale(r.path?.count || 0);
+      if(topPathsMap.get(r.chromosome + ":" + r.i)) {
+        color = "orange"
+      }
       const sw = step
       const rw = sizeScale(sw) * t.k * 0.9 // * (r.path?.count || 0) / (maxC - minC)
       const srw = rw * 0.2 * ((r.path?.count || 0) / (maxC - minC) + 0.1)
@@ -63,7 +67,7 @@ const useCanvasFilteredRegions = (regions) => {
       // ctx.fillRect(t.x + xScale(r.x) * t.k, t.y + yScale(r.y) * t.k, rw, rw)
       ctx.strokeRect(t.x + xScale(r.x) * t.k - rw/2, t.y + yScale(r.y) * t.k - rw/2, rw, rw)
     });
-  }, [regions])
+  }, [regions, topPathsMap])
 
   return drawRegions
 };

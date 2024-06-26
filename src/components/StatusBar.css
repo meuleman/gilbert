@@ -15,10 +15,15 @@
   justify-content: space-between;
   flex: 1;
 }
-.status-bar .status-bar-row > :nth-child(1) {
-  min-width: 450px;
+
+.status-bar .filtered-regions {
+  margin-left: 20px;
 }
+
 .status-bar .status-bar-row > :nth-child(2) {
+  min-width: 470px;
+}
+.status-bar .status-bar-row > :nth-child(3) {
   flex-grow: 1;
   text-align: left;
 }

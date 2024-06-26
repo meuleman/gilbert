@@ -29,7 +29,8 @@ const SankeyModal = ({
   order = 4,
   width = 400,
   height = 320,
-  shrinkNone = true
+  shrinkNone = true,
+  onCSNS = () => {}
 } = {}) => {
 
   const [loadingCSN, setLoadingCSN] = useState(false)
@@ -95,6 +96,13 @@ const SankeyModal = ({
       setMaxPathScore(max(csns, d => d.score))
     }
   }, [csns])
+  
+  useEffect(() => {
+    if(!loadingCSN && csns.length) {
+      console.log("emitting csns")
+      onCSNS(csns)
+    }
+  }, [csns, loadingCSN])
 
   useEffect(() => {
     console.log("filters", filters)
