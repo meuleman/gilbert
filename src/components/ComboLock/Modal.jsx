@@ -101,6 +101,8 @@ const FilterModal = ({
             onSelect={(os) => {
               setOrderSelects(os)
             }}
+            // the current set of filter indices for percentages
+            filteredIndices={filteredIndices}
           />
       </div> 
     </div>

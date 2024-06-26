@@ -4,6 +4,7 @@ import Select from 'react-select';
 import chroma from 'chroma-js';
 import { range, groups } from 'd3-array';
 import { showFloat, showInt, showPosition, showKb } from '../../lib/display';
+import { intersectIndices14, filterIndices } from '../../lib/filters';
 
 
 import './Selects.css';
@@ -81,7 +82,8 @@ const FilterOrder = ({
   activeWidth, 
   restingWidth, 
   orderMargin = 0,
-  onSelect
+  onSelect,
+  filteredIndices,
 }) => {
   const [selectedField, setSelectedField] = useState(null)
 
@@ -173,12 +175,75 @@ const FilterOrder = ({
   const [isActive, setIsActive] = useState(false);
 
   const [previewBar, setPreviewBar] = useState(null)
+
+  const [filterLoadingMessage, setFilterLoadingMessage] = useState("")
+
+  // retrieve indices for a given factor and order, filters them down based on current
+  // indices derived from established filters, and returns the intersection
+  const getIntersectionForFactor = (factor, order) => {
+    return new Promise((resolve) => {
+      if((order >= factor.layer.orders[0]) && (order <= factor.layer.orders[1])) {
+        let orderSelects = {[order]: factor}
+        orderSelects[order]['order'] = order
+        let loadingMessage = ""
+        // retrieve indices for factor
+        filterIndices(orderSelects, function(state, value) {
+          if(state == "loading_filters_start") {
+            loadingMessage = "Loading filters..."
+          }
+          else if(state == "grouped_selects") {
+            loadingMessage = "Loading filters"
+          } else if(state == "got_index"){
+            loadingMessage = "Loading filters"
+          } else if(state == "filtering_start") {
+            loadingMessage = "Filtering..."
+          } else if(state == "filtering_end") {
+            loadingMessage = "Filtering Complete"
+          }
+          setFilterLoadingMessage(loadingMessage)
+    
+        }, function(results) {
+          // find intersection and resolve promise
+          let orderFactorIndices = results.filteredIndices
+          let orderFilteredIndices = []
+          if(filteredIndices.length > 0) {  // found with filters
+            let filteredChromosomes = filteredIndices.map(d => d.chromosome)
+            filteredChromosomes.forEach(c => {
+              let chromFactorIndices = orderFactorIndices.find(d => d.chromosome == c)
+              let chromFilteredIndices = filteredIndices.find(d => d.chromosome == c)
+              if(chromFactorIndices) {
+                let intersection = intersectIndices14(chromFilteredIndices, chromFactorIndices)
+                if(intersection.indices.length > 0) {
+                  orderFilteredIndices.push(intersection)
+                }
+              }
+            })
+          } else orderFilteredIndices = orderFactorIndices
+          resolve(orderFilteredIndices)
+        }, false)
+      }
+    })
+  }
+
   useEffect(() => {
     if(previewField) {
-      const matchingField = allFields.find(field => field.label === previewField.label);
-      setPreviewBar(matchingField)
+      // console.log("previewField", previewField, order)
+      let numPaths = filteredIndices.length > 0 ? filteredIndices.reduce((acc, d) => acc + d.indices.length, 0) : orderSums[0].totalPaths
+      // get intersection for factor
+      getIntersectionForFactor(previewField, order).then(factorIndices => {
+        let numFactorPaths = factorIndices.reduce((acc, d) => acc + d.indices.length, 0)
+        let matchingField = {...previewField}
+        matchingField['order'] = order
+        // calculate percentage of available paths that have factor at order
+        matchingField['percent'] = numFactorPaths / numPaths * 100
+        if(numFactorPaths > 0) setPreviewBar(matchingField)
+      })
+
+      // const matchingField = allFields.find(field => field.label === previewField.label);
+      // // console.log(order, matchingField, allFields)
+      // setPreviewBar(matchingField)
     } else {
-      setPreviewBar(null)
+      setPreviewBar(null) 
     }
   }, [previewField])
 
@@ -246,14 +311,14 @@ const FilterOrder = ({
           <div
             className="preview-bar"
             style={{
-              width: `${previewBar.layerPercent}%`,
+              width: `${previewBar.percent}%`,
               backgroundColor: chroma(previewBar.color).alpha(0.5).css(),
               height: '20px',
               marginTop: '10px'
             }}
           >
 
-          <span>{showFloat(previewBar.layerPercent)}%</span>
+          <span>{showFloat(previewBar.percent)}%</span>
           </div>
         )}
 
@@ -352,7 +417,8 @@ const Selects = ({
   activeWidth = 585,
   restingWidth = 585,
   orderMargin = 0,
-  onSelect
+  onSelect,
+  filteredIndices,
 } = {}) => {
   const orders = range(4, 15)
   const [orderSelects, setOrderSelects] = useState({})
@@ -416,6 +482,7 @@ const Selects = ({
           onSelect={(field) => {
             handleOrderSelect(field, order)
           }} 
+          filteredIndices={filteredIndices}
         />
       ))}
     </div>

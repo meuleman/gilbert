@@ -97,10 +97,33 @@ const intersectIndices14 = (lower, higher) => {
   return { order: higher.order, chromosome: higher.chromosome, indices: commonIndices };
 }
 
+
+// fetch the index files for the selected order filters
+function fetchIndices(filteredGroupedSelects, progressCb) {
+  return Promise.all(filteredGroupedSelects.map(g => {
+    return Promise.all(g[1].map(os => {
+      const base = `https://resources.altius.org/~ctrader/public/gilbert/data/precomputed_csn_paths/index_files`
+      let dsName = os.layer.datasetName
+      const url = `${base}/${os.order}.${os.chromosome}.${dsName}.${os.index}.order_14_resolution.indices.int32.bytes`
+      return fetch(url)
+        .then(r => r.arrayBuffer())
+        .then(buffer => {
+          const int32Array = new Int32Array(buffer);
+          progressCb("got_index", os)
+          return {...os, indices: Array.from(int32Array)};
+        })
+        .catch(error => {
+          console.error('Error fetching indices:', error);
+          return {...os, indices: []};
+        });
+    }))
+  }));
+}
+
 // fetch the index files for the selected order filters and calculate intersections
 // the resulting data structure is an array with an object per chromosome
 // containing an array of indices 
-function filterIndices(orderSelects, progressCb, resultsCb, regionsThreshold = 100) {
+function filterIndices(orderSelects, progressCb, resultsCb, regionsThreshold = 100, attachRegions = true) {
   let chromosomes = Object.keys(counts_order14[4]).filter(d => d !== "totalSegmentCount")
   // console.log("orderSelects", orderSelects)
   const orders = Object.keys(orderSelects)
@@ -134,26 +157,8 @@ function filterIndices(orderSelects, progressCb, resultsCb, regionsThreshold = 1
   // as long as we have more than one order, we want to do this
   if(orders.length){
     progressCb("loading_filters", true)
-    Promise.all(filteredGroupedSelects.map(g => {
-      return Promise.all(g[1].map(os => {
-        const base = `https://resources.altius.org/~ctrader/public/gilbert/data/precomputed_csn_paths/index_files`
-        let dsName = os.layer.datasetName
-        const url = `${base}/${os.order}.${os.chromosome}.${dsName}.${os.index}.order_14_resolution.indices.int32.bytes`
-        return fetch(url)
-          .then(r => r.arrayBuffer())
-          .then(buffer => {
-            const int32Array = new Int32Array(buffer);
-            progressCb("got_index", os)
-            return {...os, indices: Array.from(int32Array)};
-          })
-          .catch(error => {
-            console.error('Error fetching indices:', error);
-            return {...os, indices: []};
-          });
-      }))
-    }))
+    fetchIndices(filteredGroupedSelects, progressCb)
     .then(groups => {
-      // console.log("GROUPS", groups)
       progressCb("filtering_start")
       // loop through each group (chromosome), fetch its indices and then filter each pair of indices
       const filteredIndices = groups.map(g => {
@@ -184,35 +189,38 @@ function filterIndices(orderSelects, progressCb, resultsCb, regionsThreshold = 1
       // console.log("pathCount", pathCount) 
       // console.log("FILTERED INDICES", filteredIndices)
 
-      // first we want to keep only the highest scoring indices in the highest resolution order of the filter
-      // console.log("SAMPLE SCORE REGION", filteredIndices)
-      const order = filteredIndices[0].order
-      const hilbert = new HilbertChromosome(14)
-      filteredIndices.forEach(d => {
-        let seen = {}
-        let seenCount = 0
-        let i = 0;
-        // iterate through the indices, 
-        let regions = []
-        let idx;
-        let r;
-        if(!d.indices.length) return d.regions = []
-        while(seenCount < regionsThreshold && i < d.indices.length) {
-          idx = d.indices[i]
-          let io = hilbertPosToOrder(idx, {from: 14, to: order})
-          if(!seen[io]) {
-            seenCount += 1
-            r = hilbert.fromRange(d.chromosome, idx, idx+1)[0]
-            r.representedPaths = 1
-            regions.push(r)
-            seen[io] = r
-          } else {
-            seen[io].representedPaths += 1
+      // for the percentages and preview bars, we don't need the regions
+      if(attachRegions) {
+        // first we want to keep only the highest scoring indices in the highest resolution order of the filter
+        // console.log("SAMPLE SCORE REGION", filteredIndices)
+        const order = filteredIndices[0].order
+        const hilbert = new HilbertChromosome(14)
+        filteredIndices.forEach(d => {
+          let seen = {}
+          let seenCount = 0
+          let i = 0;
+          // iterate through the indices, 
+          let regions = []
+          let idx;
+          let r;
+          if(!d.indices.length) return d.regions = []
+          while(seenCount < regionsThreshold && i < d.indices.length) {
+            idx = d.indices[i]
+            let io = hilbertPosToOrder(idx, {from: 14, to: order})
+            if(!seen[io]) {
+              seenCount += 1
+              r = hilbert.fromRange(d.chromosome, idx, idx+1)[0]
+              r.representedPaths = 1
+              regions.push(r)
+              seen[io] = r
+            } else {
+              seen[io].representedPaths += 1
+            }
+            i += 1
           }
-          i += 1
-        }
-        d.regions = regions
-      })
+          d.regions = regions
+        })
+      }
 
       progressCb("loading_filters", false)
       resultsCb({filteredIndices, segmentCount: totalSegmentCount, pathCount})
@@ -402,6 +410,7 @@ export {
   filterIndices,
   sampleRegions,
   sampleScoredRegions,
-  regionsByOrder
+  regionsByOrder,
+  intersectIndices14,
 }
 
