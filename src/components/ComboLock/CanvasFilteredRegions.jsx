@@ -51,7 +51,7 @@ const useCanvasFilteredRegions = (regions, topPathsMap = new Map()) => {
     ctx.drawImage(tempCanvas, 0, 0);
 
     
-    console.log("regions", regions, topPathsMap)
+    // console.log("regions", regions, topPathsMap)
     regions.forEach(r => {
       let color = colorScale(r.path?.count || 0);
       if(topPathsMap.get(r.chromosome + ":" + r.i)) {
