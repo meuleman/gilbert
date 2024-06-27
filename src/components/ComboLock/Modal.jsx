@@ -10,6 +10,7 @@ import { csnLayers, variantLayers } from '../../layers'
 
 const FilterModal = ({
   orderMargin = 0,
+  show=true,
   onFilters = () => {},
   onIndices = () => {},
   onClose = () => {}
@@ -78,7 +79,7 @@ const FilterModal = ({
   }, [filteredIndices])
   
   return (
-    <div className="filter-modal">
+    <div className={`filter-modal ${show ? "show" : "hide"}`}>
       {/* <div className="header">
         FILTERS
       </div> */}

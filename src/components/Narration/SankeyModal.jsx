@@ -27,6 +27,7 @@ const SankeyModal = ({
   filteredIndices = [],
   filters = {},
   order = 4,
+  show = true,
   width = 400,
   height = 320,
   shrinkNone = true,
@@ -109,7 +110,7 @@ const SankeyModal = ({
   }, [filters])
 
   return (
-    <div className="sankey-modal">
+    <div className={`sankey-modal ${show ? "show" : "hide"}`}>
       <div className="content">
         <div className="loading-info">
             {!loadingCSN && csns.length ? <p>{csns.length} unique paths from {sum(filteredIndices, d => d.regions.length)} top scoring paths across genome</p> : null }

@@ -15,6 +15,7 @@ import './SelectedModal.css'
 const SelectedModal = ({
   selected = null,
   filteredRegions = [],
+  showFilter = false,
   k,
   crossScaleNarration = [],
   layers = [],
@@ -130,7 +131,7 @@ const SelectedModal = ({
   return (
     <>
     {selected && (
-    <div className="selected-modal">
+    <div className={`selected-modal ${showFilter ? "filter-offset" : ""}`}>
       <div className="header">
         <div className="selected-modal-selected">
           🎯 {selected.chromosome}:{selected.start} - {selected.end} ({showKb(selected.end - selected.start)})

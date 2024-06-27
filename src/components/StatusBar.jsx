@@ -87,10 +87,7 @@ const StatusBar = ({
 
       <div className="status-bar-row">
         <div style={{width: '30px'}}>
-        <button className={`filter-button ${showFilter ? 'active' : null}`}
-          onClick={() => onFilter(!showFilter)}>
-          🔒
-        </button>
+        
         </div>
         <div className="filtered-regions">
           {topCSNCount ? <span>{topCSNCount} top path{topCSNCount > 1 ? "s" : ""} (representing {topCSNRepresented} paths)</span> : null}
@@ -130,6 +127,10 @@ const StatusBar = ({
             <input type="number" min={-2} max={2} value={orderOffset} onChange={(e) => onOrderOffset(+e.target.value)} />
             <span>effective order {zoom.order}</span>
           </label>
+          <button className={`filter-button ${showFilter ? 'active' : null}`}
+            onClick={() => onFilter(!showFilter)}>
+            🔒
+          </button>
           <button className={`settings-button ${showSettings ? 'active' : null}`}
             onClick={() => onSettings(!showSettings)}>
             {/* <input type="checkbox" checked={showSettings} onChange={onSettings} /> */}

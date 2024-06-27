@@ -9,6 +9,9 @@
   height: calc(100% - 40px);
   z-index: 1
 }
+.sankey-modal.hide {
+  display: none;
+}
 
 .sankey-modal .loading-info {
   height: 90px;

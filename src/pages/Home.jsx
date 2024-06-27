@@ -508,7 +508,7 @@ function Home() {
   }
 
 
-  const [showDebug, setShowDebug] = useState(true)
+  const [showDebug, setShowDebug] = useState(false)
   const handleChangeShowDebug = (e) => {
     setShowDebug(!showDebug)
   }
@@ -724,6 +724,7 @@ function Home() {
               <SelectedModal 
                 selected={selected} 
                 filteredRegions={filteredRegions}
+                showFilter={showFilter}
                 topCSNS={topCSNSByCurrentOrder}
                 k={zoom.transform.k}
                 layers={csnLayers}
@@ -749,13 +750,15 @@ function Home() {
                   />
             </SelectedModal> : null}
             
-            {showFilter ? <div>
+            <div>
               <FilterModal 
+                show={showFilter}
                 orderMargin={(height - 11*38 - 120)/11}
                 onFilters={setFilters}
                 onIndices={setFilteredIndices}>
               </FilterModal>
               <SankeyModal 
+                show={showFilter}
                 width={400} 
                 height={height - 45} 
                 filteredIndices={filteredIndices} 
@@ -765,7 +768,7 @@ function Home() {
                   setTopCSNS(csns)
                 }}
               />
-            </div> : null}
+            </div>
 
 
             <div ref={containerRef} className="hilbert-container">
