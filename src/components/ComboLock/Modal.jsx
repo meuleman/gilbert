@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useContext } from 'react'
+import FiltersContext from './FiltersContext'
 import Selects from './Selects'
 
 import { calculateOrderSums, filterIndices } from '../../lib/filters'
@@ -16,13 +17,13 @@ const FilterModal = ({
   onClose = () => {}
 } = {}) => {
 
-  const [minimized, setMinimized] = useState(false)
-  const onMinimize = useCallback(() => {
-    setMinimized(!minimized)
-  }, [minimized, setMinimized])
+  const { filters } = useContext(FiltersContext);
+  // const [minimized, setMinimized] = useState(false)
+  // const onMinimize = useCallback(() => {
+  //   setMinimized(!minimized)
+  // }, [minimized, setMinimized])
 
   const [orderSums, setOrderSums] = useState([])
-  const [orderSelects, setOrderSelects] = useState({})
   useEffect(() => { 
     const orderSums = calculateOrderSums() 
     console.log("orderSums", orderSums)
@@ -35,10 +36,12 @@ const FilterModal = ({
   const [filteredIndices, setFilteredIndices] = useState([]) // the indices for each chromosome at highest order
   useEffect(() => {
 
+    console.log("filters changed in modal!", filters)
+
     let totalIndices = 0
     let indexCount = 0
     let loadingMessage = ""
-    filterIndices(orderSelects, function(state, value) {
+    filterIndices(filters, function(state, value) {
       // console.log("progress", state, value)
       if(state == "loading_filters_start") {
         loadingMessage = "Loading filters..."
@@ -68,11 +71,7 @@ const FilterModal = ({
         setFilteredPathCount(0)
       }
     })
-  }, [orderSelects])
-
-  useEffect(() => {
-    onFilters(orderSelects)
-  }, [orderSelects])
+  }, [filters])
 
   useEffect(() => {
     onIndices(filteredIndices)
@@ -88,10 +87,9 @@ const FilterModal = ({
           {showInt(filteredPathCount)} ({(filteredPathCount/orderSums[4]?.totalPaths*100).toFixed(2)}%) paths found
         </div>}
       </div>
-      <div className={`content ${minimized ? "minimized" : ""}`}>
+      <div>
         <div className="filter-inputs">
           <Selects
-            selected={orderSelects}
             orderSums={orderSums} 
             layers={csnLayers.concat(variantLayers.slice(0,1))}
             showNone={false} 
@@ -99,9 +97,6 @@ const FilterModal = ({
             activeWidth={585}
             restingWidth={65}
             orderMargin={orderMargin}
-            onSelect={(os) => {
-              setOrderSelects(os)
-            }}
             // the current set of filter indices for percentages
             filteredIndices={filteredIndices}
           />

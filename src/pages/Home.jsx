@@ -1,6 +1,8 @@
 import {useEffect, useState, useRef, useCallback, useMemo} from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
+import FiltersProvider from '../components/ComboLock/FiltersProvider'
+
 import Data from '../lib/data';
 import { urlify, jsonify, fromPosition, fromCoordinates } from '../lib/regions'
 import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/HilbertChromosome'
@@ -651,6 +653,7 @@ function Home() {
 
   return (
     <>
+    <FiltersProvider>
       <div className="primary-grid">
         {/* header row */}
         <div className="header">
@@ -917,6 +920,7 @@ function Home() {
           /> : null }
         </div>
       </div>
+      </FiltersProvider>
     </>
   )
 }
