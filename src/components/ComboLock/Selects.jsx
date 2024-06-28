@@ -426,12 +426,6 @@ const Selects = ({
   const handleOrderSelect = useCallback((field, order) => {
     if(!field) {
       delete orderSelects[order]
-      const hasOrdersGreaterThanSix = Object.keys(orderSelects).some(order => +order > 6);
-      if (!hasOrdersGreaterThanSix) {
-        setOrderSelects({})
-      } else {
-        setOrderSelects({...orderSelects})
-      }
     } else {
       setOrderSelects({...orderSelects, [order]: field})
       setPreviewField(null)
