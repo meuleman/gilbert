@@ -21,6 +21,7 @@ const Selects = ({
 
   useEffect(() => {
     console.log("filters changed in selects!", filters)
+    setPreviewField(null)
   }, [filters])
 
   const [previewField, setPreviewField] = useState(null)

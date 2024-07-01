@@ -246,10 +246,10 @@ const SelectOrder = ({
         {showKb(Math.pow(4, 14 - order))}
       </span> 
       <div className="button-column">
-      {disabled ? <div className="disabled" data-tooltip-id="higher-filter">🚫</div> : null}
+      {/* {disabled ? <div className="disabled" data-tooltip-id="higher-filter">🚫</div> : null}
         <Tooltip id="higher-filter" place="right" effect="solid">
           Select at least one higher resolution filter
-        </Tooltip>
+        </Tooltip> */}
       {selectedField && !previewBar ? 
         <div>
           <button className="deselect" data-tooltip-id="deselect" onClick={() => handleChange()}>
@@ -262,7 +262,7 @@ const SelectOrder = ({
       : null }
       {!disabled && previewBar ? 
       <div>
-        <button className="select" data-tooltip-id={"select"+order} onClick={() => setSelectedField(previewBar)}>✅</button>
+        <button className="select" data-tooltip-id={"select"+order} onClick={() => handleChange(previewBar)}>✅</button>
         <Tooltip id={"select"+order} place="top" effect="solid" className="tooltip-custom">
           Select {previewBar.label} at {showKb(Math.pow(4, 14 - previewBar.order))}
         </Tooltip>
