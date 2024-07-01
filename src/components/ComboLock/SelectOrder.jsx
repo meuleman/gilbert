@@ -1,9 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useContext } from 'react';
 import Select from 'react-select';
 import chroma from 'chroma-js';
 import { groups } from 'd3-array';
 import { showFloat, showInt, showKb } from '../../lib/display';
+import { fields } from '../../layers'
 import {Tooltip} from 'react-tooltip';
+import { intersectIndices14, filterIndices } from '../../lib/filters';
+import FiltersContext from './FiltersContext'
 
 const dot = (color = 'transparent') => ({
   alignItems: 'center',
@@ -66,30 +69,42 @@ const colourStyles = (isActive, restingWidth = 65, activeWidth = 570) => ({
   }),
 });
 
-const OrderSelect = ({
+const SelectOrder = ({
   order, 
   orderSums, 
-  layers, 
   previewField, 
   showNone, 
   showUniquePaths, 
   disabled, 
-  selected, 
   activeWidth, 
   restingWidth, 
   orderMargin = 0,
-  onSelect,
   filteredIndices,
 }) => {
   const [selectedField, setSelectedField] = useState(null)
+  const [allFieldsGrouped, setAllFieldsGrouped] = useState([])
+  const [fieldMap, setFieldMap] = useState({})
+
+  const { filters, handleFilter } = useContext(FiltersContext);
 
   useEffect(() => {
-    console.log("selected", selected)
-    setSelectedField(selected || null)
-  }, [selected])
+    // console.log("filters", filters)
+    if(filters[order]) {
+      const sf = fieldMap[filters[order].id]
+      setSelectedField(sf)
+    } else {
+      setSelectedField(null)
+    }
+  }, [filters, order, fieldMap])
 
-  const [allFields, setAllFields] = useState([])
-  const [allFieldsGrouped, setAllFieldsGrouped] = useState([])
+
+  const handleChange = useCallback((selectedOption) => {
+    console.log("selected", selectedOption)
+    handleFilter(selectedOption, order)
+    // setSelectedField(selectedOption)
+    setIsActive(false)
+  }, [order, handleFilter])
+
 
   const formatLabel = useCallback((option) => {
     return (
@@ -104,69 +119,47 @@ const OrderSelect = ({
   }, [showUniquePaths]);
 
   useEffect(() => {
-    const layerjson = layers.map(d => {
-      return {
-        name: d.name,
-        datasetName: d.datasetName,
-        fields: d.fieldColor.domain(),
-        colors: d.fieldColor.range()
-      }
-    })
-    // console.log("LAYERS", layerjson)
-  }, [layers])
-
-  useEffect(() => {
     // const lyrs = csnLayers.concat(variantLayers.slice(0, 1))
-    let newFields = layers.filter(d => d.orders[0] <= order && d.orders[1] >= order).flatMap(layer => {
+    let allFields = fields.map(f => {
+      let layer = f.layer
+      if(layer.orders[0] >= order || layer.orders[1] <= order) return;
+
       let oc = orderSums.find(o => o.order == order)
       let counts = null
-      let unique_counts = null;
-      let dsName = layer.datasetName
-      // if(dsName.includes("rank")){
-      //   dsName = dsName.replace("_rank", "")
-      // }
+      // let unique_counts = null;
       
       if(oc) {
-        counts = oc.counts[dsName]
-        unique_counts = oc.unique_counts[dsName]
+        counts = oc.counts[layer.datasetName]
+        // unique_counts = oc.unique_counts[layer.datasetName]
       }
-      
-      // const counts = oc ? (showUniquePaths ? oc.unique_counts : oc.counts) : null
-      // oc ? oc = counts[layer.datasetName] : oc = null
-      let fields = layer.fieldColor.domain().map((f, i) => {
-        return { 
-          order,
-          layer,
-          // label: f + " (" + showInt(c) + " paths) " + layer.name, 
-          label: f + " " + layer.name,
-          field: f, 
-          index: i, 
-          color: layer.fieldColor(f), 
-          count: counts ? counts[i] : "?",
-          unique_count: unique_counts ? unique_counts[i] : "?",
-          unique_percent: unique_counts ? unique_counts[i] / oc.totalSegments * 100 : "?",
-          percent: counts ? counts[i] / oc.totalPaths * 100: "?",
-          layerPercent: counts ? counts[i] / oc.layer_total[layer.datasetName] * 100 : "?",
-          isDisabled: counts ? counts[i] == 0 || counts[i] == "?" : true
-        }
-      }).sort((a,b) => {
-        return b.count - a.count
-      })
-      if(!showNone){
-        fields = fields.filter(f => f.count > 0 && f.count != "?")
+      return {
+        ...f,
+        order,
+        count: counts ? counts[f.index] : "?",
       }
-      return fields
-    })
-    setAllFields(newFields)
-    const grouped = groups(newFields, f => f.layer.name)
-      .map(d => ({ label: d[0], options: d[1] }))
+      // count: counts ? counts[i] : "?",
+      // unique_count: unique_counts ? unique_counts[i] : "?",
+      // unique_percent: unique_counts ? unique_counts[i] / oc.totalSegments * 100 : "?",
+      // percent: counts ? counts[i] / oc.totalPaths * 100: "?",
+      // layerPercent: counts ? counts[i] / oc.layer_total[layer.datasetName] * 100 : "?",
+      // isDisabled: counts ? counts[i] == 0 || counts[i] == "?" : true
+    }).filter(f => !!f)
+    if(!showNone){
+      allFields = allFields.filter(f => f.count > 0 && f.count != "?")
+    }
+    const grouped = groups(allFields, f => f.layer.name)
+      .map(d => ({ label: d[0], options: d[1].sort((a,b) => b.count - a.count) }))
       .filter(d => d.options.length)
     setAllFieldsGrouped(grouped)
-  }, [order, orderSums, showNone, layers])
+    const fieldMap = {}
+    allFields.forEach(f => {
+      fieldMap[f.id] = f
+    })
+    setFieldMap(fieldMap)
 
-  useEffect(() => {
-    onSelect(selectedField)
-  }, [selectedField])
+  }, [order, orderSums, showNone])
+
+
 
   const [isActive, setIsActive] = useState(false);
 
@@ -259,7 +252,7 @@ const OrderSelect = ({
         </Tooltip>
       {selectedField && !previewBar ? 
         <div>
-          <button className="deselect" data-tooltip-id="deselect" onClick={() => setSelectedField(null)}>
+          <button className="deselect" data-tooltip-id="deselect" onClick={() => handleChange()}>
             ❌
           </button>
           <Tooltip id="deselect" place="top" effect="solid" className="tooltip-custom">
@@ -283,10 +276,7 @@ const OrderSelect = ({
           styles={colourStyles(isActive, restingWidth, activeWidth)}
           value={selectedField}
           isDisabled={disabled}
-          onChange={(selectedOption) => {
-            setSelectedField(selectedOption)
-            setIsActive(false)
-          }}
+          onChange={handleChange}
           onFocus={() => setIsActive(true)}
           onBlur={() => setIsActive(false)}
           placeholder={<div></div>}
@@ -321,4 +311,4 @@ const OrderSelect = ({
   )
 }
 
-export default OrderSelect
+export default SelectOrder

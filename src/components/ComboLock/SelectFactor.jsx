@@ -3,6 +3,8 @@ import Select from 'react-select';
 import chroma from 'chroma-js';
 import { groups } from 'd3-array';
 
+import { fields } from '../../layers'
+
 
 const dot = (color = 'transparent') => ({
   alignItems: 'center',
@@ -65,7 +67,7 @@ const colourStyles = (isActive, restingWidth = 65, activeWidth = 570) => ({
   }),
 });
 
-const FactorSelect = ({layers, selected, activeWidth, restingWidth, onSelect}) => {
+const SelectFactor = ({layers, selected, activeWidth, restingWidth, onSelect}) => {
   const [selectedField, setSelectedField] = useState(null)
 
   const [isActive, setIsActive] = useState(false);
@@ -87,23 +89,11 @@ const FactorSelect = ({layers, selected, activeWidth, restingWidth, onSelect}) =
   }, []);
 
   useEffect(() => {
-    let newFields = layers.flatMap(layer => {
-      let fields = layer.fieldColor.domain().map((f, i) => {
-        return { 
-          layer,
-          label: f + " " + layer.name,
-          field: f, 
-          index: i, 
-          color: layer.fieldColor(f), 
-        }
-      })
-      return fields
-    })
-    const grouped = groups(newFields, f => f.layer.name)
+    const grouped = groups(fields, f => f.layer.name)
       .map(d => ({ label: d[0], options: d[1] }))
       .filter(d => d.options.length)
     setAllFields(grouped)
-  }, [layers])
+  }, [])
   
   useEffect(() => {
     onSelect(selectedField)
@@ -144,4 +134,4 @@ const FactorSelect = ({layers, selected, activeWidth, restingWidth, onSelect}) =
   )
 }
 
-export default FactorSelect;
+export default SelectFactor;

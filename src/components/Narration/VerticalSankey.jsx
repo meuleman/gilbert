@@ -1,9 +1,11 @@
-import { useEffect, useState, useCallback, useRef} from 'react'
+import { useEffect, useState, useCallback, useRef, useContext} from 'react'
 import { sankey, sankeyJustify, sankeyCenter, sankeyLinkHorizontal } from 'd3-sankey';
 import { range, max } from 'd3-array';
 import { path as d3path } from 'd3-path';
 import Tooltip from '../Tooltips/Tooltip';
 import { showKb } from '../../lib/display'
+import { makeField } from '../../layers'
+import FiltersContext from '../ComboLock/FiltersContext'
 
 // TODO: make this drop in for sankeyLinkVertical()
 function sankeyLinkPath(link, offset=0, debug=false) {
@@ -88,7 +90,6 @@ export default function CSNVerticalSankey({
   tipOrientation = "bottom",
   nodeWidth = 15,
   nodePadding = 5,
-  filters = {},
   filter = [],
   onFilter=() => {},
 }) {
@@ -96,6 +97,8 @@ export default function CSNVerticalSankey({
 
   const [sank, setSank] = useState(null)
   const [maxOrder, setMaxOrder] = useState(0)
+
+  const { filters, handleFilter } = useContext(FiltersContext)
 
   useEffect(() => {
     if(csns.length) {
@@ -286,6 +289,10 @@ export default function CSNVerticalSankey({
 
   const handleNodeFilter = useCallback((node) => {
     console.log("handling filter", node)
+    let field = makeField(node.dataLayer, node.field)
+    field.order = node.order
+    console.log("field!", field)
+    handleFilter(field, node.order)
     // onFilter((oldNodeFilter) => {
     //   if(oldNodeFilter.find(n => n.id == node.id)) {
     //     const filtered = oldNodeFilter.filter(n => n.id != node.id)
@@ -407,6 +414,7 @@ export default function CSNVerticalSankey({
                   stroke="black"
                   fillOpacity={node.children ? .5 : .75}
                   strokeWidth={node.strokeWidth}
+                  cursor={node.children ? "default" : "pointer"}
                   onClick={() => handleNodeFilter(node)}
                   onMouseMove={(e) => handleHover(e, node)}
                   onMouseLeave={handleLeave}

@@ -7,7 +7,6 @@ import { showInt } from '../../lib/display'
 
 import './Modal.css'
 
-import { csnLayers, variantLayers } from '../../layers'
 
 const FilterModal = ({
   orderMargin = 0,
@@ -91,7 +90,6 @@ const FilterModal = ({
         <div className="filter-inputs">
           <Selects
             orderSums={orderSums} 
-            layers={csnLayers.concat(variantLayers.slice(0,1))}
             showNone={false} 
             showUniquePaths={true}
             activeWidth={585}

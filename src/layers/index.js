@@ -183,6 +183,26 @@ function rehydrate(index, list) {
   return {layer, fieldIndex, fieldName}
 }
 
+function makeField(layer, name) {
+  let fieldIndex = layer.fieldColor.domain().indexOf(name)
+  return { 
+    id: layer.name + ":" + fieldIndex, 
+    layer, 
+    label: name + " " + layer.name,
+    field: name,
+    index: fieldIndex, 
+    color: layer.fieldColor(name),
+  }
+}
+
+const factorLayers = csnLayers.concat(variantLayers.slice(0,1))
+const fields = factorLayers.flatMap(layer => {
+  let fs = layer.fieldColor.domain().map((f, i) => {
+    return makeField(layer, f)
+  })
+  return fs 
+})
+
 export {
   fullList,
   csnLayers,
@@ -190,5 +210,7 @@ export {
   countLayers,
   fieldMapping,
   rehydrate,
+  fields,
+  makeField,
 }
 

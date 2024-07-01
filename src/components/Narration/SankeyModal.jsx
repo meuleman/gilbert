@@ -25,7 +25,6 @@ const processInBatches = async (items, batchSize, processFunction, statusFunctio
 
 const SankeyModal = ({
   filteredIndices = [],
-  filters = {},
   order = 4,
   show = true,
   width = 400,
@@ -105,9 +104,6 @@ const SankeyModal = ({
     }
   }, [csns, loadingCSN])
 
-  useEffect(() => {
-    console.log("filters", filters)
-  }, [filters])
 
   return (
     <div className={`sankey-modal ${show ? "show" : "hide"}`}>
@@ -148,7 +144,6 @@ const SankeyModal = ({
               csns={csns} 
               shrinkNone={shrinkNone} 
               nodeWidth={height/11 - 60}
-              filters={filters}
             />
           </div> :null }
       </div>

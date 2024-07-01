@@ -2,14 +2,13 @@ import { useState, useEffect, useCallback, useContext } from 'react';
 import { range } from 'd3-array';
 import FiltersContext from './FiltersContext'
 
-import FactorSelect from './FactorSelect';
-import OrderSelect from './OrderSelect';
+import SelectFactor from './SelectFactor';
+import SelectOrder from './SelectOrder';
 
 import './Selects.css';
 
 const Selects = ({
   orderSums, 
-  layers, 
   showNone, 
   showUniquePaths, 
   activeWidth = 585,
@@ -29,8 +28,7 @@ const Selects = ({
   return (
     <div className="selects">
       <div className="select-factor">
-        <FactorSelect
-          layers={layers}
+        <SelectFactor
           selected={previewField}
           activeWidth={activeWidth + 85}
           restingWidth={restingWidth + 165}
@@ -44,21 +42,15 @@ const Selects = ({
       </div>
 
       {orders.map(order => (
-        <OrderSelect key={order} 
+        <SelectOrder key={order} 
           orderMargin={orderMargin}
           order={order} 
           orderSums={orderSums} 
-          layers={layers}
           previewField={previewField}
           activeWidth={activeWidth}
           restingWidth={restingWidth}
           showNone={showNone} 
           showUniquePaths={showUniquePaths}
-          selected={filters[order]}
-          onSelect={(field) => {
-            console.log("selected onselect!", field, order)
-            handleFilter(field, order)
-          }} 
           filteredIndices={filteredIndices}
         />
       ))}
