@@ -125,10 +125,9 @@ function fetchIndices(filteredGroupedSelects, progressCb) {
 // containing an array of indices 
 function filterIndices(orderSelects, progressCb, resultsCb, regionsThreshold = 100, attachRegions = true) {
   let chromosomes = Object.keys(counts_order14[4]).filter(d => d !== "totalSegmentCount")
-  // console.log("orderSelects", orderSelects)
   const orders = Object.keys(orderSelects)
-  // console.log("orders", orders)
-  // we turn the orderSelects into an array of selects
+  // we turn the orderSelects into an array of selects,
+  // expanded with an element per chromosome
   const selects = orders.flatMap(o => {
     let os = orderSelects[o]
     let oc = counts_order14[o]
@@ -178,6 +177,7 @@ function filterIndices(orderSelects, progressCb, resultsCb, regionsThreshold = 1
         resultsCb({filteredIndices, segmentCount: 0, pathCount: 0})
         return
       }
+      console.log("FILTERED INDICES", filteredIndices)
       // now we can count everything in a couple ways
       // 1. count the number of segments by counting the length of indices for each group
       // 2. count the number of paths by multiplying stride (4^13-order) times the count of segments

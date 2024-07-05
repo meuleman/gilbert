@@ -5,6 +5,8 @@ import Selects from './Selects'
 import { calculateOrderSums, filterIndices } from '../../lib/filters'
 import { showInt } from '../../lib/display'
 
+import { fetchTopCSNs } from '../../lib/csn'
+
 import './Modal.css'
 
 
@@ -29,13 +31,14 @@ const FilterModal = ({
     setOrderSums(orderSums)
   }, [])
 
-
   const [filterLoadingMessage, setFilterLoadingMessage] = useState("")
   const [filteredPathCount, setFilteredPathCount] = useState(0)
   const [filteredIndices, setFilteredIndices] = useState([]) // the indices for each chromosome at highest order
   useEffect(() => {
 
     console.log("filters changed in modal!", filters)
+    console.log("SKIPPING CLIENT SIDE")
+    return;
 
     let totalIndices = 0
     let indexCount = 0

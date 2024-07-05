@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useContext } from 'react'
+import FiltersContext from '../ComboLock/FiltersContext'
 
 import { showInt } from '../../lib/display'
 import { max, sum } from 'd3-array'
@@ -7,6 +8,7 @@ import { sampleScoredRegions } from '../../lib/filters'
 import { fetchDehydratedCSN, rehydrateCSN } from '../../lib/csn'
 import VerticalSankey from './VerticalSankey';
 import ZoomLine from './ZoomLine';
+import { fetchTopCSNs } from '../../lib/csn'
 
 
 import './SankeyModal.css'
@@ -40,6 +42,23 @@ const SankeyModal = ({
   const [csns, setCSNs] = useState([])
   const [selectedCSN, setSelectedCSN] = useState(null)
   const csnRequest = useRef(0)
+  const { filters } = useContext(FiltersContext);
+
+  useEffect(() => {
+
+    setLoadingCSN(true)
+    setNumSamples(-1)
+    setSampleStatus(0)
+ 
+    fetchTopCSNs(filters, [], "full", true, 100).then(csns=> {
+        const layers = [...csnLayers, ...variantLayers]
+        const hydrated = csns.map(csn => rehydrateCSN(csn, layers))
+        setCSNs(hydrated)
+        setSampleStatus(csns.length)
+        setLoadingCSN(false)
+    })
+  }, [filters])
+
   useEffect(() => {
     //make a region set from each chromosome's indices
     if(filteredIndices.length > 0){
@@ -68,7 +87,7 @@ const SankeyModal = ({
           const layers = [...csnLayers, ...variantLayers]
           const hydrated = csns.map(csn => rehydrateCSN(csn, layers))
           setSampleStatus(csns.length)
-          console.log("hydrated", hydrated)
+          // console.log("hydrated", hydrated)
           setCSNs(hydrated)
         }
         const processFun = (r) => {

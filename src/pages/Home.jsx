@@ -1,13 +1,14 @@
-import {useEffect, useState, useRef, useCallback, useMemo} from 'react'
+import {useEffect, useState, useRef, useCallback, useMemo, useContext } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
-import FiltersProvider from '../components/ComboLock/FiltersProvider'
+// import FiltersProvider from '../components/ComboLock/FiltersProvider'
+import FiltersContext from '../components/ComboLock/FiltersContext'
 
 import Data from '../lib/data';
 import { urlify, jsonify, fromPosition, fromCoordinates } from '../lib/regions'
 import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
-import { calculateCrossScaleNarrationInWorker, narrateRegion } from '../lib/csn'
+import { fetchTopCSNs, calculateCrossScaleNarrationInWorker, narrateRegion } from '../lib/csn'
 import { regionsByOrder } from '../lib/filters'
 import { range, groups, group } from 'd3-array'
 
@@ -600,7 +601,9 @@ function Home() {
   }, [zoom, data, isZooming, fetchLayerData]) 
 
 
-  const [filters, setFilters] = useState([])
+  // const [filters, setFilters] = useState([])
+  const { filters } = useContext(FiltersContext);
+
   const [filteredIndices, setFilteredIndices] = useState([])
   const [rbos, setRbos] = useState({}) // regions by order
   // calculate the filtered regions at the current order
@@ -615,6 +618,14 @@ function Home() {
       setRbos([])
     }
   }, [zoom.order, filteredIndices])
+
+  useEffect(() => {
+    console.log("filters changed in home!!")
+    fetchTopCSNs(filters, [], "full", true, 100)
+    // .then((response) => {
+    //   console.log("response", response)
+    // })
+  }, [filters])
 
   const [filteredRegions, setFilteredRegions] = useState([])
   // calculate the regions in view that have paths, and collect those paths
@@ -653,7 +664,6 @@ function Home() {
 
   return (
     <>
-    <FiltersProvider>
       <div className="primary-grid">
         {/* header row */}
         <div className="header">
@@ -757,7 +767,7 @@ function Home() {
               <FilterModal 
                 show={showFilter}
                 orderMargin={(height - 11*38 - 120)/11}
-                onFilters={setFilters}
+                // onFilters={setFilters}
                 onIndices={setFilteredIndices}>
               </FilterModal>
               <SankeyModal 
@@ -765,7 +775,6 @@ function Home() {
                 width={400} 
                 height={height - 45} 
                 filteredIndices={filteredIndices} 
-                filters={filters} 
                 shrinkNone={false} 
                 onCSNS={(csns) => {
                   setTopCSNS(csns)
@@ -920,7 +929,6 @@ function Home() {
           /> : null }
         </div>
       </div>
-      </FiltersProvider>
     </>
   )
 }

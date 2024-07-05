@@ -17,7 +17,7 @@ const Selects = ({
   filteredIndices,
 } = {}) => {
   const orders = range(4, 15)
-  const { filters, handleFilter } = useContext(FiltersContext);
+  const { filters } = useContext(FiltersContext);
 
   useEffect(() => {
     console.log("filters changed in selects!", filters)

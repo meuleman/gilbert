@@ -5,6 +5,10 @@ import RegionSet from './pages/RegionSet'
 import RegionDetail from './pages/RegionDetail'
 import YC240322 from './pages/YC240322'
 import Filter from './pages/Filter'
+
+import FiltersProvider from './components/ComboLock/FiltersProvider';
+
+
 import './App.css'
 
 
@@ -14,7 +18,11 @@ function App() {
       {/* <Nav /> */}
       <div className="page">
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={
+          <FiltersProvider>
+            <Home />
+          </FiltersProvider>
+        } />
         <Route path="/regions" element={<RegionSets />} />
         <Route path="/regions/:regionset" element={<RegionSet />} />
         <Route path="/region" element={<RegionDetail />} />

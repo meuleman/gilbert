@@ -7,11 +7,97 @@ import { fullList as layers, csnLayers, variantLayers, countLayers, rehydrate } 
 import calculateCrossScaleNarration from './calculateCSN'
 import { HilbertChromosome, hilbertPosToOrder } from "./HilbertChromosome";
 
+
+
+// * ================================================================
+// * Server side API calls
+// * ================================================================
+
+/*
+Get the top N paths filtered by filters and regions
+filters: [{order, field}, ...]
+regions: [{order, chromosome, index},...]
+scoreType: "full", "factor"
+diversity: true | false
+N: number of paths to return
+
+Returns:
+[ { baseRegion, path: [{order, field, region}, ...]}, ...]
+
+region (and baseRegion): {order, chromosome, index}
+*/
+function fetchTopCSNs(filtersMap, regions, scoreType, diversity, N) {
+
+  if (Object.keys(filtersMap).length === 0) {
+    return Promise.resolve([]);
+  }
+  // order, index, dataset_name
+  const filters = Object.keys(filtersMap).map(o => {
+    let f = filtersMap[o]
+    return {
+      order: +o,
+      index: f.index,
+      dataset_name: f.layer.datasetName
+    }
+  })
+
+  const url = "https://explore.altius.org:5001/api/csns/top_paths"
+  const postBody = {filters, scoreType, regions, diversity, N}
+  console.log("POST BODY", postBody)
+  return axios({
+    method: 'POST',
+    url: url,
+    data: postBody
+  }).then(response => {
+    console.log("DATA", response.data)
+    return response.data
+  }).catch(error => {
+    console.error(`error:     ${JSON.stringify(error)}`);
+    console.error(`post body: ${JSON.stringify(postBody)}`);
+    return null
+  })
+}
+
+/*
+filters: [{order, field}, ...]
+order: 4-14
+
+Returns:
+[ ...]
+*/
+function fetchFilteredRegions(filters, order) {
+  const url = "https://explore.altius.org:5001/csn/filtered_indices"
+  const postBody = {filters, order}
+  return axios({
+    method: 'POST',
+    url: url,
+    data: postBody
+  })
+}
+
+/*
+*/
+function fetchSignificantFactors(region) {
+  const url = "https://explore.altius.org:5001/csn/significant_factors"
+  const postBody = {region}
+  return axios({
+    method: 'POST',
+    url: url,
+    data: postBody
+  })
+}
+
+
+// * ================================================================
+// * Client-side version below
+// * ================================================================
+
+
+
 const layersMap = layers.reduce((acc, layer) => {
   acc[layer.datasetName] = layer
   return acc
 }, {})
-
 
 function createWorker() {
   return new Worker(new URL('./csnWorker.js', import.meta.url), { type: 'module' });
@@ -112,7 +198,9 @@ function fetchDehydratedCSN(r) {
 function rehydrateCSN(csn, layers) {
   const hydrated = range(0, 11).map(i => {
     const order = i + 4
-    const l = rehydrate(csn.csn[i], layers)
+    // const l = rehydrate(csn.csn[i], layers)
+    csn.i = csn.index
+    const l = rehydrate(csn.path[i], layers)
     const hilbert = new HilbertChromosome(order)
     const pos = hilbertPosToOrder(csn.i, {from: 14, to: order})
     const region = hilbert.fromRange(csn.chromosome, pos, pos+1)[0]
@@ -274,7 +362,8 @@ export {
   walkTree,
   findUniquePaths,
   fetchDehydratedCSN,
-  rehydrateCSN
+  rehydrateCSN,
+  fetchTopCSNs
 }
 
 
