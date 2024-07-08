@@ -14,7 +14,8 @@ import './SelectedModal.css'
 
 const SelectedModal = ({
   selected = null,
-  filteredRegions = [],
+  // filteredRegions = [],
+  regionsByOrder = {},
   showFilter = false,
   k,
   crossScaleNarration = [],
@@ -115,11 +116,14 @@ const SelectedModal = ({
   }, [crossScaleNarrationIndex, setCrossScaleNarrationIndex, setZoomOrder])
 
   const filtered = useMemo(() => {
-    if(!selected || filteredRegions.length == 0) return null
-    const filtered = filteredRegions.find(r => r.chromosome == selected.chromosome && r.i === selected.i)
-    console.log("filtered?????", filtered)
+    if(!selected || !regionsByOrder.total) return null
+    let filtered = null
+    if(regionsByOrder.chrmsMap[selected.chromosome] && regionsByOrder.chrmsMap[selected.chromosome][selected.i]) {
+      filtered = regionsByOrder.chrmsMap[selected.chromosome][selected.i]
+    }
+    console.log("SELECTED", selected, filtered)
     return filtered
-  }, [filteredRegions, selected])
+  }, [regionsByOrder, selected])
 
   const [maxPathScore, setMaxPathScore] = useState(0)
   useEffect(() => {
@@ -153,7 +157,7 @@ const SelectedModal = ({
         </div>
 
         {filtered ? <div>
-          {filtered.path.count} filtered paths in this region.
+          {filtered.count} filtered paths in this region.
         </div>: null}
 
         <br></br>

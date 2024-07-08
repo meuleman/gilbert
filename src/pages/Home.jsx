@@ -605,13 +605,16 @@ function Home() {
   const { filters } = useContext(FiltersContext);
 
   const [filteredIndices, setFilteredIndices] = useState([])
-  const [filteredRegions, setFilteredRegions] = useState([])
+  // const [filteredRegions, setFilteredRegions] = useState([])
   const [rbos, setRbos] = useState({}) // regions by order
   const [topCSNS, setTopCSNS] = useState([])
   const [csnLoading, setCSNLoading] = useState("")
+  const csnRequestRef = useRef(0)
 
   useEffect(() => {
     console.log("filters changed in home!!")
+    csnRequestRef.current += 1
+    const currentRequest = csnRequestRef.current
     setCSNLoading("fetching")
     fetchTopCSNs(filters, [], "full", true, 100)
     .then((response) => {
@@ -619,8 +622,10 @@ function Home() {
       let csns = response//.csns
       setCSNLoading("hydrating")
       const hydrated = csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
-      setTopCSNS(hydrated)
-      setCSNLoading("")
+      if(currentRequest == csnRequestRef.current) {
+        setTopCSNS(hydrated)
+        setCSNLoading("")
+      }
       // setTopCSNS(response.csns)
       // setFilteredIndices(response.filtered_indices)
     })
@@ -640,25 +645,25 @@ function Home() {
   }, [zoom.order, filteredIndices])
 
   // calculate the regions in view that have paths, and collect those paths
-  useEffect(() => {
-    if(data && rbos.total && data.data?.length) {
-      console.log("rbos", rbos, data)
-      const inview = data.data.filter(d => d.inview == true)
-      // for each region in view, lets see if it shows up in the rbos
-      const inRbos = inview.map(d => {
-        const p = rbos.chrmsMap[d.chromosome]?.indices?.find(i => i.i == d.i)
-        if(p) {
-          return {...d, path: p}
-        } else {
-          return null
-        }
-      }).filter(d => d)
-      console.log("inRbos", inRbos)
-      setFilteredRegions(inRbos)
-    } else {
-      setFilteredRegions([])
-    }
-  }, [rbos, data])
+  // useEffect(() => {
+  //   if(data && rbos.total && data.data?.length) {
+  //     console.log("rbos", rbos, data)
+  //     const inview = data.data.filter(d => d.inview == true)
+  //     // for each region in view, lets see if it shows up in the rbos
+  //     const inRbos = inview.map(d => {
+  //       const p = rbos.chrmsMap[d.chromosome]?.indices?.find(i => i.i == d.i)
+  //       if(p) {
+  //         return {...d, path: p}
+  //       } else {
+  //         return null
+  //       }
+  //     }).filter(d => d)
+  //     console.log("inRbos", inRbos)
+  //     setFilteredRegions(inRbos)
+  //   } else {
+  //     setFilteredRegions([])
+  //   }
+  // }, [rbos, data])
 
   const [topCSNSByCurrentOrder, setTopCSNSByCurrentOrder] = useState(new Map())
   // we want to group the top csns by the current order
@@ -670,7 +675,7 @@ function Home() {
     }
   }, [zoom.order, topCSNS])
 
-  const drawFilteredRegions = useCanvasFilteredRegions(filteredRegions, topCSNSByCurrentOrder)
+  const drawFilteredRegions = useCanvasFilteredRegions(rbos, topCSNSByCurrentOrder)
 
   return (
     <>
@@ -746,8 +751,9 @@ function Home() {
           {selected ? 
               <SelectedModal 
                 selected={selected} 
-                filteredRegions={filteredRegions}
+                // filteredRegions={filteredRegions}
                 showFilter={showFilter}
+                regionsByOrder={rbos}
                 topCSNS={topCSNSByCurrentOrder}
                 k={zoom.transform.k}
                 layers={csnLayers}
@@ -911,7 +917,8 @@ function Home() {
           <StatusBar 
             width={width + 12 + 30} 
             hover={hover} // the information about the cell the mouse is over
-            filteredRegions={filteredRegions}
+            // filteredRegions={filteredRegions}
+            regionsByOrder={rbos}
             topCSNS={topCSNSByCurrentOrder}
             layer={layer} 
             zoom={zoom} 

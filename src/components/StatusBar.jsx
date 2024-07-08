@@ -9,7 +9,8 @@ import { format } from "d3-format"
 const StatusBar = ({
   width = 800,
   hover = null,
-  filteredRegions = [],
+  // filteredRegions = [],
+  regionsByOrder = {},
   topCSNS = new Map(),
   layer,
   zoom,
@@ -64,9 +65,11 @@ const StatusBar = ({
     } else {
       outside = outside.map(d => d.hgnc).join(", ")
     }
-    if(filteredRegions?.length) {
-      let filteredRegion = filteredRegions.find(d => hover.i == d.i && hover.chromosome == d.chromosome)
-      filteredPathCount = filteredRegion?.path?.count
+    if(regionsByOrder?.total) {
+      if(regionsByOrder.chrmsMap[hover.chromosome] && regionsByOrder.chrmsMap[hover.chromosome][hover.i]) {
+        let filteredRegion = regionsByOrder.chrmsMap[hover.chromosome][hover.i]
+        filteredPathCount = filteredRegion?.count
+      }
     } else {
       filteredPathCount = 0
     }

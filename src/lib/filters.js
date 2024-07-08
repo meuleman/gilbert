@@ -390,14 +390,24 @@ function regionsByOrder(filteredIndices, order) {
     total += count
     return { chromosome: d.chromosome, indices: nog}
   })
+  let min = Infinity
+  let max = 0
   const chrmsMap = chrms.reduce((acc, d) => {
-    acc[d.chromosome] = d
+    let indxs = {}
+    d.indices.forEach(i => {
+      indxs[i.i] = i
+      if(i.count < min) min = i.count
+      if(i.count > max) max = i.count
+    })
+    acc[d.chromosome] = indxs
     return acc
   }, {})
 
   return {
     order,
     total,
+    min,
+    max,
     chrms,
     chrmsMap
   }
