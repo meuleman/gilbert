@@ -136,11 +136,11 @@ const fullList = [
 const csnLayers = [
   fullList.find(d => d.name == "DHS Components (ENR, Full)"),
   fullList.find(d => d.name == "Chromatin States (ENR, Full)"),
-  fullList.find(d => d.name == "TF Motifs (ENR, Top 10)"),
+  fullList.find(d => d.datasetName == "tf_1en6_enr_top10"),
   fullList.find(d => d.name == "Repeats (ENR, Full)"),
   fullList.find(d => d.name == "DHS Components (OCC, Ranked)"),
   fullList.find(d => d.name == "Chromatin States (OCC, Ranked)"),
-  fullList.find(d => d.name == "TF Motifs (OCC, Ranked)"),
+  fullList.find(d => d.datasetName == "tf_1en6_rank_occ"),
   fullList.find(d => d.name == "Repeats (OCC, Ranked)"),
 ]
 const variantLayers = [
@@ -163,7 +163,7 @@ function rehydrate(index, list) {
   if(layerName == "tf_motifs") {
     layerName = "tf_1en6_enr_top10"
   } else if(layerName == "tf_motifs_occ") {
-    layerName = "tf_1en6_occ"
+    layerName = "tf_1en6_rank_occ"
   } else if(layerName == "chromatin_states") {
     layerName = "cs_enr"
   } else if(layerName == "chromatin_states_occ") {

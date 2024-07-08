@@ -4,7 +4,7 @@ import Data from './data'
 import { createSegments, joinSegments } from "./segments.js"
 import { HilbertChromosome, hilbertPosToOrder } from './HilbertChromosome';
 
-import counts_native from "../data/counts.native_order_resolution.json"
+// import counts_native from "../data/counts.native_order_resolution.json"
 import counts_order14 from "../data/counts.order_14_resolution.json"
 
 function calculateOrderSums() {
@@ -42,28 +42,28 @@ function calculateOrderSums() {
         })
       })
       // get the unique counts
-      const uchrm = counts_native[o][c]
-      layers.forEach(l => {
-        if(!uret[l]) {
-          uret[l] = {}
-          layer_total_segments[l] = 0
-          Object.keys(uchrm[l]).forEach(k => {
-            uret[l][k] = 0
-          })
-        }
-        Object.keys(uchrm[l]).forEach(k => {
-          uret[l][k] += uchrm[l][k]
-          layer_total_segments[l] += uchrm[l][k]
-          total_segments_found += uchrm[l][k]
-        })
-      })
+      // const uchrm = counts_native[o][c]
+      // layers.forEach(l => {
+      //   if(!uret[l]) {
+      //     uret[l] = {}
+      //     layer_total_segments[l] = 0
+      //     Object.keys(uchrm[l]).forEach(k => {
+      //       uret[l][k] = 0
+      //     })
+      //   }
+      //   Object.keys(uchrm[l]).forEach(k => {
+      //     uret[l][k] += uchrm[l][k]
+      //     layer_total_segments[l] += uchrm[l][k]
+      //     total_segments_found += uchrm[l][k]
+      //   })
+      // })
     })
     return { 
       order: o, 
       counts: ret, 
       total, 
       totalPaths: counts_order14[o].totalSegmentCount, 
-      totalSegments: counts_native[o].totalSegmentCount, 
+      // totalSegments: counts_native[o].totalSegmentCount, 
       total_segments_found,
       layer_total, 
       layer_total_segments, 
@@ -415,7 +415,7 @@ function regionsByOrder(filteredIndices, order) {
 }
 
 export {
-  counts_native,
+  // counts_native,
   counts_order14,
   calculateOrderSums,
   filterIndices,
