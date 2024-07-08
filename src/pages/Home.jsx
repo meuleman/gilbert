@@ -8,7 +8,7 @@ import Data from '../lib/data';
 import { urlify, jsonify, fromPosition, fromCoordinates } from '../lib/regions'
 import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
-import { fetchTopCSNs, calculateCrossScaleNarrationInWorker, narrateRegion } from '../lib/csn'
+import { fetchTopCSNs, rehydrateCSN, calculateCrossScaleNarrationInWorker, narrateRegion } from '../lib/csn'
 import { regionsByOrder } from '../lib/filters'
 import { range, groups, group } from 'd3-array'
 
@@ -605,7 +605,27 @@ function Home() {
   const { filters } = useContext(FiltersContext);
 
   const [filteredIndices, setFilteredIndices] = useState([])
+  const [filteredRegions, setFilteredRegions] = useState([])
   const [rbos, setRbos] = useState({}) // regions by order
+  const [topCSNS, setTopCSNS] = useState([])
+  const [csnLoading, setCSNLoading] = useState("")
+
+  useEffect(() => {
+    console.log("filters changed in home!!")
+    setCSNLoading("fetching")
+    fetchTopCSNs(filters, [], "full", true, 100)
+    .then((response) => {
+      console.log("top csn response", response)
+      let csns = response//.csns
+      setCSNLoading("hydrating")
+      const hydrated = csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
+      setTopCSNS(hydrated)
+      setCSNLoading("")
+      // setTopCSNS(response.csns)
+      // setFilteredIndices(response.filtered_indices)
+    })
+  }, [filters])
+
   // calculate the filtered regions at the current order
   useEffect(() => {
     // console.log("order", zoom.order)
@@ -619,15 +639,6 @@ function Home() {
     }
   }, [zoom.order, filteredIndices])
 
-  useEffect(() => {
-    console.log("filters changed in home!!")
-    fetchTopCSNs(filters, [], "full", true, 100)
-    // .then((response) => {
-    //   console.log("response", response)
-    // })
-  }, [filters])
-
-  const [filteredRegions, setFilteredRegions] = useState([])
   // calculate the regions in view that have paths, and collect those paths
   useEffect(() => {
     if(data && rbos.total && data.data?.length) {
@@ -649,7 +660,6 @@ function Home() {
     }
   }, [rbos, data])
 
-  const [topCSNS, setTopCSNS] = useState([])
   const [topCSNSByCurrentOrder, setTopCSNSByCurrentOrder] = useState(new Map())
   // we want to group the top csns by the current order
   useEffect(() => {
@@ -768,6 +778,7 @@ function Home() {
                 show={showFilter}
                 orderMargin={(height - 11*38 - 120)/11}
                 // onFilters={setFilters}
+                loading={csnLoading}
                 onIndices={setFilteredIndices}>
               </FilterModal>
               <SankeyModal 
@@ -775,10 +786,12 @@ function Home() {
                 width={400} 
                 height={height - 45} 
                 filteredIndices={filteredIndices} 
+                csns={topCSNS}
+                loading={csnLoading}
                 shrinkNone={false} 
-                onCSNS={(csns) => {
-                  setTopCSNS(csns)
-                }}
+                // onCSNS={(csns) => {
+                //   setTopCSNS(csns)
+                // }}
               />
             </div>
 

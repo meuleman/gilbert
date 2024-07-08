@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect, useContext } from 'react'
 import FiltersContext from './FiltersContext'
 import Selects from './Selects'
+import Loading from '../Loading'
 
 import { calculateOrderSums, filterIndices } from '../../lib/filters'
 import { showInt } from '../../lib/display'
-
 import { fetchTopCSNs } from '../../lib/csn'
 
 import './Modal.css'
@@ -13,6 +13,7 @@ import './Modal.css'
 const FilterModal = ({
   orderMargin = 0,
   show=true,
+  loading="",
   onFilters = () => {},
   onIndices = () => {},
   onClose = () => {}
@@ -37,8 +38,8 @@ const FilterModal = ({
   useEffect(() => {
 
     console.log("filters changed in modal!", filters)
-    console.log("SKIPPING CLIENT SIDE")
-    return;
+    // console.log("SKIPPING CLIENT SIDE")
+    // return;
 
     let totalIndices = 0
     let indexCount = 0
@@ -85,6 +86,7 @@ const FilterModal = ({
         FILTERS
       </div> */}
       <div className="filter-results">
+        {loading ? <Loading text={"Calculating filters..."} /> : null}
         {filterLoadingMessage ? filterLoadingMessage : <div>
           {showInt(filteredPathCount)} ({(filteredPathCount/orderSums[4]?.totalPaths*100).toFixed(2)}%) paths found
         </div>}

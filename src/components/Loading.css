@@ -1,0 +1,22 @@
+/* .loading {
+  display: inline-block;
+  animation: wave 1.5s infinite;
+} */
+
+@keyframes wave {
+  0%, 100% {
+    /* transform: scale(1); */
+    font-size: 1em; /* Normal size */
+    font-weight: normal; /* Normal weight */
+  }
+  50% {
+    /* transform: scale(1.2s); */
+    font-size: 1.2em; /* Bigger size */
+    font-weight: bold; /* Bolder weight */
+  }
+}
+
+.loading span {
+  display: inline-block;
+  animation: wave 1.5s infinite;
+}
