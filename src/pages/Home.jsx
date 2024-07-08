@@ -616,18 +616,29 @@ function Home() {
     csnRequestRef.current += 1
     const currentRequest = csnRequestRef.current
     setCSNLoading("fetching")
+    // Fetch the top csns from the API
     fetchTopCSNs(filters, [], "full", true, 100)
     .then((response) => {
+      if(!response) {
+        setCSNLoading("Error!")
+        setTopCSNS([])
+        return
+      }
       console.log("top csn response", response)
-      let csns = response//.csns
+      let csns = response.csns
       setCSNLoading("hydrating")
       const hydrated = csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
       if(currentRequest == csnRequestRef.current) {
         setTopCSNS(hydrated)
+        // setTopCSNS(response.csns)
+        // console.log("FILTERED INDICES FROM API", response.filtered_indices)
+        // setFilteredIndices(response.filtered_indices)
         setCSNLoading("")
       }
-      // setTopCSNS(response.csns)
-      // setFilteredIndices(response.filtered_indices)
+    }).catch((e) => {
+      console.log("error fetching top csns", e)
+      setCSNLoading("Error!")
+      // setTopCSNS([])
     })
   }, [filters])
 

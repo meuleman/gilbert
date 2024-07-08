@@ -86,7 +86,7 @@ const FilterModal = ({
         FILTERS
       </div> */}
       <div className="filter-results">
-        {loading ? <Loading text={"Calculating filters..."} /> : null}
+        {filterLoadingMessage ? <Loading text={"Calculating filters..."} /> : null}
         {filterLoadingMessage ? filterLoadingMessage : <div>
           {showInt(filteredPathCount)} ({(filteredPathCount/orderSums[4]?.totalPaths*100).toFixed(2)}%) paths found
         </div>}

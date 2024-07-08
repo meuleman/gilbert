@@ -157,9 +157,9 @@ function rehydrate(index, list) {
   const field = fieldMapping[index]
   let layerName = field[0]
   if(layerName == "tf_motifs") {
-    layerName = "tf_enr_top10_c"
+    layerName = "tf_1en6_enr_top10"
   } else if(layerName == "tf_motifs_occ") {
-    layerName = "tf_rank_occ"
+    layerName = "tf_1en6_occ"
   } else if(layerName == "chromatin_states") {
     layerName = "cs_enr"
   } else if(layerName == "chromatin_states_occ") {

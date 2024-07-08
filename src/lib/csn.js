@@ -199,7 +199,6 @@ function rehydrateCSN(csn, layers) {
   const hydrated = range(0, 11).map(i => {
     const order = i + 4
     // const l = rehydrate(csn.csn[i], layers)
-    csn.i = csn.index
     const l = rehydrate(csn.path[i], layers)
     const hilbert = new HilbertChromosome(order)
     const pos = hilbertPosToOrder(csn.i, {from: 14, to: order})
