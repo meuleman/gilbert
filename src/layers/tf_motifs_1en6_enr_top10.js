@@ -10,7 +10,7 @@ export default {
   name: "TF Motifs (1e-6, ENR, Top 10)",
   datasetName: "tf_1en6_enr_top10",
   baseURL: `${constants.baseS3URLPrefix}/20240621`,
-  orders: [4,11],
+  orders: [4,13],
   filterOrders: [8,11], // CENBP is relevant at order 4
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValueTF,

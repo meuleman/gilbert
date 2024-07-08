@@ -41,6 +41,8 @@ import tf_motifs_1en6_enr from './tf_motifs_1en6_enr'
 import tf_motifs_1en6_enr_max from './tf_motifs_1en6_enr_max'
 import tf_motifs_1en6_enr_counts from './tf_motifs_1en6_enr_counts'
 import tf_motifs_1en6_enr_top10 from './tf_motifs_1en6_enr_top10'
+import tf_motifs_1en6_occ from './tf_motifs_1en6_occ'
+import tf_motifs_1en6_rank_occ from './tf_motifs_1en6_rank_occ'
 import DHS_mapped_TF_motifs_sfc from './dhs_mapped_tf_motifs_sfc'
 import DHS_mapped_TF_motifs_sfc_max from './dhs_mapped_tf_motifs_sfc_max'
 import UKBB from './ukbb'
@@ -109,6 +111,8 @@ const fullList = [
   tf_motifs_1en6_enr_max,
   tf_motifs_1en6_enr_counts,
   tf_motifs_1en6_enr_top10,
+  tf_motifs_1en6_occ,
+  tf_motifs_1en6_rank_occ,
   DHS_mapped_TF_motifs_sfc,
   DHS_mapped_TF_motifs_sfc_max,
   Repeats_Sfc,
