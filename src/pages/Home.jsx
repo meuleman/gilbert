@@ -373,30 +373,30 @@ function Home() {
     })
     return uniquePaths
   }
-  useEffect(() => {
-    setCrossScaleNarrationIndex(0)
+  // useEffect(() => {
+  //   setCrossScaleNarrationIndex(0)
     
-    if(selected && selected.order > 4){
-      // clear the cross scale narration first
-      setCrossScaleNarration([])
-      setCsn({path: [], layers: csnLayers})
-      setLoadingCSN(true)
-      calculateCrossScaleNarrationInWorker(selected, csnMethod, csnEnrThreshold, csnLayers, variantLayers, countLayers).then(crossScaleResponse => {
-        // filter to just unique paths
-        const filteredPaths = findUniquePaths(crossScaleResponse.paths).slice(0, 100)
-        // setFullCSNPaths(crossScaleResponse.paths)
-        setCrossScaleNarration(filteredPaths)
-        setLoadingCSN(false)
-      })
-    } else {
-      // we set the layer order back to non-CSN if no selected region
-      if(layerOrderNatural && layerOrderNatural[zoomRef.current.order]) {
-        setLayerOrder(layerOrderNatural)
-        setLayer(layerOrderNatural[zoomRef.current.order])
-      }
-      console.log("else selected")
-    }
-  }, [selected, csnMethod, csnEnrThreshold])  // layerOrderNatural
+  //   if(selected && selected.order > 4){
+  //     // clear the cross scale narration first
+  //     setCrossScaleNarration([])
+  //     setCsn({path: [], layers: csnLayers})
+  //     setLoadingCSN(true)
+  //     calculateCrossScaleNarrationInWorker(selected, csnMethod, csnEnrThreshold, csnLayers, variantLayers, countLayers).then(crossScaleResponse => {
+  //       // filter to just unique paths
+  //       const filteredPaths = findUniquePaths(crossScaleResponse.paths).slice(0, 100)
+  //       // setFullCSNPaths(crossScaleResponse.paths)
+  //       setCrossScaleNarration(filteredPaths)
+  //       setLoadingCSN(false)
+  //     })
+  //   } else {
+  //     // we set the layer order back to non-CSN if no selected region
+  //     if(layerOrderNatural && layerOrderNatural[zoomRef.current.order]) {
+  //       setLayerOrder(layerOrderNatural)
+  //       setLayer(layerOrderNatural[zoomRef.current.order])
+  //     }
+  //     console.log("else selected")
+  //   }
+  // }, [selected, csnMethod, csnEnrThreshold])  // layerOrderNatural
 
   const [csn, setCsn] = useState({path: [], layers: csnLayers})
   useEffect(() => {
