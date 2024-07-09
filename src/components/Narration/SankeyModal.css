@@ -14,8 +14,8 @@
 }
 
 .sankey-modal .loading-info {
-  height: 90px;
-  max-height: 90px;
+  height: 100px;
+  max-height: 100px;
   width: 400px;
   max-width: 400px;
 }
@@ -25,4 +25,31 @@
   flex-direction: row;
   gap: 0px;
   overflow-x: auto;
+}
+/* .sankey-modal .sankey-container {
+  margin-top: 100px;
+} */
+
+.sankey-modal .loading-csns {
+  animation: loadingAnimation 1.5s infinite;
+}
+@keyframes loadingAnimation {
+  0% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 0.15;
+  }
+}
+
+.sankey-modal .view-options, .sankey-modal .sort-options {
+  width: fit-content;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid lightgray;
 }

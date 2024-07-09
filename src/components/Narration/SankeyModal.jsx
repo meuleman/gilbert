@@ -35,6 +35,9 @@ const SankeyModal = ({
   width = 400,
   height = 320,
   shrinkNone = true,
+  onSelectedCSN = () => {},
+  onHoveredCSN = () => {},
+  onSort = () => {},
   // onCSNS = () => {}
 } = {}) => {
 
@@ -126,19 +129,71 @@ const SankeyModal = ({
   //   }
   // }, [csns, loadingCSN])
 
+  const [view, setView] = useState("sankey")
+  const [sort, setSort] = useState("factor")
+  useEffect(() => {
+    onSort(sort)
+  }, [sort])
+
 
   return (
     <div className={`sankey-modal ${show ? "show" : "hide"}`}>
       <div className="content">
         <div className="loading-info">
-            {!loading && csns.length ? <p>{csns.length} unique paths from top scoring paths across genome</p> : null }
+            {!loading && csns.length ? <span>{csns.length} unique paths</span> : null }
             {/* {loadingCSN && sampleStatus == 0 ? <p className="loading">Scoring paths... {sampleScoredStatus}/{filteredIndices.filter(d => d.regions.length).length}</p> : null} */}
             {/* {loadingCSN && sampleStatus > 0 ? <p className="loading">Loading samples... {sampleStatus}/{numSamples}</p> : null} */}
             {loading === "fetching" ? <Loading text={"Fetching CSNs..."} /> : null}
             {loading === "hydrating" ? <Loading text={"Hydrating CSNs..."} /> : null}
+            {!loading ? 
+              <div className="sort-options">
+                Sort:
+                <label>
+                  <input 
+                    type="radio" 
+                    value="factor" 
+                    checked={sort === "factor"} 
+                    onChange={() => setSort("factor")} 
+                  />
+                  Factor score
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    value="full" 
+                    checked={sort === "full"} 
+                    onChange={() => setSort("full")} 
+                  />
+                  Full path score
+                </label>
+              </div>
+            : null }
+            {!loading && csns.length ? 
+              <div className="view-options">
+                Vis:
+                <label>
+                  <input 
+                    type="radio" 
+                    value="sankey" 
+                    checked={view === "sankey"} 
+                    onChange={() => setView("sankey")} 
+                  />
+                  Sankey
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    value="heatmap" 
+                    checked={view === "heatmap"} 
+                    onChange={() => setView("heatmap")} 
+                  />
+                  Heatmap
+                </label>
+              </div>
+            : null }
         </div>
-        {csns.length && loadingCSN ? 
-          <div className="csn-lines">
+        {view === "heatmap" || ( csns.length && loadingCSN ) ? 
+          <div className={`csn-lines ${loading ? "loading-csns" : ""}`}>
             {csns.map((n,i) => {
               return (<ZoomLine 
                 key={i}
@@ -148,20 +203,20 @@ const SankeyModal = ({
                 // highlight={true}
                 // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
                 text={false}
-                width={4.25} 
-                height={height-100}
+                width={4.05} 
+                height={height-80}
                 tipOrientation="right"
                 showOrderLine={false}
                 // highlightOrders={Object.keys(orderSelects).map(d => +d)} 
-                onClick={() => setSelectedCSN(n)}
-                // onHover={handleLineHover(i)}
+                onClick={() => onSelectedCSN(n)}
+                onHover={() => onHoveredCSN(n)}
                 />)
               })
             }
         </div>: null }
 
-        {csns.length && !loadingCSN ? 
-          <div className="sankey-container">
+        {view == "sankey" && csns.length && !loadingCSN ? 
+          <div className={`sankey-container ${loading ? "loading-csns" : ""}`}>
             <VerticalSankey 
               width={width} 
               height={height - 100} 

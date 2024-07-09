@@ -16,12 +16,15 @@ const SelectedModal = ({
   selected = null,
   // filteredRegions = [],
   regionsByOrder = {},
+  topCSNS = [],
+  selectedTopCSN = null,
   showFilter = false,
   k,
   crossScaleNarration = [],
   layers = [],
   loadingCSN = false,
   onCSNIndex=()=>{},
+  onCSNSelected=()=>{},
   onClose=()=>{},
   onZoom=()=>{},
   onZoomOrder=()=>{},
@@ -63,6 +66,7 @@ const SelectedModal = ({
   // }, [narration])
 
   useEffect(() => {
+    console.log("CROSS SCALE NARRATION LENGTH?", crossScaleNarration)
     if(crossScaleNarration.length == 0) return
     let narration = makeNarration(crossScaleNarration[crossScaleNarrationIndex])
     setNarration(narration)
@@ -124,6 +128,14 @@ const SelectedModal = ({
     console.log("SELECTED", selected, filtered)
     return filtered
   }, [regionsByOrder, selected])
+
+  useEffect(() => {
+    console.log("TOP CSNS", topCSNS)
+    console.log("SELECTED TOP CSN", selectedTopCSN)
+    console.log("SELECTED", selected)
+  }, [topCSNS, selectedTopCSN, selected])
+
+
 
   const [maxPathScore, setMaxPathScore] = useState(0)
   useEffect(() => {
@@ -187,7 +199,43 @@ const SelectedModal = ({
             /> */}
 
           <br></br>
-          <div className="power-container">
+          <div className="top-csns-container">
+            { selectedTopCSN ? <ZoomLine 
+              csn={selectedTopCSN} 
+              order={zoomOrder} 
+              maxPathScore={maxPathScore}
+              highlight={true}
+              selected={true}
+              text={true}
+              width={34} 
+              height={powerWidth} 
+              onClick={() => {
+                onCSNSelected(selectedTopCSN)
+                onNarration(makeNarration(selectedTopCSN))
+              }}
+              // onHover={handleMainLineHover}
+              /> : null}
+              {topCSNS.slice(0, 50).map((n,i) => {
+                return (<ZoomLine 
+                  key={i}
+                  csn={n} 
+                  order={zoomOrder} 
+                  maxPathScore={maxPathScore}
+                  highlight={true}
+                  selected={selectedTopCSN === n}
+                  text={false}
+                  width={8.5} 
+                  height={powerWidth} 
+                  onClick={() => {
+                    onCSNSelected(n)
+                    onNarration(makeNarration(n))
+                  }}
+                  // onHover={handleLineHover(i)}
+                  />)
+                })}
+          </div>
+              
+          { crossScaleNarration.length && crossScaleNarration[0].path.length ? <div className="power-container">
             <ZoomLine 
               csn={crossScaleNarration[selectedNarrationIndex]} 
               order={zoomOrder} 
@@ -215,28 +263,14 @@ const SelectedModal = ({
                   onHover={handleLineHover(i)}
                   />)
                 })}
-            {/* <PowerModal csn={narration} 
-              width={powerWidth} 
-              height={powerWidth} 
-              scroll={false} 
-              oned={false} 
-              userOrder={zoomOrder}
-              onData={(data) => {
-                // console.log("power data", data)
-              }}
-              onOrder={(order) => {
-                // console.log("power order", order)
-              }}
-              /> */}
-              
-          </div>
-          <div>
+          </div> : null}
+          {crossScaleNarration.length && crossScaleNarration[0].path.length ? <div>
             <span>Cross-Scale Narration path: {crossScaleNarrationIndex + 1}, score: {narration.score?.toFixed(2)}</span>
             <CSNSentence
               crossScaleNarration={narration}
               order={selected.order}
-            />
-          </div>
+              />
+            </div> : null}
 
         </div>}
         <div className="selected-modal-children">

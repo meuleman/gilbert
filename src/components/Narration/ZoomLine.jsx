@@ -119,6 +119,7 @@ export default function ZoomLine({
   text=true,
   width = 50,
   height = 400,
+  scoreHeight = 20,
   tipOrientation="left",
   onHover = () => {},
   onClick = () => {}
@@ -152,9 +153,9 @@ export default function ZoomLine({
 
   // we create an extra space for the score bar
   const depth = 15 - 4
-  const spacing = height/(depth + 1)
-  const h = height - spacing - 1
-  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([spacing + 3, h + 3]), [h])
+  const spacing = (height - scoreHeight)/(depth + 1)
+  const h = height - spacing - 1 
+  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([ 5 + scoreHeight, h + 3 - scoreHeight]), [h, scoreHeight])
   const rw = useMemo(() => yScale(5) - yScale(4) - 2, [yScale])
 
   const handleClick = useCallback((e, o) => {
@@ -204,9 +205,9 @@ export default function ZoomLine({
       <svg width={width} height={height}>
         {path.length && yScale ? <g>
           {maxPathScore && <rect
-            y={rw - rw * (csn.score/maxPathScore) + 3}
+            y={scoreHeight - scoreHeight * (csn.score/maxPathScore) + 3}
             x={0}
-            height={rw * (csn.score/maxPathScore)}
+            height={scoreHeight * (csn.score/maxPathScore)}
             width={width}
             fill="lightgray"
             stroke="white"

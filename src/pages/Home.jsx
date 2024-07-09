@@ -609,6 +609,9 @@ function Home() {
   const [rbos, setRbos] = useState({}) // regions by order
   const [topCSNS, setTopCSNS] = useState([])
   const [csnLoading, setCSNLoading] = useState("")
+  const [selectedTopCSN, setSelectedTopCSN] = useState(null)
+  const [hoveredTopCSN, setHoveredTopCSN] = useState(null)
+  const [csnSort, setCSNSort] = useState("factor")
   const csnRequestRef = useRef(0)
 
   useEffect(() => {
@@ -617,7 +620,7 @@ function Home() {
     const currentRequest = csnRequestRef.current
     setCSNLoading("fetching")
     // Fetch the top csns from the API
-    fetchTopCSNs(filters, [], "full", true, 100)
+    fetchTopCSNs(filters, [], csnSort, true, 100)
     .then((response) => {
       if(!response) {
         setCSNLoading("Error!")
@@ -640,7 +643,7 @@ function Home() {
       setCSNLoading("Error!")
       // setTopCSNS([])
     })
-  }, [filters])
+  }, [filters, csnSort])
 
   // calculate the filtered regions at the current order
   useEffect(() => {
@@ -685,6 +688,22 @@ function Home() {
       setTopCSNSByCurrentOrder(grouped)
     }
   }, [zoom.order, topCSNS])
+
+
+  const handleSelectedCSN = useCallback((csn) => {
+    setSelectedTopCSN(csn)
+    let hit = fromPosition(csn.chromosome, csn.i, csn.i+1, zoom.order)
+    console.log("SELECTED CSN", csn, hit)
+    setSelected(hit)
+    setRegion(hit)
+  }, [zoom.order])
+
+  const handleHoveredCSN = useCallback((csn) => {
+    setHoveredTopCSN(csn)
+    let hit = fromPosition(csn.chromosome, csn.i, csn.i+1, zoom.order)
+    // console.log("HOVERED CSN", csn, hit)
+    setHover(hit)
+  }, [zoom.order])
 
   const drawFilteredRegions = useCanvasFilteredRegions(rbos, topCSNSByCurrentOrder)
 
@@ -765,12 +784,17 @@ function Home() {
                 // filteredRegions={filteredRegions}
                 showFilter={showFilter}
                 regionsByOrder={rbos}
-                topCSNS={topCSNSByCurrentOrder}
+                topCSNS={topCSNSByCurrentOrder.get(selected?.chromosome + ":" + selected.i, [])}
+                selectedTopCSN={selectedTopCSN}
                 k={zoom.transform.k}
                 layers={csnLayers}
                 crossScaleNarration={crossScaleNarration}
                 loadingCSN={loadingCSN}
                 onCSNIndex={(i) => setCrossScaleNarrationIndex(i)}
+                onCSNSelected={(csn) => {
+                  setSelectedTopCSN(csn)
+                  // setSelected(fromPosition(csn.chromosome, csn.i, csn.i+1, zoom.order))
+                }}
                 onZoom={(region) => { setRegion(null); setRegion(region)}}
                 onClose={handleModalClose}
                 onNarration={(n) => setPowerNarration(n)}
@@ -806,6 +830,11 @@ function Home() {
                 csns={topCSNS}
                 loading={csnLoading}
                 shrinkNone={false} 
+                onSelectedCSN={handleSelectedCSN}
+                onHoveredCSN={handleHoveredCSN}
+                onSort={(sort) => {
+                  setCSNSort(sort)
+                }}
                 // onCSNS={(csns) => {
                 //   setTopCSNS(csns)
                 // }}

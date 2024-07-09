@@ -85,3 +85,7 @@
   margin-left: 6px;
 }
 
+.selected-modal .top-csns-container {
+  display: flex;
+  flex-direction: row;
+}
