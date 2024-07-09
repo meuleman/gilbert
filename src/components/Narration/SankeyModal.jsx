@@ -28,7 +28,8 @@ const processInBatches = async (items, batchSize, processFunction, statusFunctio
 
 const SankeyModal = ({
   filteredIndices = [],
-  csns = [],
+  factorCsns = [],
+  fullCsns = [],
   loading = "",
   order = 4,
   show = true,
@@ -115,12 +116,33 @@ const SankeyModal = ({
   //   }
   // }, [filteredIndices])
 
+  const [view, setView] = useState("sankey")
+  const [sort, setSort] = useState("factor")
+  useEffect(() => {
+    onSort(sort)
+  }, [sort])
+
+  const [csns, setCSNs] = useState([])
   const [maxPathScore, setMaxPathScore] = useState(null)
   useEffect(() => {
+    const csns = sort === "factor" ? factorCsns : fullCsns
     if(csns.length) {
       setMaxPathScore(max(csns, d => d.score))
+      setCSNs(csns)
     }
-  }, [csns])
+  }, [factorCsns, fullCsns, sort])
+
+  const [onlyInTopFactor, setOnlyInTopFactor] = useState([])
+  const [onlyInTopFull, setOnlyInTopFull] = useState([])
+  const [inBoth, setInBoth] = useState([])
+  useEffect(() => {
+    const onlyInTopFactor = factorCsns.filter(a => !fullCsns.some(b => a.chromosome === b.chromosome && a.i === b.i));
+    const onlyInTopFull = fullCsns.filter(a => !factorCsns.some(b => a.chromosome === b.chromosome && a.i === b.i));
+    const inBoth = factorCsns.filter(a => fullCsns.some(b => a.chromosome === b.chromosome && a.i === b.i));
+    setOnlyInTopFactor(onlyInTopFactor)
+    setOnlyInTopFull(onlyInTopFull)
+    setInBoth(inBoth)
+  }, [factorCsns, fullCsns])
   
   // useEffect(() => {
   //   if(!loadingCSN && csns.length) {
@@ -128,13 +150,6 @@ const SankeyModal = ({
   //     onCSNS(csns)
   //   }
   // }, [csns, loadingCSN])
-
-  const [view, setView] = useState("sankey")
-  const [sort, setSort] = useState("factor")
-  useEffect(() => {
-    onSort(sort)
-  }, [sort])
-
 
   return (
     <div className={`sankey-modal ${show ? "show" : "hide"}`}>
@@ -194,7 +209,8 @@ const SankeyModal = ({
         </div>
         {view === "heatmap" || ( csns.length && loadingCSN ) ? 
           <div className={`csn-lines ${loading ? "loading-csns" : ""}`}>
-            {csns.map((n,i) => {
+            <div className="only-top-factor csn-lines">
+            {onlyInTopFactor.map((n,i) => {
               return (<ZoomLine 
                 key={i}
                 csn={n} 
@@ -203,7 +219,7 @@ const SankeyModal = ({
                 // highlight={true}
                 // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
                 text={false}
-                width={4.05} 
+                width={2.05} 
                 height={height-80}
                 tipOrientation="right"
                 showOrderLine={false}
@@ -213,7 +229,51 @@ const SankeyModal = ({
                 />)
               })
             }
-        </div>: null }
+            </div>
+            <div className="in-both csn-lines">
+            {inBoth.map((n,i) => {
+              return (<ZoomLine 
+                key={i}
+                csn={n} 
+                maxPathScore={maxPathScore}
+                order={order}
+                // highlight={true}
+                // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
+                text={false}
+                width={2.05} 
+                height={height-80}
+                tipOrientation="right"
+                showOrderLine={false}
+                // highlightOrders={Object.keys(orderSelects).map(d => +d)} 
+                onClick={() => onSelectedCSN(n)}
+                onHover={() => onHoveredCSN(n)}
+                />)
+              })
+            }
+            </div>
+            <div className="only-top-full csn-lines">
+          {onlyInTopFull.map((n,i) => {
+              return (<ZoomLine 
+                key={i}
+                csn={n} 
+                maxPathScore={maxPathScore}
+                order={order}
+                // highlight={true}
+                // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
+                text={false}
+                width={2.05} 
+                height={height-80}
+                tipOrientation="right"
+                showOrderLine={false}
+                // highlightOrders={Object.keys(orderSelects).map(d => +d)} 
+                onClick={() => onSelectedCSN(n)}
+                onHover={() => onHoveredCSN(n)}
+                />)
+                })
+              }
+            </div>
+          </div>
+        : null }
 
         {view == "sankey" && csns.length && !loadingCSN ? 
           <div className={`sankey-container ${loading ? "loading-csns" : ""}`}>

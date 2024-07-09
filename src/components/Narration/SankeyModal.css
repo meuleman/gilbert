@@ -53,3 +53,7 @@
   padding: 4px;
   border: 1px solid lightgray;
 }
+
+.sankey-modal .only-top-factor, .sankey-modal .in-both, .sankey-modal .only-top-full {
+  margin: 4px;
+}

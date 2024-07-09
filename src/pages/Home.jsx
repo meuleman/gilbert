@@ -607,11 +607,13 @@ function Home() {
   const [filteredIndices, setFilteredIndices] = useState([])
   // const [filteredRegions, setFilteredRegions] = useState([])
   const [rbos, setRbos] = useState({}) // regions by order
-  const [topCSNS, setTopCSNS] = useState([])
+  const [topFullCSNS, setTopFullCSNS] = useState([])
+  const [topFactorCSNS, setTopFactorCSNS] = useState([])
   const [csnLoading, setCSNLoading] = useState("")
   const [selectedTopCSN, setSelectedTopCSN] = useState(null)
   const [hoveredTopCSN, setHoveredTopCSN] = useState(null)
   const [csnSort, setCSNSort] = useState("factor")
+  const [topCSNS, setTopCSNS] = useState([])
   const csnRequestRef = useRef(0)
 
   useEffect(() => {
@@ -620,30 +622,67 @@ function Home() {
     const currentRequest = csnRequestRef.current
     setCSNLoading("fetching")
     // Fetch the top csns from the API
-    fetchTopCSNs(filters, [], csnSort, true, 100)
-    .then((response) => {
-      if(!response) {
+    fetchTopCSNs(filters, [], "factor", true, 100)
+      .then((response) => {
+        if(!response) {
+          setCSNLoading("Error!")
+          setTopFactorCSNS([])
+          return
+        }
+        const hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
+        if(currentRequest == csnRequestRef.current) {
+          setTopFactorCSNS(hydrated)
+          setCSNLoading("")
+        }
+      }).catch((e) => {
+        console.log("error fetching top csns", e)
         setCSNLoading("Error!")
-        setTopCSNS([])
-        return
-      }
-      console.log("top csn response", response)
-      let csns = response.csns
-      setCSNLoading("hydrating")
-      const hydrated = csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
-      if(currentRequest == csnRequestRef.current) {
-        setTopCSNS(hydrated)
-        // setTopCSNS(response.csns)
-        // console.log("FILTERED INDICES FROM API", response.filtered_indices)
-        // setFilteredIndices(response.filtered_indices)
-        setCSNLoading("")
-      }
-    }).catch((e) => {
-      console.log("error fetching top csns", e)
-      setCSNLoading("Error!")
-      // setTopCSNS([])
+        setTopFactorCSNS([])
+      })
+    // for now we just pull both in parallel
+    fetchTopCSNs(filters, [], "full", true, 100)
+      .then((response) => {
+        if(!response) {
+          // setCSNLoading("Error!")
+          setTopFullCSNS([])
+          return
+        }
+        const hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
+        if(currentRequest == csnRequestRef.current) {
+          setTopFullCSNS(hydrated)
+          // setCSNLoading("")
+        }
+      }).catch((e) => {
+        console.log("error fetching top csns", e)
+        // setCSNLoading("Error!")
+        setTopFullCSNS([])
+      })
+  }, [filters])
+
+  useEffect(() => {
+    if(csnSort == "factor") {
+      setTopCSNS(topFactorCSNS)
+    } else {
+      setTopCSNS(topFullCSNS)
+    }
+    if(topFactorCSNS.length && topFullCSNS.length) {
+    const onlyInTopFactor = topFactorCSNS.filter(a => !topFullCSNS.some(b => a.chromosome === b.chromosome && a.i === b.i));
+    const onlyInTopFull = topFullCSNS.filter(a => !topFactorCSNS.some(b => a.chromosome === b.chromosome && a.i === b.i));
+    const inBoth = topFactorCSNS.filter(a => topFullCSNS.some(b => a.chromosome === b.chromosome && a.i === b.i));
+    console.log("onlyInTopFactor", onlyInTopFactor)
+    console.log("onlyInTopFull", onlyInTopFull)
+    console.log("inBoth", inBoth)
+    }
+  }, [csnSort, topFactorCSNS, topFullCSNS])
+
+  useEffect(() => {
+    // Fetch the CSNS via API for the selected region
+    fetchTopCSNs(filters, [selected], "factor", true, 100)
+    .then((response) => {
+      console.log("top csn for selected response", selected, response)
     })
-  }, [filters, csnSort])
+
+  }, [filters, selected])
 
   // calculate the filtered regions at the current order
   useEffect(() => {
@@ -827,7 +866,8 @@ function Home() {
                 width={400} 
                 height={height - 45} 
                 filteredIndices={filteredIndices} 
-                csns={topCSNS}
+                factorCsns={topFactorCSNS}
+                fullCsns={topFullCSNS}
                 loading={csnLoading}
                 shrinkNone={false} 
                 onSelectedCSN={handleSelectedCSN}
