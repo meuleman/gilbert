@@ -659,29 +659,30 @@ function Home() {
       })
   }, [filters])
 
-  useEffect(() => {
-    if(csnSort == "factor") {
-      setTopCSNS(topFactorCSNS)
-    } else {
-      setTopCSNS(topFullCSNS)
-    }
-    if(topFactorCSNS.length && topFullCSNS.length) {
-    const onlyInTopFactor = topFactorCSNS.filter(a => !topFullCSNS.some(b => a.chromosome === b.chromosome && a.i === b.i));
-    const onlyInTopFull = topFullCSNS.filter(a => !topFactorCSNS.some(b => a.chromosome === b.chromosome && a.i === b.i));
-    const inBoth = topFactorCSNS.filter(a => topFullCSNS.some(b => a.chromosome === b.chromosome && a.i === b.i));
-    console.log("onlyInTopFactor", onlyInTopFactor)
-    console.log("onlyInTopFull", onlyInTopFull)
-    console.log("inBoth", inBoth)
-    }
-  }, [csnSort, topFactorCSNS, topFullCSNS])
+  // useEffect(() => {
+  //   if(csnSort == "factor") {
+  //     setTopCSNS(topFactorCSNS)
+  //   } else {
+  //     setTopCSNS(topFullCSNS)
+  //   }
+  //   if(topFactorCSNS.length && topFullCSNS.length) {
+  //   const onlyInTopFactor = topFactorCSNS.filter(a => !topFullCSNS.some(b => a.chromosome === b.chromosome && a.i === b.i));
+  //   const onlyInTopFull = topFullCSNS.filter(a => !topFactorCSNS.some(b => a.chromosome === b.chromosome && a.i === b.i));
+  //   const inBoth = topFactorCSNS.filter(a => topFullCSNS.some(b => a.chromosome === b.chromosome && a.i === b.i));
+  //   console.log("onlyInTopFactor", onlyInTopFactor)
+  //   console.log("onlyInTopFull", onlyInTopFull)
+  //   console.log("inBoth", inBoth)
+  //   }
+  // }, [csnSort, topFactorCSNS, topFullCSNS])
 
   useEffect(() => {
     // Fetch the CSNS via API for the selected region
-    fetchTopCSNs(filters, [selected], "factor", true, 100)
-    .then((response) => {
-      console.log("top csn for selected response", selected, response)
-    })
-
+    if(selected){
+      fetchTopCSNs(filters, [selected], "factor", true, 100)
+      .then((response) => {
+        console.log("top csn for selected response", selected, response)
+      })
+    }
   }, [filters, selected])
 
   // calculate the filtered regions at the current order

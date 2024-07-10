@@ -91,6 +91,7 @@ const SelectOrder = ({
     // console.log("filters", filters)
     if(filters[order]) {
       const sf = fieldMap[filters[order].id]
+      console.log("setting selected filter", sf, filters[order], fieldMap)
       setSelectedField(sf)
     } else {
       setSelectedField(null)
@@ -122,7 +123,7 @@ const SelectOrder = ({
     // const lyrs = csnLayers.concat(variantLayers.slice(0, 1))
     let allFields = fields.map(f => {
       let layer = f.layer
-      if(layer.orders[0] >= order || layer.orders[1] <= order) return;
+      // if(layer.orders[0] >= order || layer.orders[1] <= order) return;
 
       let oc = orderSums.find(o => o.order == order)
       let counts = null
