@@ -70,10 +70,6 @@ const SelectedModal = ({
     // console.log("TOP CSNS", topCSNS)
     let csns = topCSNS.get(selected.chromosome + ":" + selected.i) || []
     // console.log("CSNS", csns)
-    /*.filter(d => {
-      let p = d.path.find(p => p.order == selected.order)
-      return p && p.region.chromosome == selected.chromosome && p.region.i == selected.i
-    })*/
     // append any region path that isn't found in the top paths
     let rcsl = regionCSNS.filter(d => {
       return !csns.some(t => t.chromosome == d.chromosome && t.i == d.i)
@@ -178,10 +174,10 @@ const SelectedModal = ({
 
   const [maxPathScore, setMaxPathScore] = useState(0)
   useEffect(() => {
-    if(csns.length > 0) {
-      setMaxPathScore(max(csns, n => n.score))
+    if(csns.length > 0 || regionCSNSLeft.length > 0) {
+      setMaxPathScore(max(csns.concat(regionCSNSLeft), n => n.score))
     }
-  }, [csns])
+  }, [csns, regionCSNSLeft])
   
   return (
     <>
@@ -216,7 +212,7 @@ const SelectedModal = ({
 
         <br></br>
         
-        {csns.length ? 
+        {csns.length || regionCSNSLeft.length ? 
         <div className="csn">
           <span className="csn-info">Hover over the visualization below to see the various cross-scale narrations. 
               Click to select the narration and zoom level.</span>

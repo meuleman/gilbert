@@ -640,7 +640,7 @@ function Home() {
   // Fetch the CSNS via API for the selected region
   useEffect(() => {
     if(selected){
-      fetchTopCSNs(filters, [selected], "factor", false, 100)
+      fetchTopCSNs(filters, [selected], "factor", true, 100)
       .then((response) => {
         console.log("top csn for selected response", selected, response)
         if(!response || !response?.csns?.length) {
