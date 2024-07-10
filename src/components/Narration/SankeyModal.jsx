@@ -46,75 +46,8 @@ const SankeyModal = ({
   const [numSamples, setNumSamples] = useState(-1)
   const [sampleStatus, setSampleStatus] = useState(0)
   const [sampleScoredStatus, setSampleScoredStatus] = useState(0)
-  // const [csns, setCSNs] = useState([])
   const [selectedCSN, setSelectedCSN] = useState(null)
-  // const csnRequest = useRef(0)
-  // const { filters } = useContext(FiltersContext);
 
-  // useEffect(() => {
-
-  //   setLoadingCSN(true)
-  //   setNumSamples(-1)
-  //   setSampleStatus(0)
- 
-  //   fetchTopCSNs(filters, [], "full", true, 100).then(csns=> {
-  //       const layers = [...csnLayers, ...variantLayers]
-  //       const hydrated = csns.map(csn => rehydrateCSN(csn, layers))
-  //       setCSNs(hydrated)
-  //       setSampleStatus(csns.length)
-  //       setLoadingCSN(false)
-  //   })
-  // }, [filters])
-
-  // useEffect(() => {
-  //   //make a region set from each chromosome's indices
-  //   if(filteredIndices.length > 0){
-  //     setLoadingCSN(true)
-  //     setNumSamples(-1)
-  //     setSampleStatus(0)
-  //     setSampleScoredStatus(0)
-  //     setCSNs([])
-  //     setSelectedCSN(null)
-  //     csnRequest.current += 1
-  //     const requestNum = csnRequest.current
-  //     console.log("filtered indices", filteredIndices)
-
-  //     sampleScoredRegions(filteredIndices, (done) => {
-  //       setSampleScoredStatus(done)
-  //     }).then(scoredIndices => {
-  //       const scored = scoredIndices.flatMap(d => d.scores).sort((a,b) => b.score - a.score)
-  //       const sample = scored.slice(0, 100)
-  //       setNumSamples(sample.length);
-  //       console.log("SAMPLE", sample);
-  //       const handleCSNResults = (csns) => {
-  //         if(csnRequest.current !== requestNum) {
-  //           console.log("ABORTING CSN CALCULATION, stale request")
-  //           return
-  //         }
-  //         const layers = [...csnLayers, ...variantLayers]
-  //         const hydrated = csns.map(csn => rehydrateCSN(csn, layers))
-  //         setSampleStatus(csns.length)
-  //         // console.log("hydrated", hydrated)
-  //         setCSNs(hydrated)
-  //       }
-  //       const processFun = (r) => {
-  //         if(csnRequest.current !== requestNum) {
-  //           console.log("ABORTING CSN CALCULATION, stale request")
-  //           return Promise.resolve([])
-  //         }
-  //         return fetchDehydratedCSN(r)
-  //       }
-  //       processInBatches(sample, 12, processFun, handleCSNResults).then(csns => {
-  //         setLoadingCSN(false)
-  //       })
-  //     })
-  //   } else {
-  //     setNumSamples(-1)
-  //     setCSNs([])
-  //     setSelectedCSN(null)
-  //     csnRequest.current += 1
-  //   }
-  // }, [filteredIndices])
 
   const [view, setView] = useState("sankey")
   const [sort, setSort] = useState("factor")
@@ -129,6 +62,8 @@ const SankeyModal = ({
     if(csns.length) {
       setMaxPathScore(max(csns, d => d.score))
       setCSNs(csns)
+    } else {
+      setCSNs([])
     }
   }, [factorCsns, fullCsns, sort])
 

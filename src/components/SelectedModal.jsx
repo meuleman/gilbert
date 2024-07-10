@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
 import { showKb } from '../lib/display'
+import { csnLayers } from '../layers'
 import CSNSentence from './Narration/Sentence'
 import CSNLine from './Narration/Line'
 import ZoomLine from './Narration/ZoomLine'
@@ -13,17 +14,13 @@ import { max } from 'd3-array'
 import './SelectedModal.css'
 
 const SelectedModal = ({
-  selected = null,
-  // filteredRegions = [],
-  regionsByOrder = {},
-  topCSNS = [],
-  selectedTopCSN = null,
   showFilter = false,
+  selected = null,
+  regionCSNS = new Map(),
+  topCSNS = [],
+  regionsByOrder = {},
+  selectedTopCSN = null,
   k,
-  crossScaleNarration = [],
-  layers = [],
-  loadingCSN = false,
-  onCSNIndex=()=>{},
   onCSNSelected=()=>{},
   onClose=()=>{},
   onZoom=()=>{},
@@ -39,50 +36,92 @@ const SelectedModal = ({
     setMinimized(!minimized)
   }, [minimized, setMinimized])
 
-  const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
-  const [selectedNarrationIndex, setSelectedNarrationIndex] = useState(0)
+  // const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
+  // const [selectedNarrationIndex, setSelectedNarrationIndex] = useState(0)
 
-  const handleChangeCSNIndex = useCallback((e) => {
-    setCrossScaleNarrationIndex(e.target.value)
-  }, [setCrossScaleNarrationIndex])
+  // const handleChangeCSNIndex = useCallback((e) => {
+  //   setCrossScaleNarrationIndex(e.target.value)
+  // }, [setCrossScaleNarrationIndex])
 
   const makeNarration = useCallback((c) => {
+    if(!c) return {}
     let n = {...c}
     if(!n.path || n.path.length == 0) {
       return {}
     }
     n.path = n.path.filter(d => !!d).sort((a,b) => a.order - b.order)
-    n.layers = layers
-    return n
-  }, [layers])
+    n.layers = csnLayers
 
-  const [narration, setNarration] = useState(makeNarration(crossScaleNarration[0]))
+    // TODO: add the data (and full data?) to the path
+    return n
+  }, [])
+
+  const [narration, setNarration] = useState({})
+  const [csns, setCSNs] = useState([])
+  const [regionCSNSLeft, setRegionCSNSLeft] = useState([])
+  useEffect(() => {
+    const maxPaths = 50
+    if(!selected) {
+      setCSNs([])
+      setRegionCSNSLeft([])
+      return;
+    }
+    // filter the top paths to match only the selected region
+    // console.log("TOP CSNS", topCSNS)
+    let csns = topCSNS.get(selected.chromosome + ":" + selected.i) || []
+    // console.log("CSNS", csns)
+    /*.filter(d => {
+      let p = d.path.find(p => p.order == selected.order)
+      return p && p.region.chromosome == selected.chromosome && p.region.i == selected.i
+    })*/
+    // append any region path that isn't found in the top paths
+    let rcsl = regionCSNS.filter(d => {
+      return !csns.some(t => t.chromosome == d.chromosome && t.i == d.i)
+    })
+    // console.log("USEEFFECT", csns, rcsl)
+    setCSNs(csns.slice(0, maxPaths))
+    setRegionCSNSLeft(rcsl.slice(0, maxPaths - csns.length))
+    if(csns.length > 0) {
+      onCSNSelected(csns[0])
+    } else if(rcsl.length > 0) {
+      onCSNSelected(rcsl[0])
+    }
+    
+  }, [topCSNS, regionCSNS, selected])
 
   useEffect(() => {
-    onNarration(makeNarration(crossScaleNarration[selectedNarrationIndex]))
-  }, [selectedNarrationIndex, crossScaleNarration, makeNarration])
+    if(selectedTopCSN) {
+      let narration = makeNarration(selectedTopCSN)
+      setNarration(narration)
+      onNarration(narration)
+    }
+  }, [selectedTopCSN, makeNarration])
+
+  // useEffect(() => {
+  //   onNarration(makeNarration(crossScaleNarration[selectedNarrationIndex]))
+  // }, [selectedNarrationIndex, crossScaleNarration, makeNarration])
   // useEffect(() => {
   //   onNarration(narration)
   // }, [narration])
 
-  useEffect(() => {
-    console.log("CROSS SCALE NARRATION LENGTH?", crossScaleNarration)
-    if(crossScaleNarration.length == 0) return
-    let narration = makeNarration(crossScaleNarration[crossScaleNarrationIndex])
-    setNarration(narration)
-  }, [crossScaleNarration, crossScaleNarrationIndex, makeNarration])
+  // useEffect(() => {
+  //   console.log("CROSS SCALE NARRATION LENGTH?", crossScaleNarration)
+  //   if(crossScaleNarration.length == 0) return
+  //   let narration = makeNarration(crossScaleNarration[crossScaleNarrationIndex])
+  //   setNarration(narration)
+  // }, [crossScaleNarration, crossScaleNarrationIndex, makeNarration])
 
   // useEffect(() => {
   //   console.log("selected CSN", crossScaleNarration)
   // }, [crossScaleNarration])
 
-  const unselectedNarrations = useMemo(() => {
-    return crossScaleNarration.filter((n,i) => i !== crossScaleNarrationIndex)
-  }, [crossScaleNarration, crossScaleNarrationIndex])
+  // const unselectedNarrations = useMemo(() => {
+  //   return crossScaleNarration.filter((n,i) => i !== crossScaleNarrationIndex)
+  // }, [crossScaleNarration, crossScaleNarrationIndex])
 
-  const orderZoomScale = scaleLinear().domain([0.85, 4000]).range([1, Math.pow(2, 10.999)])
   const [zoomOrder, setZoomOrder] = useState(4)
   useEffect(() => {
+    const orderZoomScale = scaleLinear().domain([0.85, 4000]).range([1, Math.pow(2, 10.999)])
     let or = 4 + Math.log2(orderZoomScale(k))
     if(selected.order + 0.5 > or) {
       or = selected.order + 0.5
@@ -91,33 +130,33 @@ const SelectedModal = ({
   }, [selected, k])
 
   // emit the initial zoom order based on the selected region
-  useEffect(() => {
-    onZoomOrder(selected.order + 0.5)
-  }, [selected])
+  // useEffect(() => {
+  //   onZoomOrder(selected.order + 0.5)
+  // }, [selected])
 
 
   const handleMainLineHover = useCallback((or) => {
     // console.log("hover", or)
-    setCrossScaleNarrationIndex(selectedNarrationIndex)
+    // setCrossScaleNarrationIndex(selectedNarrationIndex)
     setZoomOrder(or)
-  }, [selectedNarrationIndex, setCrossScaleNarrationIndex, setZoomOrder])
+  }, [setZoomOrder])
   
   const handleLineClick = useCallback((c) => {
     // setNarration(c)
-    let idx = crossScaleNarration.indexOf(c)
-    setSelectedNarrationIndex(idx)
-    setCrossScaleNarrationIndex(idx)
-    onCSNIndex(idx)
-    onZoomOrder(Math.floor(zoomOrder) + 0.5)
-  }, [crossScaleNarration, onCSNIndex, onZoomOrder, zoomOrder])
+    // let idx = crossScaleNarration.indexOf(c)
+    // setSelectedNarrationIndex(idx)
+    // setCrossScaleNarrationIndex(idx)
+    // onCSNIndex(idx)
+    // onZoomOrder(Math.floor(zoomOrder) + 0.5)
+  }, [onZoomOrder, zoomOrder])
   
   const handleLineHover = useCallback((i) => (or) => {
     // console.log("hover", or)
-    if(crossScaleNarrationIndex !== i) {
-      setCrossScaleNarrationIndex(i)
-    }
+    // if(crossScaleNarrationIndex !== i) {
+    //   setCrossScaleNarrationIndex(i)
+    // }
     setZoomOrder(or)
-  }, [crossScaleNarrationIndex, setCrossScaleNarrationIndex, setZoomOrder])
+  }, [setZoomOrder])
 
   const filtered = useMemo(() => {
     if(!selected || !regionsByOrder.total) return null
@@ -125,24 +164,24 @@ const SelectedModal = ({
     if(regionsByOrder.chrmsMap[selected.chromosome] && regionsByOrder.chrmsMap[selected.chromosome][selected.i]) {
       filtered = regionsByOrder.chrmsMap[selected.chromosome][selected.i]
     }
-    console.log("SELECTED", selected, filtered)
     return filtered
   }, [regionsByOrder, selected])
 
   useEffect(() => {
     console.log("TOP CSNS", topCSNS)
+    console.log("REGION CSNS", regionCSNS)
     console.log("SELECTED TOP CSN", selectedTopCSN)
-    console.log("SELECTED", selected)
-  }, [topCSNS, selectedTopCSN, selected])
+    // console.log("SELECTED", selected)
+  }, [topCSNS, regionCSNS, selectedTopCSN])
 
 
 
   const [maxPathScore, setMaxPathScore] = useState(0)
   useEffect(() => {
-    if(crossScaleNarration.length > 0) {
-      setMaxPathScore(max(crossScaleNarration.slice(0, 50), n => n.score))
+    if(csns.length > 0) {
+      setMaxPathScore(max(csns, n => n.score))
     }
-  }, [crossScaleNarration])
+  }, [csns])
   
   return (
     <>
@@ -171,33 +210,16 @@ const SelectedModal = ({
         {filtered ? <div>
           {filtered.count} filtered paths in this region.
         </div>: null}
+        <div>
+          {maxPathScore} max path score
+        </div>
 
         <br></br>
         
-        {loadingCSN ? <div>Loading CSN...</div> : 
+        {csns.length ? 
         <div className="csn">
           <span className="csn-info">Hover over the visualization below to see the various cross-scale narrations. 
               Click to select the narration and zoom level.</span>
-          {/* <div className="narration-slider">
-            <input id="csn-slider" type='range' min={0} max={crossScaleNarration.length - 1} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
-            <label htmlFor="csn-slider">Narration: {crossScaleNarrationIndex}</label>
-          </div> */}
-       
-          {/* <CSNLine 
-            csn={narration} 
-            order={selected.order} 
-            highlight={true}
-            selected={true}
-            text={false}
-            width={width} 
-            height={25} 
-            onClick={(c) => {
-              console.log("selected", c)
-            }}
-            onHover={(c) => {
-            }}
-            /> */}
-
           <br></br>
           <div className="top-csns-container">
             { selectedTopCSN ? <ZoomLine 
@@ -213,9 +235,9 @@ const SelectedModal = ({
                 onCSNSelected(selectedTopCSN)
                 onNarration(makeNarration(selectedTopCSN))
               }}
-              // onHover={handleMainLineHover}
+              onHover={handleMainLineHover}
               /> : null}
-              {topCSNS.slice(0, 50).map((n,i) => {
+              {csns.map((n,i) => {
                 return (<ZoomLine 
                   key={i}
                   csn={n} 
@@ -230,49 +252,40 @@ const SelectedModal = ({
                     onCSNSelected(n)
                     onNarration(makeNarration(n))
                   }}
-                  // onHover={handleLineHover(i)}
+                  onHover={handleLineHover(i)}
                   />)
                 })}
-          </div>
-              
-          { crossScaleNarration.length && crossScaleNarration[0].path.length ? <div className="power-container">
-            <ZoomLine 
-              csn={crossScaleNarration[selectedNarrationIndex]} 
-              order={zoomOrder} 
-              maxPathScore={maxPathScore}
-              highlight={true}
-              selected={true}
-              text={true}
-              width={34} 
-              height={powerWidth} 
-              onClick={handleLineClick}
-              onHover={handleMainLineHover}
-              />
-              {crossScaleNarration.slice(0, 50).map((n,i) => {
+
+                {regionCSNSLeft.length && regionCSNSLeft.map((n,i) => {
                 return (<ZoomLine 
                   key={i}
                   csn={n} 
                   order={zoomOrder} 
                   maxPathScore={maxPathScore}
                   highlight={true}
-                  selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
+                  selected={selectedTopCSN === n}
                   text={false}
                   width={8.5} 
                   height={powerWidth} 
-                  onClick={handleLineClick}
+                  onClick={() => {
+                    onCSNSelected(n)
+                    onNarration(makeNarration(n))
+                  }}
                   onHover={handleLineHover(i)}
                   />)
                 })}
-          </div> : null}
-          {crossScaleNarration.length && crossScaleNarration[0].path.length ? <div>
-            <span>Cross-Scale Narration path: {crossScaleNarrationIndex + 1}, score: {narration.score?.toFixed(2)}</span>
+          </div> 
+              
+          
+          {narration?.score >= 0 ? <div>
+            <span>Cross-Scale Narration path: , score: {narration.score?.toFixed(2)}</span>
             <CSNSentence
               crossScaleNarration={narration}
               order={selected.order}
               />
-            </div> : null}
+          </div> : null}
 
-        </div>}
+        </div> : null }
         <div className="selected-modal-children">
           {children}
         </div>

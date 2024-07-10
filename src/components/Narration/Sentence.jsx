@@ -30,7 +30,7 @@ const Sentence = ({
       }
 
       if(orderUpFeatures.length > 0) {
-        let topFeature = orderUpFeatures.sort((a, b) => b.field.value - a.field.value)[0]
+        let topFeature = orderUpFeatures?.sort((a, b) => b.field?.value - a.field?.value)[0]
         if((orderDownFeatures.length > 0) && (orderFeature.length == 1)) sentence += ","
         if((orderDownFeatures.length > 0) || (orderFeature.length == 1)) sentence += " and"
         sentence += ` contains ${topFeature.field.field} ${topFeature.layer.name}`

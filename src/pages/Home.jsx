@@ -467,39 +467,6 @@ function Home() {
     }
   }, [selected, zoom, setSearchByFactorInds, processSimSearchResults, setGenesetEnrichment, simSearchMethod, setSelected, setSelectedNarration, setSelectedOrder, layer])
 
-  const handleModalClose = useCallback(() => {
-    setRegion(null)
-    setSelected(null)
-    setSelectedOrder(null)
-    setSimSearch(null)
-    setSearchByFactorInds([])
-    setSimilarRegions([])
-    setSelectedNarration(null)
-    setSimSearchMethod(null)
-    setGenesetEnrichment(null)
-    setCrossScaleNarrationIndex(0)
-    setCrossScaleNarration(new Array(1).fill({'path': []}))
-  }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setCrossScaleNarration])
-
-  const autocompleteRef = useRef(null)
-  // keybinding that closes the modal on escape
-  useEffect(() => {
-    function handleKeyDown(e) {
-      if(e.key === "Escape") {
-        handleModalClose()
-      }
-      if(e.key == "/") {
-        if(autocompleteRef.current) {
-          autocompleteRef.current.applyFocus()
-        }
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [handleModalClose])
-
   
   const [showHilbert, setShowHilbert] = useState(false)
   const handleChangeShowHilbert = (e) => {
@@ -614,73 +581,75 @@ function Home() {
   const [hoveredTopCSN, setHoveredTopCSN] = useState(null)
   const [csnSort, setCSNSort] = useState("factor")
   const [topCSNS, setTopCSNS] = useState([])
+  const [regionCSNS, setRegionCSNS] = useState([])
   const csnRequestRef = useRef(0)
 
+  // fetch the top csns, both by full path score and by filtered factor scores
   useEffect(() => {
-    console.log("filters changed in home!!")
+    console.log("filters changed in home!!", filters)
     csnRequestRef.current += 1
     const currentRequest = csnRequestRef.current
+    if(Object.keys(filters).length == 0) {
+      setTopFactorCSNS([])
+      setTopFullCSNS([])
+      return
+    }
     setCSNLoading("fetching")
     // Fetch the top csns from the API
     fetchTopCSNs(filters, [], "factor", true, 100)
       .then((response) => {
+        console.log("FACTOR RESPONSE", response)
         if(!response) {
           setCSNLoading("Error!")
           setTopFactorCSNS([])
           return
         }
-        const hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
         if(currentRequest == csnRequestRef.current) {
+          let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
+          hydrated.forEach(d => d.scoreType = "factor")
           setTopFactorCSNS(hydrated)
           setCSNLoading("")
         }
       }).catch((e) => {
-        console.log("error fetching top csns", e)
+        console.log("error fetching top factor csns", e)
         setCSNLoading("Error!")
         setTopFactorCSNS([])
       })
     // for now we just pull both in parallel
     fetchTopCSNs(filters, [], "full", true, 100)
       .then((response) => {
+        console.log("FULL RESPONSE", response)
         if(!response) {
           // setCSNLoading("Error!")
           setTopFullCSNS([])
           return
         }
-        const hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
         if(currentRequest == csnRequestRef.current) {
+          let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
+          hydrated.forEach(d => d.scoreType = "full")
           setTopFullCSNS(hydrated)
           // setCSNLoading("")
         }
       }).catch((e) => {
-        console.log("error fetching top csns", e)
+        console.log("error fetching top full csns", e)
         // setCSNLoading("Error!")
         setTopFullCSNS([])
       })
   }, [filters])
 
-  // useEffect(() => {
-  //   if(csnSort == "factor") {
-  //     setTopCSNS(topFactorCSNS)
-  //   } else {
-  //     setTopCSNS(topFullCSNS)
-  //   }
-  //   if(topFactorCSNS.length && topFullCSNS.length) {
-  //   const onlyInTopFactor = topFactorCSNS.filter(a => !topFullCSNS.some(b => a.chromosome === b.chromosome && a.i === b.i));
-  //   const onlyInTopFull = topFullCSNS.filter(a => !topFactorCSNS.some(b => a.chromosome === b.chromosome && a.i === b.i));
-  //   const inBoth = topFactorCSNS.filter(a => topFullCSNS.some(b => a.chromosome === b.chromosome && a.i === b.i));
-  //   console.log("onlyInTopFactor", onlyInTopFactor)
-  //   console.log("onlyInTopFull", onlyInTopFull)
-  //   console.log("inBoth", inBoth)
-  //   }
-  // }, [csnSort, topFactorCSNS, topFullCSNS])
-
+  // Fetch the CSNS via API for the selected region
   useEffect(() => {
-    // Fetch the CSNS via API for the selected region
     if(selected){
-      fetchTopCSNs(filters, [selected], "factor", true, 100)
+      fetchTopCSNs(filters, [selected], "factor", false, 100)
       .then((response) => {
         console.log("top csn for selected response", selected, response)
+        if(!response || !response?.csns?.length) {
+          setRegionCSNS([])
+          return
+        }
+        let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
+        hydrated.forEach(d => d.scoreType = "factor")
+        setRegionCSNS(hydrated)
       })
     }
   }, [filters, selected])
@@ -698,36 +667,22 @@ function Home() {
     }
   }, [zoom.order, filteredIndices])
 
-  // calculate the regions in view that have paths, and collect those paths
-  // useEffect(() => {
-  //   if(data && rbos.total && data.data?.length) {
-  //     console.log("rbos", rbos, data)
-  //     const inview = data.data.filter(d => d.inview == true)
-  //     // for each region in view, lets see if it shows up in the rbos
-  //     const inRbos = inview.map(d => {
-  //       const p = rbos.chrmsMap[d.chromosome]?.indices?.find(i => i.i == d.i)
-  //       if(p) {
-  //         return {...d, path: p}
-  //       } else {
-  //         return null
-  //       }
-  //     }).filter(d => d)
-  //     console.log("inRbos", inRbos)
-  //     setFilteredRegions(inRbos)
-  //   } else {
-  //     setFilteredRegions([])
-  //   }
-  // }, [rbos, data])
 
-  const [topCSNSByCurrentOrder, setTopCSNSByCurrentOrder] = useState(new Map())
+  const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
+  const [topCSNSFullByCurrentOrder, setTopCSNSFullByCurrentOrder] = useState(new Map())
   // we want to group the top csns by the current order
   useEffect(() => {
-    if(topCSNS.length) {
-      const grouped = group(topCSNS, d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
-      console.log("grouped", grouped)
-      setTopCSNSByCurrentOrder(grouped)
+    if(topFactorCSNS.length) {
+      const groupedFactor = group(topFactorCSNS, d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
+      // const groupedFull = group(topFullCSNS, d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
+      console.log("groupedFactor", groupedFactor)
+      // console.log("groupedFull", groupedFull)
+      setTopCSNSFactorByCurrentOrder(groupedFactor)
+      // setTopCSNSFullByCurrentOrder(groupedFull)
+    } else {
+      setTopCSNSFactorByCurrentOrder(new Map())
     }
-  }, [zoom.order, topCSNS])
+  }, [zoom.order, topFactorCSNS])
 
 
   const handleSelectedCSN = useCallback((csn) => {
@@ -745,7 +700,44 @@ function Home() {
     setHover(hit)
   }, [zoom.order])
 
-  const drawFilteredRegions = useCanvasFilteredRegions(rbos, topCSNSByCurrentOrder)
+  const drawFilteredRegions = useCanvasFilteredRegions(rbos, topCSNSFactorByCurrentOrder)
+
+
+  const handleModalClose = useCallback(() => {
+    setRegion(null)
+    setSelected(null)
+    setSelectedOrder(null)
+    setSimSearch(null)
+    setSearchByFactorInds([])
+    setSimilarRegions([])
+    setSelectedNarration(null)
+    setSimSearchMethod(null)
+    setGenesetEnrichment(null)
+    // setCrossScaleNarrationIndex(0)
+    // setCrossScaleNarration(new Array(1).fill({'path': []}))
+    setSelectedTopCSN([])
+  }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setSelectedTopCSN])
+
+
+  const autocompleteRef = useRef(null)
+  // keybinding that closes the modal on escape
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if(e.key === "Escape") {
+        handleModalClose()
+      }
+      if(e.key == "/") {
+        if(autocompleteRef.current) {
+          autocompleteRef.current.applyFocus()
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [handleModalClose])
+
 
   return (
     <>
@@ -820,27 +812,22 @@ function Home() {
             </PowerOverlay> : null}
           {selected ? 
               <SelectedModal 
-                selected={selected} 
-                // filteredRegions={filteredRegions}
                 showFilter={showFilter}
+                selected={selected} 
+                regionCSNS={regionCSNS}
+                topCSNS={topCSNSFactorByCurrentOrder}
                 regionsByOrder={rbos}
-                topCSNS={topCSNSByCurrentOrder.get(selected?.chromosome + ":" + selected.i, [])}
                 selectedTopCSN={selectedTopCSN}
                 k={zoom.transform.k}
-                layers={csnLayers}
-                crossScaleNarration={crossScaleNarration}
-                loadingCSN={loadingCSN}
-                onCSNIndex={(i) => setCrossScaleNarrationIndex(i)}
                 onCSNSelected={(csn) => {
                   setSelectedTopCSN(csn)
-                  // setSelected(fromPosition(csn.chromosome, csn.i, csn.i+1, zoom.order))
                 }}
                 onZoom={(region) => { setRegion(null); setRegion(region)}}
                 onClose={handleModalClose}
                 onNarration={(n) => setPowerNarration(n)}
                 onZoomOrder={(n) => setPowerOrder(n)}
                 >
-                  <SimSearchResultList
+                  {/* <SimSearchResultList
                     simSearch={simSearch}
                     zoomRegion={region}
                     searchByFactorInds={searchByFactorInds}
@@ -851,7 +838,7 @@ function Home() {
                       setRegion(hit)}
                     }
                     onHover={setHover}
-                  />
+                  /> */}
             </SelectedModal> : null}
             
             <div>
@@ -1000,7 +987,7 @@ function Home() {
             hover={hover} // the information about the cell the mouse is over
             // filteredRegions={filteredRegions}
             regionsByOrder={rbos}
-            topCSNS={topCSNSByCurrentOrder}
+            topCSNS={topCSNSFactorByCurrentOrder}
             layer={layer} 
             zoom={zoom} 
             showFilter={showFilter}
