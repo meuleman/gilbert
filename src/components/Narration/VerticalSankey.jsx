@@ -102,7 +102,7 @@ export default function CSNVerticalSankey({
 
   useEffect(() => {
     if(csns.length) {
-      console.log("CSNS", csns)
+      // console.log("CSNS", csns)
 
       const linkId = (a,b) => `${a.id}=>${b.id}`
       let nodesMap = {}

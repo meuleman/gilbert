@@ -303,27 +303,27 @@ function Home() {
   }, [selected, setSelected, setSelectedOrder, setSimSearch])
 
   // do a sim search if selected changes
-  useEffect(() => {
-    if(selected){
-      // console.log("selected changed", selected, layer.name)
-      SimSearchRegion(selected, selected.order, layer, setSearchByFactorInds, []).then((regionResult) => {
-        // console.log("sim searchregion results", selected, layer.name, regionResult)
-        if(!regionResult || !regionResult.simSearch) return;
-        processSimSearchResults(selected.order, regionResult)
-        GenesetEnrichment(regionResult.simSearch.slice(1), selected.order).then((enrichmentResult) => {
-          setGenesetEnrichment(enrichmentResult)
-        })
-        setSimSearchMethod("Region")
-      }).catch(e => {
-        console.log("caught error in sim search", e)
-        setSimSearch(null)
-        setSimilarRegions([])
-      })
-      narrateRegion(selected, selected.order).then((narrationResult) => {
-        narrationResult && setSelectedNarration(narrationResult.narrationRanks)
-      })
-    }
-  }, [selected, layer, setSearchByFactorInds, processSimSearchResults, setGenesetEnrichment, setSimSearchMethod, setSelectedNarration])
+  // useEffect(() => {
+  //   if(selected){
+  //     // console.log("selected changed", selected, layer.name)
+  //     SimSearchRegion(selected, selected.order, layer, setSearchByFactorInds, []).then((regionResult) => {
+  //       // console.log("sim searchregion results", selected, layer.name, regionResult)
+  //       if(!regionResult || !regionResult.simSearch) return;
+  //       processSimSearchResults(selected.order, regionResult)
+  //       GenesetEnrichment(regionResult.simSearch.slice(1), selected.order).then((enrichmentResult) => {
+  //         setGenesetEnrichment(enrichmentResult)
+  //       })
+  //       setSimSearchMethod("Region")
+  //     }).catch(e => {
+  //       console.log("caught error in sim search", e)
+  //       setSimSearch(null)
+  //       setSimilarRegions([])
+  //     })
+  //     narrateRegion(selected, selected.order).then((narrationResult) => {
+  //       narrationResult && setSelectedNarration(narrationResult.narrationRanks)
+  //     })
+  //   }
+  // }, [selected, layer, setSearchByFactorInds, processSimSearchResults, setGenesetEnrichment, setSimSearchMethod, setSelectedNarration])
 
   
 
@@ -373,30 +373,31 @@ function Home() {
     })
     return uniquePaths
   }
-  // useEffect(() => {
-  //   setCrossScaleNarrationIndex(0)
+  useEffect(() => {
+    setCrossScaleNarrationIndex(0)
     
-  //   if(selected && selected.order > 4){
-  //     // clear the cross scale narration first
-  //     setCrossScaleNarration([])
-  //     setCsn({path: [], layers: csnLayers})
-  //     setLoadingCSN(true)
-  //     calculateCrossScaleNarrationInWorker(selected, csnMethod, csnEnrThreshold, csnLayers, variantLayers, countLayers).then(crossScaleResponse => {
-  //       // filter to just unique paths
-  //       const filteredPaths = findUniquePaths(crossScaleResponse.paths).slice(0, 100)
-  //       // setFullCSNPaths(crossScaleResponse.paths)
-  //       setCrossScaleNarration(filteredPaths)
-  //       setLoadingCSN(false)
-  //     })
-  //   } else {
-  //     // we set the layer order back to non-CSN if no selected region
-  //     if(layerOrderNatural && layerOrderNatural[zoomRef.current.order]) {
-  //       setLayerOrder(layerOrderNatural)
-  //       setLayer(layerOrderNatural[zoomRef.current.order])
-  //     }
-  //     console.log("else selected")
-  //   }
-  // }, [selected, csnMethod, csnEnrThreshold])  // layerOrderNatural
+    if(selected && selected.order > 4){
+      // clear the cross scale narration first
+      // setCrossScaleNarration([])
+      // setCsn({path: [], layers: csnLayers})
+      // setLoadingCSN(true)
+      calculateCrossScaleNarrationInWorker(selected, csnMethod, csnEnrThreshold, csnLayers, variantLayers, countLayers).then(crossScaleResponse => {
+        // filter to just unique paths
+        const filteredPaths = findUniquePaths(crossScaleResponse.paths).slice(0, 100)
+        console.log("CLIENT CSN: filteredPaths", filteredPaths)
+        // setFullCSNPaths(crossScaleResponse.paths)
+        // setCrossScaleNarration(filteredPaths)
+        // setLoadingCSN(false)
+      })
+    } else {
+      // we set the layer order back to non-CSN if no selected region
+      // if(layerOrderNatural && layerOrderNatural[zoomRef.current.order]) {
+      //   setLayerOrder(layerOrderNatural)
+      //   setLayer(layerOrderNatural[zoomRef.current.order])
+      // }
+      // console.log("else selected")
+    }
+  }, [selected, csnMethod, csnEnrThreshold])  // layerOrderNatural
 
   const [csn, setCsn] = useState({path: [], layers: csnLayers})
   useEffect(() => {

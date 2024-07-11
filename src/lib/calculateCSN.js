@@ -23,6 +23,7 @@ export default async function calculateCrossScaleNarration(selected, csnMethod='
     return range
   }
 
+  console.log("LAYERS", layers)
   // determine which layers are OCC
   const occMask = layers.map(d => d.datasetName.includes('occ'))
   const layerNames = layers.map(d => d.name)

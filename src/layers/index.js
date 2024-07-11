@@ -133,6 +133,7 @@ const fullList = [
   LADs_occ,
 ]
 
+
 const csnLayers = [
   fullList.find(d => d.name == "DHS Components (ENR, Full)"),
   fullList.find(d => d.name == "Chromatin States (ENR, Full)"),
@@ -143,6 +144,7 @@ const csnLayers = [
   fullList.find(d => d.datasetName == "tf_1en6_rank_occ"),
   fullList.find(d => d.name == "Repeats (OCC, Ranked)"),
 ]
+
 const variantLayers = [
   fullList.find(d => d.datasetName == "variants_favor_categorical_rank"),
   fullList.find(d => d.datasetName == "variants_favor_apc_rank"),

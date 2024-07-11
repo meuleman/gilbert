@@ -178,7 +178,7 @@ function filterIndices(orderSelects, progressCb, resultsCb, regionsThreshold = 1
         resultsCb({filteredIndices, segmentCount: 0, pathCount: 0})
         return
       }
-      console.log("FILTERED INDICES", filteredIndices)
+      // console.log("FILTERED INDICES", filteredIndices)
       // now we can count everything in a couple ways
       // 1. count the number of segments by counting the length of indices for each group
       // 2. count the number of paths by multiplying stride (4^13-order) times the count of segments

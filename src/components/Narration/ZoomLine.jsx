@@ -193,7 +193,7 @@ export default function ZoomLine({
     const svg = e.target.ownerSVGElement
     const rect = svg.getBoundingClientRect();
     const xoff = tipOrientation === "left" ? -5 : width + 5
-    scoreTooltipRef.current.show(csn.score, null, rect.x + xoff, rect.y + rw - rw * (csn.score/maxPathScore)/2)
+    scoreTooltipRef.current.show(csn.score, null, rect.x + xoff, rect.y + scoreHeight - scoreHeight * (csn.score/maxPathScore)/2)
   }, [csn, maxPathScore, rw])
 
   const handleScoreLeave = useCallback(() => {
@@ -204,6 +204,17 @@ export default function ZoomLine({
     <div className="csn-line" onClick={() => onClick(csn)}>
       <svg width={width} height={height}>
         {path.length && yScale ? <g>
+          {maxPathScore && <rect
+            y={0}
+            x={0}
+            height={scoreHeight}
+            width={width}
+            fill="white"
+            stroke="white"
+            fillOpacity={0.01}
+            onMouseMove={(e) => handleScoreHover(e)} 
+            onMouseLeave={() => handleScoreLeave()}
+            />}
           {maxPathScore && <rect
             y={scoreHeight - scoreHeight * (csn.score/maxPathScore) + 3}
             x={0}

@@ -208,7 +208,8 @@ function rehydrateCSN(csn, layers) {
       field = {
         field: l.fieldName,
         index: l.fieldIndex,
-        color: l.layer.fieldColor(l.fieldName)
+        color: l.layer.fieldColor(l.fieldName),
+        value: csn.factors[i]
       }
       region.field = field
     }

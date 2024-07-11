@@ -16,15 +16,19 @@ import dhs_components_enr_counts from '../layers/dhs_components_enr_counts';
 import chromatin_states_enr_counts from '../layers/chromatin_states_enr_counts';
 import tf_motifs_enr_counts from '../layers/tf_motifs_enr_counts';
 import repeats_enr_counts from '../layers/repeats_enr_counts';
+import tf_motifs_1en6_rank_occ from "../layers/tf_motifs_1en6_rank_occ"
+import tf_motifs_1en6_enr_top10 from "../layers/tf_motifs_1en6_enr_top10"
 
 const referenceLayers = [
   dhs_components_enr,
   chromatin_states_enr,
-  tf_motifs_enr_top10,
+  // tf_motifs_enr_top10,
+  tf_motifs_1en6_enr_top10,
   repeats_enr,
   dhs_rank_occ,
   chromatin_states_rank_occ,
-  tf_motifs_rank_occ,
+  // tf_motifs_rank_occ,
+  tf_motifs_1en6_rank_occ,
   repeats_rank_occ,
   dhs_components_enr_counts,
   chromatin_states_enr_counts,

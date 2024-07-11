@@ -60,7 +60,7 @@ const SankeyModal = ({
   useEffect(() => {
     const csns = sort === "factor" ? factorCsns : fullCsns
     if(csns.length) {
-      setMaxPathScore(max(csns, d => d.score))
+      setMaxPathScore(max(factorCsns.concat(fullCsns), d => d.score))
       setCSNs(csns)
     } else {
       setCSNs([])

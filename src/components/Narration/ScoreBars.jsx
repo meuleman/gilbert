@@ -14,12 +14,12 @@ import PropTypes from 'prop-types';
 function tooltipContent(region, layer, orientation) {
   // let field = layer.fieldChoice(region)
   let fields = []
-  if(region.data.max_field >= 0) {
+  if(region.data?.max_field >= 0) {
     fields.push(layer.fieldChoice(region))
     // fields.push({ field: region.data.max_field, value: region.data.max_value })
-  } else if(region.data.bp) {
+  } else if(region.data?.bp) {
     fields.push(layer.fieldChoice(region))
-  } else {
+  } else if(region.data) {
     fields = Object.keys(region.data).map(key => { 
       let layers = region.layers
       let factorCount = null
@@ -104,6 +104,7 @@ export default function ScoreBars({
   text=true,
   width = 50,
   height = 400,
+  scoreHeight = 20,
   tipOrientation="left",
   onHover = () => {},
   onClick = () => {}
@@ -144,10 +145,11 @@ export default function ScoreBars({
   }, [csn, order])
 
 
+  // we create an extra space for the score bar
   const depth = 15 - 4
-  const spacing = height/(depth + 1)
-  const h = height - spacing - 1
-  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([spacing + 3, h + 3]), [h])
+  const spacing = (height - scoreHeight)/(depth + 1)
+  const h = height - spacing - 1 
+  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([ 5 + scoreHeight, h + 3 - scoreHeight]), [h, scoreHeight])
   const rw = useMemo(() => yScale(5) - yScale(4) - 2, [yScale])
 
   const handleClick = useCallback((e, o) => {
