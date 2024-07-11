@@ -117,7 +117,8 @@ ZoomLine.propTypes = {
   height: PropTypes.number,
   tipOrientation: PropTypes.string,
   onHover: PropTypes.func,
-  onClick: PropTypes.func
+  onClick: PropTypes.func,
+  onFactor: PropTypes.func
 };
 
 export default function ZoomLine({
@@ -134,8 +135,9 @@ export default function ZoomLine({
   offsetX = 0,
   scoreHeight = 20,
   tipOrientation="left",
+  onClick = () => {},
   onHover = () => {},
-  onClick = () => {}
+  onFactor= () => {}
 }) {
   const tooltipRef = useRef(null)
   const scoreTooltipRef = useRef(null)
@@ -172,11 +174,11 @@ export default function ZoomLine({
   const rw = useMemo(() => yScale(5) - yScale(4) - 2, [yScale])
 
   const handleClick = useCallback((e, o) => {
-    // const p = path.find(d => d.order === o)
-    // if(p) {
-    //   onClick(p)
-    // }
-  }, [path, onClick])
+    const p = path.find(d => d.order === o)
+    if(p) {
+      onFactor(p)
+    }
+  }, [path, onFactor])
 
   const handleHover = useCallback((e, o) => {
     // tooltipRef.current.hide()
@@ -242,7 +244,8 @@ export default function ZoomLine({
 
           {range(4, 15).map(o => {
             let p = path.find(d => d.order == o)
-            return <g key={o} 
+            return <g key={o}
+              onClick={(e) => handleClick(e, o)}
               onMouseMove={(e) => handleHover(e, o)} 
               onMouseLeave={() => handleLeave()}>
                 <rect
@@ -293,6 +296,7 @@ export default function ZoomLine({
                 fill="#111"
                 paintOrder="stroke"
                 fontWeight={highlightOrders.indexOf(o) >= 0 ? "bold" : "normal"}
+                pointerEvents="none"
                 >
                 {bp}
               </text>

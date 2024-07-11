@@ -1,9 +1,10 @@
 // A component to display some information below the map when hovering over hilbert cells
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useContext } from 'react'
+import FiltersContext from './ComboLock/FiltersContext'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
 import { showKb } from '../lib/display'
-import { csnLayers } from '../layers'
+import { csnLayers, makeField } from '../layers'
 import CSNSentence from './Narration/Sentence'
 import CSNLine from './Narration/Line'
 import ZoomLine from './Narration/ZoomLine'
@@ -98,27 +99,7 @@ const SelectedModal = ({
     }
   }, [selectedTopCSN, makeNarration])
 
-  // useEffect(() => {
-  //   onNarration(makeNarration(crossScaleNarration[selectedNarrationIndex]))
-  // }, [selectedNarrationIndex, crossScaleNarration, makeNarration])
-  // useEffect(() => {
-  //   onNarration(narration)
-  // }, [narration])
-
-  // useEffect(() => {
-  //   console.log("CROSS SCALE NARRATION LENGTH?", crossScaleNarration)
-  //   if(crossScaleNarration.length == 0) return
-  //   let narration = makeNarration(crossScaleNarration[crossScaleNarrationIndex])
-  //   setNarration(narration)
-  // }, [crossScaleNarration, crossScaleNarrationIndex, makeNarration])
-
-  // useEffect(() => {
-  //   console.log("selected CSN", crossScaleNarration)
-  // }, [crossScaleNarration])
-
-  // const unselectedNarrations = useMemo(() => {
-  //   return crossScaleNarration.filter((n,i) => i !== crossScaleNarrationIndex)
-  // }, [crossScaleNarration, crossScaleNarrationIndex])
+  const { filters, handleFilter } = useContext(FiltersContext);
 
   const [zoomOrder, setZoomOrder] = useState(4)
   useEffect(() => {
@@ -131,9 +112,9 @@ const SelectedModal = ({
   }, [selected, k])
 
   // emit the initial zoom order based on the selected region
-  // useEffect(() => {
-  //   onZoomOrder(selected.order + 0.5)
-  // }, [selected])
+  useEffect(() => {
+    onZoomOrder(selected.order + 0.5)
+  }, [selected])
 
 
   const handleMainLineHover = useCallback((or) => {
@@ -240,9 +221,12 @@ const SelectedModal = ({
               text={true}
               width={32} 
               height={powerWidth} 
-              onClick={() => {
-                onCSNSelected(selectedTopCSN)
-                onNarration(makeNarration(selectedTopCSN))
+              onFactor={(p) => {
+                console.log("CLICKED", p)
+                let field = makeField(p.layer, p.field.index, p.order)
+                handleFilter(field, p.order)
+                // onCSNSelected(selectedTopCSN)
+                // onNarration(makeNarration(selectedTopCSN))
               }}
               onHover={handleMainLineHover}
               /> : null}

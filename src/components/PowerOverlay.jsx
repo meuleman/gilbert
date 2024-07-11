@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useContext } from 'react'
+import FiltersContext from './ComboLock/FiltersContext'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
 import { showKb } from '../lib/display'
@@ -9,6 +10,7 @@ import ScoreBars from './Narration/ScoreBars'
 import Power from './Narration/Power'
 import { scaleLinear } from 'd3-scale'
 import { variantChooser } from '../lib/csn'
+import { makeField } from '../layers'
 
 import './PowerOverlay.css'
 
@@ -32,6 +34,8 @@ const PowerOverlay = ({
   const tipOrientation = "right"
   const powerWidth = 300
   const powerHeight = 300 //Math.round(powerWidth / mapWidth * mapHeight);
+
+  const { filters, handleFilter } = useContext(FiltersContext);
 
   const [minimized, setMinimized] = useState(false)
   const onMinimize = useCallback(() => {
@@ -106,6 +110,10 @@ const PowerOverlay = ({
                 tipOrientation={tipOrientation}
                 onHover={handleZoom}
                 onClick={(c) => { console.log("narration", c)}}
+                onFactor={(p) => {
+                  let field = makeField(p.layer, p.field.index, p.order)
+                  handleFilter(field, p.order)
+                }}
                 /> 
               <ScoreBars
                 csn={narration} 
