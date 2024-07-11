@@ -190,8 +190,8 @@ export default function ScoreBars({
     // console.log("y", y, my, or)//, p, rect)
     if(p) {
 
-      const xoff = tipOrientation === "left" ? -5 : width + 5
-      tooltipRef.current.show({...p.region, fullData: p.fullData, layers: csn.layers, score: csn.score}, p.layer, rect.x + xoff, rect.y + my)
+      const xoff = tipOrientation === "left" ? -5 : width + 3
+      tooltipRef.current.show({...p.region, fullData: p.fullData, layers: csn.layers, score: csn.score}, p.layer, rect.x + xoff, rect.y + my + 1.5)
     }
     // tooltipRef.current.show(tooltipRef.current, csn)
   }, [csn, path, yScale, rw, onHover])

@@ -92,6 +92,9 @@ const SelectedModal = ({
       let narration = makeNarration(selectedTopCSN)
       setNarration(narration)
       onNarration(narration)
+    } else {
+      setNarration(null)
+      onNarration(null)
     }
   }, [selectedTopCSN, makeNarration])
 

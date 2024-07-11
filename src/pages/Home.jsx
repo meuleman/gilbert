@@ -729,7 +729,9 @@ function Home() {
   const drawFilteredRegions = useCanvasFilteredRegions(rbos, topCSNSFactorByCurrentOrder)
 
 
+  // TODO: consistent clear state
   const handleModalClose = useCallback(() => {
+    console.log("CLEARING STATE, MODAL CLOSE")
     setRegion(null)
     setSelected(null)
     setSelectedOrder(null)
@@ -741,7 +743,8 @@ function Home() {
     setGenesetEnrichment(null)
     // setCrossScaleNarrationIndex(0)
     // setCrossScaleNarration(new Array(1).fill({'path': []}))
-    setSelectedTopCSN([])
+    setSelectedTopCSN(null)
+    setRegionCSNS([])
     setPowerNarration(null)
   }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setSelectedTopCSN])
 

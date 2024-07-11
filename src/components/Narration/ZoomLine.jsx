@@ -131,6 +131,7 @@ export default function ZoomLine({
   text=true,
   width = 50,
   height = 400,
+  offsetX = 0,
   scoreHeight = 20,
   tipOrientation="left",
   onHover = () => {},
@@ -192,10 +193,10 @@ export default function ZoomLine({
     if(p) {
 
       const xoff = tipOrientation === "left" ? -5 : width + 5
-      tooltipRef.current.show({...p.region, fullData: p.fullData, layers: csn.layers, score: csn.score}, p.layer, rect.x + xoff, rect.y + my)
+      tooltipRef.current.show({...p.region, fullData: p.fullData, layers: csn.layers, score: csn.score}, p.layer, rect.x + xoff + offsetX, rect.y + my + 1.5)
     }
     // tooltipRef.current.show(tooltipRef.current, csn)
-  }, [csn, path, yScale, rw, onHover])
+  }, [csn, path, yScale, rw, offsetX, onHover])
 
   const handleLeave = useCallback(() => {
     tooltipRef.current.hide()

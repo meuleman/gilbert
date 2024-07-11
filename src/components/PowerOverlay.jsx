@@ -101,6 +101,7 @@ const PowerOverlay = ({
                 selected={true}
                 text={true}
                 width={34} 
+                offsetX={34}
                 height={powerHeight} 
                 tipOrientation={tipOrientation}
                 onHover={handleZoom}

@@ -297,8 +297,8 @@ const HilbertGenome = ({
         [width, height]
       ])
       .translateExtent([
-        [0, 0],
-        [width, height]
+        [-50, -50],
+        [width + 50, height + 50]
       ])
       .scaleExtent(zoomExtent)
     }, [zoomExtent, width, height])
