@@ -9,7 +9,7 @@ import { urlify, jsonify, fromPosition, fromCoordinates } from '../lib/regions'
 import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
 import { fetchTopCSNs, rehydrateCSN, calculateCrossScaleNarrationInWorker, narrateRegion } from '../lib/csn'
-import { regionsByOrder } from '../lib/filters'
+import { regionsByOrder, urlifyFilters, parseFilters } from '../lib/filters'
 import { range, groups, group } from 'd3-array'
 
 import './Home.css'
@@ -71,6 +71,7 @@ function Home() {
   const queryParams = new URLSearchParams(location.search);
   const initialRegionset = queryParams.get('regionset');
   let initialSelectedRegion = queryParams.get('region');
+  const initialFilters = queryParams.get('filters')
   const initialPosition = queryParams.get('position');
   // console.log("initial selected region", initialSelectedRegion)
   // if we have a position URL, overwrite the initial region
@@ -172,6 +173,16 @@ function Home() {
     // selected powers the sidebar modal and the 1D track
   const [selected, setSelected] = useState(jsonify(initialSelectedRegion))
   const [selectedOrder, setSelectedOrder] = useState(selected?.order)
+
+  const { filters, setFilters } = useContext(FiltersContext);
+  const initialUpdateRef = useRef(true);
+  useEffect(() => {
+    if(initialUpdateRef.current) {
+      console.log("INITIAL FILTERS", initialFilters)
+      setFilters(parseFilters(initialFilters || "[]"))
+      initialUpdateRef.current = false
+    }
+  }, [initialFilters, setFilters])
 
 
   const [scales, setScales] = useState(null)
@@ -327,10 +338,11 @@ function Home() {
 
   
 
-  const updateUrlParams = useCallback((newRegionSet, newSelected) => {
+  const updateUrlParams = useCallback((newRegionSet, newSelected, newFilters) => {
     const params = new URLSearchParams();
     if (newRegionSet) params.set('regionset', newRegionSet);
     if (newSelected) params.set('region', urlify(newSelected));
+    if (newFilters) params.set('filters', urlifyFilters(newFilters));
     navigate({ search: params.toString() }, { replace: true });
   }, [navigate]);
 
@@ -341,8 +353,17 @@ function Home() {
     if(set) {
       setExampleRegions(set)
     }
-    updateUrlParams(regionset, selected)
-  }, [regionset, selected, setExampleRegions, updateUrlParams])
+    if (!initialUpdateRef.current) {
+      updateUrlParams(regionset, selected, filters)
+    }
+  }, [regionset, selected, filters, setExampleRegions, updateUrlParams])
+  useEffect(() => {
+    console.log("FILTERS????????????", initialUpdateRef.current, filters)
+    if (!initialUpdateRef.current) { // Only update URL params if not the initial update
+      console.log("UPDATING FILTERS?", filters)
+      updateUrlParams(regionset, selected, filters);
+    }
+  }, [filters, regionset, selected, updateUrlParams]);
 
   // cross scale narration
   const handleChangeCSNIndex = (e) => setCrossScaleNarrationIndex(e.target.value)
@@ -351,44 +372,46 @@ function Home() {
   // function to change the ENR threshold for CSN
   const handleCsnEnrThresholdChange = (e) => setCsnEnrThreshold(e.target.value)
   // function to subset our CSN results to just unique paths
-  function findUniquePaths(paths) {
-    const uniquePaths = []
-    const seenPaths = new Map()
+  // function findUniquePaths(paths) {
+  //   const uniquePaths = []
+  //   const seenPaths = new Map()
 
-    // initialize each order to null
-    let initialEmptyPathObj = {}
-    const orders = [4, 14]
-    for (let i = orders[0]; i <= orders[1]; i++) initialEmptyPathObj[i] = null;
+  //   // initialize each order to null
+  //   let initialEmptyPathObj = {}
+  //   const orders = [4, 14]
+  //   for (let i = orders[0]; i <= orders[1]; i++) initialEmptyPathObj[i] = null;
     
-    // filter paths
-    paths.forEach(path => {
-      // Convert path to a string to use as a map key
-      let pathStripped = { ...initialEmptyPathObj }
-      path.path.forEach((d) => {if(d !== null) pathStripped[d.order] = d.field.field})
-      const pathKey = JSON.stringify(pathStripped)
-      if (!seenPaths.has(pathKey)) {
-        uniquePaths.push(path)
-        seenPaths.set(pathKey, true)
-      }
-    })
-    return uniquePaths
-  }
+  //   // filter paths
+  //   paths.forEach(path => {
+  //     // Convert path to a string to use as a map key
+  //     let pathStripped = { ...initialEmptyPathObj }
+  //     path.path.forEach((d) => {if(d !== null) pathStripped[d.order] = d.field.field})
+  //     const pathKey = JSON.stringify(pathStripped)
+  //     if (!seenPaths.has(pathKey)) {
+  //       uniquePaths.push(path)
+  //       seenPaths.set(pathKey, true)
+  //     }
+  //   })
+  //   return uniquePaths
+  // }
   useEffect(() => {
-    setCrossScaleNarrationIndex(0)
+    // setCrossScaleNarrationIndex(0)
     
     if(selected && selected.order > 4){
       // clear the cross scale narration first
       // setCrossScaleNarration([])
       // setCsn({path: [], layers: csnLayers})
       // setLoadingCSN(true)
-      calculateCrossScaleNarrationInWorker(selected, csnMethod, csnEnrThreshold, csnLayers, variantLayers, countLayers).then(crossScaleResponse => {
-        // filter to just unique paths
-        const filteredPaths = findUniquePaths(crossScaleResponse.paths).slice(0, 100)
-        console.log("CLIENT CSN: filteredPaths", filteredPaths)
-        // setFullCSNPaths(crossScaleResponse.paths)
-        // setCrossScaleNarration(filteredPaths)
-        // setLoadingCSN(false)
-      })
+
+      // calculateCrossScaleNarrationInWorker(selected, csnMethod, csnEnrThreshold, csnLayers, variantLayers, countLayers).then(crossScaleResponse => {
+      //   // filter to just unique paths
+      //   const filteredPaths = findUniquePaths(crossScaleResponse.paths).slice(0, 100)
+      //   console.log("CLIENT CSN: filteredPaths", filteredPaths)
+      //   // setFullCSNPaths(crossScaleResponse.paths)
+      //   // setCrossScaleNarration(filteredPaths)
+      //   // setLoadingCSN(false)
+      // })
+
     } else {
       // we set the layer order back to non-CSN if no selected region
       // if(layerOrderNatural && layerOrderNatural[zoomRef.current.order]) {
@@ -570,7 +593,7 @@ function Home() {
 
 
   // const [filters, setFilters] = useState([])
-  const { filters } = useContext(FiltersContext);
+
 
   const [filteredIndices, setFilteredIndices] = useState([])
   // const [filteredRegions, setFilteredRegions] = useState([])
@@ -638,10 +661,11 @@ function Home() {
       })
   }, [filters])
 
+  const [pathDiversity, setPathDiversity] = useState(true)
   // Fetch the CSNS via API for the selected region
   useEffect(() => {
     if(selected){
-      fetchTopCSNs(filters, [selected], "factor", true, 100)
+      fetchTopCSNs(filters, [selected], "factor", pathDiversity, 100)
       .then((response) => {
         console.log("top csn for selected response", selected, response)
         if(!response || !response?.csns?.length) {
@@ -653,7 +677,7 @@ function Home() {
         setRegionCSNS(hydrated)
       })
     }
-  }, [filters, selected])
+  }, [filters, selected, pathDiversity])
 
   // calculate the filtered regions at the current order
   useEffect(() => {
@@ -717,6 +741,7 @@ function Home() {
     // setCrossScaleNarrationIndex(0)
     // setCrossScaleNarration(new Array(1).fill({'path': []}))
     setSelectedTopCSN([])
+    setPowerNarration(null)
   }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setSelectedTopCSN])
 
 
@@ -820,6 +845,7 @@ function Home() {
                 regionsByOrder={rbos}
                 selectedTopCSN={selectedTopCSN}
                 k={zoom.transform.k}
+                diversity={pathDiversity}
                 onCSNSelected={(csn) => {
                   setSelectedTopCSN(csn)
                 }}
@@ -827,6 +853,7 @@ function Home() {
                 onClose={handleModalClose}
                 onNarration={(n) => setPowerNarration(n)}
                 onZoomOrder={(n) => setPowerOrder(n)}
+                onDiversity={(d) => setPathDiversity(d)}
                 >
                   {/* <SimSearchResultList
                     simSearch={simSearch}

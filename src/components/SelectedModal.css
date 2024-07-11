@@ -85,7 +85,16 @@
   margin-left: 6px;
 }
 
+.selected-modal .csns-container {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
 .selected-modal .top-csns-container {
+  display: flex;
+  flex-direction: row;
+}
+.selected-modal .region-csns-container {
   display: flex;
   flex-direction: row;
 }

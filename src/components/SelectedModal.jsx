@@ -21,11 +21,13 @@ const SelectedModal = ({
   regionsByOrder = {},
   selectedTopCSN = null,
   k,
+  diversity=true,
   onCSNSelected=()=>{},
   onClose=()=>{},
   onZoom=()=>{},
   onZoomOrder=()=>{},
   onNarration=()=>{},
+  onDiversity=()=>{},
   children=null
 } = {}) => {
 
@@ -178,6 +180,11 @@ const SelectedModal = ({
       setMaxPathScore(max(csns.concat(regionCSNSLeft), n => n.score))
     }
   }, [csns, regionCSNSLeft])
+
+  const handleDiversityChange = useCallback((e) => {
+    onDiversity(!diversity)
+  }, [diversity, onDiversity])
+
   
   return (
     <>
@@ -206,8 +213,11 @@ const SelectedModal = ({
         {filtered ? <div>
           {filtered.count} filtered paths in this region.
         </div>: null}
-        <div>
+        {/* <div>
           {maxPathScore} max path score
+        </div> */}
+        <div>
+          <label>Path Diversity:</label><input type="checkbox" name="diversity" checked={diversity} onChange={handleDiversityChange} /> 
         </div>
 
         <br></br>
@@ -217,7 +227,7 @@ const SelectedModal = ({
           <span className="csn-info">Hover over the visualization below to see the various cross-scale narrations. 
               Click to select the narration and zoom level.</span>
           <br></br>
-          <div className="top-csns-container">
+          <div className="csns-container">
             { selectedTopCSN ? <ZoomLine 
               csn={selectedTopCSN} 
               order={zoomOrder} 
@@ -225,7 +235,7 @@ const SelectedModal = ({
               highlight={true}
               selected={true}
               text={true}
-              width={34} 
+              width={32} 
               height={powerWidth} 
               onClick={() => {
                 onCSNSelected(selectedTopCSN)
@@ -233,6 +243,8 @@ const SelectedModal = ({
               }}
               onHover={handleMainLineHover}
               /> : null}
+          <div className="top-csns-container">
+            
               {csns.map((n,i) => {
                 return (<ZoomLine 
                   key={i}
@@ -242,7 +254,7 @@ const SelectedModal = ({
                   highlight={true}
                   selected={selectedTopCSN === n}
                   text={false}
-                  width={8.5} 
+                  width={8} 
                   height={powerWidth} 
                   onClick={() => {
                     onCSNSelected(n)
@@ -252,25 +264,28 @@ const SelectedModal = ({
                   />)
                 })}
 
-                {regionCSNSLeft.length && regionCSNSLeft.map((n,i) => {
-                return (<ZoomLine 
-                  key={i}
-                  csn={n} 
-                  order={zoomOrder} 
-                  maxPathScore={maxPathScore}
-                  highlight={true}
-                  selected={selectedTopCSN === n}
-                  text={false}
-                  width={8.5} 
-                  height={powerWidth} 
-                  onClick={() => {
-                    onCSNSelected(n)
-                    onNarration(makeNarration(n))
-                  }}
-                  onHover={handleLineHover(i)}
-                  />)
-                })}
-          </div> 
+            </div> 
+            <div className="region-csns-container">
+                  {regionCSNSLeft.length && regionCSNSLeft.map((n,i) => {
+                  return (<ZoomLine 
+                    key={i}
+                    csn={n} 
+                    order={zoomOrder} 
+                    maxPathScore={maxPathScore}
+                    highlight={true}
+                    selected={selectedTopCSN === n}
+                    text={false}
+                    width={8} 
+                    height={powerWidth} 
+                    onClick={() => {
+                      onCSNSelected(n)
+                      onNarration(makeNarration(n))
+                    }}
+                    onHover={handleLineHover(i)}
+                    />)
+                  })}
+            </div> 
+          </div>
               
           
           {narration?.score >= 0 ? <div>

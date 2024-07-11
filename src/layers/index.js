@@ -189,17 +189,33 @@ function rehydrate(index, list) {
   return {layer, fieldIndex, fieldName}
 }
 
-function makeField(layer, name) {
-  let fieldIndex = layer.fieldColor.domain().indexOf(name)
+// This can take in either a layer object or a layer datasetName
+// As well as a field name or fieldIndex
+function makeField(layer, fieldNameOrIndex, order) {
+  let l = layer
+  if(typeof layer === 'string') {
+    l = fullList.find(l => l.datasetName == layer)
+  }
+  let fieldIndex
+  let fieldName
+  if(typeof fieldNameOrIndex === 'number') {
+    fieldIndex = fieldNameOrIndex
+    fieldName = l.fieldColor.domain()[fieldNameOrIndex]
+  } else {
+    fieldIndex = l.fieldColor.domain().indexOf(fieldNameOrIndex)
+    fieldName = fieldNameOrIndex
+  }
   return { 
-    id: layer.name + ":" + fieldIndex, 
-    layer, 
-    label: name + " " + layer.name,
-    field: name,
+    id: l.name + ":" + fieldIndex, 
+    layer: l, 
+    label: fieldName + " " + l.name,
+    field: fieldName,
     index: fieldIndex, 
-    color: layer.fieldColor(name),
+    color: l.fieldColor(fieldName),
+    order: order,
   }
 }
+
 
 const factorLayers = csnLayers.concat(variantLayers.slice(0,1))
 const fields = factorLayers.flatMap(layer => {

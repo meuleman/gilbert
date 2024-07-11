@@ -289,8 +289,7 @@ export default function CSNVerticalSankey({
 
   const handleNodeFilter = useCallback((node) => {
     console.log("handling filter", node)
-    let field = makeField(node.dataLayer, node.field)
-    field.order = node.order
+    let field = makeField(node.dataLayer, node.field, node.order)
     console.log("field!", field)
     handleFilter(field, node.order)
     // onFilter((oldNodeFilter) => {

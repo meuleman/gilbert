@@ -37,7 +37,7 @@ const FilterModal = ({
   const [filteredIndices, setFilteredIndices] = useState([]) // the indices for each chromosome at highest order
   useEffect(() => {
 
-    console.log("filters changed in modal!", filters)
+    console.log("filters changed in modal!", JSON.stringify(filters))
     // console.log("SKIPPING CLIENT SIDE")
     // return;
 

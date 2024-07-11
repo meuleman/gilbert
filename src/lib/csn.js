@@ -75,17 +75,6 @@ function fetchFilteredRegions(filters, order) {
   })
 }
 
-/*
-*/
-function fetchSignificantFactors(region) {
-  const url = "https://explore.altius.org:5001/csn/significant_factors"
-  const postBody = {region}
-  return axios({
-    method: 'POST',
-    url: url,
-    data: postBody
-  })
-}
 
 
 // * ================================================================

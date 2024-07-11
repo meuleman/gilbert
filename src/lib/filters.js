@@ -3,9 +3,30 @@ import { range, groups, sum } from 'd3-array';
 import Data from './data'
 import { createSegments, joinSegments } from "./segments.js"
 import { HilbertChromosome, hilbertPosToOrder } from './HilbertChromosome';
+import { makeField } from '../layers';
 
 // import counts_native from "../data/counts.native_order_resolution.json"
 import counts_order14 from "../data/counts.order_14_resolution.json"
+
+function urlifyFilters(filtersMap) {
+  const filters = Object.keys(filtersMap).map(o => {
+    let f = filtersMap[o]
+    return {
+      order: +o,
+      index: f.index,
+      dataset_name: f.layer.datasetName
+    }
+  })
+  return encodeURIComponent(JSON.stringify(filters))
+}
+function parseFilters(filters) {
+  let parsed = JSON.parse(decodeURIComponent(filters))
+  let fs = {}
+  parsed.forEach(f => {
+    fs[f.order] = makeField(f.dataset_name, f.index, f.order)
+  })
+  return fs 
+}
 
 function calculateOrderSums() {
   const orderSums = Object.keys(counts_order14).map(o => {
@@ -150,7 +171,7 @@ function filterIndices(orderSelects, progressCb, resultsCb, regionsThreshold = 1
   const groupedSelects = groups(selects, d => d.chromosome)
   // console.log("groupedSelects", groupedSelects)
   const filteredGroupedSelects = groupedSelects.filter(g => g[1].length == orders.length)
-  // console.log("filteredGroupedSelects", filteredGroupedSelects)
+  console.log("!!!!! filteredGroupedSelects", filteredGroupedSelects)
 
   progressCb("grouped_selects", filteredGroupedSelects)
 
@@ -417,6 +438,8 @@ function regionsByOrder(filteredIndices, order) {
 export {
   // counts_native,
   counts_order14,
+  urlifyFilters,
+  parseFilters,
   calculateOrderSums,
   filterIndices,
   sampleRegions,

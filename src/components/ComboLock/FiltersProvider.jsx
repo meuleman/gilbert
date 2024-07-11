@@ -19,7 +19,7 @@ const FiltersProvider = ({ children }) => {
   }, []);
   
   return (
-    <FiltersContext.Provider value={{ filters, handleFilter}}>
+    <FiltersContext.Provider value={{ filters, handleFilter, setFilters}}>
       {children}
     </FiltersContext.Provider>
   );

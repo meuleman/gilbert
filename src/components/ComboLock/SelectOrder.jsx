@@ -92,7 +92,7 @@ const SelectOrder = ({
     if(filters[order]) {
       const sf = fieldMap[filters[order].id]
       console.log("setting selected filter", sf, filters[order], fieldMap)
-      setSelectedField(sf)
+      if(sf) setSelectedField(sf)
     } else {
       setSelectedField(null)
     }
