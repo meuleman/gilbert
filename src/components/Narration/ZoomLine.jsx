@@ -65,7 +65,7 @@ function tooltipContent(region, layer, orientation) {
       <span>{showPosition(region)}</span>
       <span className="position">[{showKb(Math.pow(4, 14 - region.order))}]</span>
       {/* <span className="position">Order: {region.order}</span> */}
-      <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer?.name}</span>
+      <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer?.name || "-"}</span>
       {fields.map((f,i) => (
         <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
           <span>
@@ -78,6 +78,15 @@ function tooltipContent(region, layer, orientation) {
           </span>
         </div>
       ))}
+      {fields.length == 0 ? <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+          <span>
+            <span style={{marginRight: '4px'}}></span>
+             -
+          </span>
+          <span>
+            -
+          </span>
+        </div> : null}
       {fullData.length ? <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>Other factors</span> : null}
       {fullData.map((f,i) => (
         <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
@@ -235,6 +244,14 @@ export default function ZoomLine({
             return <g key={o} 
               onMouseMove={(e) => handleHover(e, o)} 
               onMouseLeave={() => handleLeave()}>
+                <rect
+                y={yScale(o)}
+                x={0}
+                height={rw + 2}
+                width={width}
+                fill={ "white" }
+                fillOpacity={0.01}
+              />
               <rect
                 y={yScale(o)}
                 x={0}

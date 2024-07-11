@@ -368,7 +368,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
         // render the current layer
         ctx.globalAlpha = 1
         if(d.layer){
-          console.log("RENDER o", o, d)
+          //console.log("RENDER o", o, d)
           let rd = {}
           if(o < 14) {
             // if(d.layer.topValues) {

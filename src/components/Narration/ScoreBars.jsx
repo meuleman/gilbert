@@ -14,12 +14,17 @@ import PropTypes from 'prop-types';
 function tooltipContent(region, layer, orientation) {
   // let field = layer.fieldChoice(region)
   let fields = []
-  if(region.data?.max_field >= 0) {
+  if(!region.data) {
+    // for dehydrated csns we dont have any actual data
+    if(region.field) {
+      fields.push(region.field)
+    }
+  } else if(region.data.max_field >= 0) {
     fields.push(layer.fieldChoice(region))
     // fields.push({ field: region.data.max_field, value: region.data.max_value })
-  } else if(region.data?.bp) {
+  } else if(region.data.bp) {
     fields.push(layer.fieldChoice(region))
-  } else if(region.data) {
+  } else {
     fields = Object.keys(region.data).map(key => { 
       let layers = region.layers
       let factorCount = null
@@ -36,6 +41,7 @@ function tooltipContent(region, layer, orientation) {
   }
   let layers = region.layers;
   // figure out fullData, which is an object with layerIndex,fieldIndex for each key
+  // console.log("FULL DATA", region, region.layers, region.fullData)
   let fullData = region.layers && region.fullData ? Object.keys(region.fullData).map(key => {
     let [layerIndex, fieldIndex] = key.split(",")
     let layer = layers[+layerIndex]
@@ -52,7 +58,7 @@ function tooltipContent(region, layer, orientation) {
       <span>{showPosition(region)}</span>
       <span className="position">[{showKb(Math.pow(4, 14 - region.order))}]</span>
       {/* <span className="position">Order: {region.order}</span> */}
-      <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
+      <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer?.name || "-"}</span>
       {fields.map((f,i) => (
         <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
           <span>
@@ -65,7 +71,16 @@ function tooltipContent(region, layer, orientation) {
           </span>
         </div>
       ))}
-      <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>Other factors</span>
+      {fields.length == 0 ? <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+          <span>
+            <span style={{marginRight: '4px'}}></span>
+             -
+          </span>
+          <span>
+            -
+          </span>
+        </div> : null}
+      {fullData.length > 0 && <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>Other factors</span>}
       {fullData.map((f,i) => (
         <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
           <span>
@@ -79,6 +94,8 @@ function tooltipContent(region, layer, orientation) {
           </span>
         </div>
       ))}
+      <span style={{borderTop: "1px solid gray", marginTop: "4px"}}>
+        Path score: {showFloat(region.score)}</span>
     </div>
   )
 }
@@ -174,7 +191,7 @@ export default function ScoreBars({
     if(p) {
 
       const xoff = tipOrientation === "left" ? -5 : width + 5
-      tooltipRef.current.show({...p.region, fullData: p.fullData, layers: csn.layers}, p.layer, rect.x + xoff, rect.y + my)
+      tooltipRef.current.show({...p.region, fullData: p.fullData, layers: csn.layers, score: csn.score}, p.layer, rect.x + xoff, rect.y + my)
     }
     // tooltipRef.current.show(tooltipRef.current, csn)
   }, [csn, path, yScale, rw, onHover])
@@ -194,6 +211,15 @@ export default function ScoreBars({
               w = p.layer.datasetName.indexOf("enr") > -1 ? width * (p.field.value / maxENR) : width * (p.field.value)
             }
             return <g key={o} onMouseMove={(e) => handleHover(e, o)} onMouseLeave={() => handleLeave()}>
+              {/* this first rect acts as a mouse catcher */}
+              <rect
+                y={yScale(o)}
+                x={0}
+                height={rw+2}
+                width={width}
+                fill={ "white"}
+                fillOpacity={0.01}
+              />
               <rect
                 y={yScale(o)}
                 x={0}
