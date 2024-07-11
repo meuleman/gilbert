@@ -16,7 +16,7 @@ import { HilbertChromosome, hilbertPosToOrder } from "./HilbertChromosome";
 /*
 Get the top N paths filtered by filters and regions
 filters: [{order, field}, ...]
-regions: [{order, chromosome, index},...]
+region: {order, chromosome, index}
 scoreType: "full", "factor"
 diversity: true | false
 N: number of paths to return
@@ -26,9 +26,9 @@ Returns:
 
 region (and baseRegion): {order, chromosome, index}
 */
-function fetchTopCSNs(filtersMap, regions, scoreType, diversity, N) {
+function fetchTopCSNs(filtersMap, region, scoreType, diversity, N) {
 
-  if (Object.keys(filtersMap).length === 0) {
+  if (Object.keys(filtersMap).length === 0 && !region) {
     return Promise.resolve([]);
   }
   // order, index, dataset_name
@@ -42,7 +42,7 @@ function fetchTopCSNs(filtersMap, regions, scoreType, diversity, N) {
   })
 
   const url = "https://explore.altius.org:5001/api/csns/top_paths"
-  const postBody = {filters, scoreType, regions, diversity, N}
+  const postBody = {filters, scoreType, region, diversity, N}
   console.log("POST BODY", postBody)
   return axios({
     method: 'POST',

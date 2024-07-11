@@ -620,7 +620,7 @@ function Home() {
     }
     setCSNLoading("fetching")
     // Fetch the top csns from the API
-    fetchTopCSNs(filters, [], "factor", true, 100)
+    fetchTopCSNs(filters, null, "factor", true, 100)
       .then((response) => {
         console.log("FACTOR RESPONSE", response)
         if(!response) {
@@ -640,7 +640,7 @@ function Home() {
         setTopFactorCSNS([])
       })
     // for now we just pull both in parallel
-    fetchTopCSNs(filters, [], "full", true, 100)
+    fetchTopCSNs(filters, null, "full", true, 100)
       .then((response) => {
         console.log("FULL RESPONSE", response)
         if(!response) {
@@ -665,7 +665,8 @@ function Home() {
   // Fetch the CSNS via API for the selected region
   useEffect(() => {
     if(selected){
-      fetchTopCSNs(filters, [selected], "factor", pathDiversity, 100)
+      let nfs = Object.keys(filters).length
+      fetchTopCSNs(filters, selected, nfs ? "factor" : "full", pathDiversity, 100)
       .then((response) => {
         console.log("top csn for selected response", selected, response)
         if(!response || !response?.csns?.length) {
