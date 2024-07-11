@@ -78,7 +78,7 @@ function tooltipContent(region, layer, orientation) {
           </span>
         </div>
       ))}
-      <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>Other factors</span>
+      {fullData.length ? <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>Other factors</span> : null}
       {fullData.map((f,i) => (
         <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
           <span>
@@ -92,7 +92,10 @@ function tooltipContent(region, layer, orientation) {
           </span>
         </div>
       ))}
+      <span style={{borderTop: "1px solid gray", marginTop: "4px"}}>
+        Path score: {showFloat(region.score)}</span>
     </div>
+
   )
 }
 ZoomLine.propTypes = {
@@ -180,7 +183,7 @@ export default function ZoomLine({
     if(p) {
 
       const xoff = tipOrientation === "left" ? -5 : width + 5
-      tooltipRef.current.show({...p.region, fullData: p.fullData, layers: csn.layers}, p.layer, rect.x + xoff, rect.y + my)
+      tooltipRef.current.show({...p.region, fullData: p.fullData, layers: csn.layers, score: csn.score}, p.layer, rect.x + xoff, rect.y + my)
     }
     // tooltipRef.current.show(tooltipRef.current, csn)
   }, [csn, path, yScale, rw, onHover])
