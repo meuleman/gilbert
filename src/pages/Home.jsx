@@ -8,7 +8,7 @@ import Data from '../lib/data';
 import { urlify, jsonify, fromPosition, fromCoordinates } from '../lib/regions'
 import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
-import { fetchTopCSNs, rehydrateCSN, calculateCrossScaleNarrationInWorker, narrateRegion } from '../lib/csn'
+import { fetchTopCSNs, rehydrateCSN, calculateCrossScaleNarrationInWorker, narrateRegion, retrieveFullDataForCSN } from '../lib/csn'
 import { regionsByOrder, urlifyFilters, parseFilters } from '../lib/filters'
 import { range, groups, group } from 'd3-array'
 
@@ -630,6 +630,10 @@ function Home() {
         }
         if(currentRequest == csnRequestRef.current) {
           let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
+          // let hydratedWithFull = hydrated.slice(0,1).map(csn => retrieveFullDataForCSN(csn, [...csnLayers, ...variantLayers]))//.then((response) => {
+          //   return response
+          // }))
+          // console.log(hydratedWithFull)
           hydrated.forEach(d => d.scoreType = "factor")
           setTopFactorCSNS(hydrated)
           setCSNLoading("")

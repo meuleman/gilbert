@@ -75,6 +75,64 @@ function fetchFilteredRegions(filters, order) {
   })
 }
 
+const getRange = (region, order) => {
+  const hilbert = HilbertChromosome(order)
+  let range = hilbert.fromRegion(region.chromosome, region.start, region.end-1)
+  return range
+}
+
+
+function retrieveFullDataForCSN(csn, layers) {
+  const fetchData = Data({debug: false}).fetchData
+  let singleBPRegion = csn.path.filter(d => d.region.order === 14)[0].region
+  let csnWithFull = Promise.all(csn.path.map(p => {
+    let order = p.order
+    let fullData = {}
+    let orderAcrossLayers = Promise.all(layers.map((layer, l) => {
+      // if the layer includes current order
+      if((layer.orders[0] <= order) && (layer.orders[1] >= order)) {
+        // get hilbert ranges
+        const orderRange = getRange(singleBPRegion, order)
+        return fetchData(layer, order, orderRange)
+          .then((response) => {
+            let meta = response.metas[0]
+            let data = response[0]?.bytes
+            if(!data) return Promise.resolve(null)
+            if((meta.fields[0] === 'top_fields') && (meta.fields[1] === 'top_values')) {  // top x layer
+              for(let i = 0; i < data.length; i+=2) {
+                let index = data[i]
+                let value = data[i+1]
+                value > 0 ? fullData[`${l},${index}`] = value : null
+              }
+            } else if((meta.fields[0] === 'max_field') && (meta.fields[1] === 'max_value')) {  // max layer
+              let index = data[0]
+              let value = data[1]
+              value > 0 ? fullData[`${l},${index}`] = value : null
+
+            } else {  // full layer
+              data.forEach((value, index) => {
+                value > 0 ? fullData[`${l},${index}`] = value : null
+              })
+            }
+            return Promise.resolve(null)
+          })
+          .catch((error) => {
+            console.error(`Error fetching CSN data: ${error}`);
+            return Promise.resolve(null)
+          })
+      } else {
+        return Promise.resolve(null)
+      }
+    }))
+    return orderAcrossLayers.then((response) => {
+      p['fullData'] = fullData
+      return Promise.resolve(null)
+    })
+  }))
+
+  return csnWithFull.then(() => csn)
+}
+
 
 
 // * ================================================================
@@ -352,7 +410,8 @@ export {
   findUniquePaths,
   fetchDehydratedCSN,
   rehydrateCSN,
-  fetchTopCSNs
+  fetchTopCSNs,
+  retrieveFullDataForCSN
 }
 
 
