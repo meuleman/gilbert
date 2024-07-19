@@ -83,6 +83,8 @@ const getRange = (region, order) => {
 
 
 function retrieveFullDataForCSN(csn, layers) {
+  // if the fullData is already present, return the csn
+  if(!!csn.path[0].fullData) return Promise.resolve(csn)
   const fetchData = Data({debug: false}).fetchData
   let singleBPRegion = csn.path.filter(d => d.region.order === 14)[0].region
   let csnWithFull = Promise.all(csn.path.map(p => {
@@ -97,7 +99,7 @@ function retrieveFullDataForCSN(csn, layers) {
           .then((response) => {
             let meta = response.metas[0]
             let data = response[0]?.bytes
-            if(!data) return Promise.resolve(null)
+            if(!data) return
             if((meta.fields[0] === 'top_fields') && (meta.fields[1] === 'top_values')) {  // top x layer
               for(let i = 0; i < data.length; i+=2) {
                 let index = data[i]
@@ -114,23 +116,26 @@ function retrieveFullDataForCSN(csn, layers) {
                 value > 0 ? fullData[`${l},${index}`] = value : null
               })
             }
-            return Promise.resolve(null)
+            return
           })
           .catch((error) => {
             console.error(`Error fetching CSN data: ${error}`);
-            return Promise.resolve(null)
+            return
           })
       } else {
-        return Promise.resolve(null)
+        return
       }
     }))
     return orderAcrossLayers.then((response) => {
       p['fullData'] = fullData
-      return Promise.resolve(null)
+      return
     })
   }))
 
-  return csnWithFull.then(() => csn)
+  return csnWithFull.then(() => {
+    console.log(csn)
+    return csn
+  })
 }
 
 

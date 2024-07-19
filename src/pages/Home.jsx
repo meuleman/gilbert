@@ -630,10 +630,6 @@ function Home() {
         }
         if(currentRequest == csnRequestRef.current) {
           let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
-          // let hydratedWithFull = hydrated.slice(0,1).map(csn => retrieveFullDataForCSN(csn, [...csnLayers, ...variantLayers]))//.then((response) => {
-          //   return response
-          // }))
-          // console.log(hydratedWithFull)
           hydrated.forEach(d => d.scoreType = "factor")
           setTopFactorCSNS(hydrated)
           setCSNLoading("")
@@ -715,13 +711,19 @@ function Home() {
   }, [zoom.order, topFactorCSNS])
 
 
-  const handleSelectedCSN = useCallback((csn) => {
+  const handleSelectedCSNSankey = useCallback((csn) => {
     setSelectedTopCSN(csn)
     let hit = fromPosition(csn.chromosome, csn.i, csn.i+1, zoom.order)
     console.log("SELECTED CSN", csn, hit)
     setSelected(hit)
     setRegion(hit)
   }, [zoom.order])
+
+  const handleSelectedCSNSelectedModal = (csn) => {
+    retrieveFullDataForCSN(csn, [...csnLayers, ...variantLayers]).then((response) => {
+      setSelectedTopCSN(response)
+    })
+  }
 
   const handleHoveredCSN = useCallback((csn) => {
     setHoveredTopCSN(csn)
@@ -855,7 +857,7 @@ function Home() {
                 k={zoom.transform.k}
                 diversity={pathDiversity}
                 onCSNSelected={(csn) => {
-                  setSelectedTopCSN(csn)
+                  handleSelectedCSNSelectedModal(csn)
                 }}
                 onZoom={(region) => { setRegion(null); setRegion(region)}}
                 onClose={handleModalClose}
@@ -894,7 +896,7 @@ function Home() {
                 fullCsns={topFullCSNS}
                 loading={csnLoading}
                 shrinkNone={false} 
-                onSelectedCSN={handleSelectedCSN}
+                onSelectedCSN={handleSelectedCSNSankey}
                 onHoveredCSN={handleHoveredCSN}
                 onSort={(sort) => {
                   setCSNSort(sort)
