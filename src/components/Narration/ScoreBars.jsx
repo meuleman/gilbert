@@ -46,7 +46,7 @@ function tooltipContent(region, layer, orientation) {
     let [layerIndex, fieldIndex] = key.split(",")
     let layer = layers[+layerIndex]
     let field = layer.fieldColor.domain()[+fieldIndex]
-    let count = layerIndex in region.counts ? region.counts[layerIndex][fieldIndex] : null
+    let count = (region.counts && (layerIndex in region.counts)) ? region.counts[layerIndex][fieldIndex] : null
     return { layer, field, value: region.fullData[key], count }
   }).filter(d => fields.find(f => f.field !== d.field && layer.name !== d.layer.name))
   : []
