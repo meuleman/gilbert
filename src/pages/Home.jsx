@@ -720,8 +720,9 @@ function Home() {
   }, [zoom.order])
 
   const handleSelectedCSNSelectedModal = (csn) => {
-    retrieveFullDataForCSN(csn, [...csnLayers, ...variantLayers]).then((response) => {
+    retrieveFullDataForCSN(csn, [...csnLayers, ...variantLayers], countLayers).then((response) => {
       setSelectedTopCSN(response)
+      console.log(response)
     })
   }
 

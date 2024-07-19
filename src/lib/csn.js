@@ -1,6 +1,6 @@
 import axios from "axios";
 import Data from './data';
-import { range } from 'd3-array';
+import { count, range } from 'd3-array';
 
 import { fullList as layers, csnLayers, variantLayers, countLayers, rehydrate } from '../layers'
 
@@ -82,15 +82,18 @@ const getRange = (region, order) => {
 }
 
 
-function retrieveFullDataForCSN(csn, layers) {
+function retrieveFullDataForCSN(csn, layers, countLayers) {
   // if the fullData is already present, return the csn
   if(!!csn.path[0].fullData) return Promise.resolve(csn)
   const fetchData = Data({debug: false}).fetchData
+  let countLayerNames = countLayers.map(d => d.datasetName)  // so we can track counts vs full data
+
   let singleBPRegion = csn.path.filter(d => d.region.order === 14)[0].region
   let csnWithFull = Promise.all(csn.path.map(p => {
     let order = p.order
     let fullData = {}
-    let orderAcrossLayers = Promise.all(layers.map((layer, l) => {
+    let counts = {}
+    let orderAcrossLayers = Promise.all([...layers, ...countLayers].map((layer, l) => {
       // if the layer includes current order
       if((layer.orders[0] <= order) && (layer.orders[1] >= order)) {
         // get hilbert ranges
@@ -100,7 +103,10 @@ function retrieveFullDataForCSN(csn, layers) {
             let meta = response.metas[0]
             let data = response[0]?.bytes
             if(!data) return
-            if((meta.fields[0] === 'top_fields') && (meta.fields[1] === 'top_values')) {  // top x layer
+            if(countLayerNames.includes(layer.datasetName)) {  // count layer
+              let layerIndex = countLayerNames.indexOf(layer.datasetName)
+              counts[layerIndex] = data
+            } else if((meta.fields[0] === 'top_fields') && (meta.fields[1] === 'top_values')) {  // top x layer
               for(let i = 0; i < data.length; i+=2) {
                 let index = data[i]
                 let value = data[i+1]
@@ -128,12 +134,12 @@ function retrieveFullDataForCSN(csn, layers) {
     }))
     return orderAcrossLayers.then((response) => {
       p['fullData'] = fullData
+      p['counts'] = counts
       return
     })
   }))
 
   return csnWithFull.then(() => {
-    console.log(csn)
     return csn
   })
 }
