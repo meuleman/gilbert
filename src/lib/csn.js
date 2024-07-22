@@ -93,6 +93,7 @@ function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
     let order = p.order
     let fullData = {}
     let counts = {}
+    let data = {}
     let orderAcrossLayers = Promise.all(csnLayerList.map((layer, l) => {
       // if the layer includes current order
       if((layer.orders[0] <= order) && (layer.orders[1] >= order)) {
@@ -100,25 +101,26 @@ function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
         const orderRange = getRange(singleBPRegion, order)
         return fetchData(layer, order, orderRange)
           .then((response) => {
+            data[l] = response[0]  // save data
             let meta = response.metas[0]
-            let data = response[0]?.bytes
-            if(!data) return
+            let bytesData = response[0]?.bytes
+            if(!bytesData) return
             if(countLayerNames.includes(layer.datasetName)) {  // count layer
               let layerIndex = countLayerNames.indexOf(layer.datasetName)
-              counts[layerIndex] = data
+              counts[layerIndex] = bytesData
             } else if((meta.fields[0] === 'top_fields') && (meta.fields[1] === 'top_values')) {  // top x layer
-              for(let i = 0; i < data.length; i+=2) {
-                let index = data[i]
-                let value = data[i+1]
+              for(let i = 0; i < bytesData.length; i+=2) {
+                let index = bytesData[i]
+                let value = bytesData[i+1]
                 value > 0 ? fullData[`${l},${index}`] = value : null
               }
             } else if((meta.fields[0] === 'max_field') && (meta.fields[1] === 'max_value')) {  // max layer
-              let index = data[0]
-              let value = data[1]
+              let index = bytesData[0]
+              let value = bytesData[1]
               value > 0 ? fullData[`${l},${index}`] = value : null
 
             } else {  // full layer
-              data.forEach((value, index) => {
+              bytesData.forEach((value, index) => {
                 value > 0 ? fullData[`${l},${index}`] = value : null
               })
             }
@@ -135,6 +137,7 @@ function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
     return orderAcrossLayers.then((response) => {
       p['fullData'] = fullData
       p['counts'] = counts
+      p['data'] = data
       return
     })
   }))
