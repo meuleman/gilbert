@@ -11,6 +11,7 @@ import { showKb, showPosition } from '../../lib/display'
 import scaleCanvas from '../../lib/canvas'
 import { getOffsets } from "../../lib/segments"
 import { variantChooser } from '../../lib/csn';
+import { getGencodesInView } from '../../lib/Genes';
 
 import order_14 from '../../layers/order_14';
 
@@ -115,6 +116,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
   const canvasRef = useRef(null);
   // const canvasRef1D = useRef(null);
   const canvasRefStrip = useRef(null);
+  const canvasRefGenes = useRef(null);
   const tooltipRef = useRef(null)
 
   const percentScale = useMemo(() => scaleLinear().domain([1, 100]).range([4, 14.999]), [])
@@ -291,6 +293,21 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
     if(data && onData)
       onData(data)
   }, [data, onData])
+
+
+  const [genes, setGenes] = useState([])
+  useEffect(() => {
+    if(data && order) {
+      const points = data.find(d => d.order === order)?.points
+      if(points) {
+        const genes = getGencodesInView(points, order)
+        const cellSize =  points[0].end - points[0].start
+        console.log("GENES", genes, genes.filter(d => d.length > cellSize))
+        console.log("CELL",cellSize)
+        setGenes(genes)
+      }
+    }
+  }, [data, order])
 
   // useEffect(() => {
   //   onOrder && onOrder(order)
@@ -566,12 +583,111 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
         })
 
         // render the region being highlighted
+        ctxs.globalAlpha = 1
         ctxs.strokeStyle = "black"
         ctxs.lineWidth = 2;
         ctxs.strokeRect(xs(r.start), 0, xs(r.end) - xs(r.start)-0.5, rh-1)
       }
     }
   }, [percent, percentScale, csn, data, width, height, zoomToBox, scales])
+
+  // Render the Gene tracks
+  useEffect(() => {
+    const or = percentScale(percent)
+    const o = Math.floor(or)
+    const hilbert = new HilbertChromosome(o)
+
+    let rh = height / (15 - 4) // one row per order
+
+    if(genes && canvasRefGenes.current && data) {
+      // the region at the current order
+      const dorder = data.find(d => d.order === o)
+      if(dorder) {
+        const r = dorder.region
+
+        const ctxs = canvasRefGenes.current.getContext('2d');
+        ctxs.clearRect(0, 0, width, sheight)
+
+        // how many hilbert segments to render on either side of the region, scales up with order
+        const hdistance = 16 + 4 * (o - 4)
+
+        const pointso = dorder.points.filter(d => d.chromosome === r.chromosome && d.i > r.i - hdistance && d.i < r.i + hdistance)
+        const xExtentStart = extent(pointso, d => d.start)
+        const xExtentEnd = extent(pointso, d => d.end)
+        // the x scale is based on the start of the earliest point and the end of the latest point
+        let xs = scaleLinear().domain([xExtentStart[0], xExtentEnd[1]]).range([0, width])
+        // setInterpXScale(() => xs)
+
+        // we interpolate between this zoom and the next zoom region to get the scale we use
+        const no = o + 1
+        // the region at the next order
+        const dnorder = data.find(d => d.order === no)
+        let nxExtentStart, nxExtentEnd
+        if(dnorder) {
+          const nr = dnorder.region
+          const nhdistance = 16 + 4 * (no - 4)
+          const pointsno = dnorder.points.filter(d => d.chromosome === r.chromosome && d.i > nr.i - nhdistance && d.i < nr.i + nhdistance)
+          nxExtentStart = extent(pointsno, d => d.start)
+          nxExtentEnd = extent(pointsno, d => d.end)
+        } else {
+          // order 14
+          const rw = r.end - r.start
+          nxExtentStart = [r.start - rw*16, 0]
+          nxExtentEnd = [0, r.end + rw*16]
+        }
+
+        // the x scale is interpolated based on the difference between the raw order and order (0 to 1)
+        const interpolateStart = interpolateNumber(xExtentStart[0], nxExtentStart[0]);
+        const interpolateEnd = interpolateNumber(xExtentEnd[1], nxExtentEnd[1]);
+        xs = scaleLinear().domain([
+          interpolateStart(or - o), 
+          interpolateEnd(or - o)
+        ]).range([0, width]);
+        // setInterpXScale(() => xs)
+
+
+        const gs = getGencodesInView(pointso, o)
+
+        ctxs.globalAlpha = 1
+        // we want a global coordinate system essentially for the 1D visualization
+        gs.map((g,i) => {
+          // render a strip for each order
+          // const i = o - 4
+          // const y = i * rh
+          const h = rh
+          const w = width
+          ctxs.fillStyle = "white"
+          ctxs.fillRect(0, h, w, h)
+
+          ctxs.fillStyle = "black";
+          let x = xs(g.start)
+          // if(g.posneg == "-"){ 
+          //   x = xs(g.end)
+          // }
+          console.log("G", g.hgnc, xs(g.start), xs(g.end), rh - i - 5)
+          ctxs.fillText(g.hgnc, Math.floor(x), Math.floor(rh - i - 5));
+          
+          ctxs.beginPath();
+          let y = Math.floor(rh - i)
+          ctxs.moveTo(Math.floor(xs(g.start)), y);
+          ctxs.lineTo(Math.floor(xs(g.end)), y);
+          // console.log("g", g, xs(g.start), xs(g.end))
+          ctxs.strokeStyle = "black";
+          ctxs.lineWidth = 2;
+          ctxs.stroke();
+
+          
+
+          // const dhdistance = 16 + 4 * (o - 4)
+        })
+
+        // render the region being highlighted
+        // ctxs.strokeStyle = "black"
+        // ctxs.lineWidth = 2;
+        // ctxs.strokeRect(xs(r.start), 0, xs(r.end) - xs(r.start)-0.5, rh-1)
+      }
+    }
+  }, [percent, percentScale, data, width, height, zoomToBox, scales, genes, sheight])
 
   const handleMouseMove = useCallback((e) => {
     // if(!xScaleRef.current || !data?.length) return
@@ -657,6 +773,18 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         />
+      <canvas 
+        className="power-canvas-genes"
+        width={width + "px"}
+        height={sheight + "px"}
+        style={{width: width + "px", height: sheight + "px"}}
+        ref={canvasRefGenes}
+        // onMouseMove={handleMouseMove}
+        // onMouseLeave={handleMouseLeave}
+      />
+      {/* <label>
+        extent {extent(data?.find(d => d.order === order)?.points || [], d => d.start).join(", ")}
+      </label> */}
       {/* <label>
         <input style={{width: (width*1) + "px"}} type="range" min={1} max={100} value={percent} onChange={(e) => setPercent(e.target.value)}></input>
         {order}

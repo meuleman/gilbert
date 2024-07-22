@@ -86,3 +86,21 @@ export function getGenesInView(points, order, limit = 2500) {
   })
 }
 
+export function getGencodesInView(points, order, limit = 2500) {
+  // Calculate the extents of the points in view
+  let pointConstraints = rollups(points, v => extent(v, d => d.start), d => d.chromosome)
+  let pointConstraintsChrs = pointConstraints.map(d => d[0])
+  let pointConstraintsExtents = pointConstraints.map(d => d[1])
+  let threshold = hilbertPosToOrder(1, {from: order, to: 14 })
+  // filter the genes to only those that can be in view
+  let filteredGencode = gencode.filter(d => {
+    if(d.length < threshold) return false;
+    if(d.length > limit * threshold) return false;
+    let pi = pointConstraintsChrs.indexOf(d.chromosome)
+    if(pi < 0) return false;
+    return (d.start > pointConstraintsExtents[pi][0] && d.start < pointConstraintsExtents[pi][1])
+      || (d.end > pointConstraintsExtents[pi][0] && d.end < pointConstraintsExtents[pi][1])
+  })
+  return filteredGencode
+}
+
