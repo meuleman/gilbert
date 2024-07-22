@@ -4,7 +4,7 @@ import FiltersContext from './ComboLock/FiltersContext'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
 import { showKb } from '../lib/display'
-import { csnLayers, makeField } from '../layers'
+import { csnLayers, variantLayers, countLayers, makeField } from '../layers'
 import CSNSentence from './Narration/Sentence'
 import CSNLine from './Narration/Line'
 import ZoomLine from './Narration/ZoomLine'
@@ -53,7 +53,7 @@ const SelectedModal = ({
       return {}
     }
     n.path = n.path.filter(d => !!d).sort((a,b) => a.order - b.order)
-    n.layers = csnLayers
+    // n.layers = csnLayers.concat(variantLayers).concat(countLayers)
 
     // TODO: add the data (and full data?) to the path
     return n

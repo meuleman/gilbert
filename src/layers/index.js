@@ -158,6 +158,8 @@ const countLayers = [
   fullList.find(d => d.datasetName == "repeats_enr_counts"),
 ]
 
+const csnLayerList = csnLayers.concat(variantLayers).concat(countLayers)
+
 function rehydrate(index, list) {
   if(index < 0) return null
   const field = fieldMapping[index]
@@ -225,11 +227,13 @@ const fields = factorLayers.flatMap(layer => {
   return fs 
 })
 
+
 export {
   fullList,
   csnLayers,
   variantLayers,
   countLayers,
+  csnLayerList,
   fieldMapping,
   rehydrate,
   fields,

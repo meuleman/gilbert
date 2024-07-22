@@ -1,5 +1,8 @@
 import { showFloat, showInt, showPosition, showKb } from '../../lib/display';
+import { csnLayerList } from '../../layers'
 import './FactorTooltip.css'
+
+import { csnLayerList as layers } from '../../layers'
 
 function tooltipContent(region, layer, orientation) {
   // let field = layer.fieldChoice(region)
@@ -8,6 +11,11 @@ function tooltipContent(region, layer, orientation) {
     // for dehydrated csns we dont have any actual data
     if(region.field) {
       fields.push(region.field)
+      let layer = region.layer
+      let layerIndex = csnLayerList.findIndex(l => l.datasetName == layer.datasetName)
+      let count = (region.counts && (region.counts[layerIndex]?.length)) ? region.counts[layerIndex][region.field.index] : null 
+      // console.log("COUNT IN FIELD", count, layerIndex, region)
+      region.field.count = count
     }
   } else if(region.data.max_field >= 0) {
     fields.push(layer.fieldChoice(region))
@@ -16,7 +24,7 @@ function tooltipContent(region, layer, orientation) {
     fields.push(layer.fieldChoice(region))
   } else {
     fields = Object.keys(region.data).map(key => { 
-      let layers = region.layers
+      // let layers = region.layers
       let factorCount = null
       if(layers && region['counts']) {
         let layer = layers[region['layerInd']]
@@ -30,14 +38,14 @@ function tooltipContent(region, layer, orientation) {
       .filter(d => d.value > 0 && d.field !== "top_fields")
   }
   // console.log("TOOLTIP FIELDS", fields, region)
-  let layers = region.layers;
+  // let layers = region.layers;
   // figure out fullData, which is an object with layerIndex,fieldIndex for each key
-  // console.log("FULL DATA", region, region.layers, region.fullData)
-  let fullData = region.layers && region.fullData ? Object.keys(region.fullData).map(key => {
+  // console.log("FULL DATA", region, region.fullData)
+  let fullData = region.fullData ? Object.keys(region.fullData).map(key => {
     let [layerIndex, fieldIndex] = key.split(",")
     let layer = layers[+layerIndex]
     let field = layer.fieldColor.domain()[+fieldIndex]
-    let count = (region.counts && (layerIndex in region.counts)) ? region.counts[layerIndex][fieldIndex] : null
+    let count = (region.counts && (region.counts[layerIndex]?.length)) ? region.counts[layerIndex][fieldIndex] : null
     return { layer, field, value: region.fullData[key], count }
   }).filter(d => fields.find(f => f.field !== d.field && layer.name !== d.layer.name))
   : []

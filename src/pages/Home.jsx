@@ -675,6 +675,7 @@ function Home() {
         }
         let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
         hydrated.forEach(d => d.scoreType = "factor")
+        console.log("TOP SELECTED", response.csns, hydrated)
         setRegionCSNS(hydrated)
       })
     }
@@ -720,7 +721,7 @@ function Home() {
   }, [zoom.order])
 
   const handleSelectedCSNSelectedModal = (csn) => {
-    retrieveFullDataForCSN(csn, [...csnLayers, ...variantLayers], countLayers).then((response) => {
+    retrieveFullDataForCSN(csn).then((response) => {
       setSelectedTopCSN(response)
       console.log("full data response", response)
     })
