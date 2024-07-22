@@ -722,7 +722,7 @@ function Home() {
   const handleSelectedCSNSelectedModal = (csn) => {
     retrieveFullDataForCSN(csn, [...csnLayers, ...variantLayers], countLayers).then((response) => {
       setSelectedTopCSN(response)
-      console.log(response)
+      console.log("full data response", response)
     })
   }
 
