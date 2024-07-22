@@ -1,0 +1,14 @@
+.tooltip-factor-name {
+  font-size: 14px;
+  line-height: 26px;
+  margin-right: 4px;
+  min-width: 120px;
+}
+.tooltip-layer-name {
+  /* font-style: italic; */
+  font-size: 10px;
+  line-height: 26px;
+  margin-right: 4px;
+  text-align: right;
+  min-width: 200px;
+}

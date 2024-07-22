@@ -1,4 +1,5 @@
 import { showFloat, showInt, showPosition, showKb } from '../../lib/display';
+import './FactorTooltip.css'
 
 function tooltipContent(region, layer, orientation) {
   // let field = layer.fieldChoice(region)
@@ -48,13 +49,17 @@ function tooltipContent(region, layer, orientation) {
       <span>{showPosition(region)}</span>
       <span className="position">[{showKb(Math.pow(4, 14 - region.order))}]</span>
       {/* <span className="position">Order: {region.order}</span> */}
-      <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer?.name || "-"}</span>
+      <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>
+        {/* {layer?.name || "-"} */}
+        Winning factor
+      </span>
       {fields.map((f,i) => (
         <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-          <span>
+          <span className="tooltip-factor-name">
             <span style={{color: layer.fieldColor(f.field), marginRight: '4px'}}>⏺</span>
             {f.field} 
           </span>
+          <span className="tooltip-layer-name">{layer?.name}</span>
           <span>
             {typeof f.value == "number" ? showFloat(f.value) : f.value}
             {typeof f.count == "number" && ` (${showInt(f.count)})`}
@@ -73,11 +78,11 @@ function tooltipContent(region, layer, orientation) {
       {fullData.length ? <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>Other factors</span> : null}
       {fullData.map((f,i) => (
         <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-          <span>
+          <span className="tooltip-factor-name"  >
             <span style={{color: f.layer.fieldColor(f.field), marginRight: '4px'}}>⏺</span>
             {f.field} 
           </span>
-          <span>{f.layer.name}</span>
+          <span className="tooltip-layer-name">{f.layer.name}</span>
           <span>
             {typeof f.value == "number" ? showFloat(f.value) : f.value}
             {typeof f.count == "number" && ` (${showInt(f.count)})`}
