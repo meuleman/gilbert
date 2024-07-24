@@ -55,7 +55,7 @@ import useCanvasFilteredRegions from '../components/ComboLock/CanvasFilteredRegi
 
 import { getSet } from '../components/Regions/localstorage'
 import SelectedModal from '../components/SelectedModal'
-import PowerOverlay from '../components/PowerOverlay'
+import InspectorGadget from '../components/InspectorGadget'
 import SimSearchResultList from '../components/SimSearch/ResultList'
 import GenesetEnrichment from '../components/SimSearch/GenesetEnrichment';
 // import Spectrum from '../components/Spectrum';
@@ -622,7 +622,7 @@ function Home() {
     // Fetch the top csns from the API
     fetchTopCSNs(filters, null, "factor", true, 100)
       .then((response) => {
-        console.log("FACTOR RESPONSE", response)
+        // console.log("FACTOR RESPONSE", response)
         if(!response) {
           setCSNLoading("Error!")
           setTopFactorCSNS([])
@@ -642,7 +642,7 @@ function Home() {
     // for now we just pull both in parallel
     fetchTopCSNs(filters, null, "full", true, 100)
       .then((response) => {
-        console.log("FULL RESPONSE", response)
+        // console.log("FULL RESPONSE", response)
         if(!response) {
           // setCSNLoading("Error!")
           setTopFullCSNS([])
@@ -668,14 +668,13 @@ function Home() {
       let nfs = Object.keys(filters).length
       fetchTopCSNs(filters, selected, nfs ? "factor" : "full", pathDiversity, 100)
       .then((response) => {
-        console.log("top csn for selected response", selected, response)
+        // console.log("top csns for selected response", selected, response)
         if(!response || !response?.csns?.length) {
           setRegionCSNS([])
           return
         }
         let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
         hydrated.forEach(d => d.scoreType = "factor")
-        console.log("TOP SELECTED", response.csns, hydrated)
         setRegionCSNS(hydrated)
       })
     }
@@ -836,7 +835,7 @@ function Home() {
           />
           
           {selected && powerNarration ? 
-              <PowerOverlay 
+              <InspectorGadget 
                 selected={selected} 
                 zoomOrder={powerOrder}
                 narration={powerNarration}
@@ -847,7 +846,7 @@ function Home() {
                 modalPosition={modalPosition}
                 onClose={handleModalClose}
                 >
-            </PowerOverlay> : null}
+            </InspectorGadget> : null}
           {selected ? 
               <SelectedModal 
                 showFilter={showFilter}

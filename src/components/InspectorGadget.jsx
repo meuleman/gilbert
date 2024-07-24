@@ -12,9 +12,9 @@ import { scaleLinear } from 'd3-scale'
 import { variantChooser } from '../lib/csn'
 import { makeField } from '../layers'
 
-import './PowerOverlay.css'
+import './InspectorGadget.css'
 
-const PowerOverlay = ({
+const InspectorGadget = ({
   selected = null,
   narration = null,
   zoomOrder,
@@ -147,4 +147,4 @@ const PowerOverlay = ({
 </>
   )
 }
-export default PowerOverlay
+export default InspectorGadget

@@ -126,7 +126,7 @@ export default function ScoreBars({
               <rect
                 y={yScale(o)}
                 x={0}
-                height={rw+2}
+                height={rw}
                 width={width}
                 fill={ "white"}
                 fillOpacity={0.01}
