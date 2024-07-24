@@ -113,7 +113,7 @@ export default function ScoreBars({
 
   return (
     <div className="score-bars" onClick={() => onClick(csn)}>
-      <svg width={width} height={height}>
+      <svg width={width} height={height}  onMouseLeave={() => handleLeave()}>
         {path.length && yScale ? <g>
           {range(4, 15).map(o => {
             let p = path.find(d => d.order == o)
@@ -121,7 +121,7 @@ export default function ScoreBars({
             if(p && p.layer) {
               w = p.layer.datasetName.indexOf("enr") > -1 ? width * (p.field.value / maxENR) : width * (p.field.value)
             }
-            return <g key={o} onMouseMove={(e) => handleHover(e, o)} onMouseLeave={() => handleLeave()}>
+            return <g key={o} onMouseMove={(e) => handleHover(e, o)}>
               {/* this first rect acts as a mouse catcher */}
               <rect
                 y={yScale(o)}
@@ -161,7 +161,7 @@ export default function ScoreBars({
           {range(4, 15).map(o => {
             let p = path.find(d => d.order == o)
             let bp = showKb(Math.pow(4, 14 - o))
-            return <g key={o} onMouseMove={(e) => handleHover(e, o)} onMouseLeave={() => handleLeave()}>
+            return <g key={o} onMouseMove={(e) => handleHover(e, o)}>
               <text
                 y={yScale(o) + 2*rw/3}
                 x={width / 2}
