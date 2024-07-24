@@ -298,6 +298,7 @@ function Home() {
 
   const handleClick = useCallback((hit, order, double) => {
     // console.log("app click handler", hit, order, double)
+    console.log("HANDLE CLICK", hit)
     try {
       if(hit === selected) {
         setSelected(null) 
@@ -305,8 +306,11 @@ function Home() {
         setSimSearch(null)
       } else if(hit) {
         console.log("setting selected from click", hit)
-        setSelected(hit)
+        setSelectedTopCSN(null)
+        setRegionCSNS([])
+        setLoadingRegionCSNS(true) // TODO: this is to avoid flashing intermediate state of selected modal
         setSelectedOrder(order)
+        setSelected(hit)
       }
     } catch(e) {
       console.log("caught error in click", e)
@@ -662,21 +666,30 @@ function Home() {
   }, [filters])
 
   const [pathDiversity, setPathDiversity] = useState(true)
+  const [loadingRegionCSNS, setLoadingRegionCSNS] = useState(false)
   // Fetch the CSNS via API for the selected region
   useEffect(() => {
+
     if(selected){
       let nfs = Object.keys(filters).length
+      setLoadingRegionCSNS(true)
+      setRegionCSNS([])
       fetchTopCSNs(filters, selected, nfs ? "factor" : "full", pathDiversity, 100)
       .then((response) => {
         // console.log("top csns for selected response", selected, response)
         if(!response || !response?.csns?.length) {
           setRegionCSNS([])
+          setLoadingRegionCSNS(false)
           return
         }
         let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
         hydrated.forEach(d => d.scoreType = "factor")
         setRegionCSNS(hydrated)
+        setLoadingRegionCSNS(false)
       })
+    } else {
+      setLoadingRegionCSNS(false)
+      setRegionCSNS([])
     }
   }, [filters, selected, pathDiversity])
 
@@ -712,17 +725,25 @@ function Home() {
 
 
   const handleSelectedCSNSankey = useCallback((csn) => {
-    setSelectedTopCSN(csn)
     let hit = fromPosition(csn.chromosome, csn.i, csn.i+1, zoom.order)
     console.log("SELECTED CSN", csn, hit)
     setSelected(hit)
     setRegion(hit)
+    setLoadingSelectedCSN(true)
+    retrieveFullDataForCSN(csn).then((response) => {
+      setSelectedTopCSN(response)
+      setLoadingSelectedCSN(false)
+    })
   }, [zoom.order])
 
+  const [loadingSelectedCSN, setLoadingSelectedCSN] = useState(false)
   const handleSelectedCSNSelectedModal = (csn) => {
+    if(!csn) return
+    setLoadingSelectedCSN(true)
     retrieveFullDataForCSN(csn).then((response) => {
       setSelectedTopCSN(response)
       console.log("full data response", response)
+      setLoadingSelectedCSN(false)
     })
   }
 
@@ -834,13 +855,13 @@ function Home() {
             searchByFactorInds={searchByFactorInds}
           />
           
-          {selected && powerNarration ? 
+          {selected && selectedTopCSN ? 
               <InspectorGadget 
                 selected={selected} 
                 zoomOrder={powerOrder}
-                narration={powerNarration}
+                narration={selectedTopCSN}
                 layers={csnLayers}
-                loadingCSN={loadingCSN}
+                loadingCSN={loadingSelectedCSN}
                 mapWidth={width}
                 mapHeight={height}
                 modalPosition={modalPosition}
@@ -852,9 +873,11 @@ function Home() {
                 showFilter={showFilter}
                 selected={selected} 
                 regionCSNS={regionCSNS}
+                loadingRegionCSNS={loadingRegionCSNS}
                 topCSNS={topCSNSFactorByCurrentOrder}
                 regionsByOrder={rbos}
                 selectedTopCSN={selectedTopCSN}
+                loadingSelectedCSN={loadingSelectedCSN}
                 k={zoom.transform.k}
                 diversity={pathDiversity}
                 onCSNSelected={(csn) => {
