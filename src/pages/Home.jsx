@@ -163,12 +163,14 @@ function Home() {
   useEffect(() => {
     zoomRef.current = zoom
   }, [zoom])
+
   const handleZoom = useCallback((newZoom) => {
     if(zoomRef.current.order !== newZoom.order && !layerLockRef.current) {
       setLayer(layerOrderRef.current[newZoom.order])
     }  
     setZoom(newZoom)
   }, [setZoom, setLayer])
+  
 
     // selected powers the sidebar modal and the 1D track
   const [selected, setSelected] = useState(jsonify(initialSelectedRegion))
@@ -362,9 +364,7 @@ function Home() {
     }
   }, [regionset, selected, filters, setExampleRegions, updateUrlParams])
   useEffect(() => {
-    console.log("FILTERS????????????", initialUpdateRef.current, filters)
     if (!initialUpdateRef.current) { // Only update URL params if not the initial update
-      console.log("UPDATING FILTERS?", filters)
       updateUrlParams(regionset, selected, filters);
     }
   }, [filters, regionset, selected, updateUrlParams]);
@@ -552,7 +552,6 @@ function Home() {
 
 
   const [powerOrder, setPowerOrder] = useState(zoom.order + 0.5)
-  const [powerNarration, setPowerNarration] = useState(null)
 
   // // when in layer suggestion mode, this function will update the
   // // layer order based on the current viewable data
@@ -574,26 +573,26 @@ function Home() {
   // console.log("tracks?", trackMinus1, trackPlus1)
 
   // When data or selected changes, we want to update the tracks
-  useEffect(() => {
-    if(!dataRef.current) return
-    if(isZooming) return;
-    const minOrder = Math.max(layerRef.current.orders[0], dataRef.current.order - 5)
-    let promises = range(minOrder, dataRef.current.order).map(order => {
-      return new Promise((resolve) => {
-        fetchLayerData(layerRef.current, order, dataRef.current.bbox, "pyramid", (response) => {
-          resolve(response)
-        })
-      })
-    })
-    // if(isZooming) setTracksLoading(true)
-    Promise.all(promises).then((responses) => {
-      setTrackState(dataRef.current)
-      setTracks(responses)
-      setTracksLoading(false)
-    })
-  // make sure this updates only when the data changes
-  // the pyramid will lag behind a little bit but wont make too many requests
-  }, [zoom, data, isZooming, fetchLayerData]) 
+  // useEffect(() => {
+  //   if(!dataRef.current) return
+  //   if(isZooming) return;
+  //   const minOrder = Math.max(layerRef.current.orders[0], dataRef.current.order - 5)
+  //   let promises = range(minOrder, dataRef.current.order).map(order => {
+  //     return new Promise((resolve) => {
+  //       fetchLayerData(layerRef.current, order, dataRef.current.bbox, "pyramid", (response) => {
+  //         resolve(response)
+  //       })
+  //     })
+  //   })
+  //   // if(isZooming) setTracksLoading(true)
+  //   Promise.all(promises).then((responses) => {
+  //     setTrackState(dataRef.current)
+  //     setTracks(responses)
+  //     setTracksLoading(false)
+  //   })
+  // // make sure this updates only when the data changes
+  // // the pyramid will lag behind a little bit but wont make too many requests
+  // }, [zoom, data, isZooming, fetchLayerData]) 
 
 
   // const [filters, setFilters] = useState([])
@@ -604,8 +603,8 @@ function Home() {
   const [rbos, setRbos] = useState({}) // regions by order
   const [topFullCSNS, setTopFullCSNS] = useState([])
   const [topFactorCSNS, setTopFactorCSNS] = useState([])
-  const [csnLoading, setCSNLoading] = useState("")
   const [selectedTopCSN, setSelectedTopCSN] = useState(null)
+  const [csnLoading, setCSNLoading] = useState("")
   const [hoveredTopCSN, setHoveredTopCSN] = useState(null)
   const [csnSort, setCSNSort] = useState("factor")
   const [topCSNS, setTopCSNS] = useState([])
@@ -925,9 +924,6 @@ function Home() {
                 onSort={(sort) => {
                   setCSNSort(sort)
                 }}
-                // onCSNS={(csns) => {
-                //   setTopCSNS(csns)
-                // }}
               />
             </div>
 
@@ -1029,8 +1025,10 @@ function Home() {
         <div className='footer'>
           <div className='footer-row'>
             <div className='linear-tracks'>
+
               {selected  && <RegionStrip region={selected} segments={100} layer={layer} width={width} height={40} /> }
               {!selected && <RegionStrip region={hover} segments={100} layer={layer} width={width} height={40} /> }
+
               {/* <TrackPyramid
                 state={trackState} 
                 tracks={tracks}
