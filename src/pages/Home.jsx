@@ -724,8 +724,12 @@ function Home() {
 
 
   const handleSelectedCSNSankey = useCallback((csn) => {
-    let hit = fromPosition(csn.chromosome, csn.i, csn.i+1, zoom.order)
-    console.log("SELECTED CSN", csn, hit)
+    let hit = csn.path.find(d => d.order == zoom.order)?.region
+    if(!hit) {
+      console.log("no hit?", csn)
+      hit = fromPosition(csn.chromosome, csn.i, csn.i+1, zoom.order)
+    }
+    console.log("SELECTED SANKEY CSN", csn, hit)
     setSelected(hit)
     setRegion(hit)
     setLoadingSelectedCSN(true)

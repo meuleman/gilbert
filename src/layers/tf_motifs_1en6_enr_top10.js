@@ -26,7 +26,7 @@ export default {
   strokeWidthMultiplier: 0.05,
   stroke: "gray",
   fill: "white",
-  topValues: true
+  topValues: false 
 }
 
 function decodeValueTF(d) {

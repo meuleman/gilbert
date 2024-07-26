@@ -388,23 +388,20 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
         ctx.globalAlpha = 1
         if(d.layer){
           //console.log("RENDER o", o, d)
-          let rd = {}
           if(o < 14) {
-            // if(d.layer.topValues) {
-            //   rd["max_field"] = d.layer.fieldColor.domain().indexOf(d.p.field.field)
-            //   rd["max_value"] = d.p.field.value
-            // } else {
-            //   rd[d.p.field.field] = d.p.field.value
-            // }
             // set the central region's data to the field we chose 
             const central = d.data.find(r => r.i == d.p.region.i)
             if(d.region.data) {
               central.data = d.region.data
             } else {
-              // TODO: this doesn't work because of max_field layers...
               // console.log("central", d.region, central)
               let centralData = {}
-              centralData[d.region.field.field] = central.data[d.region.field.field]
+              if(d.layer.topValues) {
+                centralData["max_value"] = d.region.field.value
+                centralData["max_field"] = d.region.field.index
+              } else {
+                centralData[d.region.field.field] = d.region.field.value
+              }
               central.data = centralData
             }
           }
@@ -528,6 +525,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
         setInterpXScale(() => xs)
 
 
+        // TODO: why is this still going thru all the layers if we are only rendering 1 (or 2)
         // we want a global coordinate system essentially for the 1D visualization
         data.map(d => {
           // render a strip for each order
