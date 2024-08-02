@@ -20,6 +20,14 @@
   max-width: 400px;
 }
 
+.sankey-modal .line-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+.sankey-modal .line-column h4 {
+  margin: 0px;
+}
 .sankey-modal .csn-lines {
   display: flex;
   flex-direction: row;

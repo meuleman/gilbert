@@ -625,7 +625,7 @@ function Home() {
     // Fetch the top csns from the API
     fetchTopCSNs(filters, null, "factor", true, 100)
       .then((response) => {
-        // console.log("FACTOR RESPONSE", response)
+        console.log("FACTOR RESPONSE", response)
         if(!response) {
           setCSNLoading("Error!")
           setTopFactorCSNS([])
@@ -645,7 +645,7 @@ function Home() {
     // for now we just pull both in parallel
     fetchTopCSNs(filters, null, "full", true, 100)
       .then((response) => {
-        // console.log("FULL RESPONSE", response)
+        console.log("FULL RESPONSE", response)
         if(!response) {
           // setCSNLoading("Error!")
           setTopFullCSNS([])
@@ -776,7 +776,7 @@ function Home() {
     // setCrossScaleNarration(new Array(1).fill({'path': []}))
     setSelectedTopCSN(null)
     setRegionCSNS([])
-    setPowerNarration(null)
+    // setPowerNarration(null)
   }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setSelectedTopCSN])
 
 
