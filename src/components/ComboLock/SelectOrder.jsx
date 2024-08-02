@@ -73,6 +73,7 @@ const SelectOrder = ({
   order, 
   orderSums, 
   previewField, 
+  previewValues,
   showNone, 
   showUniquePaths, 
   disabled, 
@@ -216,18 +217,23 @@ const SelectOrder = ({
   }
 
   useEffect(() => {
-    if(previewField) {
+    if(previewField && previewValues) {
       // console.log("previewField", previewField, order)
-      let numPaths = filteredIndices.length > 0 ? filteredIndices.reduce((acc, d) => acc + d.indices.length, 0) : orderSums[0].totalPaths
+      // let numPaths = filteredIndices.length > 0 ? filteredIndices.reduce((acc, d) => acc + d.indices.length, 0) : orderSums[0].totalPaths
       // get intersection for factor
-      getIntersectionForFactor(previewField, order).then(factorIndices => {
-        let numFactorPaths = factorIndices.reduce((acc, d) => acc + d.indices.length, 0)
-        let matchingField = {...previewField}
-        matchingField['order'] = order
-        // calculate percentage of available paths that have factor at order
-        matchingField['percent'] = numFactorPaths / numPaths * 100
-        if(numFactorPaths > 0) setPreviewBar(matchingField)
-      })
+      // getIntersectionForFactor(previewField, order).then(factorIndices => {
+      //   let numFactorPaths = factorIndices.reduce((acc, d) => acc + d.indices.length, 0)
+      //   let matchingField = {...previewField}
+      //   matchingField['order'] = order
+      //   // calculate percentage of available paths that have factor at order
+      //   matchingField['percent'] = numFactorPaths / numPaths * 100
+      //   if(numFactorPaths > 0) setPreviewBar(matchingField)
+      // })
+
+      let matchingField = {...previewField}
+      matchingField['order'] = order
+      matchingField['percent'] = previewValues[order] * 100
+      if(previewValues[order] > 0) setPreviewBar(matchingField)
 
       // const matchingField = allFields.find(field => field.label === previewField.label);
       // // console.log(order, matchingField, allFields)
@@ -235,7 +241,7 @@ const SelectOrder = ({
     } else {
       setPreviewBar(null) 
     }
-  }, [previewField])
+  }, [previewField, previewValues])
 
   return (
     <div className="filter-order" style={{ 

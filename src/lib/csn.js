@@ -14,6 +14,26 @@ import { HilbertChromosome, hilbertPosToOrder } from "./HilbertChromosome";
 // * ================================================================
 
 /*
+Converts filtersMap to a list of filters
+*/
+function getFilters(filtersMap, region) {
+  if (Object.keys(filtersMap).length === 0 && !region) {
+    return Promise.resolve([]);
+  }
+  // order, index, dataset_name
+  const filters = Object.keys(filtersMap).map(o => {
+    let f = filtersMap[o]
+    return {
+      order: +o,
+      index: f.index,
+      dataset_name: f.layer.datasetName
+    }
+  })
+  return filters
+}
+
+
+/*
 Get the top N paths filtered by filters and regions
 filters: [{order, field}, ...]
 region: {order, chromosome, index}
@@ -27,19 +47,7 @@ Returns:
 region (and baseRegion): {order, chromosome, index}
 */
 function fetchTopCSNs(filtersMap, region, scoreType, diversity, N) {
-
-  if (Object.keys(filtersMap).length === 0 && !region) {
-    return Promise.resolve([]);
-  }
-  // order, index, dataset_name
-  const filters = Object.keys(filtersMap).map(o => {
-    let f = filtersMap[o]
-    return {
-      order: +o,
-      index: f.index,
-      dataset_name: f.layer.datasetName
-    }
-  })
+  const filters = getFilters(filtersMap, region)
 
   const url = "https://explore.altius.org:5001/api/csns/top_paths"
   const postBody = {filters, scoreType, region, diversity, N}
@@ -50,6 +58,36 @@ function fetchTopCSNs(filtersMap, region, scoreType, diversity, N) {
     data: postBody
   }).then(response => {
     console.log("DATA", response.data)
+    return response.data
+  }).catch(error => {
+    console.error(`error:     ${JSON.stringify(error)}`);
+    console.error(`post body: ${JSON.stringify(postBody)}`);
+    return null
+  })
+}
+
+/*
+Get the preview overlap fractions for a new filter at each order based on available regions from current filters
+filters: [{order, field, dataset_name}, ...]
+region: {order, chromosome, index}
+newFilterFull: {field, dataset_name}
+
+Returns:
+{ preview_fractions: { order: fraction, ...} }
+*/
+function fetchFilterPreview(filtersMap, region, newFilterFull) {
+  const filters = getFilters(filtersMap, region)
+  const newFilter = {"dataset_name": newFilterFull.layer.datasetName, "index": newFilterFull.index}
+
+  const url = "https://explore.altius.org:5001/api/csns/preview_filter"
+  const postBody = {filters, region, newFilter}
+  console.log("POST BODY", postBody)
+  return axios({
+    method: 'POST',
+    url: url,
+    data: postBody
+  }).then(response => {
+    console.log("FILTER PREVIEW DATA", response.data)
     return response.data
   }).catch(error => {
     console.error(`error:     ${JSON.stringify(error)}`);
@@ -425,6 +463,7 @@ export {
   fetchDehydratedCSN,
   rehydrateCSN,
   fetchTopCSNs,
+  fetchFilterPreview,
   retrieveFullDataForCSN
 }
 

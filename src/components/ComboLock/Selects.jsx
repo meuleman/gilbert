@@ -4,6 +4,7 @@ import FiltersContext from './FiltersContext'
 
 import SelectFactor from './SelectFactor';
 import SelectOrder from './SelectOrder';
+import { fetchFilterPreview } from '../../lib/csn'
 
 import './Selects.css';
 
@@ -25,6 +26,15 @@ const Selects = ({
   }, [filters])
 
   const [previewField, setPreviewField] = useState(null)
+  const [previewValues, setPreviewValues] = useState(null)
+  
+  useEffect(() => {
+    if(!!previewField) {
+      fetchFilterPreview(filters, null, previewField).then((preview) => {
+        setPreviewValues(preview.preview_fractions)
+      })
+    }
+  }, [previewField])
 
   return (
     <div className="selects">
@@ -48,6 +58,7 @@ const Selects = ({
           order={order} 
           orderSums={orderSums} 
           previewField={previewField}
+          previewValues={previewValues}
           activeWidth={activeWidth}
           restingWidth={restingWidth}
           showNone={showNone} 
