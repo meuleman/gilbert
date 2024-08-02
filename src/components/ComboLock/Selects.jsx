@@ -30,6 +30,7 @@ const Selects = ({
   
   useEffect(() => {
     if(!!previewField) {
+      setPreviewValues(null)
       fetchFilterPreview(filters, null, previewField).then((preview) => {
         setPreviewValues(preview.preview_fractions)
       })
@@ -59,6 +60,7 @@ const Selects = ({
           orderSums={orderSums} 
           previewField={previewField}
           previewValues={previewValues}
+          setPreviewValues={setPreviewValues}
           activeWidth={activeWidth}
           restingWidth={restingWidth}
           showNone={showNone} 

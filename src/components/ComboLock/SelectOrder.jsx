@@ -74,6 +74,7 @@ const SelectOrder = ({
   orderSums, 
   previewField, 
   previewValues,
+  setPreviewValues,
   showNone, 
   showUniquePaths, 
   disabled, 
@@ -102,6 +103,7 @@ const SelectOrder = ({
 
   const handleChange = useCallback((selectedOption) => {
     console.log("selected", selectedOption)
+    setPreviewValues(null)
     handleFilter(selectedOption, order)
     // setSelectedField(selectedOption)
     setIsActive(false)
