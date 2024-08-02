@@ -170,6 +170,8 @@ function rehydrate(index, list) {
     layerName = "tf_1en6_rank_occ"
   } else if(layerName == "chromatin_states") {
     layerName = "cs_enr"
+  } else if(layerName == "dhs_occ") {
+    layerName = "dhs_rank_occ"
   } else if(layerName == "chromatin_states_occ") {
     layerName = "cs_rank_occ"
   } else if(layerName == "repeats_occ") {

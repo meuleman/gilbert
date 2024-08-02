@@ -134,6 +134,8 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
   const radius = 3 // # of steps to take in each direction ()
   const scaler = .75
 
+  const geneHeight = 64
+
   // hard coded, should probably hard code these in the HilbertGenome component anyway
   const orderMin = 4
   const orderMax = 14
@@ -295,19 +297,19 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
   }, [data, onData])
 
 
-  const [genes, setGenes] = useState([])
-  useEffect(() => {
-    if(data && order) {
-      const points = data.find(d => d.order === order)?.points
-      if(points) {
-        const genes = getGencodesInView(points, order)
-        const cellSize =  points[0].end - points[0].start
-        console.log("GENES", genes, genes.filter(d => d.length > cellSize))
-        console.log("CELL",cellSize)
-        setGenes(genes)
-      }
-    }
-  }, [data, order])
+  // const [genes, setGenes] = useState([])
+  // useEffect(() => {
+  //   if(data && order) {
+  //     const points = data.find(d => d.order === order)?.points
+  //     if(points) {
+  //       const genes = getGencodesInView(points, order)
+  //       const cellSize =  points[0].end - points[0].start
+  //       // console.log("GENES", genes, genes.filter(d => d.length > cellSize))
+  //       // console.log("CELL",cellSize)
+  //       setGenes(genes)
+  //     }
+  //   }
+  // }, [data, order])
 
   // useEffect(() => {
   //   onOrder && onOrder(order)
@@ -386,23 +388,20 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
         ctx.globalAlpha = 1
         if(d.layer){
           //console.log("RENDER o", o, d)
-          let rd = {}
           if(o < 14) {
-            // if(d.layer.topValues) {
-            //   rd["max_field"] = d.layer.fieldColor.domain().indexOf(d.p.field.field)
-            //   rd["max_value"] = d.p.field.value
-            // } else {
-            //   rd[d.p.field.field] = d.p.field.value
-            // }
             // set the central region's data to the field we chose 
             const central = d.data.find(r => r.i == d.p.region.i)
             if(d.region.data) {
               central.data = d.region.data
             } else {
-              // TODO: this doesn't work because of max_field layers...
               // console.log("central", d.region, central)
               let centralData = {}
-              centralData[d.region.field.field] = central.data[d.region.field.field]
+              if(d.layer.topValues) {
+                centralData["max_value"] = d.region.field.value
+                centralData["max_field"] = d.region.field.index
+              } else {
+                centralData[d.region.field.field] = d.region.field.value
+              }
               central.data = centralData
             }
           }
@@ -526,6 +525,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
         setInterpXScale(() => xs)
 
 
+        // TODO: why is this still going thru all the layers if we are only rendering 1 (or 2)
         // we want a global coordinate system essentially for the 1D visualization
         data.map(d => {
           // render a strip for each order
@@ -597,16 +597,15 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
     const o = Math.floor(or)
     const hilbert = new HilbertChromosome(o)
 
-    let rh = height / (15 - 4) // one row per order
 
-    if(genes && canvasRefGenes.current && data) {
+    if(canvasRefGenes.current && data) {
       // the region at the current order
       const dorder = data.find(d => d.order === o)
       if(dorder) {
         const r = dorder.region
 
         const ctxs = canvasRefGenes.current.getContext('2d');
-        ctxs.clearRect(0, 0, width, sheight)
+        ctxs.clearRect(0, 0, width, geneHeight)
 
         // how many hilbert segments to render on either side of the region, scales up with order
         const hdistance = 16 + 4 * (o - 4)
@@ -646,7 +645,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
         // setInterpXScale(() => xs)
 
 
-        const gs = getGencodesInView(pointso, o)
+        const gs = getGencodesInView(pointso, o, 100000000)
 
         ctxs.globalAlpha = 1
         // we want a global coordinate system essentially for the 1D visualization
@@ -654,21 +653,23 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
           // render a strip for each order
           // const i = o - 4
           // const y = i * rh
-          const h = rh
+          const h = geneHeight
           const w = width
           ctxs.fillStyle = "white"
           ctxs.fillRect(0, h, w, h)
 
           ctxs.fillStyle = "black";
           let x = xs(g.start)
+          if(x < 10) x = 10
+          if(x > width - 10) x = width - 10
           // if(g.posneg == "-"){ 
           //   x = xs(g.end)
           // }
-          console.log("G", g.hgnc, xs(g.start), xs(g.end), rh - i - 5)
-          ctxs.fillText(g.hgnc, Math.floor(x), Math.floor(rh - i - 5));
+          // console.log("G", g, g.hgnc, xs(g.start), xs(g.end), rh - i - 5)
+          ctxs.fillText(g.hgnc, Math.floor(x), Math.floor(h - i - 5));
           
           ctxs.beginPath();
-          let y = Math.floor(rh - i)
+          let y = Math.floor(h - i)
           ctxs.moveTo(Math.floor(xs(g.start)), y);
           ctxs.lineTo(Math.floor(xs(g.end)), y);
           // console.log("g", g, xs(g.start), xs(g.end))
@@ -687,7 +688,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
         // ctxs.strokeRect(xs(r.start), 0, xs(r.end) - xs(r.start)-0.5, rh-1)
       }
     }
-  }, [percent, percentScale, data, width, height, zoomToBox, scales, genes, sheight])
+  }, [percent, percentScale, data, width, height, zoomToBox, scales, sheight])
 
   const handleMouseMove = useCallback((e) => {
     // if(!xScaleRef.current || !data?.length) return
@@ -776,8 +777,8 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
       <canvas 
         className="power-canvas-genes"
         width={width + "px"}
-        height={sheight + "px"}
-        style={{width: width + "px", height: sheight + "px"}}
+        height={geneHeight + "px"}
+        style={{width: width + "px", height: geneHeight + "px"}}
         ref={canvasRefGenes}
         // onMouseMove={handleMouseMove}
         // onMouseLeave={handleMouseLeave}

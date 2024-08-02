@@ -4,11 +4,10 @@ import FiltersContext from './ComboLock/FiltersContext'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
 import { showKb } from '../lib/display'
-import { csnLayers, variantLayers, countLayers, makeField } from '../layers'
+import { makeField } from '../layers'
 import CSNSentence from './Narration/Sentence'
-import CSNLine from './Narration/Line'
 import ZoomLine from './Narration/ZoomLine'
-import PowerModal from './Narration/Power'
+import Loading from './Loading'
 import { scaleLinear } from 'd3-scale'
 import { max } from 'd3-array'
 
@@ -21,6 +20,8 @@ const SelectedModal = ({
   topCSNS = [],
   regionsByOrder = {},
   selectedTopCSN = null,
+  loadingRegionCSNS = false,
+  loadingSelectedCSN = false,
   k,
   diversity=true,
   onCSNSelected=()=>{},
@@ -67,6 +68,8 @@ const SelectedModal = ({
     if(!selected) {
       setCSNs([])
       setRegionCSNSLeft([])
+      onCSNSelected(null)
+      console.log("SETTING NULL NO SELECTED")
       return;
     }
     // filter the top paths to match only the selected region
@@ -81,23 +84,27 @@ const SelectedModal = ({
     setCSNs(csns.slice(0, maxPaths))
     setRegionCSNSLeft(rcsl.slice(0, maxPaths - csns.length))
     if(csns.length > 0) {
+      console.log("SETTING CSN")
       onCSNSelected(csns[0])
     } else if(rcsl.length > 0) {
+      console.log("SETTING RCSL")
       onCSNSelected(rcsl[0])
+    } else if(loadingRegionCSNS) {
+      console.log("SETTING NULL")
+      onCSNSelected(null)
     }
-    
   }, [topCSNS, regionCSNS, selected])
 
-  useEffect(() => {
-    if(selectedTopCSN) {
-      let narration = makeNarration(selectedTopCSN)
-      setNarration(narration)
-      onNarration(narration)
-    } else {
-      setNarration(null)
-      onNarration(null)
-    }
-  }, [selectedTopCSN, makeNarration])
+  // useEffect(() => {
+  //   if(selectedTopCSN) {
+  //     let narration = makeNarration(selectedTopCSN)
+  //     setNarration(narration)
+  //     onNarration(narration)
+  //   } else {
+  //     setNarration(null)
+  //     onNarration(null)
+  //   }
+  // }, [selectedTopCSN, makeNarration])
 
   const { filters, handleFilter } = useContext(FiltersContext);
 
@@ -205,14 +212,15 @@ const SelectedModal = ({
         </div>
 
         <br></br>
-        
+        {loadingSelectedCSN ? <div><Loading text="Loading Selected Narration..."/></div> : null}
+        {loadingRegionCSNS ? <div style={{height: `${powerWidth + 100}px`}}><Loading text="Loading Region Narrations..."/></div> : null}
         {csns.length || regionCSNSLeft.length ? 
         <div className="csn">
           <span className="csn-info">Hover over the visualization below to see the various cross-scale narrations. 
               Click to select the narration and zoom level.</span>
           <br></br>
           <div className="csns-container">
-            { selectedTopCSN ? <ZoomLine 
+            { selectedTopCSN && !loadingSelectedCSN ? <ZoomLine 
               csn={selectedTopCSN} 
               order={zoomOrder} 
               maxPathScore={maxPathScore}
@@ -245,7 +253,6 @@ const SelectedModal = ({
                   height={powerWidth} 
                   onClick={() => {
                     onCSNSelected(n)
-                    onNarration(makeNarration(n))
                   }}
                   onHover={handleLineHover(i)}
                   />)
@@ -266,7 +273,6 @@ const SelectedModal = ({
                     height={powerWidth} 
                     onClick={() => {
                       onCSNSelected(n)
-                      onNarration(makeNarration(n))
                     }}
                     onHover={handleLineHover(i)}
                     />)
@@ -275,10 +281,10 @@ const SelectedModal = ({
           </div>
               
           
-          {narration?.score >= 0 ? <div>
-            <span>Cross-Scale Narration path: , score: {narration.score?.toFixed(2)}</span>
+          {selectedTopCSN?.score >= 0 ? <div>
+            <span>score: {selectedTopCSN.score?.toFixed(2)}</span>
             <CSNSentence
-              crossScaleNarration={narration}
+              crossScaleNarration={selectedTopCSN}
               order={selected.order}
               />
           </div> : null}

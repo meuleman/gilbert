@@ -357,27 +357,12 @@ const HilbertGenome = ({
 
   // Zoom event handler
   // This is responsible for setting up most of the rendering dependencies
-  // TODO: debounce this while we are programmatically zooming
   const handleZoom = useCallback((event) => {
     zoomDebounce(() => new Promise((resolve, reject) => {resolve()}), () => {
       let transform = event.transform;
       let order
       let orderRaw = orderDomain[0] + Math.log2(orderZoomScale(transform.k))
-
-      // // logic for calculating the order
-      // if(pinOrder) {
-      //   // we want to stay at this order
-      //   order = pinOrder
-      //   // if the zoom out is more than 1.5 orders away from the pinned order, we lower the order
-      //   // this way we never load too much data
-      //   if(order - orderRaw >= 1.5) {
-      //     order -= Math.floor(order - orderRaw)
-      //   } 
-      // } else {
-        // this is the default behavior, calculating the order from the zoom
-        order = Math.floor(orderRaw)
-      // }
-      // we always offset if asked
+      order = Math.floor(orderRaw)
       if(orderOffset) {
         order += orderOffset
       }
@@ -413,7 +398,7 @@ const HilbertGenome = ({
       onZoom(payload)
       // we want to update our canvas renderer immediately with new transform
       renderCanvas(transform, points)
-    }, 5)
+    }, 1)
   }, [
     xScale, yScale, 
     width, height, 

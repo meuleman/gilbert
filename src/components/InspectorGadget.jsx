@@ -8,13 +8,14 @@ import CSNLine from './Narration/Line'
 import ZoomLine from './Narration/ZoomLine'
 import ScoreBars from './Narration/ScoreBars'
 import Power from './Narration/Power'
+import Loading from './Loading'
 import { scaleLinear } from 'd3-scale'
 import { variantChooser } from '../lib/csn'
 import { makeField } from '../layers'
 
-import './PowerOverlay.css'
+import './InspectorGadget.css'
 
-const PowerOverlay = ({
+const InspectorGadget = ({
   selected = null,
   narration = null,
   zoomOrder,
@@ -86,8 +87,8 @@ const PowerOverlay = ({
         </div>
       </div>
       <div className={`content ${minimized ? "minimized" : ""}`}>
-        {loadingCSN ? <div>Loading CSN...</div> : 
-        <div className="csn">
+        {loadingCSN ? <div style={{height: `${powerHeight}px`}}><Loading text={"Loading CSN..."}></Loading></div> : 
+         selected && narration ? <div className="csn">
           <div className="power-container">
             <Power 
               csn={narration} 
@@ -137,7 +138,7 @@ const PowerOverlay = ({
               {zoomedPathRegion.layer?.name}: {zoomedPathRegion.field?.field}
             </span>: ""}
           </div>
-        </div>}
+        </div> : null }
         <div className="power-modal-children">
           {children}
         </div>
@@ -147,4 +148,4 @@ const PowerOverlay = ({
 </>
   )
 }
-export default PowerOverlay
+export default InspectorGadget

@@ -9,7 +9,7 @@ import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome"
 import { calculateCrossScaleNarrationInWorker, walkTree, findUniquePaths } from '../lib/csn';
 import Data from '../lib/data';
 
-import { csnLayers, variantLayers, countLayers } from '../layers'
+import { csnLayerList, csnLayers, variantLayers, countLayers } from '../layers'
 
 import DHS_Components_Sfc_max from '../layers/dhs_components_sfc_max'
 import Chromatin_States_Sfc_max from '../layers/chromatin_states_sfc_max';
@@ -105,7 +105,7 @@ const RegionDetail = () => {
       setRanges(rs)
 
       // fetch data for each layer
-      const matchingLayers = layers.filter(d => d.orders[0] <= region.order && d.orders[1] >= region.order)
+      const matchingLayers = csnLayerList.filter(d => d.orders[0] <= region.order && d.orders[1] >= region.order)
       const layersDataResult = Promise.all(matchingLayers.map((layer) => {
         // console.log("layer", layer)
         if(layer.layers) {
@@ -747,11 +747,11 @@ const RegionDetail = () => {
           </div>
           {layersData && layersData.length && <div className="zoomed-region">
             Region zoomed to order {zoomedRegion?.order}
-            {zoomedRegion && region && similarBy == "dhs" && <RegionStrip region={zoomedRegion} segments={32} layer={layers.find(d => d.name == "DHS Components")} width={500} height={40} /> }
-            {zoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={zoomedRegion} segments={32} layer={layers.find(d => d.name == "Chromatin States")} width={500} height={40} /> }
+            {zoomedRegion && region && similarBy == "dhs" && <RegionStrip region={zoomedRegion} segments={32} layer={csnLayerList.find(d => d.name == "DHS Components")} width={500} height={40} /> }
+            {zoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={zoomedRegion} segments={32} layer={csnLayerList.find(d => d.name == "Chromatin States")} width={500} height={40} /> }
             Hovered similar region zoomed to order {similarZoomedRegion?.order}
-            {similarZoomedRegion && region && similarBy == "dhs" && <RegionStrip region={similarZoomedRegion} segments={32} layer={layers.find(d => d.name == "DHS Components")} width={500} height={40} /> }
-            {similarZoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={similarZoomedRegion} segments={32} layer={layers.find(d => d.name == "Chromatin States")} width={500} height={40} /> }
+            {similarZoomedRegion && region && similarBy == "dhs" && <RegionStrip region={similarZoomedRegion} segments={32} layer={csnLayerList.find(d => d.name == "DHS Components")} width={500} height={40} /> }
+            {similarZoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={similarZoomedRegion} segments={32} layer={csnLayerList.find(d => d.name == "Chromatin States")} width={500} height={40} /> }
           </div>}
         </div>
         

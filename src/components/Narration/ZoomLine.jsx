@@ -129,7 +129,7 @@ export default function ZoomLine({
 
   return (
     <div className="csn-line" onClick={() => onClick(csn)}>
-      <svg width={width} height={height}>
+      <svg width={width} height={height} onMouseLeave={() => handleLeave()}>
         {path.length && yScale ? <g>
           {maxPathScore && <rect
             y={0}
@@ -159,11 +159,12 @@ export default function ZoomLine({
             return <g key={o}
               onClick={(e) => handleClick(e, o)}
               onMouseMove={(e) => handleHover(e, o)} 
-              onMouseLeave={() => handleLeave()}>
+              // onMouseLeave={() => handleLeave()}
+              >
                 <rect
                 y={yScale(o)}
                 x={0}
-                height={rw + 2}
+                height={rw}
                 width={width}
                 fill={ "white" }
                 fillOpacity={0.01}
@@ -176,6 +177,7 @@ export default function ZoomLine({
                 fill={ p && p.field ? p.field.color : "white"}
                 fillOpacity={selected ? 0.75 : 0.5}
                 stroke="lightgray"
+                strokeWidth={1}
                 // stroke={highlightOrders.indexOf(o) >= 0 ? "black" : "lightgray"}
                 // strokeWidth={highlightOrders.indexOf(o) >= 0 ? 2 : 1}
                 // stroke={ highlight ? "black" : "lightgray"}
