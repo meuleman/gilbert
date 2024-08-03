@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useContext } from 'react';
+import { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { range } from 'd3-array';
 import FiltersContext from './FiltersContext'
 
@@ -19,7 +19,7 @@ const Selects = ({
   filteredIndices,
 } = {}) => {
   const orders = range(4, 15)
-  const { filters } = useContext(FiltersContext);
+  const { filters, clearFilters } = useContext(FiltersContext);
 
   useEffect(() => {
     console.log("filters changed in selects!", filters)
@@ -31,7 +31,7 @@ const Selects = ({
   const [previewValues, setPreviewValues] = useState(null)
   
   useEffect(() => {
-    if(!!previewField) {
+    if(previewField) {
       setPreviewValues(null)
       setLoadingPreview(true)
       fetchFilterPreview(filters, null, previewField).then((preview) => {
@@ -40,6 +40,8 @@ const Selects = ({
       })
     }
   }, [previewField])
+
+  const hasFilters = useMemo(() => Object.keys(filters).length > 0, [filters])
 
   return (
     <div className="selects">
@@ -57,6 +59,7 @@ const Selects = ({
         </div>
       </div>
       {loadingPreview ? <Loading text="Loading..."> </Loading> : null}
+      {hasFilters ? <button className="clear-filters" onClick={clearFilters}>❌ Clear Filters</button> : null}
 
       {orders.map(order => (
         <SelectOrder key={order} 

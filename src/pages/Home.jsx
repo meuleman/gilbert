@@ -915,7 +915,7 @@ function Home() {
             <div>
               <FilterModal 
                 show={showFilter}
-                orderMargin={(height - 11*38 - 120)/11}
+                orderMargin={(height - 11*38 - 140)/11}
                 // onFilters={setFilters}
                 loading={csnLoading}
                 onIndices={setFilteredIndices}>
