@@ -500,7 +500,11 @@ function Home() {
   const handleChangeShowHilbert = (e) => {
     setShowHilbert(!showHilbert)
   }
-  const [showFilter, setShowFilter] = useState(false)
+
+  // const [showFilter, setShowFilter] = useState(false)
+  // if we have filters in the url, show the filter modal on loading
+  const anyFilters = Object.keys(parseFilters(initialFilters || "[]")).length > 0
+  const [showFilter, setShowFilter] = useState(anyFilters)
   const handleChangeShowFilter = (e) => {
     setShowFilter(!showFilter)
   }
