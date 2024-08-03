@@ -500,7 +500,7 @@ function Home() {
   const handleChangeShowHilbert = (e) => {
     setShowHilbert(!showHilbert)
   }
-  const [showFilter, setShowFilter] = useState(true)
+  const [showFilter, setShowFilter] = useState(false)
   const handleChangeShowFilter = (e) => {
     setShowFilter(!showFilter)
   }
@@ -858,19 +858,7 @@ function Home() {
             searchByFactorInds={searchByFactorInds}
           />
           
-          {selected && selectedTopCSN ? 
-              <InspectorGadget 
-                selected={selected} 
-                zoomOrder={powerOrder}
-                narration={selectedTopCSN}
-                layers={csnLayers}
-                loadingCSN={loadingSelectedCSN}
-                mapWidth={width}
-                mapHeight={height}
-                modalPosition={modalPosition}
-                onClose={handleModalClose}
-                >
-            </InspectorGadget> : null}
+          
           {selected ? 
               <SelectedModal 
                 showFilter={showFilter}
@@ -905,6 +893,20 @@ function Home() {
                     onHover={setHover}
                   /> */}
             </SelectedModal> : null}
+
+            {selected && selectedTopCSN ? 
+              <InspectorGadget 
+                selected={selected} 
+                zoomOrder={powerOrder}
+                narration={selectedTopCSN}
+                layers={csnLayers}
+                loadingCSN={loadingSelectedCSN}
+                mapWidth={width}
+                mapHeight={height}
+                modalPosition={modalPosition}
+                onClose={handleModalClose}
+                >
+            </InspectorGadget> : null}
             
             <div>
               <FilterModal 
