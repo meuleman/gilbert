@@ -232,6 +232,7 @@ const SelectOrder = ({
       //   if(numFactorPaths > 0) setPreviewBar(matchingField)
       // })
 
+
       let matchingField = {...previewField}
       matchingField['order'] = order
       matchingField['percent'] = previewValues[order] * 100
@@ -243,7 +244,7 @@ const SelectOrder = ({
     } else {
       setPreviewBar(null) 
     }
-  }, [previewField, previewValues])
+  }, [previewField, previewValues, order])
 
   return (
     <div className="filter-order" style={{ 
@@ -251,7 +252,6 @@ const SelectOrder = ({
         marginTop: order == 4 ? orderMargin/2 + "px" : 0
       }}>
       <span className="order-label">
-        {/* Order {order} */} 
         {showKb(Math.pow(4, 14 - order))}
       </span> 
       <div className="button-column">
@@ -269,7 +269,7 @@ const SelectOrder = ({
           </Tooltip>
         </div>
       : null }
-      {!disabled && previewBar ? 
+      { previewBar ? 
       <div>
         <button className="select" data-tooltip-id={"select"+order} onClick={() => handleChange(previewBar)}>✅</button>
         <Tooltip id={"select"+order} place="top" effect="solid" className="tooltip-custom">

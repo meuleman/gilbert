@@ -4,6 +4,7 @@ import FiltersContext from './FiltersContext'
 
 import SelectFactor from './SelectFactor';
 import SelectOrder from './SelectOrder';
+import Loading from '../Loading';
 import { fetchFilterPreview } from '../../lib/csn'
 
 import './Selects.css';
@@ -25,14 +26,17 @@ const Selects = ({
     setPreviewField(null)
   }, [filters])
 
+  const [loadingPreview, setLoadingPreview] = useState(false)
   const [previewField, setPreviewField] = useState(null)
   const [previewValues, setPreviewValues] = useState(null)
   
   useEffect(() => {
     if(!!previewField) {
       setPreviewValues(null)
+      setLoadingPreview(true)
       fetchFilterPreview(filters, null, previewField).then((preview) => {
         setPreviewValues(preview.preview_fractions)
+        setLoadingPreview(false)
       })
     }
   }, [previewField])
@@ -52,6 +56,7 @@ const Selects = ({
         <div className="preview">
         </div>
       </div>
+      {loadingPreview ? <Loading text="Loading..."> </Loading> : null}
 
       {orders.map(order => (
         <SelectOrder key={order} 
