@@ -232,7 +232,7 @@ const SankeyModal = ({
               height={height - 100} 
               csns={csns} 
               shrinkNone={shrinkNone} 
-              nodeWidth={height/11 - 60}
+              nodeWidth={height/11 - 30}
             />
           </div> :null }
       </div>
