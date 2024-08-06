@@ -2,7 +2,7 @@
   position: absolute;
   bottom: 5px;
   right: 418px;
-  background-color: rgba(255, 255, 255, 0.95);
+  background-color: rgba(255, 255, 255, 0.90);
   border: 1px solid lightgray;
   border-right: none;
   border-radius: 6px;
@@ -18,7 +18,7 @@
 }
 
 .filter-modal .filter-results {
-  height: 52px;
+  height: 26px;
 }
 .filter-modal .select-factor {
   margin-bottom: 12px;

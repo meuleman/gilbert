@@ -203,7 +203,7 @@ function createWorker() {
 }
 
 const workerPool = [];
-const maxWorkers = 4; // Adjust the number of workers as needed
+const maxWorkers = 1; // Adjust the number of workers as needed
 
 // Initialize the worker pool
 for (let i = 0; i < maxWorkers; i++) {

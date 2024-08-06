@@ -55,6 +55,15 @@ const InspectorGadget = ({
     if(or < 4) or = 4
     setZoomOrder(or)
   }, [setZoomOrder])
+  
+  const [opacity, setOpacity] = useState(1)
+  useEffect(() => {
+    if(Math.floor(zOrder) == Math.floor(zoomOrder)) {
+      setOpacity(0.25)
+    } else {
+      setOpacity(1)
+    }
+  }, [zOrder, zoomOrder])
 
   
   const [zoomedPathRegion, setZoomedPathRegion] = useState(null)
@@ -76,7 +85,8 @@ const InspectorGadget = ({
     <div className="power-overlay" style={{
       position: "absolute", 
       top: modalPosition?.y - powerHeight/2 - 62, 
-      left: modalPosition?.x - powerWidth/2
+      left: modalPosition?.x - powerWidth/2 - 12,
+      // backgroundColor: `rgba(255, 255, 255, ${opacity})`
       }}>
       <div className="header">
         <div className="power-modal-selected">

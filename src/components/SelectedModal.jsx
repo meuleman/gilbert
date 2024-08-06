@@ -69,7 +69,6 @@ const SelectedModal = ({
       setCSNs([])
       setRegionCSNSLeft([])
       onCSNSelected(null)
-      console.log("SETTING NULL NO SELECTED")
       return;
     }
     // filter the top paths to match only the selected region
@@ -84,13 +83,13 @@ const SelectedModal = ({
     setCSNs(csns.slice(0, maxPaths))
     setRegionCSNSLeft(rcsl.slice(0, maxPaths - csns.length))
     if(csns.length > 0) {
-      console.log("SETTING CSN")
+      // console.log("SETTING CSN")
       onCSNSelected(csns[0])
     } else if(rcsl.length > 0) {
-      console.log("SETTING RCSL")
+      // console.log("SETTING RCSL")
       onCSNSelected(rcsl[0])
     } else if(loadingRegionCSNS) {
-      console.log("SETTING NULL")
+      // console.log("SETTING NULL")
       onCSNSelected(null)
     }
   }, [topCSNS, regionCSNS, selected])
@@ -160,8 +159,8 @@ const SelectedModal = ({
     console.log("TOP CSNS", topCSNS)
     console.log("REGION CSNS", regionCSNS)
     console.log("SELECTED TOP CSN", selectedTopCSN)
-    // console.log("SELECTED", selected)
-  }, [topCSNS, regionCSNS, selectedTopCSN])
+    console.log("SELECTED", selected)
+  }, [selected, topCSNS, regionCSNS, selectedTopCSN])
 
 
 
@@ -207,15 +206,15 @@ const SelectedModal = ({
         {/* <div>
           {maxPathScore} max path score
         </div> */}
-        <div>
-          <label>Path Diversity:</label><input type="checkbox" name="diversity" checked={diversity} onChange={handleDiversityChange} /> 
-        </div>
-
-        <br></br>
+        {selected && selected.description && selected.description.type == "gene" ? 
+          <p>Gene: <b>{selected?.description?.name}</b></p>
+        : null}
         {loadingSelectedCSN ? <div><Loading text="Loading Selected Narration..."/></div> : null}
         {loadingRegionCSNS ? <div style={{height: `${powerWidth + 100}px`}}><Loading text="Loading Region Narrations..."/></div> : null}
         {csns.length || regionCSNSLeft.length ? 
         <div className="csn">
+          <label>Path Diversity:</label><input type="checkbox" name="diversity" checked={diversity} onChange={handleDiversityChange} /> 
+          <br/>
           <span className="csn-info">Hover over the visualization below to see the various cross-scale narrations. 
               Click to select the narration and zoom level.</span>
           <br></br>

@@ -7,7 +7,7 @@
   border-radius: 6px;
   padding: 6px 6px 12px 6px;
   height: calc(100% - 40px);
-  z-index: 1
+  z-index: 9
 }
 .sankey-modal.hide {
   display: none;
@@ -20,6 +20,14 @@
   max-width: 400px;
 }
 
+.sankey-modal .line-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+.sankey-modal .line-column h4 {
+  margin: 0px;
+}
 .sankey-modal .csn-lines {
   display: flex;
   flex-direction: row;

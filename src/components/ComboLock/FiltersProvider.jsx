@@ -17,9 +17,13 @@ const FiltersProvider = ({ children }) => {
       }
     });
   }, []);
+
+  const clearFilters = () => {
+    setFilters({})
+  }
   
   return (
-    <FiltersContext.Provider value={{ filters, handleFilter, setFilters}}>
+    <FiltersContext.Provider value={{ filters, handleFilter, setFilters, clearFilters}}>
       {children}
     </FiltersContext.Provider>
   );

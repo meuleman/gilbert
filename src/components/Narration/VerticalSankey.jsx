@@ -194,6 +194,21 @@ export default function CSNVerticalSankey({
         }
       })
 
+      // for each of the collapsed layers, lets set the color of the node to be the color of the child with highest count
+      Object.keys(nodesMap).forEach(id => {
+        let n = nodesMap[id]
+        if(n.field == "Layer") {
+          // find the child with the highest count
+          let mc;
+          n.children.forEach(c => {
+            if(!mc || c.count > mc.count) {
+              mc = c
+            }
+          })
+          n.color = mc.color
+        }
+      })
+
       const nodes = Object.values(nodesMap).sort((a,b) => a.order - b.order)
       const links = Object.values(linksMap)
 
@@ -289,6 +304,7 @@ export default function CSNVerticalSankey({
 
   const handleNodeFilter = useCallback((node) => {
     console.log("handling filter", node)
+    if(node.field == "Layer") return;
     let field = makeField(node.dataLayer, node.field, node.order)
     console.log("field!", field)
     handleFilter(field, node.order)

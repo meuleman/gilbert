@@ -2,7 +2,9 @@ import React from 'react';
 
 const FiltersContext = React.createContext({
   filters: {},
-  handleFilter: () => {}
+  setFilters: () => {},
+  handleFilter: () => {},
+  clearFilters: () => {}
 });
 
 export default FiltersContext;

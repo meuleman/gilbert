@@ -59,8 +59,12 @@ const SankeyModal = ({
   const [maxPathScore, setMaxPathScore] = useState(null)
   useEffect(() => {
     const csns = sort === "factor" ? factorCsns : fullCsns
+    const maxscore = max(factorCsns.concat(fullCsns), d => d.score)
+    // console.log("MAX SCORE", maxscore)
+    // console.log("FACTOR", factorCsns)
+    // console.log("FULL", fullCsns)
+    setMaxPathScore(maxscore || 0)
     if(csns.length) {
-      setMaxPathScore(max(factorCsns.concat(fullCsns), d => d.score))
       setCSNs(csns)
     } else {
       setCSNs([])
@@ -85,6 +89,8 @@ const SankeyModal = ({
   //     onCSNS(csns)
   //   }
   // }, [csns, loadingCSN])
+
+  const zlheight = height - 120
 
   return (
     <div className={`sankey-modal ${show ? "show" : "hide"}`}>
@@ -144,68 +150,77 @@ const SankeyModal = ({
         </div>
         {view === "heatmap" || ( csns.length && loadingCSN ) ? 
           <div className={`csn-lines ${loading ? "loading-csns" : ""}`}>
-            <div className="only-top-factor csn-lines">
-            {onlyInTopFactor.map((n,i) => {
-              return (<ZoomLine 
-                key={i}
-                csn={n} 
-                maxPathScore={maxPathScore}
-                order={order}
-                // highlight={true}
-                // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
-                text={false}
-                width={2.05} 
-                height={height-80}
-                tipOrientation="right"
-                showOrderLine={false}
-                // highlightOrders={Object.keys(orderSelects).map(d => +d)} 
-                onClick={() => onSelectedCSN(n)}
-                onHover={() => onHoveredCSN(n)}
-                />)
-              })
-            }
+            <div className="only-top-factor line-column">
+              <h4>factor</h4>
+              <div className="csn-lines">
+                {onlyInTopFactor.map((n,i) => {
+                  return (<ZoomLine 
+                    key={i}
+                    csn={n} 
+                    maxPathScore={maxPathScore}
+                    order={order}
+                    // highlight={true}
+                    // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
+                    text={false}
+                    width={2.05} 
+                    height={zlheight}
+                    tipOrientation="right"
+                    showOrderLine={false}
+                    // highlightOrders={Object.keys(orderSelects).map(d => +d)} 
+                    onClick={() => onSelectedCSN(n)}
+                    onHover={() => onHoveredCSN(n)}
+                    />)
+                  })
+                }
+              </div>
             </div>
-            <div className="in-both csn-lines">
-            {inBoth.map((n,i) => {
-              return (<ZoomLine 
-                key={i}
-                csn={n} 
-                maxPathScore={maxPathScore}
-                order={order}
-                // highlight={true}
-                // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
-                text={false}
-                width={2.05} 
-                height={height-80}
-                tipOrientation="right"
-                showOrderLine={false}
-                // highlightOrders={Object.keys(orderSelects).map(d => +d)} 
-                onClick={() => onSelectedCSN(n)}
-                onHover={() => onHoveredCSN(n)}
-                />)
-              })
-            }
+            <div className="in-both line-column">
+              <h4>both</h4>
+              <div className="csn-lines">
+                {inBoth.map((n,i) => {
+                  return (<ZoomLine 
+                    key={i}
+                    csn={n} 
+                    maxPathScore={maxPathScore}
+                    order={order}
+                    // highlight={true}
+                    // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
+                    text={false}
+                    width={2.05} 
+                    height={zlheight}
+                    tipOrientation="right"
+                    showOrderLine={false}
+                    // highlightOrders={Object.keys(orderSelects).map(d => +d)} 
+                    onClick={() => onSelectedCSN(n)}
+                    onHover={() => onHoveredCSN(n)}
+                    />)
+                  })
+                }
+              </div>
             </div>
-            <div className="only-top-full csn-lines">
-          {onlyInTopFull.map((n,i) => {
-              return (<ZoomLine 
-                key={i}
-                csn={n} 
-                maxPathScore={maxPathScore}
-                order={order}
-                // highlight={true}
-                // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
-                text={false}
-                width={2.05} 
-                height={height-80}
-                tipOrientation="right"
-                showOrderLine={false}
-                // highlightOrders={Object.keys(orderSelects).map(d => +d)} 
-                onClick={() => onSelectedCSN(n)}
-                onHover={() => onHoveredCSN(n)}
-                />)
-                })
-              }
+            <div className="only-top-full line-column">
+              <h4>full</h4>
+              <div className="csn-lines">
+                {onlyInTopFull.map((n,i) => {
+                    return (<ZoomLine 
+                  key={i}
+                  csn={n} 
+                  maxPathScore={maxPathScore}
+                  order={order}
+                  // highlight={true}
+                  // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
+                  text={false}
+                  width={2.05} 
+                  height={zlheight}
+                  tipOrientation="right"
+                  showOrderLine={false}
+                  // highlightOrders={Object.keys(orderSelects).map(d => +d)} 
+                  onClick={() => onSelectedCSN(n)}
+                  onHover={() => onHoveredCSN(n)}
+                  />)
+                  })
+                }
+              </div>
             </div>
           </div>
         : null }
@@ -217,7 +232,7 @@ const SankeyModal = ({
               height={height - 100} 
               csns={csns} 
               shrinkNone={shrinkNone} 
-              nodeWidth={height/11 - 60}
+              nodeWidth={height/11 - 30}
             />
           </div> :null }
       </div>

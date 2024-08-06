@@ -69,3 +69,9 @@
   flex-wrap: wrap;
   gap: 4px;
 }
+
+.selects .clear-filters {
+  margin: 0 6px;
+  padding: 2px 6px;
+  line-height: 26px;
+}

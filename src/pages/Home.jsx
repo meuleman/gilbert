@@ -500,7 +500,11 @@ function Home() {
   const handleChangeShowHilbert = (e) => {
     setShowHilbert(!showHilbert)
   }
-  const [showFilter, setShowFilter] = useState(true)
+
+  // const [showFilter, setShowFilter] = useState(false)
+  // if we have filters in the url, show the filter modal on loading
+  const anyFilters = Object.keys(parseFilters(initialFilters || "[]")).length > 0
+  const [showFilter, setShowFilter] = useState(anyFilters)
   const handleChangeShowFilter = (e) => {
     setShowFilter(!showFilter)
   }
@@ -625,7 +629,7 @@ function Home() {
     // Fetch the top csns from the API
     fetchTopCSNs(filters, null, "factor", true, 100)
       .then((response) => {
-        // console.log("FACTOR RESPONSE", response)
+        console.log("FACTOR RESPONSE", response)
         if(!response) {
           setCSNLoading("Error!")
           setTopFactorCSNS([])
@@ -645,7 +649,7 @@ function Home() {
     // for now we just pull both in parallel
     fetchTopCSNs(filters, null, "full", true, 100)
       .then((response) => {
-        // console.log("FULL RESPONSE", response)
+        console.log("FULL RESPONSE", response)
         if(!response) {
           // setCSNLoading("Error!")
           setTopFullCSNS([])
@@ -776,7 +780,7 @@ function Home() {
     // setCrossScaleNarration(new Array(1).fill({'path': []}))
     setSelectedTopCSN(null)
     setRegionCSNS([])
-    setPowerNarration(null)
+    // setPowerNarration(null)
   }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setSelectedTopCSN])
 
 
@@ -858,19 +862,7 @@ function Home() {
             searchByFactorInds={searchByFactorInds}
           />
           
-          {selected && selectedTopCSN ? 
-              <InspectorGadget 
-                selected={selected} 
-                zoomOrder={powerOrder}
-                narration={selectedTopCSN}
-                layers={csnLayers}
-                loadingCSN={loadingSelectedCSN}
-                mapWidth={width}
-                mapHeight={height}
-                modalPosition={modalPosition}
-                onClose={handleModalClose}
-                >
-            </InspectorGadget> : null}
+          
           {selected ? 
               <SelectedModal 
                 showFilter={showFilter}
@@ -905,11 +897,25 @@ function Home() {
                     onHover={setHover}
                   /> */}
             </SelectedModal> : null}
+
+            {selected && selectedTopCSN ? 
+              <InspectorGadget 
+                selected={selected} 
+                zoomOrder={powerOrder}
+                narration={selectedTopCSN}
+                layers={csnLayers}
+                loadingCSN={loadingSelectedCSN}
+                mapWidth={width}
+                mapHeight={height}
+                modalPosition={modalPosition}
+                onClose={handleModalClose}
+                >
+            </InspectorGadget> : null}
             
             <div>
               <FilterModal 
                 show={showFilter}
-                orderMargin={(height - 11*38 - 120)/11}
+                orderMargin={(height - 11*38 - 140)/11}
                 // onFilters={setFilters}
                 loading={csnLoading}
                 onIndices={setFilteredIndices}>
