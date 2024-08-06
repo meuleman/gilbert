@@ -62,6 +62,7 @@ import LADs from './lads'
 import LADs_new from './lads_new'
 import LADs_occ from './lads_occ'
 import NucleotideBadges from './order_14'
+import CSN_path_density_90 from './csn_path_density.90th_percentile'
 
 
 
@@ -131,6 +132,7 @@ const fullList = [
   LADs,
   LADs_new,
   LADs_occ,
+  CSN_path_density_90,
 ]
 
 
