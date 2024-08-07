@@ -17,6 +17,10 @@
   gap: 4px;
 }
 
+.selects .select-gwas {
+  margin-top: 12px;
+}
+
 /* Filter Order Component */
 .selects .filter-order {
   display: flex;

@@ -7,7 +7,7 @@ import { calculateOrderSums, filterIndices } from '../../lib/filters'
 import { showInt } from '../../lib/display'
 import { fetchTopCSNs } from '../../lib/csn'
 
-import './Modal.css'
+import './FilterModal.css'
 
 
 const FilterModal = ({

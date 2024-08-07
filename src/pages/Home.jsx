@@ -33,7 +33,7 @@ import SVGSelected from '../components/SVGSelected'
 import RegionMask from '../components/RegionMask'
 import SVGChromosomeNames from '../components/SVGChromosomeNames'
 // import SVGBBox from '../components/SVGBBox'
-import FilterModal from '../components/ComboLock/Modal'
+import FilterModal from '../components/ComboLock/FilterModal'
 import SankeyModal from '../components/Narration/SankeyModal';
 
 // layer configurations
@@ -485,7 +485,7 @@ function Home() {
   // const [showFilter, setShowFilter] = useState(false)
   // if we have filters in the url, show the filter modal on loading
   const anyFilters = Object.keys(parseFilters(initialFilters || "[]")).length > 0
-  const [showFilter, setShowFilter] = useState(anyFilters)
+  const [showFilter, setShowFilter] = useState(true || anyFilters)
   const handleChangeShowFilter = (e) => {
     setShowFilter(!showFilter)
   }

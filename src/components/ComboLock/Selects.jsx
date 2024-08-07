@@ -4,6 +4,7 @@ import FiltersContext from './FiltersContext'
 
 import SelectFactor from './SelectFactor';
 import SelectOrder from './SelectOrder';
+import SelectGWAS from './SelectGWAS';
 import Loading from '../Loading';
 import { fetchFilterPreview } from '../../lib/csn'
 
@@ -29,6 +30,7 @@ const Selects = ({
   const [loadingPreview, setLoadingPreview] = useState(false)
   const [previewField, setPreviewField] = useState(null)
   const [previewValues, setPreviewValues] = useState(null)
+  const [selectedGWAS, setSelectedGWAS] = useState(null)
   
   useEffect(() => {
     if(previewField) {
@@ -76,6 +78,20 @@ const Selects = ({
           filteredIndices={filteredIndices}
         />
       ))}
+
+      <div className="select-gwas">
+        <SelectGWAS
+          selected={selectedGWAS}
+          activeWidth={activeWidth + 85}
+          restingWidth={restingWidth + 165}
+          onSelect={(field) => {
+            console.log("gwas field", field)
+            setSelectedGWAS(field)
+          }} 
+        />
+        <div className="preview">
+        </div>
+      </div>
     </div>
   )
 }
