@@ -176,7 +176,7 @@ function Home() {
   const [selected, setSelected] = useState(jsonify(initialSelectedRegion))
   const [selectedOrder, setSelectedOrder] = useState(selected?.order)
 
-  const { filters, setFilters } = useContext(FiltersContext);
+  const { filters, setFilters, clearFilters } = useContext(FiltersContext);
   const initialUpdateRef = useRef(true);
   useEffect(() => {
     if(initialUpdateRef.current) {
@@ -298,26 +298,7 @@ function Home() {
   }, []);
 
 
-  const handleClick = useCallback((hit, order, double) => {
-    // console.log("app click handler", hit, order, double)
-    console.log("HANDLE CLICK", hit)
-    try {
-      if(hit === selected) {
-        setSelected(null) 
-        setSelectedOrder(null)
-        setSimSearch(null)
-      } else if(hit) {
-        console.log("setting selected from click", hit)
-        setSelectedTopCSN(null)
-        setRegionCSNS([])
-        setLoadingRegionCSNS(true) // TODO: this is to avoid flashing intermediate state of selected modal
-        setSelectedOrder(order)
-        setSelected(hit)
-      }
-    } catch(e) {
-      console.log("caught error in click", e)
-    }
-  }, [selected, setSelected, setSelectedOrder, setSimSearch])
+  
 
   // do a sim search if selected changes
   // useEffect(() => {
@@ -763,10 +744,8 @@ function Home() {
 
   const drawFilteredRegions = useCanvasFilteredRegions(rbos, topCSNSFactorByCurrentOrder)
 
-
-  // TODO: consistent clear state
-  const handleModalClose = useCallback(() => {
-    console.log("CLEARING STATE, MODAL CLOSE")
+  const clearSelectedState = useCallback(() => {
+    console.log("CLEARING STATE")
     setRegion(null)
     setSelected(null)
     setSelectedOrder(null)
@@ -776,13 +755,40 @@ function Home() {
     setSelectedNarration(null)
     setSimSearchMethod(null)
     setGenesetEnrichment(null)
-    // setCrossScaleNarrationIndex(0)
-    // setCrossScaleNarration(new Array(1).fill({'path': []}))
     setSelectedTopCSN(null)
     setRegionCSNS([])
     // setPowerNarration(null)
   }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setSelectedTopCSN])
 
+  // TODO: consistent clear state
+  const handleModalClose = useCallback(() => {
+    clearSelectedState()
+  }, [clearSelectedState])
+
+  const handleClear = useCallback(() => {
+    clearSelectedState()
+    clearFilters()
+    setShowFilter(false)
+  }, [clearSelectedState, clearFilters, setShowFilter])
+
+  const handleClick = useCallback((hit, order, double) => {
+    // console.log("app click handler", hit, order, double)
+    console.log("HANDLE CLICK", hit)
+    try {
+      if(hit === selected) {
+        clearSelectedState()
+      } else if(hit) {
+        console.log("setting selected from click", hit)
+        setSelectedTopCSN(null)
+        setRegionCSNS([])
+        setLoadingRegionCSNS(true) // TODO: this is to avoid flashing intermediate state of selected modal
+        setSelectedOrder(order)
+        setSelected(hit)
+      }
+    } catch(e) {
+      console.log("caught error in click", e)
+    }
+  }, [selected, setSelected, setSelectedOrder, clearSelectedState])
 
   const autocompleteRef = useRef(null)
   // keybinding that closes the modal on escape
@@ -1065,6 +1071,7 @@ function Home() {
             showSettings={showSettings}
             orderOffset={orderOffset}
             layers={layers} 
+            onClear={handleClear}
             onDebug={handleChangeShowDebug}
             onSettings={handleChangeShowSettings}
             onOrderOffset={setOrderOffset}

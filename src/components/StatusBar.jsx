@@ -2,6 +2,8 @@
 import LayerDropdown from './LayerDropdown'
 import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import { sum } from 'd3-array'
+import {Tooltip} from 'react-tooltip';
+
 import './StatusBar.css'
 
 import { format } from "d3-format"
@@ -22,6 +24,7 @@ const StatusBar = ({
   onDebug=()=>{},
   onSettings=()=>{},
   onOrderOffset=()=>{},
+  onClear=()=>{},
 } = {}) => {
   let sample = null
   let sampleSummary = ""
@@ -131,18 +134,40 @@ const StatusBar = ({
             <span>effective order {zoom.order}</span>
           </label>
           <button className={`filter-button ${showFilter ? 'active' : null}`}
-            onClick={() => onFilter(!showFilter)}>
+            onClick={() => onFilter(!showFilter)}
+            data-tooltip-id="filter">
             🔒
           </button>
+          <Tooltip id="filter" place="top" effect="solid" className="tooltip-custom">
+            Filter paths by factor
+          </Tooltip>
+
+          <button className={`clear-button`}
+            onClick={() => onClear()}
+            data-tooltip-id="clear">
+            ❌
+          </button>
+          <Tooltip id="clear" place="top" effect="solid" className="tooltip-custom">
+            Clear all selected state
+          </Tooltip>
+
           <button className={`settings-button ${showSettings ? 'active' : null}`}
-            onClick={() => onSettings(!showSettings)}>
+            onClick={() => onSettings(!showSettings)}
+            data-tooltip-id="settings">
             {/* <input type="checkbox" checked={showSettings} onChange={onSettings} /> */}
             ⚙️
           </button>
+          <Tooltip id="settings" place="top" effect="solid" className="tooltip-custom">
+            Settings panel
+          </Tooltip>
           <button className={`debug-button ${showDebug ? 'active' : null}`}
-            onClick={() => onDebug(!showDebug)}>
+            onClick={() => onDebug(!showDebug)}
+            data-tooltip-id="debug">
             🐞
           </button>
+          <Tooltip id="debug" place="top" effect="solid" className="tooltip-custom">
+            Debugging info
+          </Tooltip>
         </div>
       </div>
     </div>

@@ -54,7 +54,8 @@
 }
 
 .settings-button,
-.debug-button {
+.debug-button,
+.clear-button {
   /* border: 1px solid gray; */
   background: #eee;
   padding: 0px 12px;
