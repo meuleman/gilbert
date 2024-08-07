@@ -255,10 +255,10 @@ const SelectOrder = ({
         {showKb(Math.pow(4, 14 - order))}
       </span> 
       <div className="button-column">
-      {/* {disabled ? <div className="disabled" data-tooltip-id="higher-filter">🚫</div> : null}
+      {disabled ? <div className="disabled" data-tooltip-id="higher-filter">🚫</div> : null}
         <Tooltip id="higher-filter" place="right" effect="solid">
-          Select at least one higher resolution filter
-        </Tooltip> */}
+           Disabled
+        </Tooltip>
       {selectedField && !previewBar ? 
         <div>
           <button className="deselect" data-tooltip-id="deselect" onClick={() => handleChange()}>
@@ -289,6 +289,7 @@ const SelectOrder = ({
           onFocus={() => setIsActive(true)}
           onBlur={() => setIsActive(false)}
           placeholder={<div></div>}
+          menuPlacement="auto"
           formatOptionLabel={formatLabel}
           formatGroupLabel={data => (
             <div style={{ fontWeight: 'bold' }}>

@@ -23,7 +23,6 @@ const Selects = ({
   const { filters, clearFilters } = useContext(FiltersContext);
 
   useEffect(() => {
-    console.log("filters changed in selects!", filters)
     setPreviewField(null)
   }, [filters])
 
@@ -76,6 +75,7 @@ const Selects = ({
           showNone={showNone} 
           showUniquePaths={showUniquePaths}
           filteredIndices={filteredIndices}
+          disabled={order == 14 && selectedGWAS ? true : false}
         />
       ))}
 

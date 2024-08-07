@@ -1,11 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useContext } from 'react';
 // TODO: warning in console about defaultProps comes from this component
 // If we upgrade to react 18 it will break
 import Select from 'react-select-virtualized';
 
 import chroma from 'chroma-js';
-import { groups } from 'd3-array';
+import {Tooltip} from 'react-tooltip';
 
+import FiltersContext from './FiltersContext'
+import { makeField } from '../../layers'
+import variants_gwas_rank from '../../layers/variants_rank_gwas'
 import gwas from '../../layers/variants_gwas_fields.json'
 
 
@@ -80,18 +83,30 @@ const SelectGWAS = ({
 
   const [isActive, setIsActive] = useState(false);
 
+  const { filters, handleFilter } = useContext(FiltersContext);
+
   useEffect(() => {
     console.log("selected", selected)
     setSelectedField(selected || null)
   }, [selected])
 
-  const [allFields, setAllFields] = useState(gwas.fields.map((f,i) => {
-    return {
-      label: f,
-      index: i,
-      color: gwas.colors[i],
-      count: gwas.counts[i]
+  const [disabled, setDisabled] = useState(false)
+  useEffect(() => {
+    // console.log("filters")
+    const o14 = filters[14]
+    if(o14 && o14.layer != variants_gwas_rank) {
+      // console.log("DOESNT MATCH", o14)
+      setDisabled(true)
+    } else {
+      setDisabled(false)
     }
+  }, [filters])
+
+  const [allFields, setAllFields] = useState(gwas.fields.map((f,i) => {
+    let field = makeField(variants_gwas_rank, f, 14)
+    field.i = i
+    field.count = gwas.counts[i]
+    return field
   }).sort((a,b) => b.count - a.count))
 
   const formatLabel = useCallback((option) => {
@@ -116,6 +131,7 @@ const SelectGWAS = ({
   
   useEffect(() => {
     onSelect(selectedField)
+    handleFilter(selectedField, 14)
   }, [selectedField])
 
   return (
@@ -135,19 +151,14 @@ const SelectGWAS = ({
           menuPlacement="top"
           formatOptionLabel={formatLabel}
           getOptionValue={(option) => option.index} 
+          disabled={disabled}
           // formatGroupLabel={formatGroupLabel}
         />
       </div>
-        {selectedField ? 
-        <div>
-          {/* <span className="selected-field">
-            Selected: {selectedField.label}
-          </span> */}
-          <button onClick={() => setSelectedField(null)}>
-            ❌
-          </button>
-        </div>
-      : null}
+      {disabled ? <div className="disabled" data-tooltip-id="higher-filter">🚫</div> : null}
+        <Tooltip id="higher-filter" place="right" effect="solid">
+           Disabled
+        </Tooltip>
     </div>
   )
 }

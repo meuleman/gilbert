@@ -160,7 +160,7 @@ function filterIndices(orderSelects, progressCb, resultsCb, regionsThreshold = 1
       return {
         ...os,
         chromosome: c,
-        chromosome_count: chrm[l][i]
+        chromosome_count: chrm[l]?.[i] || 0
       }
     })
     .filter(d => d?.chromosome_count > 0) // filtering this means we dont request empty index arrays that dont exist
