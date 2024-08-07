@@ -79,6 +79,14 @@ const FilterModal = ({
   useEffect(() => {
     onIndices(filteredIndices)
   }, [filteredIndices])
+
+  let filteredPathPercentageDisplay
+  if(filteredPathCount == 0) {
+    filteredPathPercentageDisplay = "0%"
+  } else {
+    const filteredPathPercentage = (filteredPathCount/orderSums[4]?.totalPaths*100).toFixed(2)
+    filteredPathPercentageDisplay = filteredPathPercentage < 0.01 ? "<0.01%" : `${filteredPathPercentage}%`
+  }
   
   return (
     <div className={`filter-modal ${show ? "show" : "hide"}`}>
@@ -88,7 +96,7 @@ const FilterModal = ({
       <div className="filter-results">
         {filterLoadingMessage ? <Loading text={"Calculating filters..."} /> : null}
         {filterLoadingMessage ? filterLoadingMessage : <div>
-          {showInt(filteredPathCount)} ({(filteredPathCount/orderSums[4]?.totalPaths*100).toFixed(2)}%) paths found
+          {showInt(filteredPathCount)} ({filteredPathPercentageDisplay}) paths found
         </div>}
       </div>
       <div>
