@@ -53,7 +53,7 @@
 
 .primary-grid {
   display: grid;
-  grid-template-columns: [left-col] 1fr [right-col] 230px [end-col];
+  grid-template-columns: [left-col] 1fr [right-col] 200px [end-col];
   grid-template-rows: [header] max-content [content] 1fr [footer] max-content [end];
   height: 100vh;
 }

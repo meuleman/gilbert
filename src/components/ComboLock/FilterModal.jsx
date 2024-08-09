@@ -108,8 +108,6 @@ const FilterModal = ({
             activeWidth={585}
             restingWidth={65}
             orderMargin={orderMargin}
-            // the current set of filter indices for percentages
-            // filteredIndices={filteredIndices}
           />
       </div> 
     </div>

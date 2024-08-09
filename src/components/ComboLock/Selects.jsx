@@ -52,7 +52,6 @@ const Selects = ({
           activeWidth={activeWidth + 85}
           restingWidth={restingWidth + 165}
           onSelect={(field) => {
-            console.log("field", field)
             setPreviewField(field)
           }} 
         />

@@ -307,9 +307,11 @@ const ZoomLegend = ({
             <div className="zoom-indicator" style={{
               backgroundColor: `rgba(0.5, 0.5, 0.5, ${d.order == effectiveOrder ? 0.4 : 0.3})`,
               // height: "100%",
-              width: "30px",
-              fontFamily: "Gilbert",
-              fontSize: d.order == effectiveOrder ? "24px" : "20px",
+              width: "40px",
+              maxWidth: "40px",
+              // fontFamily: "Gilbert",
+              fontFamily: "monospace",
+              fontSize: d.order == effectiveOrder ? "12px" : "10px",
               //fontWeight: d.order == effectiveOrder ? "bold" : "normal",
               color: d.order == effectiveOrder ? "black" : "white",
               //color: "white",
@@ -320,10 +322,11 @@ const ZoomLegend = ({
               display: "flex",
               flexDirection: "row",
               justifyContent: "center",
-              alignItems: "start",
+              alignItems: "center",
               // display: "inline-block"
             }}>
-              {d.order} 
+              {/* {d.order}  */}
+              {showKb(4 ** (14 - d.order))}
             </div>
 
             <div className="label-box"
@@ -332,7 +335,7 @@ const ZoomLegend = ({
                 width: "100%",
               }}
             >
-              <div className="basepair-size">{showKb(4 ** (14 - d.order))}</div>
+              {/* <div className="basepair-size">{showKb(4 ** (14 - d.order))}</div> */}
               <div className="dataset-label"
                 style={{
                   fontWeight: (d.order == effectiveOrder && !CSNView) ? "bold" : "normal",

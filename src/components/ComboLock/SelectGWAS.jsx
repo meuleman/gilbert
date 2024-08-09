@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useContext } from 'react';
+import { useState, useEffect, useCallback, useContext, memo, useMemo } from 'react';
 // TODO: warning in console about defaultProps comes from this component
 // If we upgrade to react 18 it will break
 import Select from 'react-select-virtualized';
@@ -73,12 +73,12 @@ const colourStyles = (isActive = false, restingWidth = 65, activeWidth = 570) =>
   }),
 });
 
-const SelectGWAS = ({
+const SelectGWAS = memo(({
   selected = null, 
   activeWidth = 570, 
   restingWidth = 65, 
   onSelect = () => {}
-}) => {
+  }) => {
   const [selectedField, setSelectedField] = useState(null)
 
   const [isActive, setIsActive] = useState(false);
@@ -86,7 +86,6 @@ const SelectGWAS = ({
   const { filters, handleFilter } = useContext(FiltersContext);
 
   useEffect(() => {
-    console.log("selected", selected)
     setSelectedField(selected || null)
   }, [selected])
 
@@ -102,12 +101,14 @@ const SelectGWAS = ({
     }
   }, [filters])
 
-  const [allFields, setAllFields] = useState(gwas.fields.map((f,i) => {
-    let field = makeField(variants_gwas_rank, f, 14)
-    field.i = i
-    field.count = gwas.counts[i]
-    return field
-  }).sort((a,b) => b.count - a.count))
+  const allFields = useMemo(() => 
+    gwas.fields.map((f, i) => {
+      let field = makeField(variants_gwas_rank, f, 14);
+      field.i = i;
+      field.count = gwas.counts[i];
+      return field;
+    }).sort((a, b) => b.count - a.count), [gwas.fields]
+  );
 
   const formatLabel = useCallback((option) => {
   //   console.log("OPTION", option)
@@ -142,7 +143,6 @@ const SelectGWAS = ({
           styles={colourStyles(isActive, restingWidth, activeWidth)}
           value={selectedField}
           onChange={(selectedOption) => {
-            console.log("selected!", selectedOption)
             setSelectedField(selectedOption)
           }}
           onFocus={() => setIsActive(true)}
@@ -161,6 +161,7 @@ const SelectGWAS = ({
         </Tooltip>
     </div>
   )
-}
+})
+SelectGWAS.displayName = 'SelectGWAS';
 
 export default SelectGWAS;

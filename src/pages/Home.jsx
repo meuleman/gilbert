@@ -808,6 +808,9 @@ function Home() {
     }
   }, [handleModalClose])
 
+  const orderMargin = useMemo(() => {
+    return (height - 11*38 - 180)/11
+  }, [height])
 
   return (
     <>
@@ -920,7 +923,7 @@ function Home() {
             <div>
               <FilterModal 
                 show={showFilter}
-                orderMargin={(height - 11*38 - 180)/11}
+                orderMargin={orderMargin}
                 // onFilters={setFilters}
                 loading={csnLoading}
                 onIndices={setFilteredIndices}>
