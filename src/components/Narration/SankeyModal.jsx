@@ -35,10 +35,12 @@ const SankeyModal = ({
   show = true,
   width = 400,
   height = 320,
+  numPaths = 100,
   shrinkNone = true,
   onSelectedCSN = () => {},
   onHoveredCSN = () => {},
   onSort = () => {},
+  onNumPaths = () => {},
   // onCSNS = () => {}
 } = {}) => {
 
@@ -103,6 +105,7 @@ const SankeyModal = ({
             {loading === "hydrating" ? <Loading text={"Hydrating CSNs..."} /> : null}
             {!loading ? 
               <div className="sort-options">
+                <div style={{ marginLeft: '10px', border: '1px solid #eee', borderRadius: '5px', padding: '5px' }}>
                 Sort:
                 <label>
                   <input 
@@ -111,7 +114,7 @@ const SankeyModal = ({
                     checked={sort === "factor"} 
                     onChange={() => setSort("factor")} 
                   />
-                  Factor score
+                  Factor
                 </label>
                 <label>
                   <input 
@@ -120,8 +123,19 @@ const SankeyModal = ({
                     checked={sort === "full"} 
                     onChange={() => setSort("full")} 
                   />
-                  Full path score
+                  Full
                 </label>
+                </div>
+                <label style={{ marginLeft: '10px', border: '1px solid #eee', borderRadius: '5px', padding: '5px' }}>
+                  <input 
+                    type="number" 
+                    value={numPaths}
+                    style={{ width: '60px' }}
+                    onChange={(e) => onNumPaths(+e.target.value)} 
+                  />
+                  &nbsp; # Paths
+                </label>
+
               </div>
             : null }
             {!loading && csns.length ? 

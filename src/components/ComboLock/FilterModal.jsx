@@ -32,73 +32,73 @@ const FilterModal = ({
     setOrderSums(orderSums)
   }, [])
 
-  const [filterLoadingMessage, setFilterLoadingMessage] = useState("")
-  const [filteredPathCount, setFilteredPathCount] = useState(0)
-  const [filteredIndices, setFilteredIndices] = useState([]) // the indices for each chromosome at highest order
-  useEffect(() => {
+  // const [filterLoadingMessage, setFilterLoadingMessage] = useState("")
+  // const [filteredPathCount, setFilteredPathCount] = useState(0)
+  // const [filteredIndices, setFilteredIndices] = useState([]) // the indices for each chromosome at highest order
+  // useEffect(() => {
 
-    console.log("filters changed in modal!", JSON.stringify(filters))
-    // console.log("SKIPPING CLIENT SIDE")
-    // return;
+  //   console.log("filters changed in modal!", JSON.stringify(filters))
+  //   // console.log("SKIPPING CLIENT SIDE")
+  //   // return;
 
-    let totalIndices = 0
-    let indexCount = 0
-    let loadingMessage = ""
-    filterIndices(filters, function(state, value) {
-      // console.log("progress", state, value)
-      if(state == "loading_filters_start") {
-        loadingMessage = "Loading filters..."
-      }
-      else if(state == "grouped_selects") {
-        totalIndices = value.flatMap(d => d[1].map(a => a)).length
-        loadingMessage = `Loading filters 0/${totalIndices}`
-      } else if(state == "got_index"){
-        indexCount += 1
-        loadingMessage = `Loading filters ${indexCount}/${totalIndices}`
-      } else if(state == "filtering_start") {
-        loadingMessage = "Filtering..."
-      } else if(state == "filtering_end") {
-        loadingMessage = "Filtering Complete"
-      }
-      setFilterLoadingMessage(loadingMessage)
+  //   let totalIndices = 0
+  //   let indexCount = 0
+  //   let loadingMessage = ""
+  //   filterIndices(filters, function(state, value) {
+  //     // console.log("progress", state, value)
+  //     if(state == "loading_filters_start") {
+  //       loadingMessage = "Loading filters..."
+  //     }
+  //     else if(state == "grouped_selects") {
+  //       totalIndices = value.flatMap(d => d[1].map(a => a)).length
+  //       loadingMessage = `Loading filters 0/${totalIndices}`
+  //     } else if(state == "got_index"){
+  //       indexCount += 1
+  //       loadingMessage = `Loading filters ${indexCount}/${totalIndices}`
+  //     } else if(state == "filtering_start") {
+  //       loadingMessage = "Filtering..."
+  //     } else if(state == "filtering_end") {
+  //       loadingMessage = "Filtering Complete"
+  //     }
+  //     setFilterLoadingMessage(loadingMessage)
 
-    }, function(results) {
-      const { filteredIndices, pathCount} = results
-      if(results.filteredIndices.length > 0) {
-        setFilterLoadingMessage("")
-        setFilteredIndices(filteredIndices)
-        setFilteredPathCount(pathCount)
-      } else {
-        setFilterLoadingMessage("")
-        setFilteredIndices([])
-        setFilteredPathCount(0)
-      }
-    })
-  }, [filters])
+  //   }, function(results) {
+  //     const { filteredIndices, pathCount} = results
+  //     if(results.filteredIndices.length > 0) {
+  //       setFilterLoadingMessage("")
+  //       setFilteredIndices(filteredIndices)
+  //       setFilteredPathCount(pathCount)
+  //     } else {
+  //       setFilterLoadingMessage("")
+  //       setFilteredIndices([])
+  //       setFilteredPathCount(0)
+  //     }
+  //   })
+  // }, [filters])
 
-  useEffect(() => {
-    onIndices(filteredIndices)
-  }, [filteredIndices])
+  // useEffect(() => {
+  //   onIndices(filteredIndices)
+  // }, [filteredIndices])
 
-  let filteredPathPercentageDisplay
-  if(filteredPathCount == 0) {
-    filteredPathPercentageDisplay = "0%"
-  } else {
-    const filteredPathPercentage = (filteredPathCount/orderSums[4]?.totalPaths*100).toFixed(2)
-    filteredPathPercentageDisplay = filteredPathPercentage < 0.01 ? "<0.01%" : `${filteredPathPercentage}%`
-  }
+  // let filteredPathPercentageDisplay
+  // if(filteredPathCount == 0) {
+  //   filteredPathPercentageDisplay = "0%"
+  // } else {
+  //   const filteredPathPercentage = (filteredPathCount/orderSums[4]?.totalPaths*100).toFixed(2)
+  //   filteredPathPercentageDisplay = filteredPathPercentage < 0.01 ? "<0.01%" : `${filteredPathPercentage}%`
+  // }
   
   return (
     <div className={`filter-modal ${show ? "show" : "hide"}`}>
       {/* <div className="header">
         FILTERS
       </div> */}
-      <div className="filter-results">
+      {/* <div className="filter-results">
         {filterLoadingMessage ? <Loading text={"Calculating filters..."} /> : null}
         {filterLoadingMessage ? filterLoadingMessage : <div>
           {showInt(filteredPathCount)} ({filteredPathPercentageDisplay}) paths found
         </div>}
-      </div>
+      </div> */}
       <div>
         <div className="filter-inputs">
           <Selects
@@ -109,7 +109,7 @@ const FilterModal = ({
             restingWidth={65}
             orderMargin={orderMargin}
             // the current set of filter indices for percentages
-            filteredIndices={filteredIndices}
+            // filteredIndices={filteredIndices}
           />
       </div> 
     </div>

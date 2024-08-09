@@ -585,14 +585,14 @@ function Home() {
 
   const [filteredIndices, setFilteredIndices] = useState([])
   // const [filteredRegions, setFilteredRegions] = useState([])
-  const [rbos, setRbos] = useState({}) // regions by order
+  // const [rbos, setRbos] = useState({}) // regions by order
+  const [numPaths, setNumPaths] = useState(100)
   const [topFullCSNS, setTopFullCSNS] = useState([])
   const [topFactorCSNS, setTopFactorCSNS] = useState([])
   const [selectedTopCSN, setSelectedTopCSN] = useState(null)
   const [csnLoading, setCSNLoading] = useState("")
   const [hoveredTopCSN, setHoveredTopCSN] = useState(null)
   const [csnSort, setCSNSort] = useState("factor")
-  const [topCSNS, setTopCSNS] = useState([])
   const [regionCSNS, setRegionCSNS] = useState([])
   const csnRequestRef = useRef(0)
 
@@ -608,7 +608,7 @@ function Home() {
     }
     setCSNLoading("fetching")
     // Fetch the top csns from the API
-    fetchTopCSNs(filters, null, "factor", true, 100)
+    fetchTopCSNs(filters, null, "factor", true, numPaths)
       .then((response) => {
         console.log("FACTOR RESPONSE", response)
         if(!response) {
@@ -628,7 +628,7 @@ function Home() {
         setTopFactorCSNS([])
       })
     // for now we just pull both in parallel
-    fetchTopCSNs(filters, null, "full", true, 100)
+    fetchTopCSNs(filters, null, "full", true, numPaths)
       .then((response) => {
         console.log("FULL RESPONSE", response)
         if(!response) {
@@ -647,13 +647,12 @@ function Home() {
         // setCSNLoading("Error!")
         setTopFullCSNS([])
       })
-  }, [filters])
+  }, [filters, numPaths])
 
   const [pathDiversity, setPathDiversity] = useState(true)
   const [loadingRegionCSNS, setLoadingRegionCSNS] = useState(false)
   // Fetch the CSNS via API for the selected region
   useEffect(() => {
-
     if(selected){
       let nfs = Object.keys(filters).length
       setLoadingRegionCSNS(true)
@@ -677,18 +676,18 @@ function Home() {
     }
   }, [filters, selected, pathDiversity])
 
-  // calculate the filtered regions at the current order
-  useEffect(() => {
-    // console.log("order", zoom.order)
-    if(filteredIndices.length) {
-      // console.log("filteredIndices", filteredIndices)
-      const regions = regionsByOrder(filteredIndices, zoom.order)
-      console.log("filtered regions by order", regions)
-      setRbos(regions)
-    } else {
-      setRbos([])
-    }
-  }, [zoom.order, filteredIndices])
+  // // calculate the filtered regions at the current order
+  // useEffect(() => {
+  //   // console.log("order", zoom.order)
+  //   if(filteredIndices.length) {
+  //     // console.log("filteredIndices", filteredIndices)
+  //     const regions = regionsByOrder(filteredIndices, zoom.order)
+  //     console.log("filtered regions by order", regions)
+  //     setRbos(regions)
+  //   } else {
+  //     setRbos([])
+  //   }
+  // }, [zoom.order, filteredIndices])
 
 
   const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
@@ -742,7 +741,7 @@ function Home() {
     setHover(hit)
   }, [zoom.order])
 
-  const drawFilteredRegions = useCanvasFilteredRegions(rbos, topCSNSFactorByCurrentOrder)
+  const drawFilteredRegions = useCanvasFilteredRegions(topCSNSFactorByCurrentOrder)
 
   const clearSelectedState = useCallback(() => {
     console.log("CLEARING STATE")
@@ -876,7 +875,7 @@ function Home() {
                 regionCSNS={regionCSNS}
                 loadingRegionCSNS={loadingRegionCSNS}
                 topCSNS={topCSNSFactorByCurrentOrder}
-                regionsByOrder={rbos}
+                // regionsByOrder={rbos}
                 selectedTopCSN={selectedTopCSN}
                 loadingSelectedCSN={loadingSelectedCSN}
                 k={zoom.transform.k}
@@ -930,6 +929,7 @@ function Home() {
                 show={showFilter}
                 width={400} 
                 height={height - 45} 
+                numPaths={numPaths}
                 filteredIndices={filteredIndices} 
                 factorCsns={topFactorCSNS}
                 fullCsns={topFullCSNS}
@@ -939,6 +939,9 @@ function Home() {
                 onHoveredCSN={handleHoveredCSN}
                 onSort={(sort) => {
                   setCSNSort(sort)
+                }}
+                onNumPaths={(n) => {
+                  setNumPaths(n)
                 }}
               />
             </div>
@@ -1062,7 +1065,7 @@ function Home() {
             width={width + 12 + 30} 
             hover={hover} // the information about the cell the mouse is over
             // filteredRegions={filteredRegions}
-            regionsByOrder={rbos}
+            // regionsByOrder={rbos}
             topCSNS={topCSNSFactorByCurrentOrder}
             layer={layer} 
             zoom={zoom} 
