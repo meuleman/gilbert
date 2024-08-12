@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useContext } from 'react'
+import { useState, useCallback, useEffect, useContext, useMemo } from 'react'
 import FiltersContext from './ComboLock/FiltersContext'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
@@ -78,14 +78,26 @@ const InspectorGadget = ({
       setZoomedPathRegion(zr)
     }
   }, [narration, zOrder])
+
+  const modalTop = useMemo(() => {
+    let top = modalPosition?.y - powerHeight/2 - 62
+    if(top < 0) top = 0
+    return top
+  }, [modalPosition, powerHeight])
+  const modalLeft = useMemo(() => {
+    let left = modalPosition?.x - powerWidth/2 - 12
+    if(left < 0) left = 0
+    return left
+  }, [modalPosition, powerWidth])
+
   
   return (
     <>
     {selected && (
     <div className="power-overlay" style={{
       position: "absolute", 
-      top: modalPosition?.y - powerHeight/2 - 62, 
-      left: modalPosition?.x - powerWidth/2 - 12,
+      top: modalTop, 
+      left: modalLeft,
       // backgroundColor: `rgba(255, 255, 255, ${opacity})`
       }}>
       <div className="header">
@@ -143,8 +155,8 @@ const InspectorGadget = ({
           </div>
           <div className="zoom-text">
             At the {showKb(Math.pow(4, 14 - Math.floor(zOrder)))} scale, 
-            {zoomedPathRegion ? " the dominant factor is " : "no factors are significant for this path."}
-            {zoomedPathRegion ? <span>
+            {zoomedPathRegion?.field ? " the dominant factor is " : "no factors are significant for this path."}
+            {zoomedPathRegion?.field ? <span>
               {zoomedPathRegion.layer?.name}: {zoomedPathRegion.field?.field}
             </span>: ""}
           </div>

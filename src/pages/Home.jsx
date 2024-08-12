@@ -1049,7 +1049,7 @@ function Home() {
             <div className='linear-tracks'>
 
               {selected  && <RegionStrip region={selected} segments={100} layer={layer} width={width} height={40} /> }
-              {!selected && <RegionStrip region={hover} segments={100} layer={layer} width={width} height={40} /> }
+              {!selected && hover && <RegionStrip region={hover} segments={100} layer={layer} width={width} height={40} /> }
 
               {/* <TrackPyramid
                 state={trackState} 
