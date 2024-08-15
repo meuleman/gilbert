@@ -1,9 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useContext } from 'react';
 import Select from 'react-select';
 import chroma from 'chroma-js';
 import { groups } from 'd3-array';
 
 import { fields } from '../../layers'
+import FiltersContext from './FiltersContext'
+import Loading from '../Loading';
+import { fetchFilterPreview } from '../../lib/csn'
+
 
 
 const dot = (color = 'transparent') => ({
@@ -67,15 +71,34 @@ const colourStyles = (isActive, restingWidth = 65, activeWidth = 570) => ({
   }),
 });
 
-const SelectFactor = ({layers, selected, activeWidth, restingWidth, onSelect}) => {
-  const [selectedField, setSelectedField] = useState(null)
+const SelectFactor = ({
+  activeWidth, 
+  restingWidth, 
+  onPreviewValues = () => {},
+}) => {
 
+  const [selectedField, setSelectedField] = useState(null)
   const [isActive, setIsActive] = useState(false);
+  const { filters, clearFilters } = useContext(FiltersContext);
 
   useEffect(() => {
-    console.log("selected", selected)
-    setSelectedField(selected || null)
-  }, [selected])
+    setSelectedField(null)
+  }, [filters])
+
+  const [loadingPreview, setLoadingPreview] = useState(false)
+  useEffect(() => {
+    if(selectedField) {
+      onPreviewValues(null)
+      setLoadingPreview(true)
+      fetchFilterPreview(filters, null, selectedField).then((preview) => {
+        // setPreviewValues(preview.preview_fractions)
+        onPreviewValues(selectedField, preview.preview_fractions)
+        setLoadingPreview(false)
+      })
+    } else {
+      onPreviewValues(null)
+    }
+  }, [selectedField, filters])
 
   const [allFields, setAllFields] = useState([])
 
@@ -94,14 +117,9 @@ const SelectFactor = ({layers, selected, activeWidth, restingWidth, onSelect}) =
       .filter(d => d.options.length)
     setAllFields(grouped)
   }, [])
-  
-  useEffect(() => {
-    onSelect(selectedField)
-  }, [selectedField])
-
-  return (
-    <div className="filter-fields">
-      <div className="filter-group">
+   return (
+    <div className="select-preview" style={{display: "flex", flexDirection:"row"}}>
+        { loadingPreview ?  <Loading text="🤖" type="emoji"></Loading>:null }
         <Select
           options={allFields}
           styles={colourStyles(isActive, restingWidth, activeWidth)}
@@ -111,6 +129,7 @@ const SelectFactor = ({layers, selected, activeWidth, restingWidth, onSelect}) =
           }}
           onFocus={() => setIsActive(true)}
           onBlur={() => setIsActive(false)}
+          isClearable={true}
           placeholder={<div>Select a factor</div>}
           formatOptionLabel={formatLabel}
           formatGroupLabel={data => (
@@ -119,17 +138,6 @@ const SelectFactor = ({layers, selected, activeWidth, restingWidth, onSelect}) =
             </div>
           )}
         />
-      </div>
-        {selectedField ? 
-        <div>
-          {/* <span className="selected-field">
-            Selected: {selectedField.label}
-          </span> */}
-          <button onClick={() => setSelectedField(null)}>
-            ❌
-          </button>
-        </div>
-      : null}
     </div>
   )
 }

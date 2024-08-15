@@ -1,0 +1,96 @@
+
+.tooltip-custom {
+  z-index: 999;
+}
+.filter-selects {
+  position: absolute;
+  bottom: 1px;
+  right: 0px;
+  padding-right: 4px;
+  background-color: rgba(255, 255, 255, 0.90);
+  /* border: 1px solid lightgray; */
+  /* border-right: none; */
+  /* border-radius: 6px; */
+  /* padding: 6px 6px 12px 6px; */
+  max-width: 100px;
+  width: 100px;
+  height: calc(100% - 2px);
+  z-index: 10
+}
+
+/*  */
+.filter-selects .select-factor {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  margin: 6px 0;
+}
+/* Filter Fields Component */
+.filter-selects .filter-fields {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
+
+.filter-selects .select-gwas {
+  margin-top: 12px;
+}
+
+/* Filter Order Component */
+.filter-selects .filter-order {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
+.filter-selects .filter-order .order-label {
+  line-height: 38px;
+  margin: 0 4px;
+  width: 40px;
+  font-family: monospace;
+  text-align: right;
+}
+.filter-selects .filter-order .button-column {
+  width: 30px;
+}
+.filter-selects .filter-order .disabled {
+  color: gray;
+  line-height: 38px;
+  margin: 0 4px;
+}
+.filter-selects .filter-order .deselect {
+  color: gray;
+  width: 30px;
+  padding: 2px 4px;
+  line-height: 32px;
+}
+.filter-selects .filter-order .select {
+  width: 30px;
+  padding: 2px 4px;
+  line-height: 32px;
+}
+
+.filter-selects .filter-group {
+  /* width: 600px; */
+}
+
+
+.filter-selects .filter-order .layer {
+  border: 1px solid gray;
+  padding: 2px 4px;
+  margin: 6px;
+}
+.filter-selects .filter-order .layer .layer-name {
+  font-weight: bold;
+}
+.filter-selects .filter-order .layer .layer-fields {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.filter-selects .clear-filters {
+  margin: 0 6px;
+  padding: 2px 6px;
+  line-height: 26px;
+}

@@ -1,10 +1,10 @@
 import React from 'react';
 import './Loading.css';
 
-const LoadingText = ({ text }) => {
+const LoadingText = ({ text, type="text" }) => {
   return (
-    <div className="loading">
-      {text.split('').map((char, index) => (
+    <div className={"loading " + type}>
+      {text.split('\c').map((char, index) => (
         <span key={index} style={{ display: "inline-block", animationDelay: `${index * 0.05}s` }}>
           {char == " " ? "\u00A0" : char}
         </span>

@@ -20,3 +20,9 @@
   display: inline-block;
   animation: wave 1.5s infinite;
 }
+
+.loading.emoji {
+  padding: 4px;
+  margin: 4px;  
+  line-height: 1.5em;
+}

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useContext } from 'react'
 import FiltersContext from './FiltersContext'
-import Selects from './Selects'
+import Selects from './FilterSelects'
 import Loading from '../Loading'
 
 import { calculateOrderSums, filterIndices } from '../../lib/filters'

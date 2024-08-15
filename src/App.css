@@ -45,6 +45,7 @@
 .header--brand,
 .header--search {
   flex: 0 0 auto;
+  z-index: 20;
 }
 
 /* .header--narration {

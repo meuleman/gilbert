@@ -9,7 +9,7 @@ import { urlify, jsonify, fromPosition, fromCoordinates } from '../lib/regions'
 import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
 import { fetchTopCSNs, rehydrateCSN, calculateCrossScaleNarrationInWorker, narrateRegion, retrieveFullDataForCSN } from '../lib/csn'
-import { regionsByOrder, urlifyFilters, parseFilters } from '../lib/filters'
+import { calculateOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
 import { range, groups, group } from 'd3-array'
 
 import './Home.css'
@@ -33,7 +33,10 @@ import SVGSelected from '../components/SVGSelected'
 import RegionMask from '../components/RegionMask'
 import SVGChromosomeNames from '../components/SVGChromosomeNames'
 // import SVGBBox from '../components/SVGBBox'
-import FilterModal from '../components/ComboLock/FilterModal'
+// import FilterModal from '../components/ComboLock/FilterModal'
+import SelectFactorPreview from '../components/ComboLock/SelectFactorPreview'
+import FilterSelects from '../components/ComboLock/FilterSelects'
+
 import SankeyModal from '../components/Narration/SankeyModal';
 
 // layer configurations
@@ -214,7 +217,6 @@ function Home() {
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
   const [csnMethod, setCsnMethod] = useState("sum")
   const [csnEnrThreshold, setCsnEnrThreshold] = useState(0)
-  const [loadingCSN, setLoadingCSN] = useState(false)
   const [genesetEnrichment, setGenesetEnrichment] = useState(null)
 
   const selectedRef = useRef(selected);
@@ -249,9 +251,9 @@ function Home() {
     dataRef.current = data
   }, [data])
 
-  const [trackState, setTrackState] = useState(data)
-  const [tracks, setTracks] = useState([])
-  const [tracksLoading, setTracksLoading] = useState(false)
+  // const [trackState, setTrackState] = useState(data)
+  // const [tracks, setTracks] = useState([])
+  // const [tracksLoading, setTracksLoading] = useState(false)
 
   const [searchByFactorInds, setSearchByFactorInds] = useState([])
 
@@ -273,29 +275,29 @@ function Home() {
   }, [setSimSearch, setSimilarRegions, setSelected])
 
   // this debounced function fetches the data and updates the state
-  const fetchLayerData = useMemo(() => {
-    const dataClient = Data({ 
-      debug: false
-    })
-    return (layer, order, bbox, key, setter) => {
-      // we dont want to fetch data if the order is not within the layer order range
-      if (order < layer.orders[0] || order > layer.orders[1]) return;
+  // const fetchLayerData = useMemo(() => {
+  //   const dataClient = Data({ 
+  //     debug: false
+  //   })
+  //   return (layer, order, bbox, key, setter) => {
+  //     // we dont want to fetch data if the order is not within the layer order range
+  //     if (order < layer.orders[0] || order > layer.orders[1]) return;
 
-      let hilbert = HilbertChromosome(order, { padding: 2 })
-      let points = hilbert.fromBbox(bbox) 
+  //     let hilbert = HilbertChromosome(order, { padding: 2 })
+  //     let points = hilbert.fromBbox(bbox) 
 
-      let myPromise = dataClient.fetchData(layer, order, points)
-      let myCallback = (data) => {
-        // console.log("got data", data, order)
-        if(data) {
-          setter({ data, layer, order})
-        }
-      }
-      // debounce a function call with a name to make sure no collisions
-      // collision would be accidentally debouncing a different data call because we reuse this function
-      debounceNamed(myPromise, myCallback, 50, key+":"+layer.name+":"+order) // layer.name + order makes unique call 
-    }
-  }, []);
+  //     let myPromise = dataClient.fetchData(layer, order, points)
+  //     let myCallback = (data) => {
+  //       // console.log("got data", data, order)
+  //       if(data) {
+  //         setter({ data, layer, order})
+  //       }
+  //     }
+  //     // debounce a function call with a name to make sure no collisions
+  //     // collision would be accidentally debouncing a different data call because we reuse this function
+  //     debounceNamed(myPromise, myCallback, 50, key+":"+layer.name+":"+order) // layer.name + order makes unique call 
+  //   }
+  // }, []);
 
 
   
@@ -356,29 +358,7 @@ function Home() {
   const handleCsnMethodChange = (e) => setCsnMethod(e.target.value)
   // function to change the ENR threshold for CSN
   const handleCsnEnrThresholdChange = (e) => setCsnEnrThreshold(e.target.value)
-  // function to subset our CSN results to just unique paths
-  // function findUniquePaths(paths) {
-  //   const uniquePaths = []
-  //   const seenPaths = new Map()
 
-  //   // initialize each order to null
-  //   let initialEmptyPathObj = {}
-  //   const orders = [4, 14]
-  //   for (let i = orders[0]; i <= orders[1]; i++) initialEmptyPathObj[i] = null;
-    
-  //   // filter paths
-  //   paths.forEach(path => {
-  //     // Convert path to a string to use as a map key
-  //     let pathStripped = { ...initialEmptyPathObj }
-  //     path.path.forEach((d) => {if(d !== null) pathStripped[d.order] = d.field.field})
-  //     const pathKey = JSON.stringify(pathStripped)
-  //     if (!seenPaths.has(pathKey)) {
-  //       uniquePaths.push(path)
-  //       seenPaths.set(pathKey, true)
-  //     }
-  //   })
-  //   return uniquePaths
-  // }
   useEffect(() => {
     // setCrossScaleNarrationIndex(0)
     
@@ -583,7 +563,12 @@ function Home() {
   // const [filters, setFilters] = useState([])
 
 
+  const orderSums = useMemo(() => {
+    return calculateOrderSums()
+  }, [])
   const [filteredIndices, setFilteredIndices] = useState([])
+  const [factorPreviewField, setFactorPreviewField] = useState(null)
+  const [factorPreviewValues, setFactorPreviewValues] = useState(null)
   // const [filteredRegions, setFilteredRegions] = useState([])
   // const [rbos, setRbos] = useState({}) // regions by order
   const [numPaths, setNumPaths] = useState(100)
@@ -676,20 +661,6 @@ function Home() {
     }
   }, [filters, selected, pathDiversity])
 
-  // // calculate the filtered regions at the current order
-  // useEffect(() => {
-  //   // console.log("order", zoom.order)
-  //   if(filteredIndices.length) {
-  //     // console.log("filteredIndices", filteredIndices)
-  //     const regions = regionsByOrder(filteredIndices, zoom.order)
-  //     console.log("filtered regions by order", regions)
-  //     setRbos(regions)
-  //   } else {
-  //     setRbos([])
-  //   }
-  // }, [zoom.order, filteredIndices])
-
-
   const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
   const [topCSNSFullByCurrentOrder, setTopCSNSFullByCurrentOrder] = useState(new Map())
   // we want to group the top csns by the current order
@@ -706,6 +677,12 @@ function Home() {
     }
   }, [zoom.order, topFactorCSNS])
 
+
+  const handleFactorPreview = useCallback((field, values) => {
+    console.log("preview factor!", field, values)
+    setFactorPreviewField(field)
+    setFactorPreviewValues(values)
+  }, [setFactorPreviewField, setFactorPreviewValues])
 
   const handleSelectedCSNSankey = useCallback((csn) => {
     let hit = csn.path.find(d => d.order == zoom.order)?.region
@@ -809,7 +786,7 @@ function Home() {
   }, [handleModalClose])
 
   const orderMargin = useMemo(() => {
-    return (height - 11*38 - 180)/11
+    return (height - 11*38)/11
   }, [height])
 
   return (
@@ -826,10 +803,17 @@ function Home() {
             }} />
           </div>
           <div className="header--search">
+            {showFilter ? 
+              <SelectFactorPreview 
+                activeWidth={400}
+                restingWidth={400}
+                onPreviewValues={handleFactorPreview}
+                />
+            : 
             <Autocomplete
               ref={autocompleteRef}
               onChangeLocation={handleChangeLocationViaAutocomplete}
-            />
+            /> }
           </div>
         </div>
         <div className="lensmode">
@@ -921,13 +905,18 @@ function Home() {
             </InspectorGadget> : null}
             
             <div>
-              <FilterModal 
-                show={showFilter}
+
+              {showFilter ? <FilterSelects
+                orderSums={orderSums} 
+                previewField={factorPreviewField}
+                previewValues={factorPreviewValues}
+                showNone={false} 
+                showUniquePaths={true}
+                activeWidth={585}
+                restingWidth={65}
                 orderMargin={orderMargin}
-                // onFilters={setFilters}
-                loading={csnLoading}
-                onIndices={setFilteredIndices}>
-              </FilterModal>
+              /> :null }
+
               <SankeyModal 
                 show={showFilter}
                 width={400} 

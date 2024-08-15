@@ -319,6 +319,7 @@ const ZoomLegend = ({
               //strokeWidth: d.order == effectiveOrder ? "15px" : "0px",
               textShadow: d.order == effectiveOrder ? "0px 0px 10px gold" : "none",
               // textAlign: "center",
+              borderTop: "1px solid lightgray",
               display: "flex",
               flexDirection: "row",
               justifyContent: "center",

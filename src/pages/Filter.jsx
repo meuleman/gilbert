@@ -25,7 +25,7 @@ import LogoNav from '../components/LogoNav';
 import InspectorGadget from '../components/InspectorGadget';
 import VerticalSankey from '../components/Narration/VerticalSankey';
 import ZoomLine from '../components/Narration/ZoomLine';
-import Selects from '../components/ComboLock/Selects';
+import FilterSelects from '../components/ComboLock/FilterSelects';
 
 
 import './Filter.css';
