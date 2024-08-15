@@ -1,23 +1,37 @@
 .sankey-modal {
   position: absolute;
-  bottom: 5px;
+  bottom: 1px;
   right: 105px;
   background-color: rgba(255, 255, 255, 0.95);
-  border: 1px solid lightgray;
-  border-radius: 6px;
-  padding: 6px 6px 12px 6px;
-  height: calc(100% - 40px);
+  /* border: 1px solid lightgray; */
+  /* border-radius: 6px; */
+  padding: 6px 6px 0px 6px;
+  height: calc(100% - 11px);
   z-index: 9
 }
-.sankey-modal.hide {
+.hide {
   display: none;
 }
 
-.sankey-modal .loading-info {
+.sankey-modal .control-buttons {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  left: -60px;
+  top: 0px;
+}
+
+.sankey-modal .controls {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.85);
   height: 100px;
   max-height: 100px;
   width: 400px;
   max-width: 400px;
+}
+
+.sankey-modal .loading-info {
+  width: 400px;
 }
 
 .sankey-modal .line-column {

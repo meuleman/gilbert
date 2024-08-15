@@ -217,7 +217,6 @@ export default function CSNVerticalSankey({
 
       // const depth = maxOrder - order
       const depth = 11
-      const spacing = height/(depth + 1)
       const s = sankey()
         .nodeId(d => d.id)
         .nodeWidth(nodeWidth)

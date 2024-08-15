@@ -920,7 +920,7 @@ function Home() {
               <SankeyModal 
                 show={showFilter}
                 width={400} 
-                height={height - 45} 
+                height={height - 20} 
                 numPaths={numPaths}
                 filteredIndices={filteredIndices} 
                 factorCsns={topFactorCSNS}

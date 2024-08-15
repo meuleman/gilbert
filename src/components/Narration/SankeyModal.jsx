@@ -32,7 +32,6 @@ const SankeyModal = ({
   fullCsns = [],
   loading = "",
   order = 4,
-  show = true,
   width = 400,
   height = 320,
   numPaths = 100,
@@ -45,10 +44,13 @@ const SankeyModal = ({
 } = {}) => {
 
   const [loadingCSN, setLoadingCSN] = useState(false)
-  const [numSamples, setNumSamples] = useState(-1)
-  const [sampleStatus, setSampleStatus] = useState(0)
-  const [sampleScoredStatus, setSampleScoredStatus] = useState(0)
-  const [selectedCSN, setSelectedCSN] = useState(null)
+  // const [numSamples, setNumSamples] = useState(-1)
+  // const [sampleStatus, setSampleStatus] = useState(0)
+  // const [sampleScoredStatus, setSampleScoredStatus] = useState(0)
+  // const [selectedCSN, setSelectedCSN] = useState(null)
+
+  const [showPanel, setShowPanel] = useState(true)
+  const [showControls, setShowControls] = useState(false)
 
 
   const [view, setView] = useState("sankey")
@@ -94,15 +96,25 @@ const SankeyModal = ({
 
   const zlheight = height - 120
 
+  const handleShowControl = useCallback(() => {
+    setShowControls(!showControls)
+  }, [showControls])
+
   return (
-    <div className={`sankey-modal ${show ? "show" : "hide"}`}>
-      <div className="content">
-        <div className="loading-info">
-            {!loading && csns.length ? <span>{csns.length} unique paths</span> : null }
+    <div className={`sankey-modal`}>
+        <div className="control-buttons">
+          <button 
+            onClick={useCallback(() => setShowPanel(!showPanel), [showPanel])}>
+              <span style={{transform: "rotate(90deg)", display:"block"}}>📊</span>
+            
+            </button>
+          {showPanel ? <button onClick={handleShowControl}>⚙️</button>: null}
+        </div>
+        <div className={`controls ${showControls ? "show" : "hide"}`}>
+            {/* {!loading && csns.length ? <span>{csns.length} unique paths</span> : null } */}
             {/* {loadingCSN && sampleStatus == 0 ? <p className="loading">Scoring paths... {sampleScoredStatus}/{filteredIndices.filter(d => d.regions.length).length}</p> : null} */}
             {/* {loadingCSN && sampleStatus > 0 ? <p className="loading">Loading samples... {sampleStatus}/{numSamples}</p> : null} */}
-            {loading === "fetching" ? <Loading text={"Fetching CSNs..."} /> : null}
-            {loading === "hydrating" ? <Loading text={"Hydrating CSNs..."} /> : null}
+            
             {!loading ? 
               <div className="sort-options">
                 <div style={{ marginLeft: '10px', border: '1px solid #eee', borderRadius: '5px', padding: '5px' }}>
@@ -161,6 +173,11 @@ const SankeyModal = ({
                 </label>
               </div>
             : null }
+          </div>
+      <div className={`content ${showPanel ? "show" : "hide"}`}>
+        <div className="loading-info">
+            {loading === "fetching" ? <Loading text={"Fetching CSNs..."} /> : null}
+            {loading === "hydrating" ? <Loading text={"Hydrating CSNs..."} /> : null}
         </div>
         {view === "heatmap" || ( csns.length && loadingCSN ) ? 
           <div className={`csn-lines ${loading ? "loading-csns" : ""}`}>
@@ -243,10 +260,11 @@ const SankeyModal = ({
           <div className={`sankey-container ${loading ? "loading-csns" : ""}`}>
             <VerticalSankey 
               width={width} 
-              height={height - 100} 
+              height={height} 
               csns={csns} 
               shrinkNone={shrinkNone} 
-              nodeWidth={height/11 - 30}
+              nodeWidth={height/11 - 28}
+              nodePadding={5}
             />
           </div> :null }
       </div>

@@ -101,18 +101,6 @@ const SelectGWAS = memo(({
 
   const { filters, handleFilter } = useContext(FiltersContext);
 
-  // const [disabled, setDisabled] = useState(false)
-  // useEffect(() => {
-  //   // console.log("filters")
-  //   const o14 = filters[14]
-  //   if(o14 && o14.layer != variants_gwas_rank) {
-  //     // console.log("DOESNT MATCH", o14)
-  //     setDisabled(true)
-  //   } else {
-  //     setDisabled(false)
-  //   }
-  // }, [filters])
-
   const allFields = useMemo(() => {
     let gf = gwas.fields.map((f, i) => {
       let field = makeField(variants_gwas_rank, f, 14);
