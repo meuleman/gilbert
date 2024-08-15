@@ -42,23 +42,15 @@ const colourStyles = (isActive, restingWidth = 65, activeWidth = 570) => ({
     const color = chroma(data.color);
     return {
       ...styles,
-      // transition: 'all 2s ease',
       backgroundColor: isDisabled
         ? undefined
-        // : isSelected
-        // ? data.color
         : isFocused
         ? color.alpha(0.1).css()
         : undefined,
       color: isDisabled
         ? '#ccc'
-        // : isSelected
-        // ? chroma.contrast(color, 'white') > 2
-        //   ? 'white'
           : 'black',
-        // : data.color,
       cursor: isDisabled ? 'not-allowed' : 'default',
-
       ':active': {
         ...styles[':active'],
         backgroundColor: !isDisabled
@@ -84,13 +76,9 @@ const colourStyles = (isActive, restingWidth = 65, activeWidth = 570) => ({
     overflow: 'visible',
   }),
   // for moving the menu to the side
-  
   menu: (provided) => ({
     ...provided,
-    // width: 300,
     right: isActive ? (activeWidth - restingWidth - 20) + "px": "0",
-    // transition: 'right 2s ease',
-    // transform: isActive ? `translateX(-${activeWidth - restingWidth}px)`: 'translateX(0)',
   }),
   // menuList: (provided) => ({
   //   ...provided,
@@ -108,7 +96,7 @@ const SelectOrder = ({
   previewField, 
   previewValues,
   showNone, 
-  showUniquePaths, 
+  showUniquePaths = true, 
   disabled, 
   activeWidth, 
   restingWidth, 

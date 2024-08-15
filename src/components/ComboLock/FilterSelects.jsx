@@ -17,10 +17,10 @@ const Selects = ({
   restingWidth = 585,
   orderMargin = 0,
 } = {}) => {
-  const orders = range(4, 15)
+  const orders = range(4, 14)
   const { filters, clearFilters } = useContext(FiltersContext);
 
-  const [selectedGWAS, setSelectedGWAS] = useState(null)
+  // const [selectedGWAS, setSelectedGWAS] = useState(null)
   
   const hasFilters = useMemo(() => Object.keys(filters).length > 0, [filters])
 
@@ -37,24 +37,21 @@ const Selects = ({
           activeWidth={activeWidth}
           restingWidth={restingWidth}
           showNone={showNone} 
-          showUniquePaths={showUniquePaths}
-          disabled={order == 14 && selectedGWAS ? true : false}
+          // disabled={order == 14 && selectedGWAS ? true : false}
         />
       ))}
 
-      {/* <div className="select-gwas">
+      {/* <div className="select-gwas"> */}
         <SelectGWAS
-          selected={selectedGWAS}
-          activeWidth={activeWidth + 85}
-          restingWidth={restingWidth + 165}
-          onSelect={(field) => {
-            console.log("gwas field", field)
-            setSelectedGWAS(field)
-          }} 
+          orderSums={orderSums}
+          activeWidth={activeWidth}
+          restingWidth={restingWidth}
+          // onSelect={(field) => {
+          //   console.log("order 14 gwas field", field)
+          //   setSelectedGWAS(field)
+          // }} 
         />
-        <div className="preview">
-        </div>
-      </div> */}
+      {/* </div> */}
     </div>
   )
 }
