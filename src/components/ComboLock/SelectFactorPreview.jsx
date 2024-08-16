@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useContext } from 'react';
+import { useState, useEffect, useCallback, useContext, useRef } from 'react';
 import Select from 'react-select';
 import chroma from 'chroma-js';
 import { groups } from 'd3-array';
@@ -81,24 +81,29 @@ const SelectFactor = ({
   const [isActive, setIsActive] = useState(false);
   const { filters, clearFilters } = useContext(FiltersContext);
 
+  const filtersRef = useRef(filters);
   useEffect(() => {
+    filtersRef.current = filters;
     setSelectedField(null)
   }, [filters])
 
   const [loadingPreview, setLoadingPreview] = useState(false)
   useEffect(() => {
+    console.log("selectedField kicking off preview", selectedField, filters)
     if(selectedField) {
       onPreviewValues(null)
       setLoadingPreview(true)
-      fetchFilterPreview(filters, null, selectedField).then((preview) => {
+      fetchFilterPreview(filtersRef.current, null, selectedField).then((preview) => {
         // setPreviewValues(preview.preview_fractions)
+        console.log("sending home a message", selectedField, preview.preview_fractions)
         onPreviewValues(selectedField, preview.preview_fractions)
         setLoadingPreview(false)
+        // setSelectedField(null)
       })
     } else {
-      onPreviewValues(null)
+      onPreviewValues(null, null)
     }
-  }, [selectedField, filters])
+  }, [selectedField])
 
   const [allFields, setAllFields] = useState([])
 

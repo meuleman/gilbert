@@ -906,7 +906,8 @@ function Home() {
             
             <div>
 
-              {showFilter ? <FilterSelects
+              <FilterSelects
+                show={showFilter}
                 orderSums={orderSums} 
                 previewField={factorPreviewField}
                 previewValues={factorPreviewValues}
@@ -915,7 +916,7 @@ function Home() {
                 activeWidth={585}
                 restingWidth={65}
                 orderMargin={orderMargin}
-              /> :null }
+              />
 
               <SankeyModal 
                 show={showFilter}

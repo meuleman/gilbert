@@ -18,6 +18,10 @@
   z-index: 10
 }
 
+.filter-selects.hide {
+  display: none;
+}
+
 /*  */
 .filter-selects .select-factor {
   display: flex;

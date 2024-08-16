@@ -291,14 +291,15 @@ const HilbertGenome = ({
 
   // setup the zoom behavior
   const zoomBehavior = useMemo(() => {
+    const extentMargin = Math.max(width/2, height/2)
     return zoom()
       .extent([
         [0, 0],
         [width, height]
       ])
       .translateExtent([
-        [-50, -50],
-        [width + 50, height + 50]
+        [-extentMargin, -extentMargin],
+        [width + extentMargin, height + extentMargin]
       ])
       .scaleExtent(zoomExtent)
     }, [zoomExtent, width, height])

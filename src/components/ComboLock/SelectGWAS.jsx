@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useContext, memo, useMemo } from 'rea
 import Select from 'react-select-virtualized';
 
 import { groups } from 'd3-array';
-import { showInt } from '../../lib/display';
+import { showInt, showKb } from '../../lib/display';
 import chroma from 'chroma-js';
 import {Tooltip} from 'react-tooltip';
 
@@ -91,6 +91,8 @@ const colourStyles = (isActive = false, restingWidth = 65, activeWidth = 570) =>
 
 const SelectGWAS = memo(({
   orderSums,
+  previewField, 
+  previewValues,
   activeWidth = 570, 
   restingWidth = 65, 
   // onSelect = () => {}
@@ -132,7 +134,7 @@ const SelectGWAS = memo(({
     }).filter(f => !!f && f.count > 0 && f.count != "?")
 
     return gf.concat(ff)
-  }, []);
+  }, [orderSums]);
 
   const allFieldsGrouped = useMemo(() => {
     const grouped = groups(allFields, f => f.layer.name)
@@ -150,35 +152,17 @@ const SelectGWAS = memo(({
     return fieldMap
   }, [allFields])
 
-  // const formatLabel = useCallback((option) => {
-  // //   console.log("OPTION", option)
-  //   return (
-  //     <div>
-  //       <span>{option.label} </span>
-  //       <span style={{color: "gray"}}>{option.count}</span>
-  //     </div>
-  //   );
-  // }, []);
-  const formatLabel = useCallback((option) => {
-    return (
-      <div>
-        <span style={{backgroundColor: option.color, width:"5px", height:"5px", display:"block"}}>.</span>
-        <b>{option.field} </b>
-        {/* <i>{option.layer?.name} </i> */}
-        <span style={{color: "gray"}}> 
-          {showInt(option.count)} paths  
-        </span>
-      </div>
-    );
-  }, []);
-
-  const formatGroupLabel = useCallback((data) => {
-    return (
-      <div style={{ fontWeight: 'bold' }}>
-        {data.label}
-      </div>
-      )
-  }, [])
+  useEffect(() => {
+    // console.log("filters", filters)
+    if(filters[14]) {
+      // console.log("FILTERS", filters[14])
+      const sf = fieldMap[filters[14].id]
+      // console.log("SF", sf)
+      if(sf) setSelectedField(sf)
+    } else {
+      setSelectedField(null)
+    }
+  }, [filters, fieldMap])
 
   useEffect(() => {
     // console.log("filters", filters)
@@ -196,16 +180,26 @@ const SelectGWAS = memo(({
     setIsActive(false)
   }, [handleFilter])
 
-  
-  // useEffect(() => {
-  //   // onSelect(selectedField)
-  //   handleFilter(selectedField, 14)
-  // }, [selectedField])
+  const [previewBar, setPreviewBar] = useState(null)
+  useEffect(() => {
+    console.log("GWAS PREVIEW", previewField, previewValues)
+    if(previewField && previewValues) {
+      let matchingField = {...previewField}
+      matchingField['order'] = 14
+      matchingField['percent'] = previewValues[14] * 100
+      const maxPreviewValue = Math.max(...Object.values(previewValues));
+      matchingField['maxPercent'] = maxPreviewValue * 100;
+      console.log("matchingField", matchingField)
+      if(previewValues[14] > 0) setPreviewBar(matchingField)
+    } else {
+      setPreviewBar(null) 
+    }
+  }, [previewField, previewValues])
 
   return (
     <div className="filter-order">
         <div className="button-column">
-        {selectedField ? 
+        {selectedField && !previewBar ? 
           <div>
             <button className="deselect" data-tooltip-id="deselect" onClick={() => handleChange()}>
               ❌
@@ -215,6 +209,19 @@ const SelectGWAS = memo(({
             </Tooltip>
           </div>
         : null }
+        { previewBar ? 
+          <div>
+            <button 
+                className="select" 
+                data-tooltip-id={"select"+14} 
+                style={{opacity: previewBar.percent/previewBar.maxPercent + 0.25}}
+                onClick={() => handleChange(previewBar)}
+                >✅</button>
+            <Tooltip id={"select"+14} place="top" effect="solid" className="tooltip-custom">
+              Select {previewBar.label} at {showKb(Math.pow(4, 14 - previewBar.order))}: {previewBar.percent.toFixed(2)}%
+            </Tooltip>
+          </div>
+          : null}
         </div>
         <Select
           options={allFieldsGrouped}
@@ -224,7 +231,7 @@ const SelectGWAS = memo(({
           onFocus={() => setIsActive(true)}
           onBlur={() => setIsActive(false)}
           placeholder={<div></div>}
-          menuPlacement="auto"
+          menuPlacement="top"
           // formatOptionLabel={formatLabel}
           // formatGroupLabel={formatGroupLabel}
           getOptionValue={(option) => option.id}

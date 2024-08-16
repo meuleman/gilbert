@@ -8,24 +8,22 @@ import SelectGWAS from './SelectGWAS';
 import './FilterSelects.css';
 
 const Selects = ({
+  show = false,
   orderSums, 
   previewField,
   previewValues,
-  showNone, 
-  showUniquePaths, 
+  showNone = false, 
   activeWidth = 585,
   restingWidth = 585,
   orderMargin = 0,
 } = {}) => {
   const orders = range(4, 14)
-  const { filters, clearFilters } = useContext(FiltersContext);
-
+  // const { filters, clearFilters } = useContext(FiltersContext);
   // const [selectedGWAS, setSelectedGWAS] = useState(null)
-  
-  const hasFilters = useMemo(() => Object.keys(filters).length > 0, [filters])
+  // const hasFilters = useMemo(() => Object.keys(filters).length > 0, [filters])
 
   return (
-    <div className="filter-selects">
+    <div className={`filter-selects ${show ? 'show' : 'hide'}`}>
       {/* {hasFilters ? <button className="clear-filters" onClick={clearFilters}>❌ Clear Filters</button> : null} */}
       {orders.map(order => (
         <SelectOrder key={order} 
@@ -37,21 +35,16 @@ const Selects = ({
           activeWidth={activeWidth}
           restingWidth={restingWidth}
           showNone={showNone} 
-          // disabled={order == 14 && selectedGWAS ? true : false}
         />
       ))}
 
-      {/* <div className="select-gwas"> */}
         <SelectGWAS
           orderSums={orderSums}
           activeWidth={activeWidth}
           restingWidth={restingWidth}
-          // onSelect={(field) => {
-          //   console.log("order 14 gwas field", field)
-          //   setSelectedGWAS(field)
-          // }} 
+          previewField={previewField}
+          previewValues={previewValues}
         />
-      {/* </div> */}
     </div>
   )
 }

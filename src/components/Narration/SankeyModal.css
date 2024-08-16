@@ -9,8 +9,9 @@
   height: calc(100% - 11px);
   z-index: 9
 }
+
 .hide {
-  display: none;
+  display: none !important;
 }
 
 .sankey-modal .control-buttons {
@@ -32,6 +33,7 @@
 
 .sankey-modal .loading-info {
   width: 400px;
+  position:absolute;
 }
 
 .sankey-modal .line-column {

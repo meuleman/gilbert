@@ -223,7 +223,7 @@ function makeField(layer, fieldNameOrIndex, order) {
 }
 
 
-const factorLayers = csnLayers.concat(variantLayers.slice(0,1))
+const factorLayers = csnLayers.concat(variantLayers.slice(0,2))
 const fields = factorLayers.flatMap(layer => {
   let fs = layer.fieldColor.domain().map((f, i) => {
     return makeField(layer, f)

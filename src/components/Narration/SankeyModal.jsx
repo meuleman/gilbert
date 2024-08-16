@@ -27,6 +27,7 @@ const processInBatches = async (items, batchSize, processFunction, statusFunctio
 
 
 const SankeyModal = ({
+  show = false,
   filteredIndices = [],
   factorCsns = [],
   fullCsns = [],
@@ -51,6 +52,11 @@ const SankeyModal = ({
 
   const [showPanel, setShowPanel] = useState(true)
   const [showControls, setShowControls] = useState(false)
+
+  useEffect(() => {
+    console.log("Show", show)
+    setShowPanel(show)
+  }, [show])
 
 
   const [view, setView] = useState("sankey")
@@ -101,14 +107,22 @@ const SankeyModal = ({
   }, [showControls])
 
   return (
-    <div className={`sankey-modal`}>
-        <div className="control-buttons">
+    <div className={`sankey-modal ${show ? "show" : "hide"}`}>
+        <div className={`control-buttons`}>
           <button 
-            onClick={useCallback(() => setShowPanel(!showPanel), [showPanel])}>
-              <span style={{transform: "rotate(90deg)", display:"block"}}>📊</span>
-            
+            onClick={useCallback(() => setShowPanel(!showPanel), [showPanel])}
+            disabled={!csns.length}
+            >
+              <span style={{
+                transform: "rotate(90deg)", 
+                display:"block",
+                filter: csns.length ? 'none' : 'grayscale(100%)' // Apply grayscale if csns is empty
+              }}>📊</span>
             </button>
-          {showPanel ? <button onClick={handleShowControl}>⚙️</button>: null}
+          {showPanel ? <button 
+            onClick={handleShowControl}
+            disabled={!csns.length}
+            >⚙️</button>: null}
         </div>
         <div className={`controls ${showControls ? "show" : "hide"}`}>
             {/* {!loading && csns.length ? <span>{csns.length} unique paths</span> : null } */}

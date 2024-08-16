@@ -191,46 +191,33 @@ const SelectOrder = ({
         {showKb(Math.pow(4, 14 - order))}
       </span>  */}
       <div className="button-column">
-      {disabled ? <div className="disabled" data-tooltip-id="higher-filter">🚫</div> : null}
+        {disabled ? <div className="disabled" data-tooltip-id="higher-filter">🚫</div> : null}
         <Tooltip id="higher-filter" place="right" effect="solid">
            Disabled
         </Tooltip>
-      {selectedField && !previewBar ? 
-        <div>
-          <button className="deselect" data-tooltip-id="deselect" onClick={() => handleChange()}>
-            ❌
-          </button>
-          <Tooltip id="deselect" place="top" effect="solid" className="tooltip-custom">
-            Deselect
-          </Tooltip>
-        </div>
-      : null }
-      { previewBar ? 
-      <div>
-        <button 
-            className="select" 
-            data-tooltip-id={"select"+order} 
-            style={{opacity: previewBar.percent/previewBar.maxPercent + 0.25}}
-            onClick={() => handleChange(previewBar)}
-            >✅</button>
-        <Tooltip id={"select"+order} place="top" effect="solid" className="tooltip-custom">
-          Select {previewBar.label} at {showKb(Math.pow(4, 14 - previewBar.order))}: {previewBar.percent.toFixed(2)}%
-        </Tooltip>
-      </div>
-      // <div className="preview-bar-container">
-      //     <div
-      //       className="preview-bar"
-      //       style={{
-      //         width: `${previewBar.percent}%`,
-      //         backgroundColor: chroma(previewBar.color).alpha(0.5).css(),
-      //         height: '20px',
-      //         marginTop: '10px'
-      //       }}
-      //     >
-      //     <span>{showFloat(previewBar.percent)}%</span>
-      //     </div>
-      //   </div>
-      : null}
+        {selectedField && !previewBar ? 
+          <div>
+            <button className="deselect" data-tooltip-id="deselect" onClick={() => handleChange()}>
+              ❌
+            </button>
+            <Tooltip id="deselect" place="top" effect="solid" className="tooltip-custom">
+              Deselect
+            </Tooltip>
+          </div>
+        : null }
+        { previewBar ? 
+          <div>
+            <button 
+                className="select" 
+                data-tooltip-id={"select"+order} 
+                style={{opacity: previewBar.percent/previewBar.maxPercent + 0.25}}
+                onClick={() => handleChange(previewBar)}
+                >✅</button>
+            <Tooltip id={"select"+order} place="top" effect="solid" className="tooltip-custom">
+              Select {previewBar.label} at {showKb(Math.pow(4, 14 - previewBar.order))}: {previewBar.percent.toFixed(2)}%
+            </Tooltip>
+          </div>
+          : null}
       </div>
 
       <div className="filter-group">
