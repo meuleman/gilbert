@@ -15,7 +15,10 @@
   max-width: 100px;
   width: 100px;
   height: calc(100% - 2px);
-  z-index: 10
+  z-index: 9
+}
+.filter-selects:hover{
+  z-index: 10;
 }
 
 .filter-selects.hide {

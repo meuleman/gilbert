@@ -232,7 +232,7 @@ const SelectOrder = ({
           onBlur={() => setIsActive(false)}
           // onMenuClose={() => setIsActive(false)}
           placeholder={<div></div>}
-          menuPlacement="auto"
+          menuPlacement={order > 9 ? "top": "auto"}
           formatOptionLabel={formatLabel}
           formatGroupLabel={data => (
             <div style={{ fontWeight: 'bold' }}>

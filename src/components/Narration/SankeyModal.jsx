@@ -1,29 +1,13 @@
 import { useState, useCallback, useEffect, useRef, useContext } from 'react'
-import FiltersContext from '../ComboLock/FiltersContext'
 
-import { showInt } from '../../lib/display'
-import { max, sum } from 'd3-array'
-import { csnLayers, variantLayers } from '../../layers'
-import { sampleScoredRegions } from '../../lib/filters'
-import { fetchDehydratedCSN, rehydrateCSN } from '../../lib/csn'
+import { max } from 'd3-array'
 import VerticalSankey from './VerticalSankey';
 import ZoomLine from './ZoomLine';
 import Loading from '../Loading'
-import { fetchTopCSNs } from '../../lib/csn'
+import {Tooltip} from 'react-tooltip';
 
 
 import './SankeyModal.css'
-
-const processInBatches = async (items, batchSize, processFunction, statusFunction) => {
-  let results = [];
-  for (let i = 0; i < items.length; i += batchSize) {
-    const batch = items.slice(i, i + batchSize);
-    const batchResults = await Promise.all(batch.map(processFunction));
-    results = results.concat(batchResults);
-    if(statusFunction) statusFunction(results)
-  }
-  return results;
-};
 
 
 const SankeyModal = ({
@@ -81,17 +65,17 @@ const SankeyModal = ({
     }
   }, [factorCsns, fullCsns, sort])
 
-  const [onlyInTopFactor, setOnlyInTopFactor] = useState([])
-  const [onlyInTopFull, setOnlyInTopFull] = useState([])
-  const [inBoth, setInBoth] = useState([])
-  useEffect(() => {
-    const onlyInTopFactor = factorCsns.filter(a => !fullCsns.some(b => a.chromosome === b.chromosome && a.i === b.i));
-    const onlyInTopFull = fullCsns.filter(a => !factorCsns.some(b => a.chromosome === b.chromosome && a.i === b.i));
-    const inBoth = factorCsns.filter(a => fullCsns.some(b => a.chromosome === b.chromosome && a.i === b.i));
-    setOnlyInTopFactor(onlyInTopFactor)
-    setOnlyInTopFull(onlyInTopFull)
-    setInBoth(inBoth)
-  }, [factorCsns, fullCsns])
+  // const [onlyInTopFactor, setOnlyInTopFactor] = useState([])
+  // const [onlyInTopFull, setOnlyInTopFull] = useState([])
+  // const [inBoth, setInBoth] = useState([])
+  // useEffect(() => {
+  //   const onlyInTopFactor = factorCsns.filter(a => !fullCsns.some(b => a.chromosome === b.chromosome && a.i === b.i));
+  //   const onlyInTopFull = fullCsns.filter(a => !factorCsns.some(b => a.chromosome === b.chromosome && a.i === b.i));
+  //   const inBoth = factorCsns.filter(a => fullCsns.some(b => a.chromosome === b.chromosome && a.i === b.i));
+  //   setOnlyInTopFactor(onlyInTopFactor)
+  //   setOnlyInTopFull(onlyInTopFull)
+  //   setInBoth(inBoth)
+  // }, [factorCsns, fullCsns])
   
   // useEffect(() => {
   //   if(!loadingCSN && csns.length) {
@@ -100,7 +84,7 @@ const SankeyModal = ({
   //   }
   // }, [csns, loadingCSN])
 
-  const zlheight = height - 120
+  const zlheight = height
 
   const handleShowControl = useCallback(() => {
     setShowControls(!showControls)
@@ -111,6 +95,7 @@ const SankeyModal = ({
         <div className={`control-buttons`}>
           <button 
             onClick={useCallback(() => setShowPanel(!showPanel), [showPanel])}
+            data-tooltip-id="sankey-show-visualization"
             disabled={!csns.length}
             >
               <span style={{
@@ -119,49 +104,55 @@ const SankeyModal = ({
                 filter: csns.length ? 'none' : 'grayscale(100%)' // Apply grayscale if csns is empty
               }}>📊</span>
             </button>
+            <Tooltip id="sankey-show-visualization">
+              Show Path Narration Visualization 
+            </Tooltip>
           {showPanel ? <button 
             onClick={handleShowControl}
             disabled={!csns.length}
+            data-tooltip-id="sankey-show-control"
             >⚙️</button>: null}
+            <Tooltip id="sankey-show-control">
+              Show Controls
+            </Tooltip>
         </div>
         <div className={`controls ${showControls ? "show" : "hide"}`}>
-            {/* {!loading && csns.length ? <span>{csns.length} unique paths</span> : null } */}
-            {/* {loadingCSN && sampleStatus == 0 ? <p className="loading">Scoring paths... {sampleScoredStatus}/{filteredIndices.filter(d => d.regions.length).length}</p> : null} */}
-            {/* {loadingCSN && sampleStatus > 0 ? <p className="loading">Loading samples... {sampleStatus}/{numSamples}</p> : null} */}
-            
             {!loading ? 
-              <div className="sort-options">
-                <div style={{ marginLeft: '10px', border: '1px solid #eee', borderRadius: '5px', padding: '5px' }}>
-                Sort:
-                <label>
-                  <input 
-                    type="radio" 
-                    value="factor" 
-                    checked={sort === "factor"} 
-                    onChange={() => setSort("factor")} 
-                  />
-                  Factor
-                </label>
-                <label>
-                  <input 
-                    type="radio" 
-                    value="full" 
-                    checked={sort === "full"} 
-                    onChange={() => setSort("full")} 
-                  />
-                  Full
-                </label>
+              <div>
+                <div className="num-paths">
+                  <label>
+                    <input 
+                      type="number" 
+                      value={numPaths}
+                      style={{ width: '60px' }}
+                      onChange={(e) => onNumPaths(+e.target.value)} 
+                    />
+                    &nbsp; # Paths
+                  </label>
                 </div>
-                <label style={{ marginLeft: '10px', border: '1px solid #eee', borderRadius: '5px', padding: '5px' }}>
-                  <input 
-                    type="number" 
-                    value={numPaths}
-                    style={{ width: '60px' }}
-                    onChange={(e) => onNumPaths(+e.target.value)} 
-                  />
-                  &nbsp; # Paths
-                </label>
-
+                <div className="sort-options">
+                  <div>
+                  Sort:
+                  <label>
+                    <input 
+                      type="radio" 
+                      value="factor" 
+                      checked={sort === "factor"} 
+                      onChange={() => setSort("factor")} 
+                    />
+                    Factor
+                  </label>
+                  <label>
+                    <input 
+                      type="radio" 
+                      value="full" 
+                      checked={sort === "full"} 
+                      onChange={() => setSort("full")} 
+                    />
+                    Full
+                  </label>
+                  </div>
+                </div>
               </div>
             : null }
             {!loading && csns.length ? 
@@ -196,6 +187,30 @@ const SankeyModal = ({
         {view === "heatmap" || ( csns.length && loadingCSN ) ? 
           <div className={`csn-lines ${loading ? "loading-csns" : ""}`}>
             <div className="only-top-factor line-column">
+              <div className="csn-lines">
+                {csns.slice(0,40).map((n,i) => {
+                  return (<ZoomLine 
+                    key={i}
+                    csn={n} 
+                    maxPathScore={maxPathScore}
+                    order={order}
+                    showScore={false}
+                    // highlight={true}
+                    // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
+                    text={false}
+                    width={10.05} 
+                    height={zlheight}
+                    tipOrientation="right"
+                    showOrderLine={false}
+                    // highlightOrders={Object.keys(orderSelects).map(d => +d)} 
+                    onClick={() => onSelectedCSN(n)}
+                    onHover={() => onHoveredCSN(n)}
+                    />)
+                  })
+                }
+              </div>
+            </div>
+            {/* <div className="only-top-factor line-column">
               <h4>factor</h4>
               <div className="csn-lines">
                 {onlyInTopFactor.map((n,i) => {
@@ -218,8 +233,8 @@ const SankeyModal = ({
                   })
                 }
               </div>
-            </div>
-            <div className="in-both line-column">
+            </div> */}
+            {/* <div className="in-both line-column">
               <h4>both</h4>
               <div className="csn-lines">
                 {inBoth.map((n,i) => {
@@ -228,8 +243,6 @@ const SankeyModal = ({
                     csn={n} 
                     maxPathScore={maxPathScore}
                     order={order}
-                    // highlight={true}
-                    // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
                     text={false}
                     width={2.05} 
                     height={zlheight}
@@ -252,8 +265,6 @@ const SankeyModal = ({
                   csn={n} 
                   maxPathScore={maxPathScore}
                   order={order}
-                  // highlight={true}
-                  // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
                   text={false}
                   width={2.05} 
                   height={zlheight}
@@ -265,8 +276,8 @@ const SankeyModal = ({
                   />)
                   })
                 }
-              </div>
-            </div>
+              </div> */}
+            {/* </div> */}
           </div>
         : null }
 

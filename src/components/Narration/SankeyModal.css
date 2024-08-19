@@ -5,9 +5,12 @@
   background-color: rgba(255, 255, 255, 0.95);
   /* border: 1px solid lightgray; */
   /* border-radius: 6px; */
-  padding: 6px 6px 0px 6px;
-  height: calc(100% - 11px);
+  /* padding: 6px 6px 0px 6px; */
+  height: calc(100% - 5px);
   z-index: 9
+}
+.sankey-modal:hover {
+  z-index: 10;
 }
 
 .hide {
@@ -18,18 +21,33 @@
   position: absolute;
   display: flex;
   flex-direction: column;
-  left: -60px;
+  left: -55px;
   top: 0px;
 }
 
 .sankey-modal .controls {
   position: absolute;
   background-color: rgba(255, 255, 255, 0.85);
-  height: 100px;
-  max-height: 100px;
-  width: 400px;
-  max-width: 400px;
+  /* width: 400px; */
+  /* max-width: 400px; */
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid gray;
 }
+
+.sankey-modal .view-options, .sankey-modal .sort-options, .num-paths {
+  width: fit-content;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  padding: 4px;
+  /* border: 1px solid lightgray; */
+} 
+
+/* .sankey-modal .controls label {
+  margin-left: 10px;
+  padding: 5px;
+} */
 
 .sankey-modal .loading-info {
   width: 400px;
@@ -69,14 +87,6 @@
   }
 }
 
-.sankey-modal .view-options, .sankey-modal .sort-options {
-  width: fit-content;
-  display: flex;
-  flex-direction: row;
-  gap: 4px;
-  padding: 4px;
-  border: 1px solid lightgray;
-}
 
 .sankey-modal .only-top-factor, .sankey-modal .in-both, .sankey-modal .only-top-full {
   margin: 4px;

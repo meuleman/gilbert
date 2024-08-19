@@ -28,6 +28,7 @@ ZoomLine.propTypes = {
   width: PropTypes.number,
   height: PropTypes.number,
   tipOrientation: PropTypes.string,
+  showScore: PropTypes.bool,
   onHover: PropTypes.func,
   onClick: PropTypes.func,
   onFactor: PropTypes.func
@@ -42,6 +43,7 @@ export default function ZoomLine({
   showOrderLine=true,
   highlightOrders=[],
   text=true,
+  showScore=true,
   width = 50,
   height = 400,
   offsetX = 0,
@@ -79,10 +81,13 @@ export default function ZoomLine({
 
 
   // we create an extra space for the score bar
-  const depth = 15 - 4
+  const depth = (showScore ? 15 : 14) - 4
+  if(!showScore) scoreHeight = -5
+  let scoreOffset = scoreHeight
+  if(!showScore) scoreOffset = -scoreHeight
   const spacing = (height - scoreHeight)/(depth + 1)
   const h = height - spacing - 1 
-  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([ 5 + scoreHeight, h + 3 - scoreHeight]), [h, scoreHeight])
+  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([ 5 + scoreHeight, h + 3 - scoreOffset]), [h, scoreOffset, scoreHeight])
   const rw = useMemo(() => yScale(5) - yScale(4) - 2, [yScale])
 
   const handleClick = useCallback((e, o) => {
@@ -131,7 +136,7 @@ export default function ZoomLine({
     <div className="csn-line" onClick={() => onClick(csn)}>
       <svg width={width} height={height} onMouseLeave={() => handleLeave()}>
         {path.length && yScale ? <g>
-          {maxPathScore && <rect
+          {showScore && maxPathScore && <rect
             y={0}
             x={0}
             height={scoreHeight}
@@ -142,7 +147,7 @@ export default function ZoomLine({
             onMouseMove={(e) => handleScoreHover(e)} 
             onMouseLeave={() => handleScoreLeave()}
             />}
-          {maxPathScore && <rect
+          {showScore && maxPathScore && <rect
             y={scoreHeight - scoreHeight * (csn.score/maxPathScore) + 3}
             x={0}
             height={scoreHeight * (csn.score/maxPathScore)}
