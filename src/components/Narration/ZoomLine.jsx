@@ -181,11 +181,11 @@ export default function ZoomLine({
                 width={width}
                 fill={ p && p.field ? p.field.color : "white"}
                 fillOpacity={selected ? 0.75 : 0.5}
-                stroke="lightgray"
+                // stroke="lightgray"
                 strokeWidth={1}
                 // stroke={highlightOrders.indexOf(o) >= 0 ? "black" : "lightgray"}
                 // strokeWidth={highlightOrders.indexOf(o) >= 0 ? 2 : 1}
-                // stroke={ highlight ? "black" : "lightgray"}
+                stroke={ highlight ? "black" : "lightgray"}
               />
             </g>
           })}

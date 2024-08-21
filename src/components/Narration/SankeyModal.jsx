@@ -4,6 +4,8 @@ import { max } from 'd3-array'
 import VerticalSankey from './VerticalSankey';
 import ZoomLine from './ZoomLine';
 import Loading from '../Loading'
+import FiltersContext from '../ComboLock/FiltersContext'
+import {showPosition} from '../../lib/display'
 import {Tooltip} from 'react-tooltip';
 
 
@@ -12,7 +14,8 @@ import './SankeyModal.css'
 
 const SankeyModal = ({
   show = false,
-  filteredIndices = [],
+  selectedRegion = null,
+  hoveredRegion = null,
   factorCsns = [],
   fullCsns = [],
   loading = "",
@@ -25,23 +28,27 @@ const SankeyModal = ({
   onHoveredCSN = () => {},
   onSort = () => {},
   onNumPaths = () => {},
+  onClearRegion = () => {},
   // onCSNS = () => {}
 } = {}) => {
 
   const [loadingCSN, setLoadingCSN] = useState(false)
-  // const [numSamples, setNumSamples] = useState(-1)
-  // const [sampleStatus, setSampleStatus] = useState(0)
-  // const [sampleScoredStatus, setSampleScoredStatus] = useState(0)
-  // const [selectedCSN, setSelectedCSN] = useState(null)
 
   const [showPanel, setShowPanel] = useState(true)
   const [showControls, setShowControls] = useState(false)
 
+  const { filters } = useContext(FiltersContext)
+
   useEffect(() => {
-    console.log("Show", show)
     setShowPanel(show)
   }, [show])
 
+
+  useEffect(() => {
+    if(!Object.keys(filters).length){
+      setSort("full")
+    }
+  }, [filters])
 
   const [view, setView] = useState("sankey")
   const [sort, setSort] = useState("factor")
@@ -65,30 +72,15 @@ const SankeyModal = ({
     }
   }, [factorCsns, fullCsns, sort])
 
-  // const [onlyInTopFactor, setOnlyInTopFactor] = useState([])
-  // const [onlyInTopFull, setOnlyInTopFull] = useState([])
-  // const [inBoth, setInBoth] = useState([])
-  // useEffect(() => {
-  //   const onlyInTopFactor = factorCsns.filter(a => !fullCsns.some(b => a.chromosome === b.chromosome && a.i === b.i));
-  //   const onlyInTopFull = fullCsns.filter(a => !factorCsns.some(b => a.chromosome === b.chromosome && a.i === b.i));
-  //   const inBoth = factorCsns.filter(a => fullCsns.some(b => a.chromosome === b.chromosome && a.i === b.i));
-  //   setOnlyInTopFactor(onlyInTopFactor)
-  //   setOnlyInTopFull(onlyInTopFull)
-  //   setInBoth(inBoth)
-  // }, [factorCsns, fullCsns])
-  
-  // useEffect(() => {
-  //   if(!loadingCSN && csns.length) {
-  //     console.log("emitting csns")
-  //     onCSNS(csns)
-  //   }
-  // }, [csns, loadingCSN])
-
   const zlheight = height
 
   const handleShowControl = useCallback(() => {
     setShowControls(!showControls)
   }, [showControls])
+
+  const handleSwitchView = useCallback(() => {
+    setView(view == "heatmap" ? "sankey" : "heatmap")
+  }, [view])
 
   return (
     <div className={`sankey-modal ${show ? "show" : "hide"}`}>
@@ -99,14 +91,15 @@ const SankeyModal = ({
             disabled={!csns.length}
             >
               <span style={{
-                transform: "rotate(90deg)", 
+                // transform: "rotate(90deg)", 
                 display:"block",
                 filter: csns.length ? 'none' : 'grayscale(100%)' // Apply grayscale if csns is empty
-              }}>📊</span>
-            </button>
-            <Tooltip id="sankey-show-visualization">
-              Show Path Narration Visualization 
-            </Tooltip>
+              }}>{showPanel ? "➡️" : "⬅️"}</span>
+          </button>
+          <Tooltip id="sankey-show-visualization">
+            {showPanel ? "Hide Path Narration Panel" : "Show Path Narration Panel"}
+          </Tooltip>
+  
           {showPanel ? <button 
             onClick={handleShowControl}
             disabled={!csns.length}
@@ -115,90 +108,110 @@ const SankeyModal = ({
             <Tooltip id="sankey-show-control">
               Show Controls
             </Tooltip>
+  
+          {showPanel ? <button 
+            onClick={handleSwitchView}
+            data-tooltip-id="sankey-switch-visualization"
+            disabled={!csns.length}
+            >
+              <span style={{
+                // transform: "rotate(90deg)", 
+                display:"block",
+                filter: csns.length ? 'none' : 'grayscale(100%)' // Apply grayscale if csns is empty
+              }}>{view == "sankey" ? "📊" : "🌊"}</span>
+          </button> : null }
+          <Tooltip id="sankey-switch-visualization">
+            Switch Visualization to {view == "heatmap" ? "Sankey" : "Heatmap"}
+          </Tooltip>
+
+          {showPanel && selectedRegion ? <button 
+            // onClick={handleSwitchView}
+            onClick={onClearRegion}
+            data-tooltip-id="sankey-clear-region"
+            style={{
+              position: "relative",
+            }}
+            >
+              <span style={{
+                // transform: "rotate(90deg)", 
+                display:"block",
+                
+              }}>🗺️</span>
+              <span style={{
+                display:"block",
+                position: "absolute",
+                top: "9px",
+              }}>❌</span>
+          </button> : null }
+          {selectedRegion ? <Tooltip id="sankey-clear-region">
+            Remove selected region {showPosition(selectedRegion)} as a filter
+          </Tooltip> : null}
+ 
         </div>
         <div className={`controls ${showControls ? "show" : "hide"}`}>
-            {!loading ? 
-              <div>
-                <div className="num-paths">
-                  <label>
-                    <input 
-                      type="number" 
-                      value={numPaths}
-                      style={{ width: '60px' }}
-                      onChange={(e) => onNumPaths(+e.target.value)} 
-                    />
-                    &nbsp; # Paths
-                  </label>
-                </div>
-                <div className="sort-options">
-                  <div>
-                  Sort:
-                  <label>
-                    <input 
-                      type="radio" 
-                      value="factor" 
-                      checked={sort === "factor"} 
-                      onChange={() => setSort("factor")} 
-                    />
-                    Factor
-                  </label>
-                  <label>
-                    <input 
-                      type="radio" 
-                      value="full" 
-                      checked={sort === "full"} 
-                      onChange={() => setSort("full")} 
-                    />
-                    Full
-                  </label>
-                  </div>
-                </div>
+            <div>
+              <div className="num-paths">
+                <label>
+                  <input 
+                    type="number" 
+                    value={numPaths}
+                    style={{ width: '60px' }}
+                    onChange={(e) => onNumPaths(+e.target.value)} 
+                  />
+                  &nbsp; # Paths
+                </label>
               </div>
-            : null }
-            {!loading && csns.length ? 
-              <div className="view-options">
-                Vis:
+              <div className="sort-options">
+                <div>
+                Sort:
                 <label>
                   <input 
                     type="radio" 
-                    value="sankey" 
-                    checked={view === "sankey"} 
-                    onChange={() => setView("sankey")} 
+                    value="factor" 
+                    checked={sort === "factor"} 
+                    disabled={!Object.keys(filters).length}
+                    onChange={() => setSort("factor")} 
                   />
-                  Sankey
+                  Factor
                 </label>
                 <label>
                   <input 
                     type="radio" 
-                    value="heatmap" 
-                    checked={view === "heatmap"} 
-                    onChange={() => setView("heatmap")} 
+                    value="full" 
+                    checked={sort === "full" || !Object.keys(filters).length} 
+                    onChange={() => setSort("full")} 
                   />
-                  Heatmap
+                  Full
                 </label>
+                </div>
               </div>
-            : null }
           </div>
-      <div className={`content ${showPanel ? "show" : "hide"}`}>
+        </div>
+      <div className={`content ${showPanel ? "show" : "hide"}`}
+        style={{
+          width: csns.length || loading ? "400px" : "0px",
+        }}
+      >
         <div className="loading-info">
             {loading === "fetching" ? <Loading text={"Fetching CSNs..."} /> : null}
             {loading === "hydrating" ? <Loading text={"Hydrating CSNs..."} /> : null}
         </div>
-        {view === "heatmap" || ( csns.length && loadingCSN ) ? 
+        {view === "heatmap" ? 
           <div className={`csn-lines ${loading ? "loading-csns" : ""}`}>
             <div className="only-top-factor line-column">
               <div className="csn-lines">
                 {csns.slice(0,40).map((n,i) => {
+                  // console.log("n", n)
                   return (<ZoomLine 
                     key={i}
                     csn={n} 
                     maxPathScore={maxPathScore}
                     order={order}
                     showScore={false}
-                    // highlight={true}
+                    highlight={!selectedRegion && !!n.path.find(r => hoveredRegion && r && r.order === hoveredRegion.order && r.region.chromosome === hoveredRegion.chromosome && r.region.i === hoveredRegion.i)}
                     // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
                     text={false}
-                    width={10.05} 
+                    width={9.5} 
                     height={zlheight}
                     tipOrientation="right"
                     showOrderLine={false}
@@ -281,7 +294,7 @@ const SankeyModal = ({
           </div>
         : null }
 
-        {view == "sankey" && csns.length && !loadingCSN ? 
+        {view == "sankey" && csns.length ? 
           <div className={`sankey-container ${loading ? "loading-csns" : ""}`}>
             <VerticalSankey 
               width={width} 

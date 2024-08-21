@@ -586,15 +586,22 @@ function Home() {
     console.log("filters changed in home!!", filters)
     csnRequestRef.current += 1
     const currentRequest = csnRequestRef.current
-    if(Object.keys(filters).length == 0) {
+    if(Object.keys(filters).length == 0 && !selected) {
       setTopFactorCSNS([])
       setTopFullCSNS([])
       return
     }
+    // TODO: should this be more wholistically done somewhere else?
+    if(selected) {
+      setShowFilter(true)
+    }
+
+    let nfs = Object.keys(filters).length
     setCSNLoading("fetching")
     // Fetch the top csns from the API
-    fetchTopCSNs(filters, null, "factor", true, numPaths)
-      .then((response) => {
+    if(nfs > 0) {
+      fetchTopCSNs(filters, selected, "factor", true, numPaths)
+        .then((response) => {
         console.log("FACTOR RESPONSE", response)
         if(!response) {
           setCSNLoading("Error!")
@@ -612,8 +619,11 @@ function Home() {
         setCSNLoading("Error!")
         setTopFactorCSNS([])
       })
+    } else {
+      setTopFactorCSNS([])
+    }
     // for now we just pull both in parallel
-    fetchTopCSNs(filters, null, "full", true, numPaths)
+    fetchTopCSNs(filters, selected, "full", true, numPaths)
       .then((response) => {
         console.log("FULL RESPONSE", response)
         if(!response) {
@@ -625,41 +635,41 @@ function Home() {
           let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
           hydrated.forEach(d => d.scoreType = "full")
           setTopFullCSNS(hydrated)
-          // setCSNLoading("")
+          setCSNLoading("")
         }
       }).catch((e) => {
         console.log("error fetching top full csns", e)
         // setCSNLoading("Error!")
         setTopFullCSNS([])
       })
-  }, [filters, numPaths])
+  }, [filters, numPaths, selected])
 
-  const [pathDiversity, setPathDiversity] = useState(true)
-  const [loadingRegionCSNS, setLoadingRegionCSNS] = useState(false)
-  // Fetch the CSNS via API for the selected region
-  useEffect(() => {
-    if(selected){
-      let nfs = Object.keys(filters).length
-      setLoadingRegionCSNS(true)
-      setRegionCSNS([])
-      fetchTopCSNs(filters, selected, nfs ? "factor" : "full", pathDiversity, 100)
-      .then((response) => {
-        // console.log("top csns for selected response", selected, response)
-        if(!response || !response?.csns?.length) {
-          setRegionCSNS([])
-          setLoadingRegionCSNS(false)
-          return
-        }
-        let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
-        hydrated.forEach(d => d.scoreType = "factor")
-        setRegionCSNS(hydrated)
-        setLoadingRegionCSNS(false)
-      })
-    } else {
-      setLoadingRegionCSNS(false)
-      setRegionCSNS([])
-    }
-  }, [filters, selected, pathDiversity])
+  // const [pathDiversity, setPathDiversity] = useState(true)
+  // const [loadingRegionCSNS, setLoadingRegionCSNS] = useState(false)
+  // // Fetch the CSNS via API for the selected region
+  // useEffect(() => {
+  //   if(selected){
+  //     let nfs = Object.keys(filters).length
+  //     setLoadingRegionCSNS(true)
+  //     setRegionCSNS([])
+  //     fetchTopCSNs(filters, selected, nfs ? "factor" : "full", pathDiversity, 100)
+  //     .then((response) => {
+  //       // console.log("top csns for selected response", selected, response)
+  //       if(!response || !response?.csns?.length) {
+  //         setRegionCSNS([])
+  //         setLoadingRegionCSNS(false)
+  //         return
+  //       }
+  //       let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
+  //       hydrated.forEach(d => d.scoreType = "factor")
+  //       setRegionCSNS(hydrated)
+  //       setLoadingRegionCSNS(false)
+  //     })
+  //   } else {
+  //     setLoadingRegionCSNS(false)
+  //     setRegionCSNS([])
+  //   }
+  // }, [filters, selected, pathDiversity])
 
   const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
   const [topCSNSFullByCurrentOrder, setTopCSNSFullByCurrentOrder] = useState(new Map())
@@ -757,7 +767,7 @@ function Home() {
         console.log("setting selected from click", hit)
         setSelectedTopCSN(null)
         setRegionCSNS([])
-        setLoadingRegionCSNS(true) // TODO: this is to avoid flashing intermediate state of selected modal
+        // setLoadingRegionCSNS(true) // TODO: this is to avoid flashing intermediate state of selected modal
         setSelectedOrder(order)
         setSelected(hit)
       }
@@ -855,7 +865,7 @@ function Home() {
           />
           
           
-          {selected ? 
+          {/* {selected ? 
               <SelectedModal 
                 showFilter={showFilter}
                 selected={selected} 
@@ -872,11 +882,13 @@ function Home() {
                 }}
                 onZoom={(region) => { setRegion(null); setRegion(region)}}
                 onClose={handleModalClose}
-                onNarration={(n) => setPowerNarration(n)}
+                // onNarration={(n) => setPowerNarration(n)}
                 onZoomOrder={(n) => setPowerOrder(n)}
                 onDiversity={(d) => setPathDiversity(d)}
                 >
-                  {/* <SimSearchResultList
+            </SelectedModal> : null} */}
+
+            {/* <SimSearchResultList
                     simSearch={simSearch}
                     zoomRegion={region}
                     searchByFactorInds={searchByFactorInds}
@@ -888,9 +900,8 @@ function Home() {
                     }
                     onHover={setHover}
                   /> */}
-            </SelectedModal> : null}
 
-            {selected && selectedTopCSN ? 
+            {selected && (selectedTopCSN || loadingSelectedCSN) ? 
               <InspectorGadget 
                 selected={selected} 
                 zoomOrder={powerOrder}
@@ -923,7 +934,8 @@ function Home() {
                 width={400} 
                 height={height-10} 
                 numPaths={numPaths}
-                filteredIndices={filteredIndices} 
+                selectedRegion={selected}
+                hoveredRegion={hover}
                 factorCsns={topFactorCSNS}
                 fullCsns={topFullCSNS}
                 loading={csnLoading}
@@ -936,6 +948,7 @@ function Home() {
                 onNumPaths={(n) => {
                   setNumPaths(n)
                 }}
+                onClearRegion={clearSelectedState}
               />
             </div>
 
