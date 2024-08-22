@@ -10,7 +10,7 @@ import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/Hilber
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
 import { fetchTopCSNs, rehydrateCSN, calculateCrossScaleNarrationInWorker, narrateRegion, retrieveFullDataForCSN } from '../lib/csn'
 import { fetchFilterSegments } from '../lib/dataFiltering';
-import { calculateOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
+import { calculateOrderSums, calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
 import { range, groups, group } from 'd3-array'
 
 import './Home.css'
@@ -39,6 +39,7 @@ import SelectFactorPreview from '../components/ComboLock/SelectFactorPreview'
 import FilterSelects from '../components/ComboLock/FilterSelects'
 
 import SankeyModal from '../components/Narration/SankeyModal';
+import RegionSetModal from '../components/Regions/RegionSetModal';
 
 // layer configurations
 import { fullList as layers, csnLayers, variantLayers, countLayers } from '../layers'
@@ -54,7 +55,6 @@ import SimSearchByFactor from '../components/SimSearch/SimSearchByFactor'
 
 import DisplaySimSearchRegions from '../components/SimSearch/DisplaySimSearchRegions'
 import DisplayExampleRegions from '../components/ExampleRegions/DisplayExampleRegions';
-import DisplayFilteredRegions from '../components/ComboLock/DisplayFilteredRegions';
 import useCanvasFilteredRegions from '../components/ComboLock/CanvasFilteredRegions';
 
 import { getSet } from '../components/Regions/localstorage'
@@ -565,7 +565,10 @@ function Home() {
 
 
   const orderSums = useMemo(() => {
-    return calculateOrderSums()
+    // return calculateOrderSums()
+    let os = calculateSegmentOrderSums()
+    console.log("OS", os)
+    return os
   }, [])
   const [filteredIndices, setFilteredIndices] = useState([])
   const [factorPreviewField, setFactorPreviewField] = useState(null)
@@ -581,7 +584,7 @@ function Home() {
   const [hoveredTopCSN, setHoveredTopCSN] = useState(null)
   const [csnSort, setCSNSort] = useState("factor")
   const [regionCSNS, setRegionCSNS] = useState([])
-  const [filteredSegments, setFilteredSegments] = useState([])
+  const [filteredSegments, setFilteredSegments] = useState(null)
   const filterRequestRef = useRef(0)
 
 
@@ -590,17 +593,16 @@ function Home() {
     console.log("filters changed in home!!", filters)
     filterRequestRef.current += 1
     const currentRequest = filterRequestRef.current
-
     let nfs = Object.keys(filters).length
-    setFilterLoading("fetching")
     // Fetch the filter segments from the API
     if(nfs > 0) {
+      setFilterLoading("fetching")
       fetchFilterSegments(filters)
         .then((response) => {
         console.log("FILTER RESPONSE", response)
         if(!response) {
           setFilterLoading("Error!")
-          setFilteredSegments([])
+          setFilteredSegments(null)
           return
         }
         if(currentRequest == filterRequestRef.current) {
@@ -610,10 +612,10 @@ function Home() {
       }).catch((e) => {
         console.log("error fetching top factor csns", e)
         setFilterLoading("Error!")
-        setFilteredSegments([])
+        setFilteredSegments(null)
       })
     } else {
-      setFilteredSegments([])
+      setFilteredSegments(null)
     }
   }, [filters])
 
@@ -726,15 +728,21 @@ function Home() {
   const [filterSegmentsByCurrentOrder, setFilterSegmentsByCurrentOrder] = useState(new Map())
   // group the top regions found through filtering by the current order
   useEffect(() => {
-    if(filteredSegments.length) {
+    if(filteredSegments?.length) {
       // create map object
       const groupedSegments = filteredSegments.map(chrGroup => group(chrGroup.indices, d => chrGroup.chromosome + ":" + hilbertPosToOrder(d, {from: chrGroup.order, to: zoom.order})))
       const groupedSegmentsMerged = new Map()
+      let max = 0
       groupedSegments.forEach(g => {
         g.forEach((value, key) => {
           groupedSegmentsMerged.set(key, value)
+          if(value.length > max) {
+            max = value.length
+          }
         })
       })
+      groupedSegmentsMerged.max = max
+      console.log("GROUPED SEGMENTS", groupedSegmentsMerged)
       setFilterSegmentsByCurrentOrder(groupedSegmentsMerged)
     } else {
       setFilterSegmentsByCurrentOrder(new Map())
@@ -862,9 +870,14 @@ function Home() {
             <LogoNav/>
           </div>
           <div className="header--region-list">
-            <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
+            <RegionSetModal 
+              selectedRegion={selected}
+              queryRegions={filteredSegments} 
+              queryLoading={filterLoading}
+            />
+            {/* <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
               if(set) { setRegionSet(name) } else { setRegionSet('') }
-            }} />
+            }} /> */}
           </div>
           <div className="header--search">
             {showFilter ? 

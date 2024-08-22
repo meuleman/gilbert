@@ -5,7 +5,7 @@ import { createSegments, joinSegments } from "./segments.js"
 import { HilbertChromosome, hilbertPosToOrder } from './HilbertChromosome';
 import { makeField } from '../layers';
 
-// import counts_native from "../data/counts.native_order_resolution.json"
+import counts_native from "../data/counts.segments.native_order_resolution.json"
 import counts_order14 from "../data/counts.order_14_resolution.json"
 
 function urlifyFilters(filtersMap) {
@@ -26,6 +26,51 @@ function parseFilters(filters) {
     fs[f.order] = makeField(f.dataset_name, f.index, f.order)
   })
   return fs 
+}
+
+function calculateSegmentOrderSums() {
+  console.log("CALC ORDER SUMS", counts_native)
+  const orderSums = Object.keys(counts_native).map(o => {
+    let chrms = Object.keys(counts_native[o])//.map(chrm => counts[o][chrm])
+    let total = 0
+    let layer_total = {}
+    let ret = {}
+    let maxf = { value: 0 }
+    chrms.forEach(c => {
+      if(c == "totalSegmentCount") return
+      const chrm = counts_native[o][c]
+      const layers = Object.keys(chrm)
+      layers.forEach(l => {
+        if(!ret[l]) {
+          ret[l] = {}
+          layer_total[l] = 0
+          Object.keys(chrm[l]).forEach(k => {
+            ret[l][k] = 0
+          })
+        }
+        Object.keys(chrm[l]).forEach(k => {
+          if(!ret[l][k]) ret[l][k] = 0
+          ret[l][k] += chrm[l][k]
+          total += chrm[l][k]
+          layer_total[l] += chrm[l][k]
+          if(chrm[l][k] > maxf.value){
+            maxf.value = chrm[l][k]
+            maxf.layer = l
+            maxf.field = k
+          }
+        })
+      })
+    })
+    return { 
+      order: o, 
+      counts: ret, 
+      total, 
+      totalSegments: counts_native[o].totalSegmentCount, 
+      layer_total, 
+      maxField: maxf 
+    }
+  })
+  return orderSums
 }
 
 function calculateOrderSums() {
@@ -441,6 +486,7 @@ export {
   urlifyFilters,
   parseFilters,
   calculateOrderSums,
+  calculateSegmentOrderSums,
   filterIndices,
   sampleRegions,
   sampleScoredRegions,

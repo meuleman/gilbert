@@ -84,7 +84,7 @@ const useCanvasFilteredRegions = (topPathsMap = new Map()) => {
       const sw = step
       const rw = sizeScale(sw) * t.k * 0.9 // * (r.path?.count || 0) / (maxC - minC)
       // const srw = rw * 0.2 * ((r.path?.count || 0) / (rbos.max - rbos.min) + 0.1)
-      const srw = rw * 0.2 * ((r.path?.count || 0) / (10) + 0.1) // TODO: scale this properly
+      const srw = rw * 0.4 * ((r.path?.count || 0) / (topPathsMap.max || 1) + 0.1) // TODO: scale this properly
       // Drawing logic here
       // ctx.fillStyle = color
       ctx.strokeStyle = color

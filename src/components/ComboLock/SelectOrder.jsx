@@ -129,7 +129,7 @@ const SelectOrder = ({
         <b>{option.field} </b>
         <i>{option.layer.name} </i>
         <span style={{color: "gray"}}> 
-          {showUniquePaths ? " " + showInt(option.count) + " paths " : " "} 
+          {showUniquePaths ? " " + showInt(option.count) + " regions" : " "} 
         </span>
       </div>
     );

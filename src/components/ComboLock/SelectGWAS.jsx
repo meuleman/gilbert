@@ -104,22 +104,24 @@ const SelectGWAS = memo(({
   const { filters, handleFilter } = useContext(FiltersContext);
 
   const allFields = useMemo(() => {
+    let oc = orderSums.find(o => o.order == 14)
     let gf = gwas.fields.map((f, i) => {
       let field = makeField(variants_gwas_rank, f, 14);
       field.i = i;
-      field.count = gwas.counts[i];
-      if(field.field.length > 60) {
-        field.label = '⚫️ ' + field.field.slice(0,60) + "..."
+      // field.count = gwas.counts[i];
+      field.count = oc.counts["variants_gwas_rank"][field.index]
+      if(field.field.length > 50) {
+        field.label = '⚫️ ' + field.field.slice(0,50) + "..."
       } else {
         field.label = '⚫️ ' + field.field
       }
+      field.label += ' (' + showInt(field.count) + " regions)"
       return field;
     }).sort((a, b) => b.count - a.count)
 
 
     let ff = fields.map(f => {
       let layer = f.layer
-      let oc = orderSums.find(o => o.order == 14)
       let counts = null
       if(oc) {
         counts = oc.counts[layer.datasetName]
@@ -127,7 +129,7 @@ const SelectGWAS = memo(({
       let count = counts ? counts[f.index] : "?"
       return {
         ...f,
-        label: '⚪️ ' + f.field + " " + f.layer.name + " " + count,
+        label: '⚪️ ' + f.field + " (" + showInt(count) + " regions)",
         order: 14,
         count,
       }
