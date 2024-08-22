@@ -147,6 +147,19 @@ const csnLayers = [
   fullList.find(d => d.name == "Repeats (OCC, Ranked)"),
 ]
 
+const filterLayers = [
+  fullList.find(d => d.name == "DHS Components (ENR, Full)"),
+  fullList.find(d => d.name == "Chromatin States (ENR, Full)"),
+  fullList.find(d => d.datasetName == "tf_1en6_enr"),
+  fullList.find(d => d.name == "Repeats (ENR, Full)"),
+  fullList.find(d => d.name == "DHS Components (OCC, Ranked)"),
+  fullList.find(d => d.name == "Chromatin States (OCC, Ranked)"),
+  fullList.find(d => d.datasetName == "tf_1en6_rank_occ"),
+  fullList.find(d => d.name == "Repeats (OCC, Ranked)"),
+  fullList.find(d => d.datasetName == "variants_favor_categorical_rank"),
+  fullList.find(d => d.datasetName == "variants_favor_apc_rank"),
+]
+
 const variantLayers = [
   fullList.find(d => d.datasetName == "variants_favor_categorical_rank"),
   fullList.find(d => d.datasetName == "variants_favor_apc_rank"),
@@ -230,6 +243,12 @@ const fields = factorLayers.flatMap(layer => {
   })
   return fs 
 })
+const filterFields = filterLayers.flatMap(layer => {
+  let fs = layer.fieldColor.domain().map((f, i) => {
+    return makeField(layer, f)
+  })
+  return fs 
+})
 
 
 export {
@@ -241,6 +260,7 @@ export {
   fieldMapping,
   rehydrate,
   fields,
+  filterFields,
   makeField,
 }
 

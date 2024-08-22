@@ -3,7 +3,7 @@ import Select from 'react-select';
 import chroma from 'chroma-js';
 import { groups } from 'd3-array';
 
-import { fields } from '../../layers'
+import { filterFields } from '../../layers'
 import FiltersContext from './FiltersContext'
 import Loading from '../Loading';
 import { fetchFilterPreview } from '../../lib/dataFiltering';
@@ -117,7 +117,7 @@ const SelectFactor = ({
   }, []);
 
   useEffect(() => {
-    const grouped = groups(fields, f => f.layer.name)
+    const grouped = groups(filterFields, f => f.layer.name)
       .map(d => ({ label: d[0], options: d[1] }))
       .filter(d => d.options.length)
     setAllFields(grouped)
