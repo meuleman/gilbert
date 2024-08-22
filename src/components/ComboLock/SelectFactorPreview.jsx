@@ -6,7 +6,7 @@ import { groups } from 'd3-array';
 import { fields } from '../../layers'
 import FiltersContext from './FiltersContext'
 import Loading from '../Loading';
-import { fetchFilterPreview } from '../../lib/csn'
+import { fetchFilterPreview } from '../../lib/dataFiltering';
 
 
 
@@ -93,7 +93,7 @@ const SelectFactor = ({
     if(selectedField) {
       onPreviewValues(null)
       setLoadingPreview(true)
-      fetchFilterPreview(filtersRef.current, null, selectedField).then((preview) => {
+      fetchFilterPreview(filtersRef.current, selectedField).then((preview) => {
         // setPreviewValues(preview.preview_fractions)
         console.log("sending home a message", selectedField, preview.preview_fractions)
         onPreviewValues(selectedField, preview.preview_fractions)
