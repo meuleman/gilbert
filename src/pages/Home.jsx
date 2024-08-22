@@ -585,6 +585,7 @@ function Home() {
   const [csnSort, setCSNSort] = useState("factor")
   const [regionCSNS, setRegionCSNS] = useState([])
   const [filteredSegments, setFilteredSegments] = useState(null)
+  const [numSegments, setNumSegments] = useState(100)
   const filterRequestRef = useRef(0)
 
 
@@ -730,7 +731,12 @@ function Home() {
   useEffect(() => {
     if(filteredSegments?.length) {
       // create map object
-      const groupedSegments = filteredSegments.map(chrGroup => group(chrGroup.indices, d => chrGroup.chromosome + ":" + hilbertPosToOrder(d, {from: chrGroup.order, to: zoom.order})))
+      const groupedSegments = filteredSegments
+        .map(chrGroup => {
+          return group(chrGroup.indices, d => {
+            return chrGroup.chromosome + ":" + hilbertPosToOrder(d, {from: chrGroup.order, to: zoom.order})
+          })
+        })
       const groupedSegmentsMerged = new Map()
       let max = 0
       groupedSegments.forEach(g => {
@@ -874,6 +880,7 @@ function Home() {
               selectedRegion={selected}
               queryRegions={filteredSegments} 
               queryLoading={filterLoading}
+              onNumSegments={setNumSegments}
             />
             {/* <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
               if(set) { setRegionSet(name) } else { setRegionSet('') }

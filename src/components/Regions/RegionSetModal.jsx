@@ -15,8 +15,7 @@ const RegionSetModal = ({
   hoveredRegion = null,
   queryRegions = null,
   queryLoading = "",
-  width = 400,
-  height = 320,
+  onNumSegments = () => {},
 } = {}) => {
 
   const { filters } = useContext(FiltersContext)
@@ -42,7 +41,7 @@ const RegionSetModal = ({
   }, [totalBasepairs])
 
   // const [showPanel, setShowPanel] = useState(true)
-  // const [showControls, setShowControls] = useState(false)
+  const [showControls, setShowControls] = useState(true)
   // useEffect(() => {
   //   setShowPanel(show)
   // }, [show])
@@ -50,6 +49,11 @@ const RegionSetModal = ({
   // const handleShowControl = useCallback(() => {
   //   setShowControls(!showControls)
   // }, [showControls])
+
+  const [numSegments, setNumSegments] = useState(100)
+  useEffect(() => {
+    onNumSegments(numSegments)
+  }, [numSegments, onNumSegments])
 
   return (
     <div className={`regionset-modal`}>
@@ -113,6 +117,22 @@ const RegionSetModal = ({
           {totalSegments} <i>{showKb(orderBp)}</i> regions 
           {totalSegments ? <span> representing {showInt(totalBasepairs)} basepairs, or {percentGenome.toFixed(2)}% of the genome</span> : null}
         </div>: null }
+
+
+
+      </div>
+      <div className={`controls ${showControls ? "show" : "hide"}`}>
+        <div className="num-paths">
+          <label>
+            <input 
+              type="number" 
+              value={numSegments}
+              style={{ width: '60px' }}
+              onChange={(e) => setNumSegments(+e.target.value)} 
+            />
+            &nbsp; # Segments to display
+          </label>
+        </div>
       </div>
     </div>
   )
