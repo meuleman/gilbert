@@ -723,6 +723,24 @@ function Home() {
     }
   }, [zoom.order, topFactorCSNS])
 
+  const [filterSegmentsByCurrentOrder, setFilterSegmentsByCurrentOrder] = useState(new Map())
+  // group the top regions found through filtering by the current order
+  useEffect(() => {
+    if(filteredSegments.length) {
+      // create map object
+      const groupedSegments = filteredSegments.map(chrGroup => group(chrGroup.indices, d => chrGroup.chromosome + ":" + hilbertPosToOrder(d, {from: chrGroup.order, to: zoom.order})))
+      const groupedSegmentsMerged = new Map()
+      groupedSegments.forEach(g => {
+        g.forEach((value, key) => {
+          groupedSegmentsMerged.set(key, value)
+        })
+      })
+      setFilterSegmentsByCurrentOrder(groupedSegmentsMerged)
+    } else {
+      setFilterSegmentsByCurrentOrder(new Map())
+    }
+  }, [zoom.order, filteredSegments])
+
 
   const handleFactorPreview = useCallback((field, values) => {
     console.log("preview factor!", field, values)
@@ -764,7 +782,7 @@ function Home() {
     setHover(hit)
   }, [zoom.order])
 
-  const drawFilteredRegions = useCanvasFilteredRegions(topCSNSFactorByCurrentOrder)
+  const drawFilteredRegions = useCanvasFilteredRegions(filterSegmentsByCurrentOrder)
 
   const clearSelectedState = useCallback(() => {
     console.log("CLEARING STATE")
