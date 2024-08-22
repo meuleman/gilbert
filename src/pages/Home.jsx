@@ -734,16 +734,14 @@ function Home() {
   const [filterSegmentsByCurrentOrder, setFilterSegmentsByCurrentOrder] = useState(new Map())
   // group the top regions found through filtering by the current order
   useEffect(() => {
-    console.log(filteredSegments)
     if(filteredSegments?.length && filterOrder) {
-      console.log(filteredSegments)
-      const groupedFactor = group(filteredSegments, d => d.chromosome + ":" + hilbertPosToOrder(d.index, {from: filterOrder, to: zoom.order}))
+      const groupedFactor = group(filteredSegments.slice(0, numSegments), d => d.chromosome + ":" + hilbertPosToOrder(d.index, {from: filterOrder, to: zoom.order}))
       console.log("groupedFactor", groupedFactor)
       setFilterSegmentsByCurrentOrder(groupedFactor)
     } else {
       setFilterSegmentsByCurrentOrder(new Map())
     }
-  }, [zoom.order, filteredSegments])
+  }, [zoom.order, filteredSegments, numSegments])
 
 
   const handleFactorPreview = useCallback((field, values) => {
