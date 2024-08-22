@@ -9,6 +9,7 @@ import { urlify, jsonify, fromPosition, fromCoordinates } from '../lib/regions'
 import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
 import { fetchTopCSNs, rehydrateCSN, calculateCrossScaleNarrationInWorker, narrateRegion, retrieveFullDataForCSN } from '../lib/csn'
+import { fetchFilterSegments } from '../lib/dataFiltering';
 import { calculateOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
 import { range, groups, group } from 'd3-array'
 
@@ -576,73 +577,108 @@ function Home() {
   const [topFactorCSNS, setTopFactorCSNS] = useState([])
   const [selectedTopCSN, setSelectedTopCSN] = useState(null)
   const [csnLoading, setCSNLoading] = useState("")
+  const [filterLoading, setFilterLoading] = useState("")
   const [hoveredTopCSN, setHoveredTopCSN] = useState(null)
   const [csnSort, setCSNSort] = useState("factor")
   const [regionCSNS, setRegionCSNS] = useState([])
-  const csnRequestRef = useRef(0)
+  const [filteredSegments, setFilteredSegments] = useState([])
+  const filterRequestRef = useRef(0)
 
-  // fetch the top csns, both by full path score and by filtered factor scores
+
+  // fetch the segments with enrichments for filter factors
   useEffect(() => {
     console.log("filters changed in home!!", filters)
-    csnRequestRef.current += 1
-    const currentRequest = csnRequestRef.current
-    if(Object.keys(filters).length == 0 && !selected) {
-      setTopFactorCSNS([])
-      setTopFullCSNS([])
-      return
-    }
-    // TODO: should this be more wholistically done somewhere else?
-    if(selected) {
-      setShowFilter(true)
-    }
+    filterRequestRef.current += 1
+    const currentRequest = filterRequestRef.current
 
     let nfs = Object.keys(filters).length
-    setCSNLoading("fetching")
-    // Fetch the top csns from the API
+    setFilterLoading("fetching")
+    // Fetch the filter segments from the API
     if(nfs > 0) {
-      fetchTopCSNs(filters, selected, "factor", true, numPaths)
+      fetchFilterSegments(filters)
         .then((response) => {
-        console.log("FACTOR RESPONSE", response)
+        console.log("FILTER RESPONSE", response)
         if(!response) {
-          setCSNLoading("Error!")
-          setTopFactorCSNS([])
+          setFilterLoading("Error!")
+          setFilteredSegments([])
           return
         }
-        if(currentRequest == csnRequestRef.current) {
-          let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
-          hydrated.forEach(d => d.scoreType = "factor")
-          setTopFactorCSNS(hydrated)
-          setCSNLoading("")
+        if(currentRequest == filterRequestRef.current) {
+          setFilteredSegments(response.filtered_segments)
+          setFilterLoading("")
         }
       }).catch((e) => {
         console.log("error fetching top factor csns", e)
-        setCSNLoading("Error!")
-        setTopFactorCSNS([])
+        setFilterLoading("Error!")
+        setFilteredSegments([])
       })
     } else {
-      setTopFactorCSNS([])
+      setFilteredSegments([])
     }
-    // for now we just pull both in parallel
-    fetchTopCSNs(filters, selected, "full", true, numPaths)
-      .then((response) => {
-        console.log("FULL RESPONSE", response)
-        if(!response) {
-          // setCSNLoading("Error!")
-          setTopFullCSNS([])
-          return
-        }
-        if(currentRequest == csnRequestRef.current) {
-          let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
-          hydrated.forEach(d => d.scoreType = "full")
-          setTopFullCSNS(hydrated)
-          setCSNLoading("")
-        }
-      }).catch((e) => {
-        console.log("error fetching top full csns", e)
-        // setCSNLoading("Error!")
-        setTopFullCSNS([])
-      })
-  }, [filters, numPaths, selected])
+  }, [filters])
+
+  // // fetch the top csns, both by full path score and by filtered factor scores
+  // useEffect(() => {
+  //   console.log("filters changed in home!!", filters)
+  //   csnRequestRef.current += 1
+  //   const currentRequest = csnRequestRef.current
+  //   if(Object.keys(filters).length == 0 && !selected) {
+  //     setTopFactorCSNS([])
+  //     setTopFullCSNS([])
+  //     return
+  //   }
+  //   // TODO: should this be more wholistically done somewhere else?
+  //   if(selected) {
+  //     setShowFilter(true)
+  //   }
+
+  //   let nfs = Object.keys(filters).length
+  //   setCSNLoading("fetching")
+  //   // Fetch the top csns from the API
+  //   if(nfs > 0) {
+  //     fetchTopCSNs(filters, selected, "factor", true, numPaths)
+  //       .then((response) => {
+  //       console.log("FACTOR RESPONSE", response)
+  //       if(!response) {
+  //         setCSNLoading("Error!")
+  //         setTopFactorCSNS([])
+  //         return
+  //       }
+  //       if(currentRequest == csnRequestRef.current) {
+  //         let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
+  //         hydrated.forEach(d => d.scoreType = "factor")
+  //         setTopFactorCSNS(hydrated)
+  //         setCSNLoading("")
+  //       }
+  //     }).catch((e) => {
+  //       console.log("error fetching top factor csns", e)
+  //       setCSNLoading("Error!")
+  //       setTopFactorCSNS([])
+  //     })
+  //   } else {
+  //     setTopFactorCSNS([])
+  //   }
+  //   // for now we just pull both in parallel
+  //   fetchTopCSNs(filters, selected, "full", true, numPaths)
+  //     .then((response) => {
+  //       console.log("FULL RESPONSE", response)
+  //       if(!response) {
+  //         // setCSNLoading("Error!")
+  //         setTopFullCSNS([])
+  //         return
+  //       }
+  //       if(currentRequest == csnRequestRef.current) {
+  //         let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
+  //         hydrated.forEach(d => d.scoreType = "full")
+  //         setTopFullCSNS(hydrated)
+  //         setCSNLoading("")
+  //       }
+  //     }).catch((e) => {
+  //       console.log("error fetching top full csns", e)
+  //       // setCSNLoading("Error!")
+  //       setTopFullCSNS([])
+  //     })
+  // }, [filters, numPaths, selected])
 
   // const [pathDiversity, setPathDiversity] = useState(true)
   // const [loadingRegionCSNS, setLoadingRegionCSNS] = useState(false)
