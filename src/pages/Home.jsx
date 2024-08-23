@@ -585,6 +585,7 @@ function Home() {
   const [csnSort, setCSNSort] = useState("factor")
   const [regionCSNS, setRegionCSNS] = useState([])
   const [filteredSegments, setFilteredSegments] = useState(null)
+  const [filterOrder, setFilterOrder] = useState(null)
   const [numSegments, setNumSegments] = useState(100)
   const filterRequestRef = useRef(0)
 
@@ -604,19 +605,23 @@ function Home() {
         if(!response) {
           setFilterLoading("Error!")
           setFilteredSegments(null)
+          setFilterOrder(null)
           return
         }
         if(currentRequest == filterRequestRef.current) {
           setFilteredSegments(response.filtered_segments)
+          setFilterOrder(response.order)
           setFilterLoading("")
         }
       }).catch((e) => {
         console.log("error fetching top factor csns", e)
         setFilterLoading("Error!")
         setFilteredSegments(null)
+        setFilterOrder(null)
       })
     } else {
       setFilteredSegments(null)
+      setFilterOrder(null)
     }
   }, [filters])
 
@@ -729,31 +734,14 @@ function Home() {
   const [filterSegmentsByCurrentOrder, setFilterSegmentsByCurrentOrder] = useState(new Map())
   // group the top regions found through filtering by the current order
   useEffect(() => {
-    if(filteredSegments?.length) {
-      // create map object
-      const groupedSegments = filteredSegments
-        .map(chrGroup => {
-          return group(chrGroup.indices, d => {
-            return chrGroup.chromosome + ":" + hilbertPosToOrder(d, {from: chrGroup.order, to: zoom.order})
-          })
-        })
-      const groupedSegmentsMerged = new Map()
-      let max = 0
-      groupedSegments.forEach(g => {
-        g.forEach((value, key) => {
-          groupedSegmentsMerged.set(key, value)
-          if(value.length > max) {
-            max = value.length
-          }
-        })
-      })
-      groupedSegmentsMerged.max = max
-      console.log("GROUPED SEGMENTS", groupedSegmentsMerged)
-      setFilterSegmentsByCurrentOrder(groupedSegmentsMerged)
+    if(filteredSegments?.length && filterOrder) {
+      const groupedFactor = group(filteredSegments.slice(0, numSegments), d => d.chromosome + ":" + hilbertPosToOrder(d.index, {from: filterOrder, to: zoom.order}))
+      console.log("groupedFactor", groupedFactor)
+      setFilterSegmentsByCurrentOrder(groupedFactor)
     } else {
       setFilterSegmentsByCurrentOrder(new Map())
     }
-  }, [zoom.order, filteredSegments])
+  }, [zoom.order, filteredSegments, numSegments])
 
 
   const handleFactorPreview = useCallback((field, values) => {

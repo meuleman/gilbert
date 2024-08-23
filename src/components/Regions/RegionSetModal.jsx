@@ -26,7 +26,8 @@ const RegionSetModal = ({
 
   const totalSegments = useMemo(() => {
     if(!queryRegions) return 0
-    return sum(queryRegions, r => r.indices.length)
+    // return sum(queryRegions, r => r.indices.length)
+    return queryRegions.length
   }, [queryRegions])
 
   const orderBp = useMemo(() => {

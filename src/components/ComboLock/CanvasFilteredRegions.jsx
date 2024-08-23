@@ -11,6 +11,11 @@ const useCanvasFilteredRegions = (topPathsMap = new Map()) => {
     if (!data.length || !canvasRef.current) return;
     if(!topPathsMap.size) return
 
+    // count the number of regions per segment
+    const numRegionsPerSegment = []
+    topPathsMap.forEach(d => {numRegionsPerSegment.push(d.length)})
+    const maxRegionsPerSegment = max(numRegionsPerSegment)
+
     // const maxC = max(regions, r => r?.path?.count || 0);
     // const minC = min(regions, r => r?.path?.count || 0);
     // const customInterpolator = t => interpolateBlues(0.5 + t * 0.5);
@@ -84,7 +89,7 @@ const useCanvasFilteredRegions = (topPathsMap = new Map()) => {
       const sw = step
       const rw = sizeScale(sw) * t.k * 0.9 // * (r.path?.count || 0) / (maxC - minC)
       // const srw = rw * 0.2 * ((r.path?.count || 0) / (rbos.max - rbos.min) + 0.1)
-      const srw = rw * 0.4 * ((r.path?.count || 0) / (topPathsMap.max || 1) + 0.1) // TODO: scale this properly
+      const srw = rw * 0.4 * ((r.path?.count || 0) / (maxRegionsPerSegment || 1) + 0.1) // TODO: scale this properly
       // Drawing logic here
       // ctx.fillStyle = color
       ctx.strokeStyle = color

@@ -64,6 +64,38 @@ function fetchFilterSegments(filtersMap, N) {
 }
 
 
+/*
+Get the preview overlap fractions for a new filter at each order based on available regions from current filters
+filters: [{order, field, dataset_name}, ...]
+newFilterFull: {field, dataset_name}
+
+Returns:
+{ preview_fractions: { order: fraction, ...} }
+*/
+function fetchFilterPreview(filtersMap, newFilterFull) {
+  const filters = getFilters(filtersMap)
+  console.log(filtersMap)
+  const newFilter = {"dataset_name": newFilterFull.layer.datasetName, "index": newFilterFull.index}
+
+  const url = "https://explore.altius.org:5001/api/dataFiltering/preview_filter"
+  const postBody = {filters, newFilter}
+  console.log("POST BODY", postBody)
+  return axios({
+    method: 'POST',
+    url: url,
+    data: postBody
+  }).then(response => {
+    console.log("FILTER PREVIEW DATA", response.data)
+    return response.data
+  }).catch(error => {
+    console.error(`error:     ${JSON.stringify(error)}`);
+    console.error(`post body: ${JSON.stringify(postBody)}`);
+    return null
+  })
+}
+
+
 export {
-  fetchFilterSegments
+  fetchFilterSegments,
+  fetchFilterPreview
 }
