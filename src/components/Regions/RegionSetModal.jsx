@@ -16,6 +16,7 @@ const RegionSetModal = ({
   queryRegions = null,
   queryLoading = "",
   onNumSegments = () => {},
+  onClearRegion = () => {},
 } = {}) => {
 
   const { filters } = useContext(FiltersContext)
