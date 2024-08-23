@@ -14,33 +14,57 @@ const RegionSetModal = ({
   selectedRegion = null,
   hoveredRegion = null,
   queryRegions = null,
+  queryRegionsCount = null,
+  queryRegionOrder = null,
   queryLoading = "",
   onNumSegments = () => {},
   onClearRegion = () => {},
 } = {}) => {
 
-  const { filters } = useContext(FiltersContext)
-  const order = useMemo(() => {
-    return max(Object.keys(filters), d => +d) || 0
-  }, [filters])
+  // const { filters } = useContext(FiltersContext)
+  // const order = useMemo(() => {
+  //   return max(Object.keys(filters), d => +d) || 0
+  // }, [filters])
 
-  const totalSegments = useMemo(() => {
-    if(!queryRegions) return 0
-    // return sum(queryRegions, r => r.indices.length)
-    return queryRegions.length
-  }, [queryRegions])
+  // const totalSegments = useMemo(() => {
+  //   if(!queryRegions) return 0
+  //   // return sum(queryRegions, r => r.indices.length)
+  //   return queryRegions.length
+  // }, [queryRegions])
 
-  const orderBp = useMemo(() => {
-    return Math.pow(4, 14 - order)
-  }, [order])
+  const [numSegments, setNumSegments] = useState(100)
 
-  const totalBasepairs = useMemo(() => {
-    return totalSegments * orderBp
-  }, [totalSegments, orderBp])
+  function calculateCount(num, order) {
+    let obp = Math.pow(4, 14 - order)
+    let tbp = num * obp
+    let percent = tbp / 3088269856 * 100
+    return {
+      num,
+      obp,
+      tbp,
+      percent
+    }
+  }
 
-  const percentGenome = useMemo(() => {
-    return totalBasepairs / 3298912062 * 100
-  }, [totalBasepairs])
+  const totalCounts = useMemo(() => {
+    return calculateCount(queryRegionsCount, queryRegionOrder)
+  }, [queryRegionsCount, queryRegionOrder])
+
+  const shownCounts = useMemo(() => {
+    return calculateCount(numSegments, queryRegionOrder)
+  }, [numSegments, queryRegionOrder])
+
+  // const orderBp = useMemo(() => {
+  //   return Math.pow(4, 14 - queryRegionOrder)
+  // }, [queryRegionOrder])
+
+  // const totalBasepairs = useMemo(() => {
+  //   return totalSegments * orderBp
+  // }, [totalSegments, orderBp])
+
+  // const percentGenome = useMemo(() => {
+  //   return totalBasepairs / 3088269856 * 100
+  // }, [totalBasepairs])
 
   // const [showPanel, setShowPanel] = useState(true)
   const [showControls, setShowControls] = useState(true)
@@ -52,10 +76,13 @@ const RegionSetModal = ({
   //   setShowControls(!showControls)
   // }, [showControls])
 
-  const [numSegments, setNumSegments] = useState(100)
   useEffect(() => {
     onNumSegments(numSegments)
-  }, [numSegments, onNumSegments])
+  }, [numSegments])
+
+  const handleNumSegments = useCallback((e) => {
+    setNumSegments(+e.target.value)
+  }, [onNumSegments])
 
   return (
     <div className={`regionset-modal`}>
@@ -116,25 +143,28 @@ const RegionSetModal = ({
             {queryLoading ? <Loading text={"Filtering regions..."} /> : null}
         </div>
         {queryRegions ? <div className="query-info">
-          {totalSegments} <i>{showKb(orderBp)}</i> regions 
-          {totalSegments ? <span> representing {showInt(totalBasepairs)} basepairs, or {percentGenome.toFixed(2)}% of the genome</span> : null}
+          Filtered {totalCounts.num} <i>{showKb(totalCounts.obp)}</i> regions 
+          {totalCounts.num ? <span> representing {showInt(totalCounts.tbp)} basepairs, or {totalCounts.percent.toFixed(2)}% of the genome</span> : null}
         </div>: null }
 
 
 
       </div>
       <div className={`controls ${showControls ? "show" : "hide"}`}>
-        <div className="num-paths">
+        {queryRegions && queryRegions.length ? <div className="num-paths">
           <label>
             <input 
-              type="number" 
-              value={numSegments}
-              style={{ width: '60px' }}
-              onChange={(e) => setNumSegments(+e.target.value)} 
+              type="range" 
+              min="1" 
+              max={queryRegions?.length}
+              value={numSegments} 
+              onChange={handleNumSegments} 
+              // style={{ width: '100%' }} 
             />
-            &nbsp; # Segments to display
-          </label>
-        </div>
+            <br></br><span>Showing {numSegments} <i>{showKb(shownCounts.obp)}</i> regions on map</span>
+            {shownCounts.tbp ? <span> representing {shownCounts.percent.toFixed(2)}% of the genome</span> : null}
+            </label>
+          </div> : null }
       </div>
     </div>
   )

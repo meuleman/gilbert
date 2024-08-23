@@ -586,6 +586,7 @@ function Home() {
   const [regionCSNS, setRegionCSNS] = useState([])
   const [filteredSegments, setFilteredSegments] = useState(null)
   const [filterOrder, setFilterOrder] = useState(null)
+  const [filteredSegmentsCount, setFilteredSegmentsCount] = useState(null)
   const [numSegments, setNumSegments] = useState(100)
   const filterRequestRef = useRef(0)
 
@@ -599,7 +600,7 @@ function Home() {
     // Fetch the filter segments from the API
     if(nfs > 0) {
       setFilterLoading("fetching")
-      fetchFilterSegments(filters)
+      fetchFilterSegments(filters, 10000)
         .then((response) => {
         console.log("FILTER RESPONSE", response)
         if(!response) {
@@ -610,6 +611,7 @@ function Home() {
         }
         if(currentRequest == filterRequestRef.current) {
           setFilteredSegments(response.filtered_segments)
+          setFilteredSegmentsCount(response.segment_count)
           setFilterOrder(response.order)
           setFilterLoading("")
         }
@@ -617,10 +619,12 @@ function Home() {
         console.log("error fetching top factor csns", e)
         setFilterLoading("Error!")
         setFilteredSegments(null)
+        setFilteredSegmentsCount(null)
         setFilterOrder(null)
       })
     } else {
       setFilteredSegments(null)
+      setFilteredSegmentsCount(null)
       setFilterOrder(null)
     }
   }, [filters])
@@ -867,6 +871,8 @@ function Home() {
             <RegionSetModal 
               selectedRegion={selected}
               queryRegions={filteredSegments} 
+              queryRegionsCount={filteredSegmentsCount}
+              queryRegionOrder={filterOrder}
               queryLoading={filterLoading}
               onNumSegments={setNumSegments}
             />
