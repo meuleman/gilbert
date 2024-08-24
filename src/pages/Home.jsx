@@ -9,6 +9,7 @@ import { urlify, jsonify, fromPosition, fromCoordinates } from '../lib/regions'
 import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
 import { fetchTopCSNs, rehydrateCSN, calculateCrossScaleNarrationInWorker, narrateRegion, retrieveFullDataForCSN } from '../lib/csn'
+import { fetchGWASforPositions } from '../lib/gwas'
 import { calculateOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
 import { range, groups, group } from 'd3-array'
 
@@ -704,21 +705,59 @@ function Home() {
     setSelected(hit)
     setRegion(hit)
     setLoadingSelectedCSN(true)
-    retrieveFullDataForCSN(csn).then((response) => {
-      setSelectedTopCSN(response)
+
+    // Collect full data and GWAS traits for the selected CSN
+    Promise.all([
+      retrieveFullDataForCSN(csn),
+      fetchGWASforPositions([{chromosome: csn.chromosome, index: csn.i}])
+    ]).then(([fullDataResponse, gwasRepsonse]) => {
+      // refactor GWAS response
+      const csnGWAS = gwasRepsonse[0]['trait_names'].reduce((acc, trait, index) => {
+        acc[trait] = gwasRepsonse[0]['scores'][index]
+        return acc
+      }, {})
+      // add GWAS associations to the full data response
+      let csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14)
+      csnOrder14Segment ? csnOrder14Segment["GWAS"] = csnGWAS : null
+      
+      setSelectedTopCSN(fullDataResponse)
       setLoadingSelectedCSN(false)
     })
+
+    // retrieveFullDataForCSN(csn).then((response) => {
+    //   setSelectedTopCSN(response)
+    //   setLoadingSelectedCSN(false)
+    // })
   }, [zoom.order])
 
   const [loadingSelectedCSN, setLoadingSelectedCSN] = useState(false)
   const handleSelectedCSNSelectedModal = (csn) => {
     if(!csn) return
     setLoadingSelectedCSN(true)
-    retrieveFullDataForCSN(csn).then((response) => {
-      setSelectedTopCSN(response)
-      console.log("full data response", response)
+
+    // Collect full data and GWAS traits for the selected CSN
+    Promise.all([
+      retrieveFullDataForCSN(csn),
+      fetchGWASforPositions([{chromosome: csn.chromosome, index: csn.i}])
+    ]).then(([fullDataResponse, gwasRepsonse]) => {
+      // refactor GWAS response
+      const csnGWAS = gwasRepsonse[0]['trait_names'].reduce((acc, trait, index) => {
+        acc[trait] = gwasRepsonse[0]['scores'][index]
+        return acc
+      }, {})
+      // add GWAS associations to the full data response
+      let csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14)
+      csnOrder14Segment ? csnOrder14Segment["GWAS"] = csnGWAS : null
+      
+      setSelectedTopCSN(fullDataResponse)
       setLoadingSelectedCSN(false)
     })
+    
+    // retrieveFullDataForCSN(csn).then((response) => {
+    //   setSelectedTopCSN(response)
+    //   console.log("full data response", response)
+    //   setLoadingSelectedCSN(false)
+    // })
   }
 
   const handleHoveredCSN = useCallback((csn) => {
