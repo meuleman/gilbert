@@ -1,0 +1,23 @@
+.left-toolbar {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Space between top and bottom groups */
+  height: 100%; /* Ensure the toolbar takes full height */
+}
+
+.toolbar-button {
+  margin: 5px 1px; /* Add some spacing between buttons */
+  width: 48px;
+  padding: .6em 12px;
+}
+
+/* Additional styles for grouping */
+.top-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.bottom-group {
+  display: flex;
+  flex-direction: column;
+}

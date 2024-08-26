@@ -1,0 +1,7 @@
+.regionset-modal {
+  position: relative;
+  z-index: 20;
+}
+
+.regionset-modal .query-controls {
+}

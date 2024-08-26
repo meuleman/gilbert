@@ -26,6 +26,7 @@ import ZoomLegend from '../components/ZoomLegend'
 // import TrackPyramid from '../components/TrackPyramid'
 import LayerDropdown from '../components/LayerDropdown'
 import StatusBar from '../components/StatusBar'
+import LeftToolbar from '../components/LeftToolbar'
 import SettingsPanel from '../components/SettingsPanel';
 //import SelectedModal from '../components/SelectedModal'
 import LensModal from '../components/LensModal'
@@ -65,6 +66,7 @@ import GenesetEnrichment from '../components/SimSearch/GenesetEnrichment';
 // import Spectrum from '../components/Spectrum';
 
 import RegionStrip from '../components/RegionStrip'
+import ManageRegionSetsModal from '../components/Regions/ManageRegionSetsModal'
 
 
 // declare globally so it isn't recreated on every render
@@ -117,8 +119,8 @@ function Home() {
       function updateSize() {
         if(!containerRef.current) return
         const { height, width } = containerRef.current.getBoundingClientRect()
-        console.log(containerRef.current.getBoundingClientRect())
-        console.log("width x height", width, height)
+        // console.log(containerRef.current.getBoundingClientRect())
+        // console.log("width x height", width, height)
         //  let height = window.innerHeight - 270;
         //  // account for the zoom legend (30) and padding (48)
         //  let w = window.innerWidth - 30 - 24 - 180// - 500
@@ -861,10 +863,23 @@ function Home() {
     return (height - 11*38)/11
   }, [height])
 
+  const [showLayerLegend, setShowLayerLegend] = useState(true)
+  const [showManageRegionSets, setShowManageRegionSets] = useState(false)
+  const [showActiveRegionSet, setShowActiveRegionSet] = useState(false)
+
+  useEffect(() => {
+    if(showManageRegionSets) {
+      setShowActiveRegionSet(false)
+    } else if(showActiveRegionSet) {
+      setShowManageRegionSets(false)
+    }
+  }, [showManageRegionSets, showActiveRegionSet])
+
   return (
     <>
       <div className="primary-grid">
         {/* header row */}
+        
         <div className="header">
           <div className="header--brand">
             <LogoNav/>
@@ -925,11 +940,24 @@ function Home() {
             />
         </div>
         {/* primary content */}
+        <div className="left-toolbar">
+          <LeftToolbar
+            showLayerLegend={showLayerLegend}
+            onLayerLegend={setShowLayerLegend}
+            showManageRegionSets={showManageRegionSets}
+            showActiveRegionSet={showActiveRegionSet}
+            onManageRegionSets={setShowManageRegionSets}
+            onActiveRegionSet={setShowActiveRegionSet}
+          />
+          
+        </div>
         <div className="visualization">
           <LayerLegend 
             data={data}
             hover={hover}
             selected={selected}
+            show={showLayerLegend}
+            onShow={setShowLayerLegend}
             handleFactorClick={handleFactorClick}
             searchByFactorInds={searchByFactorInds}
           />
@@ -986,6 +1014,16 @@ function Home() {
             </InspectorGadget> : null}
             
             <div>
+              {showManageRegionSets ? <ManageRegionSetsModal 
+              /> : null}
+
+              {showActiveRegionSet ? <ActiveRegionSetModal
+                // selectedRegion={selected}
+                // queryRegions={filteredSegments} 
+                // queryRegionsCount={filteredSegmentsCount}
+                // queryRegionOrder={filterOrder}
+                // queryLoading={filterLoading}
+              /> : null}
 
               <FilterSelects
                 show={showFilter}
@@ -1087,93 +1125,94 @@ function Home() {
             </div>
             
             
-          </div>
-          <div className="lenses">
-            
-            <div className='layer-column'>
-              <div className="zoom-legend-container">
-                {containerRef.current && (
-                  <ZoomLegend 
-                    k={zoom.transform.k} 
-                    height={height} 
-                    effectiveOrder={zoom.order}
-                    zoomExtent={zoomExtent} 
-                    orderDomain={orderDomain} 
-                    layerOrder={layerOrder}
-                    layer={layer}
-                    layerLock={layerLock}
-                    lensHovering={lensHovering}
-                    selected={selected}
-                    hovered={hover}
-                    // crossScaleNarration={csn}
-                    onZoom={(region) => { 
-                      setRegion(null); 
-                      const hit = fromPosition(region.chromosome, region.start, region.end)
-                      setRegion(hit)
-                      // setSelected(hit)
-                    }}
-                  />
-                )}
-            </div>
-          </div>
         </div>
-        <div className='footer'>
-          <div className='footer-row'>
-            <div className='linear-tracks'>
 
-              {selected  && <RegionStrip region={selected} segments={100} layer={layer} width={width} height={40} /> }
-              {!selected && hover && <RegionStrip region={hover} segments={100} layer={layer} width={width} height={40} /> }
-
-              {/* <TrackPyramid
-                state={trackState} 
-                tracks={tracks}
-                tracksLoading={isZooming || tracksLoading}
-                width={width * 1.0}
-                height={100}
-                segment={!showGaps}
-                hovered={lastHover} 
-                selected={selected} 
-                setHovered={handleHover} 
-              ></TrackPyramid> */}
-            </div>
+        <div className="lenses">
+          
+          <div className='layer-column'>
+            <div className="zoom-legend-container">
+              {containerRef.current && (
+                <ZoomLegend 
+                  k={zoom.transform.k} 
+                  height={height} 
+                  effectiveOrder={zoom.order}
+                  zoomExtent={zoomExtent} 
+                  orderDomain={orderDomain} 
+                  layerOrder={layerOrder}
+                  layer={layer}
+                  layerLock={layerLock}
+                  lensHovering={lensHovering}
+                  selected={selected}
+                  hovered={hover}
+                  // crossScaleNarration={csn}
+                  onZoom={(region) => { 
+                    setRegion(null); 
+                    const hit = fromPosition(region.chromosome, region.start, region.end)
+                    setRegion(hit)
+                    // setSelected(hit)
+                  }}
+                />
+              )}
           </div>
-          <StatusBar 
-            width={width + 12 + 30} 
-            hover={hover} // the information about the cell the mouse is over
-            // filteredRegions={filteredRegions}
-            // regionsByOrder={rbos}
-            topCSNS={topCSNSFactorByCurrentOrder}
-            layer={layer} 
-            zoom={zoom} 
-            showFilter={showFilter}
-            showDebug={showDebug}
-            showSettings={showSettings}
-            orderOffset={orderOffset}
-            layers={layers} 
-            onClear={handleClear}
-            onDebug={handleChangeShowDebug}
-            onSettings={handleChangeShowSettings}
-            onOrderOffset={setOrderOffset}
-            onFilter={handleChangeShowFilter}
-          />
-          { showSettings ? <SettingsPanel 
-            showHilbert={showHilbert}
-            showGenes={showGenes}
-            duration={duration}
-            onShowHilbertChange={handleChangeShowHilbert}
-            onShowGenesChange={handleChangeShowGenes}
-            onDurationChange={handleChangeDuration}
-            handleChangeCSNIndex={handleChangeCSNIndex}
-            maxCSNIndex={crossScaleNarration.length - 1}
-            crossScaleNarrationIndex={crossScaleNarrationIndex}
-            csnMethod={csnMethod}
-            handleCsnMethodChange={handleCsnMethodChange}
-            csnEnrThreshold={csnEnrThreshold}
-            handleCsnEnrThresholdChange={handleCsnEnrThresholdChange}
-          /> : null }
         </div>
       </div>
-    </>
+      <div className='footer'>
+        <div className='footer-row'>
+          <div className='linear-tracks'>
+
+            {selected  && <RegionStrip region={selected} segments={100} layer={layer} width={width} height={40} /> }
+            {!selected && hover && <RegionStrip region={hover} segments={100} layer={layer} width={width} height={40} /> }
+
+            {/* <TrackPyramid
+              state={trackState} 
+              tracks={tracks}
+              tracksLoading={isZooming || tracksLoading}
+              width={width * 1.0}
+              height={100}
+              segment={!showGaps}
+              hovered={lastHover} 
+              selected={selected} 
+              setHovered={handleHover} 
+            ></TrackPyramid> */}
+          </div>
+        </div>
+        <StatusBar 
+          width={width + 12 + 30} 
+          hover={hover} // the information about the cell the mouse is over
+          // filteredRegions={filteredRegions}
+          // regionsByOrder={rbos}
+          topCSNS={topCSNSFactorByCurrentOrder}
+          layer={layer} 
+          zoom={zoom} 
+          showFilter={showFilter}
+          showDebug={showDebug}
+          showSettings={showSettings}
+          orderOffset={orderOffset}
+          layers={layers} 
+          onClear={handleClear}
+          onDebug={handleChangeShowDebug}
+          onSettings={handleChangeShowSettings}
+          onOrderOffset={setOrderOffset}
+          onFilter={handleChangeShowFilter}
+        />
+        { showSettings ? <SettingsPanel 
+          showHilbert={showHilbert}
+          showGenes={showGenes}
+          duration={duration}
+          onShowHilbertChange={handleChangeShowHilbert}
+          onShowGenesChange={handleChangeShowGenes}
+          onDurationChange={handleChangeDuration}
+          handleChangeCSNIndex={handleChangeCSNIndex}
+          maxCSNIndex={crossScaleNarration.length - 1}
+          crossScaleNarrationIndex={crossScaleNarrationIndex}
+          csnMethod={csnMethod}
+          handleCsnMethodChange={handleCsnMethodChange}
+          csnEnrThreshold={csnEnrThreshold}
+          handleCsnEnrThresholdChange={handleCsnEnrThresholdChange}
+        /> : null }
+      </div>
+    </div>
+  </>
   )
 }
 

@@ -2,8 +2,9 @@ import { useState, useCallback, useEffect, useRef, useMemo, useContext } from 'r
 
 import { sum, max } from 'd3-array'
 import Loading from '../Loading'
-import FiltersContext from '../ComboLock/FiltersContext'
+// import FiltersContext from '../ComboLock/FiltersContext'
 import {showPosition, showInt, showKb} from '../../lib/display'
+import { download, convertFilterRegions } from '../../lib/regionsets'
 import {Tooltip} from 'react-tooltip';
 
 
@@ -57,27 +58,13 @@ const RegionSetModal = ({
     return calculateCount(numSegments, queryRegionOrder)
   }, [numSegments, queryRegionOrder])
 
-  // const orderBp = useMemo(() => {
-  //   return Math.pow(4, 14 - queryRegionOrder)
-  // }, [queryRegionOrder])
 
-  // const totalBasepairs = useMemo(() => {
-  //   return totalSegments * orderBp
-  // }, [totalSegments, orderBp])
-
-  // const percentGenome = useMemo(() => {
-  //   return totalBasepairs / 3088269856 * 100
-  // }, [totalBasepairs])
-
-  // const [showPanel, setShowPanel] = useState(true)
   const [showControls, setShowControls] = useState(true)
-  // useEffect(() => {
-  //   setShowPanel(show)
-  // }, [show])
 
-  // const handleShowControl = useCallback(() => {
-  //   setShowControls(!showControls)
-  // }, [showControls])
+  const handleDownload = useCallback(() => {
+    let regions = convertFilterRegions(queryRegions.slice(0, numSegments), queryRegionOrder)
+    download(regions)
+  }, [queryRegions, numSegments, queryRegionOrder])
 
   useEffect(() => {
     onNumSegments(numSegments)
@@ -114,7 +101,7 @@ const RegionSetModal = ({
               Show Controls
             </Tooltip> */}
   
-          {selectedRegion ? <button 
+          {/* {selectedRegion ? <button 
             onClick={onClearRegion}
             data-tooltip-id="sankey-clear-region"
             style={{
@@ -134,7 +121,7 @@ const RegionSetModal = ({
           </button> : null }
           {selectedRegion ? <Tooltip id="sankey-clear-region">
             Clear selected region {showPosition(selectedRegion)}
-          </Tooltip> : null}
+          </Tooltip> : null} */}
  
         </div>
       <div className={`content`}
@@ -146,29 +133,56 @@ const RegionSetModal = ({
             {queryLoading ? <Loading text={"Filtering regions..."} /> : null}
         </div>
         {queryRegions ? <div className="query-info">
-          Filtered {totalCounts.num} <i>{showKb(totalCounts.obp)}</i> regions 
-          {totalCounts.num ? <span> representing {showInt(totalCounts.tbp)} basepairs, or {totalCounts.percent.toFixed(2)}% of the genome</span> : null}
+          Showing {numSegments} / {totalCounts.num} <i>{showKb(totalCounts.obp)}</i> regions (
+          <span data-tooltip-id="region-percent-tooltip">{shownCounts.percent.toFixed(2)}% of the genome</span>)
+          <Tooltip id="region-percent-tooltip">
+            {totalCounts.num ? <span> Total {totalCounts.num} regions, representing {showInt(totalCounts.tbp)} basepairs, or {totalCounts.percent.toFixed(2)}% of the genome</span> : null}
+          </Tooltip>
         </div>: null }
 
 
 
       </div>
       <div className={`controls ${showControls ? "show" : "hide"}`}>
-        {queryRegions && queryRegions.length ? <div className="num-paths">
+        {queryRegions && queryRegions.length ? 
+        <div className="query-controls">
           <label>
             <input 
               type="range" 
               min="1" 
               max={Math.min(queryRegions?.length, 1000)}
-              step={10}
+              step={1}
               value={numSegments} 
               onChange={handleNumSegments} 
-              // style={{ width: '100%' }} 
             />
-            <br></br><span>Showing {numSegments} <i>{showKb(shownCounts.obp)}</i> regions on map</span>
-            {shownCounts.tbp ? <span> representing {shownCounts.percent.toFixed(2)}% of the genome</span> : null}
-            </label>
-          </div> : null }
+          </label>
+
+          <button data-tooltip-id="save-regions"
+            disabled
+          >
+            💾
+          </button>
+          <Tooltip id="save-regions">
+            Save {numSegments} regions as a Region Set
+          </Tooltip>
+          <button data-tooltip-id="download-regions"
+            onClick={handleDownload}
+          >
+            ⬇️
+          </button>
+          <Tooltip id="download-regions">
+            Download {numSegments} regions to a BED file
+          </Tooltip>
+          <button data-tooltip-id="narrate-regions"
+          disabled
+          >
+            📖
+          </button>
+          <Tooltip id="narrate-regions">
+            Narrate {numSegments} regions
+          </Tooltip>
+
+        </div> : null }
       </div>
     </div>
   )

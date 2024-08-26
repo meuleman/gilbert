@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { tsvParseRows } from 'd3-dsv';
 import { saveSetList, getSetList } from './localstorage';
+import { parseBED } from '../../lib/regionsets';
 
 import './RegionFiles.css';
 
@@ -19,20 +20,7 @@ function RegionFiles() {
     saveSetList(setList);
   }, [setList]);
 
-  function processFile(content) {
-    // Process content into an array (depends on file format)
-    console.log("content", content)
-    const parsedData = tsvParseRows(content, (d) => ({
-      chromosome: d[0],
-      start: +d[1],
-      end: +d[2],
-      length: +d[2] - +d[1],
-      name: d[3],
-      score: +d[4]
-    }));
-    console.log("parsed data", parsedData)
-    return parsedData;
-  }
+  
 
   const saveSet = useCallback((name, data, navigateOnSave) => {
     console.log("storing the data", name)
@@ -89,7 +77,7 @@ function RegionFiles() {
       reader.onload = function (e) {
         const content = e.target.result;
         // Process file content into an array
-        const data = processFile(content);
+        const data = parseBED(content);
         // Store in local storage
         saveSet(file.name, data, true)
       };

@@ -1,9 +1,8 @@
 .legend-box {
   position: absolute;
-  z-index: 100;
-  left: 10px;
-  margin: 10px;
-  top: 10px;
+  z-index: 10;
+  left: 5px;
+  bottom: 5px;
   background-color: white;
   opacity: 0.9;
   border: 1px solid lightgray;
@@ -14,28 +13,9 @@
   padding-left: 10px;
   padding-right: 15px;
   padding-top: 10px;
+  padding-bottom: 5px;
   min-width: 120px;
   min-height: 30px;
-}
-
-.container-close-button, .container-close-button:hover, .container-close-button:focus, .container-open-button, .container-open-button:hover, .container-open-button:focus {
-  position: absolute;
-  width: 0px;
-  height: 0px;
-  padding: 0px;
-  border: 15px solid black;
-  outline: transparent;
-  right: 5%;
-}
-
-.container-close-button, .container-close-button:hover, .container-close-button:focus {
-  border-color: black transparent transparent transparent;
-  top: 10px;
-}
-
-.container-open-button, .container-open-button:hover, .container-open-button:focus {
-  border-color: transparent transparent black transparent;
-  top: 0px;
 }
 
 .legend-label {
