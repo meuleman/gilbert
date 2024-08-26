@@ -9,7 +9,7 @@ import chroma from 'chroma-js';
 import {Tooltip} from 'react-tooltip';
 
 import FiltersContext from './FiltersContext'
-import { makeField, fields } from '../../layers'
+import { makeField, filterFields } from '../../layers'
 import variants_gwas_rank from '../../layers/variants_rank_gwas'
 import gwas from '../../layers/variants_gwas_fields.json'
 
@@ -120,7 +120,7 @@ const SelectGWAS = memo(({
     }).sort((a, b) => b.count - a.count)
 
 
-    let ff = fields.map(f => {
+    let ff = filterFields.map(f => {
       let layer = f.layer
       let counts = null
       if(oc) {
