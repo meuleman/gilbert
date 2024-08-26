@@ -3,7 +3,7 @@ import Select from 'react-select';
 import chroma from 'chroma-js';
 import { groups } from 'd3-array';
 import { showFloat, showInt, showKb } from '../../lib/display';
-import { fields } from '../../layers'
+import { filterFields } from '../../layers'
 import {Tooltip} from 'react-tooltip';
 import FiltersContext from './FiltersContext'
 
@@ -136,7 +136,7 @@ const SelectOrder = ({
   }, [showUniquePaths]);
 
   useEffect(() => {
-    let allFields = fields.map(f => {
+    let allFields = filterFields.map(f => {
       let layer = f.layer
       let oc = orderSums.find(o => o.order == order)
       let counts = null

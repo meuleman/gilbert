@@ -590,6 +590,8 @@ function Home() {
   const [numSegments, setNumSegments] = useState(100)
   const filterRequestRef = useRef(0)
 
+  const FILTER_MAX_REGIONS = 1000
+
 
   // fetch the segments with enrichments for filter factors
   useEffect(() => {
@@ -600,7 +602,7 @@ function Home() {
     // Fetch the filter segments from the API
     if(nfs > 0) {
       setFilterLoading("fetching")
-      fetchFilterSegments(filters, 10000)
+      fetchFilterSegments(filters, FILTER_MAX_REGIONS)
         .then((response) => {
         console.log("FILTER RESPONSE", response)
         if(!response) {

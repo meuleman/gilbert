@@ -33,6 +33,9 @@ const RegionSetModal = ({
   // }, [queryRegions])
 
   const [numSegments, setNumSegments] = useState(100)
+  useEffect(() => {
+    setNumSegments(Math.min(queryRegions?.length, 100))
+  }, [queryRegions])
 
   function calculateCount(num, order) {
     let obp = Math.pow(4, 14 - order)
@@ -156,7 +159,8 @@ const RegionSetModal = ({
             <input 
               type="range" 
               min="1" 
-              max={queryRegions?.length}
+              max={Math.min(queryRegions?.length, 1000)}
+              step={10}
               value={numSegments} 
               onChange={handleNumSegments} 
               // style={{ width: '100%' }} 
