@@ -11,7 +11,8 @@ import {Tooltip} from 'react-tooltip';
 import FiltersContext from './FiltersContext'
 import { makeField, filterFields } from '../../layers'
 import variants_gwas_rank from '../../layers/variants_rank_gwas'
-import gwas from '../../layers/variants_gwas_fields.json'
+// import gwas from '../../layers/variants_gwas_fields.json'
+import gwas from '../../layers/gwas_full_traits.json'  // temporary fix until gwas layer with correct number of fields
 
 
 const dot = (color = 'transparent') => ({
@@ -106,7 +107,17 @@ const SelectGWAS = memo(({
   const allFields = useMemo(() => {
     let oc = orderSums.find(o => o.order == 14)
     let gf = gwas.fields.map((f, i) => {
-      let field = makeField(variants_gwas_rank, f, 14);
+      // let field = makeField(variants_gwas_rank, f, 14);  // temporary fix until gwas layer with correct number of fields
+      let field = {  // temporary fix until gwas layer with correct number of fields
+        id: "gwas_full_data_rank:" + i, 
+        // layer: l, 
+        datasetName: "gwas_full_data_rank",
+        label: f + " " + "gwas_full_data_rank",
+        field: f,
+        index: i, 
+        color: "black",
+        order: 14,
+      }
       field.i = i;
       // field.count = gwas.counts[i];
       field.count = oc.counts["variants_gwas_rank"][field.index]
@@ -139,7 +150,7 @@ const SelectGWAS = memo(({
   }, [orderSums]);
 
   const allFieldsGrouped = useMemo(() => {
-    const grouped = groups(allFields, f => f.layer.name)
+    const grouped = groups(allFields, f => f.layer ? f.layer.name : f.datasetName)  // temporary fix until gwas layer with correct number of fields
       .map(d => ({ label: d[0], options: d[1].sort((a,b) => b.count - a.count) }))
       .filter(d => d.options.length)
       console.log("GROUPED", grouped)

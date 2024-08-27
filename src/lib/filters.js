@@ -14,7 +14,8 @@ function urlifyFilters(filtersMap) {
     return {
       order: +o,
       index: f.index,
-      dataset_name: f.layer.datasetName
+      dataset_name: f.layer ? f.layer.datasetName : f.datasetName,  // temporary fix until gwas layer with correct number of fields
+      field: f.field && f.field  // temporary fix until gwas layer with correct number of fields, remove
     }
   })
   return encodeURIComponent(JSON.stringify(filters))
@@ -23,7 +24,18 @@ function parseFilters(filters) {
   let parsed = JSON.parse(decodeURIComponent(filters))
   let fs = {}
   parsed.forEach(f => {
-    fs[f.order] = makeField(f.dataset_name, f.index, f.order)
+    if(f.dataset_name == "gwas_full_data_rank") {  // temporary fix until gwas layer with correct number of fields
+      fs[f.order] = { 
+        id: "gwas_full_data_rank:" + f.index, 
+        datasetName: "gwas_full_data_rank",
+        label: f.field + " " + "gwas_full_data_rank",
+        field: f.field,
+        index: f.index, 
+        order: 14,
+      }
+    } else {
+      fs[f.order] = makeField(f.dataset_name, f.index, f.order)
+    }
   })
   return fs 
 }

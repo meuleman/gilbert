@@ -26,7 +26,7 @@ function getFilters(filtersMap, region) {
     return {
       order: +o,
       index: f.index,
-      dataset_name: f.layer.datasetName
+      dataset_name: f.layer ? f.layer.datasetName : f.datasetName // temporary fix until gwas layer with correct number of fields
     }
   })
   return filters
