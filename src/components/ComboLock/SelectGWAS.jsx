@@ -120,7 +120,7 @@ const SelectGWAS = memo(({
       }
       field.i = i;
       // field.count = gwas.counts[i];
-      field.count = oc.counts["variants_gwas_rank"][field.index]
+      field.count = oc.counts["gwas_full_data_rank"][field.index]  // temporary fix until gwas layer with correct number of fields
       if(field.field.length > 50) {
         field.label = '⚫️ ' + field.field.slice(0,50) + "..."
       } else {
