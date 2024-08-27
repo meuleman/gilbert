@@ -41,11 +41,12 @@ import FilterSelects from '../components/ComboLock/FilterSelects'
 
 import SankeyModal from '../components/Narration/SankeyModal';
 import RegionSetModal from '../components/Regions/RegionSetModal';
+import RegionsContext from '../components/Regions/RegionsContext';
 
 // layer configurations
 import { fullList as layers, csnLayers, variantLayers, countLayers } from '../layers'
 
-import RegionFilesSelect from '../components/Regions/RegionFilesSelect'
+// import RegionFilesSelect from '../components/Regions/RegionFilesSelect'
 // autocomplete
 import Autocomplete from '../components/Autocomplete/Autocomplete'
 
@@ -67,6 +68,7 @@ import GenesetEnrichment from '../components/SimSearch/GenesetEnrichment';
 
 import RegionStrip from '../components/RegionStrip'
 import ManageRegionSetsModal from '../components/Regions/ManageRegionSetsModal'
+import ActiveRegionSetModal from '../components/Regions/ActiveRegionSetModal'
 
 
 // declare globally so it isn't recreated on every render
@@ -191,6 +193,8 @@ function Home() {
       initialUpdateRef.current = false
     }
   }, [initialFilters, setFilters])
+
+  const { sets, activeSet, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
 
 
   const [scales, setScales] = useState(null)
@@ -589,7 +593,8 @@ function Home() {
   const [filteredSegments, setFilteredSegments] = useState(null)
   const [filterOrder, setFilterOrder] = useState(null)
   const [filteredSegmentsCount, setFilteredSegmentsCount] = useState(null)
-  const [numSegments, setNumSegments] = useState(100)
+  const [numSegments, setNumSegments] = useState(100) // the number of regions from query set
+  const [numRegions, setNumRegions] = useState(100) // the number of regions from activeSet
   const filterRequestRef = useRef(0)
 
   const FILTER_MAX_REGIONS = 1000
@@ -739,17 +744,39 @@ function Home() {
     }
   }, [zoom.order, topFactorCSNS])
 
-  const [filterSegmentsByCurrentOrder, setFilterSegmentsByCurrentOrder] = useState(new Map())
+  // const [filterSegmentsByCurrentOrder, setFilterSegmentsByCurrentOrder] = useState(new Map())
+  // // group the top regions found through filtering by the current order
+  // useEffect(() => {
+  //   if(filteredSegments?.length && filterOrder) {
+  //     const groupedFactor = group(filteredSegments.slice(0, numSegments), d => d.chromosome + ":" + hilbertPosToOrder(d.index, {from: filterOrder, to: zoom.order}))
+  //     console.log("groupedFactor", groupedFactor)
+  //     setFilterSegmentsByCurrentOrder(groupedFactor)
+  //   } else {
+  //     setFilterSegmentsByCurrentOrder(new Map())
+  //   }
+  // }, [zoom.order, filteredSegments, numSegments])
+
+  const [activeRegionsByCurrentOrder, setActiveRegionsByCurrentOrder] = useState(new Map())
   // group the top regions found through filtering by the current order
   useEffect(() => {
-    if(filteredSegments?.length && filterOrder) {
-      const groupedFactor = group(filteredSegments.slice(0, numSegments), d => d.chromosome + ":" + hilbertPosToOrder(d.index, {from: filterOrder, to: zoom.order}))
-      console.log("groupedFactor", groupedFactor)
-      setFilterSegmentsByCurrentOrder(groupedFactor)
+    let regions = activeSet?.regions
+    if(regions?.length) {
+      const groupedRegions = group(
+        regions,
+        // regions.slice(0, numRegions), 
+        d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: d.order, to: zoom.order}))
+      console.log("groupedFactor", groupedRegions)
+      setActiveRegionsByCurrentOrder(groupedRegions)
     } else {
-      setFilterSegmentsByCurrentOrder(new Map())
+      setActiveRegionsByCurrentOrder(new Map())
     }
-  }, [zoom.order, filteredSegments, numSegments])
+    // TODO should this have its own?
+    if(activeSet?.name !== "Query Set") {
+      clearFilters()
+      deleteSet("Query Set")
+    }
+  }, [zoom.order, activeSet, numRegions])
+
 
 
   const handleFactorPreview = useCallback((field, values) => {
@@ -792,7 +819,8 @@ function Home() {
     setHover(hit)
   }, [zoom.order])
 
-  const drawFilteredRegions = useCanvasFilteredRegions(filterSegmentsByCurrentOrder)
+  // const drawFilteredRegions = useCanvasFilteredRegions(filterSegmentsByCurrentOrder)
+  const drawFilteredRegions = useCanvasFilteredRegions(activeRegionsByCurrentOrder)
 
   const clearSelectedState = useCallback(() => {
     console.log("CLEARING STATE")
@@ -867,13 +895,13 @@ function Home() {
   const [showManageRegionSets, setShowManageRegionSets] = useState(false)
   const [showActiveRegionSet, setShowActiveRegionSet] = useState(false)
 
-  useEffect(() => {
-    if(showManageRegionSets) {
-      setShowActiveRegionSet(false)
-    } else if(showActiveRegionSet) {
-      setShowManageRegionSets(false)
-    }
-  }, [showManageRegionSets, showActiveRegionSet])
+  // useEffect(() => {
+  //   if(showManageRegionSets) {
+  //     setShowActiveRegionSet(false)
+  //   } else if(showActiveRegionSet) {
+  //     setShowManageRegionSets(false)
+  //   }
+  // }, [showManageRegionSets, showActiveRegionSet])
 
   return (
     <>
@@ -1018,6 +1046,7 @@ function Home() {
               /> : null}
 
               {showActiveRegionSet ? <ActiveRegionSetModal
+                onNumRegions={setNumRegions}
                 // selectedRegion={selected}
                 // queryRegions={filteredSegments} 
                 // queryRegionsCount={filteredSegmentsCount}

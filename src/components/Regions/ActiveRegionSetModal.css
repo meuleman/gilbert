@@ -1,0 +1,57 @@
+
+.active-regionsets-modal {
+  display: flex;
+  flex-direction: column;
+  /* align-items: center; */
+  /* justify-content: center; */
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: calc(100% - 500px);
+  height: calc(100% - 4px);
+  border: 1px solid #eee;
+  background-color: rgba(255,255,255,0.9);
+  z-index: 19;
+}
+
+.active-regionsets-modal .content {
+  height: 100%;
+}
+
+.active-regionsets-modal .manage {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 15px;
+  /* background-color: #f5f5f5; */
+}
+
+.active-regionsets-modal .region-sets {
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 80px);
+}
+
+.active-regionsets-modal .region-sets table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.active-regionsets-modal .region-sets thead {
+  background-color: #f8f8f8;
+}
+
+.active-regionsets-modal .region-sets th, .active-regionsets-modal .region-sets td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.active-regionsets-modal .table-body-container {
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.active-regionsets-modal .table-body-container table {
+  table-layout: fixed;
+}

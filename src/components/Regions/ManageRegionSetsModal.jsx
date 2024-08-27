@@ -2,37 +2,49 @@ import { useState, useCallback, useEffect, useRef, useMemo, useContext } from 'r
 
 import { sum, max } from 'd3-array'
 import Loading from '../Loading'
-// import FiltersContext from '../ComboLock/FiltersContext'
-import { hilbertPosToOrder } from '../../lib/HilbertChromosome'
 import {showPosition, showInt, showKb} from '../../lib/display'
-import { createBED } from '../../lib/regionsets'
 import {Tooltip} from 'react-tooltip';
-import RegionFilesSelect from './RegionFilesSelect'
-import RegionFiles from './RegionFiles'
-import RegionTable from './RegionTable'
+import { download, parseBED } from '../../lib/regionsets'
+import RegionsContext from './RegionsContext'
 
 import './ManageRegionSetsModal.css'
 
 
-const RegionSetModal = ({
+const ManageRegionSetModal = ({
   selectedRegion = null,
   hoveredRegion = null,
-  queryRegions = null,
-  queryRegionsCount = null,
-  queryRegionOrder = null,
-  queryLoading = "",
-  onNumSegments = () => {},
-  onClearRegion = () => {},
 } = {}) => {
 
-  const [showControls, setShowControls] = useState(true)
+  const { sets, activeSet, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
 
-  const [regionset, setRegionSet] = useState('')
+  useEffect(() => {
+    console.log("manage, sets!", sets)
+  }, [sets])
 
+  const handleSelect = useCallback((set) => {
+    setActiveSet(set)
+  }, [])
 
-  const handleNumSegments = useCallback((e) => {
-    setNumSegments(+e.target.value)
-  }, [onNumSegments])
+  const handleDownload = useCallback((set) => {
+    console.log("SET", set)
+    download(set.regions, set.name)
+  }, [])
+
+  const handleFileChange = useCallback((event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const content = e.target.result;
+        // Process file content into an array
+        const data = parseBED(content);
+        // Store in local storage
+        saveSet(file.name, data)
+      };
+      reader.readAsText(file);
+    }
+  }, [saveSet]);
+  
 
   return (
     <div className={`manage-regionsets-modal`}>
@@ -41,13 +53,46 @@ const RegionSetModal = ({
       <div className={`content`}>
         <div className="loading-info">
         </div>
-        {/* <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
-              if(set) { setRegionSet(name) } else { setRegionSet('') }
-            }} /> */}
-          
-        <RegionFiles />
+        <div className="add-new">
+          {/* <label></label> */}
+          <input type="file" onChange={handleFileChange} />
+        </div>
+        <div className="region-sets">
+          <table>
+            <tbody>
+              {sets.map((set, index) => (
+              <tr key={index}>
+                <td>
+                  {activeSet == set 
+                  ? <button onClick={() => handleSelect(null)}>❌</button>
+                  : <button onClick={() => handleSelect(set)}>Select</button>}
+                  </td>
+                <td>{set.name}</td>
+                {/* <td><Link to={`/regions/${set.name}`}>Details</Link></td> */}
+                {/* <td><Link to={`/?regionset=${set.name}`}>Map</Link></td> */}
+                <td> {set.regions?.length} regions</td> 
+                {/* <td>({set.createdAt})</td> */}
+                <td>
+                  <button data-tooltip-id={`download-regions-${index}`}
+                    onClick={() => handleDownload(set)}
+                  >
+                    ⬇️
+                  </button>
+                  <Tooltip id={`download-regions-${index}`}>
+                    Download {set.name} ({set.regions?.length} regions) to a BED file
+                  </Tooltip>
+                </td>
+                <td>
+                  <button onClick={() => deleteSet(set.name)} disabled={set.example}>🗑️</button> 
+                </td>
+              </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
       </div>
     </div>
   )
 }
-export default RegionSetModal
+export default ManageRegionSetModal

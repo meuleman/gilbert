@@ -2,14 +2,12 @@ import { useState, useCallback, useEffect, useRef, useMemo, useContext } from 'r
 
 import { sum, max } from 'd3-array'
 import Loading from '../Loading'
-// import FiltersContext from '../ComboLock/FiltersContext'
+import RegionsContext from './RegionsContext'
 import {showPosition, showInt, showKb} from '../../lib/display'
 import { download, convertFilterRegions } from '../../lib/regionsets'
 import {Tooltip} from 'react-tooltip';
 
-
 // import './SankeyModal.css'
-
 
 const RegionSetModal = ({
   selectedRegion = null,
@@ -21,17 +19,7 @@ const RegionSetModal = ({
   onNumSegments = () => {},
   onClearRegion = () => {},
 } = {}) => {
-
-  // const { filters } = useContext(FiltersContext)
-  // const order = useMemo(() => {
-  //   return max(Object.keys(filters), d => +d) || 0
-  // }, [filters])
-
-  // const totalSegments = useMemo(() => {
-  //   if(!queryRegions) return 0
-  //   // return sum(queryRegions, r => r.indices.length)
-  //   return queryRegions.length
-  // }, [queryRegions])
+  const { sets, activeSet, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
 
   const [numSegments, setNumSegments] = useState(100)
   useEffect(() => {
@@ -58,13 +46,19 @@ const RegionSetModal = ({
     return calculateCount(numSegments, queryRegionOrder)
   }, [numSegments, queryRegionOrder])
 
-
   const [showControls, setShowControls] = useState(true)
 
-  const handleDownload = useCallback(() => {
-    let regions = convertFilterRegions(queryRegions.slice(0, numSegments), queryRegionOrder)
-    download(regions)
+  const [regions, setRegions] = useState([])
+  useEffect(() => {
+    if(queryRegions && queryRegions.length) {
+      let rs = convertFilterRegions(queryRegions.slice(0, numSegments), queryRegionOrder)
+      setRegions(rs)
+    }
   }, [queryRegions, numSegments, queryRegionOrder])
+
+  const handleDownload = useCallback(() => {
+    download(regions)
+  }, [regions])
 
   useEffect(() => {
     onNumSegments(numSegments)
@@ -74,55 +68,22 @@ const RegionSetModal = ({
     setNumSegments(+e.target.value)
   }, [onNumSegments])
 
+  useEffect(() => {
+    if(regions?.length) {
+      saveSet("Query Set", regions)
+    } else {
+      deleteSet("Query Set")
+    }
+  }, [regions])
+
+  // const handleSave = useCallback(() => {
+  //   console.log("saving", queryRegions.slice(0, numSegments))
+  //   saveSet("Query Set", queryRegions.slice(0, numSegments))
+  // },[queryRegions, numSegments, saveSet])
+
   return (
     <div className={`regionset-modal`}>
         <div className={`control-buttons`}>
-          {/* <button 
-            onClick={useCallback(() => setShowPanel(!showPanel), [showPanel])}
-            data-tooltip-id="sankey-show-visualization"
-            disabled={!csns.length}
-            >
-              <span style={{
-                // transform: "rotate(90deg)", 
-                display:"block",
-                filter: csns.length ? 'none' : 'grayscale(100%)' // Apply grayscale if csns is empty
-              }}>{showPanel ? "➡️" : "⬅️"}</span>
-          </button>
-          <Tooltip id="sankey-show-visualization">
-            {showPanel ? "Hide Path Narration Panel" : "Show Path Narration Panel"}
-          </Tooltip> */}
-  
-          {/* {showPanel ? <button 
-            onClick={handleShowControl}
-            disabled={!csns.length}
-            data-tooltip-id="sankey-show-control"
-            >⚙️</button>: null}
-            <Tooltip id="sankey-show-control">
-              Show Controls
-            </Tooltip> */}
-  
-          {/* {selectedRegion ? <button 
-            onClick={onClearRegion}
-            data-tooltip-id="sankey-clear-region"
-            style={{
-              position: "relative",
-            }}
-            >
-              <span style={{
-                // transform: "rotate(90deg)", 
-                display:"block",
-                
-              }}>🗺️</span>
-              <span style={{
-                display:"block",
-                position: "absolute",
-                top: "9px",
-              }}>❌</span>
-          </button> : null }
-          {selectedRegion ? <Tooltip id="sankey-clear-region">
-            Clear selected region {showPosition(selectedRegion)}
-          </Tooltip> : null} */}
- 
         </div>
       <div className={`content`}
         style={{
@@ -139,9 +100,6 @@ const RegionSetModal = ({
             {totalCounts.num ? <span> Total {totalCounts.num} regions, representing {showInt(totalCounts.tbp)} basepairs, or {totalCounts.percent.toFixed(2)}% of the genome</span> : null}
           </Tooltip>
         </div>: null }
-
-
-
       </div>
       <div className={`controls ${showControls ? "show" : "hide"}`}>
         {queryRegions && queryRegions.length ? 
@@ -157,11 +115,11 @@ const RegionSetModal = ({
             />
           </label>
 
-          <button data-tooltip-id="save-regions"
-            disabled
+          {/* <button data-tooltip-id="save-regions"
+            onClick={handleSave}
           >
             💾
-          </button>
+          </button> */}
           <Tooltip id="save-regions">
             Save {numSegments} regions as a Region Set
           </Tooltip>
