@@ -50,6 +50,8 @@ function tooltipContent(region, layer, orientation) {
   }).filter(d => fields.find(f => f.field !== d.field && layer.name !== d.layer.name))
   : []
 
+  // Full set of GWAS associations
+  let GWAS = region.GWAS ? region.GWAS : []
 
   
   return (
@@ -94,6 +96,18 @@ function tooltipContent(region, layer, orientation) {
           <span>
             {typeof f.value == "number" ? showFloat(f.value) : f.value}
             {typeof f.count == "number" && ` (${showInt(f.count)})`}
+          </span>
+        </div>
+      ))}
+      {GWAS.length ? <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>GWAS</span> : null}
+      {GWAS.slice(0, 10).map((g,i) => (
+        <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+          <span className="tooltip-factor-name"  >
+            <span style={{color: "#000000", marginRight: '4px'}}>⏺</span>
+            {g.trait} 
+          </span>
+          <span>
+            {g.mlog_pvalue.toFixed(2)}
           </span>
         </div>
       ))}

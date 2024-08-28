@@ -712,14 +712,12 @@ function Home() {
       fetchGWASforPositions([{chromosome: csn.chromosome, index: csn.i}])
     ]).then(([fullDataResponse, gwasRepsonse]) => {
       // refactor GWAS response
-      const csnGWAS = gwasRepsonse[0]['trait_names'].reduce((acc, trait, index) => {
-        acc[trait] = gwasRepsonse[0]['scores'][index]
-        return acc
-      }, {})
+      const csnGWAS = gwasRepsonse[0]['trait_names'].map((trait, i) => {
+        return {trait: trait, mlog_pvalue: gwasRepsonse[0]['scores'][i], pvalue: 10 ** -(gwasRepsonse[0]['scores'][i])}
+      }).sort((a,b) => b.mlog_pvalue - a.mlog_pvalue)
       // add GWAS associations to the full data response
       let csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14)
       csnOrder14Segment ? csnOrder14Segment["GWAS"] = csnGWAS : null
-      
       setSelectedTopCSN(fullDataResponse)
       setLoadingSelectedCSN(false)
     })
@@ -759,6 +757,7 @@ function Home() {
     //   setLoadingSelectedCSN(false)
     // })
   }
+  // console.log("HOME NARRATION", selectedTopCSN)
 
   const handleHoveredCSN = useCallback((csn) => {
     setHoveredTopCSN(csn)

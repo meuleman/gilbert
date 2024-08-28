@@ -112,7 +112,7 @@ export default function ZoomLine({
     if(p) {
 
       const xoff = tipOrientation === "left" ? -5 : width + 5
-      tooltipRef.current.show({...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score}, p.layer, rect.x + xoff + offsetX, rect.y + my + 1.5)
+      tooltipRef.current.show({...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score, GWAS: p.GWAS}, p.layer, rect.x + xoff + offsetX, rect.y + my + 1.5)
     }
     // tooltipRef.current.show(tooltipRef.current, csn)
   }, [csn, path, yScale, rw, offsetX, onHover])
