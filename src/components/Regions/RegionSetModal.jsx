@@ -95,7 +95,7 @@ const RegionSetModal = ({
         </div>
         {queryRegions ? <div className="query-info">
           Showing {numSegments} / {totalCounts.num} <i>{showKb(totalCounts.obp)}</i> regions (
-          <span data-tooltip-id="region-percent-tooltip">{shownCounts.percent.toFixed(2)}% of the genome</span>)
+          <span data-tooltip-id="region-percent-tooltip">{shownCounts.percent.toFixed(2)}% / {totalCounts.percent.toFixed(2)}% of the genome</span>)
           <Tooltip id="region-percent-tooltip">
             {totalCounts.num ? <span> Total {totalCounts.num} regions, representing {showInt(totalCounts.tbp)} basepairs, or {totalCounts.percent.toFixed(2)}% of the genome</span> : null}
           </Tooltip>
