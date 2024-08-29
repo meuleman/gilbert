@@ -96,6 +96,34 @@ function fetchFilterPreview(filtersMap, region, newFilterFull) {
   })
 }
 
+
+/*
+Collects the top N paths for each region in regions
+region: [{chromosome, start, end}, ...]
+N: number of paths to return per region
+
+Returns:
+{ regions: [{ chromosome: chromosome, start: start, end: end, top_scores: [], top_positions: [], dehydrated_paths: [] }, ...] }
+*/
+function fetchTopPathsForRegions(regions, N) {
+  const url = "https://explore.altius.org:5001/api/csns/top_paths_for_regions"
+  const postBody = {regions, N}
+  console.log("POST BODY", postBody)
+  return axios({
+    method: 'POST',
+    url: url,
+    data: postBody
+  }).then(response => {
+    console.log("TOP PATHS FOR REGIONS DATA", response.data)
+    return response.data
+  }).catch(error => {
+    console.error(`error:     ${JSON.stringify(error)}`);
+    console.error(`post body: ${JSON.stringify(postBody)}`);
+    return null
+  })
+}
+
+
 /*
 filters: [{order, field}, ...]
 order: 4-14
