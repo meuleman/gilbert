@@ -53,6 +53,8 @@ const RegionSetModal = ({
     if(queryRegions && queryRegions.length) {
       let rs = convertFilterRegions(queryRegions.slice(0, numSegments), queryRegionOrder)
       setRegions(rs)
+    } else {
+      setRegions([])
     }
   }, [queryRegions, numSegments, queryRegionOrder])
 

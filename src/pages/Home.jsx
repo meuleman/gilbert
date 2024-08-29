@@ -359,6 +359,12 @@ function Home() {
     }
   }, [filters, regionset, selected, updateUrlParams]);
 
+  useEffect(() => {
+    if(!Object.keys(filters).length) {
+      deleteSet("Query Set")
+    }
+  }, [filters])
+
   // cross scale narration
   const handleChangeCSNIndex = (e) => setCrossScaleNarrationIndex(e.target.value)
   // function to handle the change of the method in which CSN paths are scored
@@ -771,7 +777,8 @@ function Home() {
       setActiveRegionsByCurrentOrder(new Map())
     }
     // TODO should this have its own?
-    if(activeSet?.name !== "Query Set") {
+    if(activeSet && activeSet?.name !== "Query Set") {
+      console.log("CLEARING", activeSet)
       clearFilters()
       deleteSet("Query Set")
     }
