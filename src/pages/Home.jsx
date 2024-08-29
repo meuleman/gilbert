@@ -172,13 +172,14 @@ function Home() {
     zoomRef.current = zoom
   }, [zoom])
 
-  const handleZoom = useCallback((newZoom) => {
-    if(zoomRef.current.order !== newZoom.order && !layerLockRef.current) {
-      setLayer(layerOrderRef.current[newZoom.order])
-    }  
-    setZoom(newZoom)
-  }, [setZoom, setLayer])
+  // if we have filters in the url, show the filter modal on loading
+  const anyFilters = Object.keys(parseFilters(initialFilters || "[]")).length > 0
+  const [showFilter, setShowFilter] = useState(anyFilters)
+  const handleChangeShowFilter = useCallback((e) => {
+    setShowFilter(!showFilter)
+  }, [showFilter])
   
+    
 
     // selected powers the sidebar modal and the 1D track
   const [selected, setSelected] = useState(jsonify(initialSelectedRegion))
@@ -195,6 +196,34 @@ function Home() {
   }, [initialFilters, setFilters])
 
   const { sets, activeSet, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
+
+  useEffect(() => {
+    if(showFilter) {
+      let path_density = layers.find(d => d.datasetName == "precomputed_csn_path_density_above_90th_percentile")
+      const lo = {}
+      range(4, 14).map(o => {
+        lo[o] = filters[o]?.layer || path_density
+      })
+      setLayerOrder(lo)
+    } else {
+      // setLayerLock(false)
+      setLayerOrder(layerOrderNatural)
+    }
+  }, [filters, showFilter, layerOrderNatural])
+
+
+
+  const handleZoom = useCallback((newZoom) => {
+    if(zoomRef.current.order !== newZoom.order && !layerLockRef.current) {
+      setLayer(layerOrderRef.current[newZoom.order])
+    } else if(zoomRef.current.order !== newZoom.order && layerLockRef.current && showFilter) {
+      if(filters[newZoom.order]) {
+        // console.log("LAYER", filters[newZoom.order])
+        // setLayer(filters[newZoom.order].layer)
+      }
+    }
+    setZoom(newZoom)
+  }, [setZoom, setLayer, showFilter, filters])
 
 
   const [scales, setScales] = useState(null)
@@ -475,15 +504,7 @@ function Home() {
     setShowHilbert(!showHilbert)
   }
 
-  // const [showFilter, setShowFilter] = useState(false)
-  // if we have filters in the url, show the filter modal on loading
-  const anyFilters = Object.keys(parseFilters(initialFilters || "[]")).length > 0
-  const [showFilter, setShowFilter] = useState(anyFilters)
-  const handleChangeShowFilter = (e) => {
-    setShowFilter(!showFilter)
-  }
-
-
+  
   const [showDebug, setShowDebug] = useState(false)
   const handleChangeShowDebug = (e) => {
     setShowDebug(!showDebug)
@@ -503,7 +524,6 @@ function Home() {
   const handleChangeShowGaps = (e) => {
     setShowGaps(!showGaps)
   }
-
   
 
   const handleChangeLocationViaAutocomplete = useCallback((autocompleteRegion) => {
