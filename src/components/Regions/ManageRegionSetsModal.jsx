@@ -30,6 +30,7 @@ const ManageRegionSetModal = ({
     download(set.regions, set.name)
   }, [])
 
+  const [recentlySaved, setRecentlySaved] = useState(null)
   const handleFileChange = useCallback((event) => {
     const file = event.target.files[0];
     if (file) {
@@ -40,10 +41,19 @@ const ManageRegionSetModal = ({
         const data = parseBED(content);
         // Store in local storage
         saveSet(file.name, data)
+        setRecentlySaved(file.name)
       };
       reader.readAsText(file);
     }
   }, [saveSet]);
+  useEffect(() => {
+    if (recentlySaved) {
+      let newSet = sets.find(d => d.name === recentlySaved)
+      if(newSet) {
+        setActiveSet(newSet)
+      }
+    }
+  }, [sets, recentlySaved])
   
 
   return (

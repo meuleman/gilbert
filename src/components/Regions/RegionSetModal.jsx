@@ -63,12 +63,13 @@ const RegionSetModal = ({
   }, [regions])
 
   useEffect(() => {
-    onNumSegments(numSegments)
+    if(numSegments)
+      onNumSegments(numSegments)
   }, [numSegments])
 
   const handleNumSegments = useCallback((e) => {
     setNumSegments(+e.target.value)
-  }, [onNumSegments])
+  }, [])
 
   useEffect(() => {
     if(regions?.length) {

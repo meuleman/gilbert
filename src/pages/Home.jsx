@@ -673,6 +673,7 @@ function Home() {
   const regionsRequestRef = useRef("")
 
   useEffect(() => {
+    console.log("ACTIVE SET?????", activeSet)
     if(activeSet && activeSet.name !== "Query Set" && activeSet.regions?.length) {
       const regions = activeSet.regions.slice(0, FILTER_MAX_REGIONS).map(d => {
         // return `${d.chromosome}:${d.start}-${d.end}`
@@ -849,18 +850,18 @@ function Home() {
   const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
   const [topCSNSFullByCurrentOrder, setTopCSNSFullByCurrentOrder] = useState(new Map())
   // we want to group the top csns by the current order
-  useEffect(() => {
-    if(topFactorCSNS.length) {
-      const groupedFactor = group(topFactorCSNS, d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
-      // const groupedFull = group(topFullCSNS, d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
-      console.log("groupedFactor", groupedFactor)
-      // console.log("groupedFull", groupedFull)
-      setTopCSNSFactorByCurrentOrder(groupedFactor)
-      // setTopCSNSFullByCurrentOrder(groupedFull)
-    } else {
-      setTopCSNSFactorByCurrentOrder(new Map())
-    }
-  }, [zoom.order, topFactorCSNS])
+  // useEffect(() => {
+  //   if(topFactorCSNS.length) {
+  //     const groupedFactor = group(topFactorCSNS, d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
+  //     // const groupedFull = group(topFullCSNS, d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
+  //     console.log("groupedFactor", groupedFactor)
+  //     // console.log("groupedFull", groupedFull)
+  //     setTopCSNSFactorByCurrentOrder(groupedFactor)
+  //     // setTopCSNSFullByCurrentOrder(groupedFull)
+  //   } else {
+  //     setTopCSNSFactorByCurrentOrder(new Map())
+  //   }
+  // }, [zoom.order, topFactorCSNS])
 
   // const [filterSegmentsByCurrentOrder, setFilterSegmentsByCurrentOrder] = useState(new Map())
   // // group the top regions found through filtering by the current order
@@ -883,9 +884,10 @@ function Home() {
         // regions,
         regions.slice(0, numRegions), 
         d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: d.order, to: zoom.order}))
-      console.log("groupedFactor", groupedRegions)
+      console.log("groupedFactor active regions", groupedRegions, numRegions)
       setActiveRegionsByCurrentOrder(groupedRegions)
     } else {
+      console.log("no regions!!")
       setActiveRegionsByCurrentOrder(new Map())
       setAllFullCSNS([])
       setTopFullCSNS([])
