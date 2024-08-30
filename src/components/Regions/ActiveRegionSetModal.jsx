@@ -6,8 +6,11 @@ import {showPosition, showInt, showKb} from '../../lib/display'
 import {Tooltip} from 'react-tooltip';
 import { download, parseBED } from '../../lib/regionsets'
 import RegionsContext from './RegionsContext'
+import { FILTER_MAX_REGIONS } from '../../lib/constants';
 
 import './ActiveRegionSetModal.css'
+
+// const FILTER_MAX_REGIONS = 1000
 
 
 const ActiveRegionSetModal = ({
@@ -51,12 +54,12 @@ const ActiveRegionSetModal = ({
     <div className={`active-regionsets-modal`}>
       <div className={`content`}>
         <div className="manage">
-          <span className="set-name">{activeSet.name}</span>
+          <span className="set-name">{activeSet?.name}</span>
           <label>
             <input 
               type="range" 
               min="1" 
-              max={Math.min(regions.length, 1000)}
+              max={Math.min(regions.length, FILTER_MAX_REGIONS)}
               step={1}
               value={numRegions} 
               onChange={handleNumRegions} 

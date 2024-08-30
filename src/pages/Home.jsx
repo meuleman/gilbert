@@ -13,6 +13,8 @@ import { fetchFilterSegments } from '../lib/dataFiltering';
 import { calculateOrderSums, calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
 import { range, groups, group } from 'd3-array'
 
+import { FILTER_MAX_REGIONS } from '../lib/constants'
+
 import './Home.css'
 
 import LogoNav from '../components/LogoNav';
@@ -623,7 +625,7 @@ function Home() {
   const [numRegions, setNumRegions] = useState(100) // the number of regions from activeSet
   const filterRequestRef = useRef(0)
 
-  const FILTER_MAX_REGIONS = 1000
+  // const FILTER_MAX_REGIONS = 1000
 
 
   // fetch the segments with enrichments for filter factors
@@ -668,33 +670,11 @@ function Home() {
   // collect the top N paths for each region
 
   const [topPathsForRegions, setTopPathsForRegions] = useState(null)
-  // useEffect(() => {
-  //   if(filteredSegments && filterOrder) {
-  //     // could also create a hilbert segment from this data to get start and end
-  //     let regionSize = 4 ** (14 - filterOrder)
-  //     let regions = filteredSegments.slice(0, 1000).map(d => {
-  //       return { "chromosome" : d.chromosome, "start": regionSize * d.index, "end": regionSize * (d.index + 1) }
-  //     })
-  //     let numPathsPerRegion = 1
-  //     fetchTopPathsForRegions(regions, numPathsPerRegion)
-  //     .then((response) => {
-  //       if(!response) {
-  //         setTopPathsForRegions(null)
-  //         return
-  //       } else {
-  //         setTopPathsForRegions(response.regions)
-  //       }
-  //     }).catch((e) => {
-  //       console.log("error fetching top paths for regions", e)
-  //       setTopPathsForRegions(null)
-  //     })
-  //   }
-    
-  // }, [filteredSegments, filterOrder])
+  const regionsRequestRef = useRef("")
 
   useEffect(() => {
     if(activeSet && activeSet.name !== "Query Set" && activeSet.regions?.length) {
-      const regions = activeSet.regions.slice(0, 1000).map(d => {
+      const regions = activeSet.regions.slice(0, FILTER_MAX_REGIONS).map(d => {
         // return `${d.chromosome}:${d.start}-${d.end}`
         // TODO make sure we always have regionStart, regionEnd when getting from the bed files
         // I believe it is, because we convert them to regions using lib/regions.js
@@ -702,7 +682,13 @@ function Home() {
         return `${d.chromosome}:${d.regionStart}-${d.regionEnd}`
         // return { "chromosome" : d.chromosome, "start": d.start, "end": d.end }
       })
+      if(regions.toString() == regionsRequestRef.current) {
+        return
+      } else {
+        regionsRequestRef.current = regions.toString()
+      }
       console.log("FETCHING TOP PATHS FOR QUERY SET", regions)
+      setCSNLoading("fetching")
       fetchTopPathsForRegions(regions, 1)
         .then((response) => {
           if(!response) { setTopPathsForRegions(null)
@@ -714,11 +700,17 @@ function Home() {
     } else if(filteredSegments && filterOrder) {
       // console.log("FETCHING TOP PATHS FOR FILTERED", filteredSegments)
       let regionSize = 4 ** (14 - filterOrder)
-      let regions = filteredSegments.slice(0, 1000).map(d => {
+      let regions = filteredSegments.slice(0, FILTER_MAX_REGIONS).map(d => {
         let start = regionSize * d.index
         let end = regionSize * (d.index + 1)
         return `${d.chromosome}:${start}-${end}`
       })
+      if(regions.toString() == regionsRequestRef.current) {
+        return
+      } else {
+        regionsRequestRef.current = regions.toString()
+      }
+      setCSNLoading("fetching")
       fetchTopPathsForRegions(regions, 1)
         .then((response) => {
           if(!response) { setTopPathsForRegions(null)
@@ -729,6 +721,36 @@ function Home() {
         })
     }
   }, [filteredSegments, filterOrder, activeSet])
+
+  const [allFullCSNS, setAllFullCSNS] = useState([])
+  useEffect(() => {
+    if(topPathsForRegions?.length) {
+      // console.log("top paths for regions", topPathsForRegions)
+      // TODO: if we get more than 1 path 
+      setCSNLoading("hydrating")
+      let dehydrated = topPathsForRegions.flatMap(r => r.dehydrated_paths.map((dp,i) => {
+        return {
+          ...fromPosition(r.chromosome, r.start, r.end),
+          top_position: r.top_positions[i],
+          score: r.top_scores[i],
+          scoreType: "full",
+          path: dp
+        }
+      }))
+      let hydrated = dehydrated.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
+      setAllFullCSNS(hydrated)
+    }
+  }, [topPathsForRegions])
+
+  useEffect(() => {
+    // console.log("all full csns", allFullCSNS)
+    if(allFullCSNS?.length) {
+      let sorted = allFullCSNS.slice(0, numRegions)
+        .sort((a,b) => b.score - a.score)
+      setTopFullCSNS(sorted)
+      setCSNLoading("")
+    }
+  }, [allFullCSNS, numRegions])
 
 
 
@@ -795,6 +817,8 @@ function Home() {
   //     })
   // }, [filters, numPaths, selected])
 
+
+
   // const [pathDiversity, setPathDiversity] = useState(true)
   // const [loadingRegionCSNS, setLoadingRegionCSNS] = useState(false)
   // // Fetch the CSNS via API for the selected region
@@ -856,13 +880,15 @@ function Home() {
     let regions = activeSet?.regions
     if(regions?.length) {
       const groupedRegions = group(
-        regions,
-        // regions.slice(0, numRegions), 
+        // regions,
+        regions.slice(0, numRegions), 
         d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: d.order, to: zoom.order}))
       console.log("groupedFactor", groupedRegions)
       setActiveRegionsByCurrentOrder(groupedRegions)
     } else {
       setActiveRegionsByCurrentOrder(new Map())
+      setAllFullCSNS([])
+      setTopFullCSNS([])
     }
     // TODO should this have its own?
     if(activeSet && activeSet?.name !== "Query Set") {
@@ -1014,7 +1040,8 @@ function Home() {
               queryRegionsCount={filteredSegmentsCount}
               queryRegionOrder={filterOrder}
               queryLoading={filterLoading}
-              onNumSegments={setNumSegments}
+              // onNumSegments={setNumSegments}
+              onNumSegments={setNumRegions}
             />
             {/* <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
               if(set) { setRegionSet(name) } else { setRegionSet('') }
@@ -1162,7 +1189,7 @@ function Home() {
               />
 
               <SankeyModal 
-                show={showFilter}
+                show={true}
                 width={400} 
                 height={height-10} 
                 numPaths={numPaths}

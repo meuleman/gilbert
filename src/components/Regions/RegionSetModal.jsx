@@ -51,7 +51,7 @@ const RegionSetModal = ({
   const [regions, setRegions] = useState([])
   useEffect(() => {
     if(queryRegions && queryRegions.length) {
-      let rs = convertFilterRegions(queryRegions.slice(0, numSegments), queryRegionOrder)
+      let rs = convertFilterRegions(queryRegions, queryRegionOrder)
       setRegions(rs)
     } else {
       setRegions([])

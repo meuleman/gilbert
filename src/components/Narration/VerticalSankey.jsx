@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef, useContext} from 'react'
 import { sankey, sankeyJustify, sankeyCenter, sankeyLinkHorizontal } from 'd3-sankey';
-import { range, max } from 'd3-array';
+import { range, max, groups } from 'd3-array';
 import { path as d3path } from 'd3-path';
 import Tooltip from '../Tooltips/Tooltip';
 import { showKb } from '../../lib/display'
@@ -154,6 +154,10 @@ export default function CSNVerticalSankey({
       // we want to collapse nodes into their layer if they have less than collapseThreshold paths
       Object.keys(nodesMap).forEach(id => {
         let n = nodesMap[id]
+        // TODO: if we collapse a layer and all children are the same field
+        // TODO: we still want to be able to click to filter that field
+        // let nunique = groups(n.children || [], d => d.field?.field).length
+        // if(n.count < collapseThreshold && nunique > 1) {
         if(n.count < collapseThreshold) {
           let lid = `${n.order}-${n.dataLayer.name}`
           // first we either update the layer node or create a new one
