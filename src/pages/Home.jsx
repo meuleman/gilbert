@@ -730,15 +730,17 @@ function Home() {
       // TODO: if we get more than 1 path 
       setCSNLoading("hydrating")
       let dehydrated = topPathsForRegions.flatMap(r => r.dehydrated_paths.map((dp,i) => {
+        // let region = fromPosition(r.chromosome, r.start, r.end)
         return {
-          ...fromPosition(r.chromosome, r.start, r.end),
-          top_position: r.top_positions[i],
+          ...r,
+          i: r.top_positions[i], // hydrating assumes order 14 position
           score: r.top_scores[i],
           scoreType: "full",
           path: dp
         }
       }))
       let hydrated = dehydrated.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
+      console.log("hydrated", hydrated)
       setAllFullCSNS(hydrated)
     }
   }, [topPathsForRegions])
@@ -748,6 +750,7 @@ function Home() {
     if(allFullCSNS?.length) {
       let sorted = allFullCSNS.slice(0, numRegions)
         .sort((a,b) => b.score - a.score)
+      console.log("sorted", sorted)
       setTopFullCSNS(sorted)
       setCSNLoading("")
     }
