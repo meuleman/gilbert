@@ -695,7 +695,12 @@ function Home() {
   useEffect(() => {
     if(activeSet && activeSet.name !== "Query Set" && activeSet.regions?.length) {
       const regions = activeSet.regions.slice(0, 1000).map(d => {
-        return { "chromosome" : d.chromosome, "start": d.start, "end": d.end }
+        // return `${d.chromosome}:${d.start}-${d.end}`
+        // TODO make sure we always have regionStart, regionEnd when getting from the bed files
+        // I believe it is, because we convert them to regions using lib/regions.js
+        // return `${d.chromosome}:${d.start}-${d.end}`
+        return `${d.chromosome}:${d.regionStart}-${d.regionEnd}`
+        // return { "chromosome" : d.chromosome, "start": d.start, "end": d.end }
       })
       console.log("FETCHING TOP PATHS FOR QUERY SET", regions)
       fetchTopPathsForRegions(regions, 1)
@@ -710,7 +715,9 @@ function Home() {
       // console.log("FETCHING TOP PATHS FOR FILTERED", filteredSegments)
       let regionSize = 4 ** (14 - filterOrder)
       let regions = filteredSegments.slice(0, 1000).map(d => {
-        return { "chromosome" : d.chromosome, "start": regionSize * d.index, "end": regionSize * (d.index + 1) }
+        let start = regionSize * d.index
+        let end = regionSize * (d.index + 1)
+        return `${d.chromosome}:${start}-${end}`
       })
       fetchTopPathsForRegions(regions, 1)
         .then((response) => {
