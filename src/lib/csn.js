@@ -491,6 +491,7 @@ export {
   fetchDehydratedCSN,
   rehydrateCSN,
   fetchTopCSNs,
+  fetchTopPathsForRegions,
   fetchFilterPreview,
   retrieveFullDataForCSN
 }

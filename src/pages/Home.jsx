@@ -8,7 +8,7 @@ import Data from '../lib/data';
 import { urlify, jsonify, fromPosition, fromCoordinates } from '../lib/regions'
 import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
-import { fetchTopCSNs, rehydrateCSN, calculateCrossScaleNarrationInWorker, narrateRegion, retrieveFullDataForCSN } from '../lib/csn'
+import { fetchTopCSNs, fetchTopPathsForRegions, rehydrateCSN, calculateCrossScaleNarrationInWorker, narrateRegion, retrieveFullDataForCSN } from '../lib/csn'
 import { fetchFilterSegments } from '../lib/dataFiltering';
 import { calculateOrderSums, calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
 import { range, groups, group } from 'd3-array'
@@ -663,6 +663,34 @@ function Home() {
       setFilterOrder(null)
     }
   }, [filters])
+
+
+  // collect the top N paths for each region
+  const [topPathsForRegions, setTopPathsForRegions] = useState(null)
+  useEffect(() => {
+    if(filteredSegments && filterOrder) {
+      // could also create a hilbert segment from this data to get start and end
+      let regionSize = 4 ** (14 - filterOrder)
+      let regions = filteredSegments.slice(0, 1000).map(d => {
+        return { "chromosome" : d.chromosome, "start": regionSize * d.index, "end": regionSize * (d.index + 1) }
+      })
+      let numPathsPerRegion = 1
+      fetchTopPathsForRegions(regions, numPathsPerRegion)
+      .then((response) => {
+        if(!response) {
+          setTopPathsForRegions(null)
+          return
+        } else {
+          setTopPathsForRegions(response.regions)
+        }
+      }).catch((e) => {
+        console.log("error fetching top paths for regions", e)
+        setTopPathsForRegions(null)
+      })
+    }
+    
+  }, [filteredSegments])
+
 
   // // fetch the top csns, both by full path score and by filtered factor scores
   // useEffect(() => {
