@@ -666,30 +666,63 @@ function Home() {
 
 
   // collect the top N paths for each region
+
   const [topPathsForRegions, setTopPathsForRegions] = useState(null)
+  // useEffect(() => {
+  //   if(filteredSegments && filterOrder) {
+  //     // could also create a hilbert segment from this data to get start and end
+  //     let regionSize = 4 ** (14 - filterOrder)
+  //     let regions = filteredSegments.slice(0, 1000).map(d => {
+  //       return { "chromosome" : d.chromosome, "start": regionSize * d.index, "end": regionSize * (d.index + 1) }
+  //     })
+  //     let numPathsPerRegion = 1
+  //     fetchTopPathsForRegions(regions, numPathsPerRegion)
+  //     .then((response) => {
+  //       if(!response) {
+  //         setTopPathsForRegions(null)
+  //         return
+  //       } else {
+  //         setTopPathsForRegions(response.regions)
+  //       }
+  //     }).catch((e) => {
+  //       console.log("error fetching top paths for regions", e)
+  //       setTopPathsForRegions(null)
+  //     })
+  //   }
+    
+  // }, [filteredSegments, filterOrder])
+
   useEffect(() => {
-    if(filteredSegments && filterOrder) {
-      // could also create a hilbert segment from this data to get start and end
+    if(activeSet && activeSet.name !== "Query Set" && activeSet.regions?.length) {
+      const regions = activeSet.regions.slice(0, 1000).map(d => {
+        return { "chromosome" : d.chromosome, "start": d.start, "end": d.end }
+      })
+      console.log("FETCHING TOP PATHS FOR QUERY SET", regions)
+      fetchTopPathsForRegions(regions, 1)
+        .then((response) => {
+          if(!response) { setTopPathsForRegions(null)
+          } else { setTopPathsForRegions(response.regions) }
+        }).catch((e) => {
+          console.log("error fetching top paths for regions", e)
+          setTopPathsForRegions(null)
+        })
+    } else if(filteredSegments && filterOrder) {
+      // console.log("FETCHING TOP PATHS FOR FILTERED", filteredSegments)
       let regionSize = 4 ** (14 - filterOrder)
       let regions = filteredSegments.slice(0, 1000).map(d => {
         return { "chromosome" : d.chromosome, "start": regionSize * d.index, "end": regionSize * (d.index + 1) }
       })
-      let numPathsPerRegion = 1
-      fetchTopPathsForRegions(regions, numPathsPerRegion)
-      .then((response) => {
-        if(!response) {
+      fetchTopPathsForRegions(regions, 1)
+        .then((response) => {
+          if(!response) { setTopPathsForRegions(null)
+          } else { setTopPathsForRegions(response.regions) }
+        }).catch((e) => {
+          console.log("error fetching top paths for regions", e)
           setTopPathsForRegions(null)
-          return
-        } else {
-          setTopPathsForRegions(response.regions)
-        }
-      }).catch((e) => {
-        console.log("error fetching top paths for regions", e)
-        setTopPathsForRegions(null)
-      })
+        })
     }
-    
-  }, [filteredSegments])
+  }, [filteredSegments, filterOrder, activeSet])
+
 
 
   // // fetch the top csns, both by full path score and by filtered factor scores
