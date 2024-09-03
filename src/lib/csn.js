@@ -203,7 +203,12 @@ function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
     return orderAcrossLayers.then((response) => {
       p['fullData'] = fullData
       p['counts'] = counts
-      p['data'] = data
+      if(p.field && !p.field.value) {
+        // set the value from the fullData
+        let li = csnLayerList.indexOf(p.layer)
+        p.field.value = fullData[`${li},${p.field.index}`]
+      }
+      // p['data'] = data
       return
     })
   }))

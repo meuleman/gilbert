@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useContext, useMemo } from 'react'
 import FiltersContext from './ComboLock/FiltersContext'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
-import { showKb } from '../lib/display'
+import { showKb, showPosition } from '../lib/display'
 import CSNSentence from './Narration/Sentence'
 import CSNLine from './Narration/Line'
 import ZoomLine from './Narration/ZoomLine'
@@ -44,11 +44,20 @@ const InspectorGadget = ({
   }, [minimized, setMinimized])
 
   const [zOrder, setZoomOrder] = useState(zoomOrder)
+  // useEffect(() => {
+  //   console.log("zoom order changed", zoomOrder)
+  //   if(zoomOrder < 4) zoomOrder = 4
+  //   setZoomOrder(zoomOrder)
+  // }, [zoomOrder])
   useEffect(() => {
     console.log("zoom order changed", zoomOrder)
-    if(zoomOrder < 4) zoomOrder = 4
-    setZoomOrder(zoomOrder)
-  }, [zoomOrder])
+    if(!narration) return
+    let zr = narration.region.order + 0.5
+    if(zr < 4) zr = 4
+    setZoomOrder(zr)
+  }, [narration])
+
+
 
 
   const handleZoom = useCallback((or) => {
@@ -102,6 +111,8 @@ const InspectorGadget = ({
       }}>
       <div className="header">
         <div className="power-modal-selected">
+        {/* {showPosition(selected)} */}
+          { narration && showPosition(narration.region) }
           <button onClick={() => setZoomOrder(selected.order + 0.5)}>reset zoom</button>
         </div>
         <div className="header-buttons">

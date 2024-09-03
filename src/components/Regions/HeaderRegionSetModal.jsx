@@ -7,9 +7,9 @@ import {showPosition, showInt, showKb} from '../../lib/display'
 import { download, convertFilterRegions } from '../../lib/regionsets'
 import {Tooltip} from 'react-tooltip';
 
-// import './SankeyModal.css'
+import './HeaderRegionSetModal.css'
 
-const RegionSetModal = ({
+const HeaderRegionSetModal = ({
   selectedRegion = null,
   hoveredRegion = null,
   queryRegions = null,
@@ -51,8 +51,7 @@ const RegionSetModal = ({
   const [regions, setRegions] = useState([])
   useEffect(() => {
     if(queryRegions && queryRegions.length) {
-      let rs = convertFilterRegions(queryRegions, queryRegionOrder)
-      setRegions(rs)
+      setRegions(queryRegions)
     } else {
       setRegions([])
     }
@@ -134,11 +133,11 @@ const RegionSetModal = ({
           <Tooltip id="download-regions">
             Download {numSegments} regions to a BED file
           </Tooltip>
-          <button data-tooltip-id="narrate-regions"
+          {/* <button data-tooltip-id="narrate-regions"
           disabled
           >
             📖
-          </button>
+          </button> */}
           <Tooltip id="narrate-regions">
             Narrate {numSegments} regions
           </Tooltip>
@@ -148,4 +147,4 @@ const RegionSetModal = ({
     </div>
   )
 }
-export default RegionSetModal
+export default HeaderRegionSetModal

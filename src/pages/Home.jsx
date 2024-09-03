@@ -5,7 +5,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import FiltersContext from '../components/ComboLock/FiltersContext'
 
 import Data from '../lib/data';
-import { urlify, jsonify, fromPosition, fromCoordinates } from '../lib/regions'
+import { urlify, jsonify, fromPosition, fromCoordinates, toPosition, fromIndex } from '../lib/regions'
+import { convertFilterRegions } from '../lib/regionsets';
 import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
 import { fetchTopCSNs, fetchTopPathsForRegions, rehydrateCSN, calculateCrossScaleNarrationInWorker, narrateRegion, retrieveFullDataForCSN } from '../lib/csn'
@@ -41,9 +42,13 @@ import SVGChromosomeNames from '../components/SVGChromosomeNames'
 import SelectFactorPreview from '../components/ComboLock/SelectFactorPreview'
 import FilterSelects from '../components/ComboLock/FilterSelects'
 
-import SankeyModal from '../components/Narration/SankeyModal';
-import RegionSetModal from '../components/Regions/RegionSetModal';
 import RegionsContext from '../components/Regions/RegionsContext';
+
+import SankeyModal from '../components/Narration/SankeyModal';
+import HeaderRegionSetModal from '../components/Regions/HeaderRegionSetModal';
+import ManageRegionSetsModal from '../components/Regions/ManageRegionSetsModal'
+import ActiveRegionSetModal from '../components/Regions/ActiveRegionSetModal'
+
 
 // layer configurations
 import { fullList as layers, csnLayers, variantLayers, countLayers } from '../layers'
@@ -69,8 +74,6 @@ import GenesetEnrichment from '../components/SimSearch/GenesetEnrichment';
 // import Spectrum from '../components/Spectrum';
 
 import RegionStrip from '../components/RegionStrip'
-import ManageRegionSetsModal from '../components/Regions/ManageRegionSetsModal'
-import ActiveRegionSetModal from '../components/Regions/ActiveRegionSetModal'
 
 
 // declare globally so it isn't recreated on every render
@@ -647,7 +650,8 @@ function Home() {
           return
         }
         if(currentRequest == filterRequestRef.current) {
-          setFilteredSegments(response.filtered_segments)
+          // convert filtered segments to standard regions
+          setFilteredSegments(convertFilterRegions(response.filtered_segments, response.order))
           setFilteredSegmentsCount(response.segment_count)
           setFilterOrder(response.order)
           setFilterLoading("")
@@ -672,50 +676,40 @@ function Home() {
   const [topPathsForRegions, setTopPathsForRegions] = useState(null)
   const regionsRequestRef = useRef("")
 
+
+  function getDehydrated(regions, paths) {
+    return paths.flatMap((r,ri) => r.dehydrated_paths.map((dp,i) => {
+      return {
+        ...r,
+        i: r.top_positions[i], // hydrating assumes order 14 position
+        score: r.top_scores[i],
+        scoreType: "full",
+        path: dp,
+        region: regions[ri] // the activeSet region
+      }
+    }))
+  }
+
   useEffect(() => {
     console.log("ACTIVE SET?????", activeSet)
-    if(activeSet && activeSet.name !== "Query Set" && activeSet.regions?.length) {
-      const regions = activeSet.regions.slice(0, FILTER_MAX_REGIONS).map(d => {
-        // return `${d.chromosome}:${d.start}-${d.end}`
-        // TODO make sure we always have regionStart, regionEnd when getting from the bed files
-        // I believe it is, because we convert them to regions using lib/regions.js
-        // return `${d.chromosome}:${d.start}-${d.end}`
-        return `${d.chromosome}:${d.regionStart}-${d.regionEnd}`
-        // return { "chromosome" : d.chromosome, "start": d.start, "end": d.end }
-      })
+    // if(activeSet && activeSet.name !== "Query Set" && activeSet.regions?.length) {
+    if(activeSet && activeSet.regions?.length) {
+      const regions = activeSet.regions.slice(0, FILTER_MAX_REGIONS).map(toPosition)
       if(regions.toString() == regionsRequestRef.current) {
         return
       } else {
         regionsRequestRef.current = regions.toString()
       }
-      console.log("FETCHING TOP PATHS FOR QUERY SET", regions)
+      // console.log("FETCHING TOP PATHS FOR QUERY SET", regions)
       setCSNLoading("fetching")
       fetchTopPathsForRegions(regions, 1)
         .then((response) => {
           if(!response) { setTopPathsForRegions(null)
-          } else { setTopPathsForRegions(response.regions) }
-        }).catch((e) => {
-          console.log("error fetching top paths for regions", e)
-          setTopPathsForRegions(null)
-        })
-    } else if(filteredSegments && filterOrder) {
-      // console.log("FETCHING TOP PATHS FOR FILTERED", filteredSegments)
-      let regionSize = 4 ** (14 - filterOrder)
-      let regions = filteredSegments.slice(0, FILTER_MAX_REGIONS).map(d => {
-        let start = regionSize * d.index
-        let end = regionSize * (d.index + 1)
-        return `${d.chromosome}:${start}-${end}`
-      })
-      if(regions.toString() == regionsRequestRef.current) {
-        return
-      } else {
-        regionsRequestRef.current = regions.toString()
-      }
-      setCSNLoading("fetching")
-      fetchTopPathsForRegions(regions, 1)
-        .then((response) => {
-          if(!response) { setTopPathsForRegions(null)
-          } else { setTopPathsForRegions(response.regions) }
+          } else { 
+            // convert the response into "dehydrated" csn paths with the region added
+            let tpr = getDehydrated(activeSet.regions, response.regions)
+            setTopPathsForRegions(tpr) 
+          }
         }).catch((e) => {
           console.log("error fetching top paths for regions", e)
           setTopPathsForRegions(null)
@@ -729,17 +723,8 @@ function Home() {
       // console.log("top paths for regions", topPathsForRegions)
       // TODO: if we get more than 1 path 
       setCSNLoading("hydrating")
-      let dehydrated = topPathsForRegions.flatMap(r => r.dehydrated_paths.map((dp,i) => {
-        // let region = fromPosition(r.chromosome, r.start, r.end)
-        return {
-          ...r,
-          i: r.top_positions[i], // hydrating assumes order 14 position
-          score: r.top_scores[i],
-          scoreType: "full",
-          path: dp
-        }
-      }))
-      let hydrated = dehydrated.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
+      console.log("TOP PATHS FOR REGIONS", topPathsForRegions)
+      let hydrated = topPathsForRegions.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
       console.log("hydrated", hydrated)
       setAllFullCSNS(hydrated)
     }
@@ -824,7 +809,8 @@ function Home() {
 
 
   // const [pathDiversity, setPathDiversity] = useState(true)
-  // const [loadingRegionCSNS, setLoadingRegionCSNS] = useState(false)
+  const [loadingRegionCSNS, setLoadingRegionCSNS] = useState(false)
+  const [loadingSelectedCSN, setLoadingSelectedCSN] = useState(false)
   // // Fetch the CSNS via API for the selected region
   // useEffect(() => {
   //   if(selected){
@@ -849,6 +835,59 @@ function Home() {
   //     setRegionCSNS([])
   //   }
   // }, [filters, selected, pathDiversity])
+  useEffect(() => {
+    if(selected) {
+      // TODO: check if logic is what we want
+      // if an activeSet we grab the first region (since they are ordered) that falls witin the selected region
+      // if the region is smaller than the activeSet regions, the first one where the selected region is within the activeset region
+      let region = selected
+      if(activeSet?.regions?.length) {
+        let a = selected;
+        for(let i = 0; i < activeSet.regions.length; i++) {
+          let b = activeSet.regions[i]
+          // a is the longer region
+          if(a.chromosome !== b.chromosome) continue;
+          if(b.end - b.start > a.end - a.start) {
+            a = activeSet.regions[i]
+            b = selected
+          }
+          if((b.start >= a.start && b.start <= a.end) || (b.end >= a.start && b.end <= a.end)) {
+            // we have overlap
+            console.log("found region", activeSet.regions[i])
+            region = activeSet.regions[i]
+            break
+          }
+        }
+      } 
+      setLoadingRegionCSNS(true)
+      fetchTopPathsForRegions([toPosition(region)], 1)
+        .then((response) => {
+          if(!response) { 
+            setRegionCSNS([])
+            setLoadingRegionCSNS(false)
+            return
+          } else { 
+            let dehydrated = getDehydrated([region], response.regions)
+            let hydrated = dehydrated.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
+            setRegionCSNS(hydrated)
+
+            // TODO: this should be a use effect based on selecting on of the region csns
+            setLoadingSelectedCSN(true)
+            retrieveFullDataForCSN(hydrated[0]).then((response) => {
+              console.log("FULL DATA", response)
+              setSelectedTopCSN(response)
+              setLoadingSelectedCSN(false)
+            })
+
+            setLoadingRegionCSNS(false)
+          }
+        }).catch((e) => {
+          console.log("error fetching top paths for selected region", e)
+          setRegionCSNS([])
+          setLoadingRegionCSNS(false)
+        })
+    }
+  }, [selected, activeSet])
 
   const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
   const [topCSNSFullByCurrentOrder, setTopCSNSFullByCurrentOrder] = useState(new Map())
@@ -920,23 +959,22 @@ function Home() {
     console.log("SELECTED SANKEY CSN", csn, hit)
     setSelected(hit)
     setRegion(hit)
-    setLoadingSelectedCSN(true)
-    retrieveFullDataForCSN(csn).then((response) => {
-      setSelectedTopCSN(response)
-      setLoadingSelectedCSN(false)
-    })
+    // setLoadingSelectedCSN(true)
+    // retrieveFullDataForCSN(csn).then((response) => {
+    //   setSelectedTopCSN(response)
+    //   setLoadingSelectedCSN(false)
+    // })
   }, [zoom.order])
 
-  const [loadingSelectedCSN, setLoadingSelectedCSN] = useState(false)
-  const handleSelectedCSNSelectedModal = (csn) => {
-    if(!csn) return
-    setLoadingSelectedCSN(true)
-    retrieveFullDataForCSN(csn).then((response) => {
-      setSelectedTopCSN(response)
-      console.log("full data response", response)
-      setLoadingSelectedCSN(false)
-    })
-  }
+  // const handleSelectedCSNSelectedModal = (csn) => {
+  //   if(!csn) return
+  //   setLoadingSelectedCSN(true)
+  //   retrieveFullDataForCSN(csn).then((response) => {
+  //     setSelectedTopCSN(response)
+  //     console.log("full data response", response)
+  //     setLoadingSelectedCSN(false)
+  //   })
+  // }
 
   const handleHoveredCSN = useCallback((csn) => {
     setHoveredTopCSN(csn)
@@ -1039,7 +1077,7 @@ function Home() {
             <LogoNav/>
           </div>
           <div className="header--region-list">
-            <RegionSetModal 
+            <HeaderRegionSetModal 
               selectedRegion={selected}
               queryRegions={filteredSegments} 
               queryRegionsCount={filteredSegmentsCount}

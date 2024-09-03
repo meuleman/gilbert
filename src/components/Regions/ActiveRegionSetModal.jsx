@@ -22,6 +22,9 @@ const ActiveRegionSetModal = ({
   const { sets, activeSet, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
 
   const [numRegions, setNumRegions] = useState(100)
+  useEffect(() => {
+    setNumRegions(Math.min(activeSet?.regions?.length, 100))
+  }, [activeSet])
 
   const [regions, setRegions] = useState([])
   useEffect(() => {
@@ -76,11 +79,11 @@ const ActiveRegionSetModal = ({
             <Tooltip id={`active-download-regions`}>
               Download {numRegions} regions to BED file
             </Tooltip>
-            <button data-tooltip-id="active-narrate-regions"
+            {/* <button data-tooltip-id="active-narrate-regions"
               disabled
             >
               📖
-            </button>
+            </button> */}
             <Tooltip id="active-narrate-regions">
               Narrate {numRegions} regions
             </Tooltip>
@@ -103,7 +106,7 @@ const ActiveRegionSetModal = ({
                 {regions.slice(0, numRegions).map((region, index) => (
                   <tr key={index}>
                     <td>{showPosition(region)}</td>
-                    <td>{region.score}</td>
+                    <td>{region.score?.toFixed(3)}</td>
                   </tr>
                 ))}
               </tbody>
