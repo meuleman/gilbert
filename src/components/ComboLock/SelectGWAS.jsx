@@ -12,7 +12,7 @@ import FiltersContext from './FiltersContext'
 import { makeField, filterFields } from '../../layers'
 import variants_gwas_rank from '../../layers/variants_rank_gwas'
 // import gwas from '../../layers/variants_gwas_fields.json'
-import gwas from '../../layers/gwas_full_traits.json'  // temporary fix until gwas layer with correct number of fields
+import gwas from '../../layers/gwas_filter_traits.json'  // temporary fix until gwas layer with correct number of fields
 
 
 const dot = (color = 'transparent') => ({
