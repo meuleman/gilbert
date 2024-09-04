@@ -51,7 +51,7 @@ const SankeyModal = ({
   }, [filters])
 
   const [view, setView] = useState("sankey")
-  const [sort, setSort] = useState("factor")
+  const [sort, setSort] = useState("full")
   useEffect(() => {
     onSort(sort)
   }, [sort])

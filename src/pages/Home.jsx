@@ -700,7 +700,7 @@ function Home() {
       } else {
         regionsRequestRef.current = regions.toString()
       }
-      // console.log("FETCHING TOP PATHS FOR QUERY SET", regions)
+      console.log("FETCHING TOP PATHS FOR QUERY SET", regions)
       setCSNLoading("fetching")
       fetchTopPathsForRegions(regions, 1)
         .then((response) => {
