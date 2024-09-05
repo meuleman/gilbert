@@ -93,10 +93,10 @@ const SelectFactor = ({
     if(selectedField) {
       onPreviewValues(null)
       setLoadingPreview(true)
-      fetchFilterPreview(filtersRef.current, selectedField).then((preview) => {
-        // setPreviewValues(preview.preview_fractions)
-        console.log("sending home a message", selectedField, preview.preview_fractions)
-        onPreviewValues(selectedField, preview.preview_fractions)
+      fetchFilterPreview(filtersRef.current, selectedField).then((response) => {
+        // setPreviewValues(response.preview_fractions)
+        console.log("sending home a message", selectedField, response.previews[0].preview)
+        onPreviewValues(selectedField, response.previews[0].preview)
         setLoadingPreview(false)
         // setSelectedField(null)
       })

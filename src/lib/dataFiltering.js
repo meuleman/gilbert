@@ -74,11 +74,10 @@ Returns:
 */
 function fetchFilterPreview(filtersMap, newFilterFull) {
   const filters = getFilters(filtersMap)
-  console.log(filtersMap)
-  const newFilter = {"dataset_name": newFilterFull.layer.datasetName, "index": newFilterFull.index}
+  const newFilters = [{"dataset_name": newFilterFull.layer.datasetName, "index": newFilterFull.index}]
 
   const url = "https://explore.altius.org:5001/api/dataFiltering/preview_filter"
-  const postBody = {filters, newFilter}
+  const postBody = {filters, newFilters}
   console.log("POST BODY", postBody)
   return axios({
     method: 'POST',
