@@ -155,18 +155,26 @@ function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
   let countLayerNames = countLayers.map(d => d.datasetName)  // so we can track counts vs full data
 
   let singleBPRegion = csn.path.filter(d => d.region.order === 14)[0].region
+  let timings = {}
   let csnWithFull = Promise.all(csn.path.map(p => {
     let order = p.order
     let fullData = {}
     let counts = {}
     let data = {}
+
     let orderAcrossLayers = Promise.all(csnLayerList.map((layer, l) => {
       // if the layer includes current order
       if((layer.orders[0] <= order) && (layer.orders[1] >= order)) {
         // get hilbert ranges
         const orderRange = getRange(singleBPRegion, order)
+        timings[`${layer.datasetName}-${order}`] = { start: +Date.now() }
+        // console.log("FETCH", layer.datasetName, order, orderRange)
         return fetchData(layer, order, orderRange)
           .then((response) => {
+            let timing = timings[`${layer.datasetName}-${order}`]
+            timing.end = +Date.now()
+            timing.duration = (timing.end - timing.start) / 1000
+            
             data[l] = response[0]  // save data
             let meta = response.metas[0]
             let bytesData = response[0]?.bytes
@@ -214,6 +222,7 @@ function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
   }))
 
   return csnWithFull.then(() => {
+    console.log("TIMINGS", timings)
     return csn
   })
 }

@@ -112,7 +112,7 @@ const HeaderRegionSetModal = ({
               min="1" 
               max={Math.min(queryRegions?.length, 1000)}
               step={1}
-              value={numSegments} 
+              value={numSegments || 0} 
               onChange={handleNumSegments} 
             />
           </label>

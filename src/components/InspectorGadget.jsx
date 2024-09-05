@@ -10,7 +10,7 @@ import ScoreBars from './Narration/ScoreBars'
 import Power from './Narration/Power'
 import Loading from './Loading'
 import { scaleLinear } from 'd3-scale'
-import { variantChooser } from '../lib/csn'
+import { retrieveFullDataForCSN, variantChooser } from '../lib/csn'
 import { makeField } from '../layers'
 
 import './InspectorGadget.css'
@@ -50,15 +50,12 @@ const InspectorGadget = ({
   //   setZoomOrder(zoomOrder)
   // }, [zoomOrder])
   useEffect(() => {
-    console.log("zoom order changed", zoomOrder)
+    // console.log("zoom order changed", zoomOrder)
     if(!narration) return
     let zr = narration.region.order + 0.5
     if(zr < 4) zr = 4
     setZoomOrder(zr)
   }, [narration])
-
-
-
 
   const handleZoom = useCallback((or) => {
     if(or < 4) or = 4
@@ -99,6 +96,26 @@ const InspectorGadget = ({
     return left
   }, [modalPosition, powerWidth])
 
+  const [fullNarration, setFullNarration] = useState(null)
+  const [loadingFullNarration, setLoadingFullNarration] = useState(false)
+  useEffect(()=> {
+    // defaults to the un-annotated Narration passed in
+    setFullNarration(narration)
+    setLoadingFullNarration(true)
+  }, [narration])
+
+  const handlePowerData = useCallback((data) => {
+    // when the power data is done loading (when Narration changes)
+    // then we load full
+    console.log("power data", data)
+    retrieveFullDataForCSN(narration).then((response) => {
+      console.log("FULL DATA", response)
+      setFullNarration(response)
+      setLoadingFullNarration(false)
+    })
+  }, [narration])
+
+
   
   return (
     <>
@@ -129,10 +146,11 @@ const InspectorGadget = ({
               height={powerHeight} 
               userOrder={zOrder}
               onOrder={handleZoom}
+              onData={handlePowerData}
               />
             <div className="zoom-scores">
               <ZoomLine 
-                csn={narration} 
+                csn={fullNarration} 
                 order={zOrder} 
                 maxPathScore={maxPathScore}
                 highlight={true}
@@ -149,8 +167,11 @@ const InspectorGadget = ({
                   handleFilter(field, p.order)
                 }}
                 /> 
+              {loadingFullNarration ? 
+              <Loading text={"📊"} /> 
+              : 
               <ScoreBars
-                csn={narration} 
+                csn={fullNarration} 
                 order={zOrder} 
                 highlight={true}
                 selected={true}
@@ -161,6 +182,7 @@ const InspectorGadget = ({
                 onHover={handleZoom}
                 onClick={(c) => { console.log("narration", c)}}
                 />
+              }
               </div>
               
           </div>

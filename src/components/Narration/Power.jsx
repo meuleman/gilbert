@@ -15,6 +15,7 @@ import { getGencodesInView } from '../../lib/Genes';
 
 import order_14 from '../../layers/order_14';
 
+import Loading from '../Loading';
 import { Renderer as CanvasRenderer } from '../Canvas/Renderer';
 
 
@@ -118,6 +119,8 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
   const canvasRefStrip = useRef(null);
   const canvasRefGenes = useRef(null);
   const tooltipRef = useRef(null)
+
+  const [loading, setLoading] = useState(false)
 
   const percentScale = useMemo(() => scaleLinear().domain([1, 100]).range([4, 14.999]), [])
 
@@ -256,7 +259,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
       })
       // console.log("in power", csn)
       // console.log("order points", orderPoints)
-
+      setLoading(true)
       Promise.all(orderPoints.map(p => {
         if(p.layer?.layers){ 
           return Promise.all(p.layer.layers.map(l => dataClient.fetchData(l, p.order, p.points)))
@@ -287,6 +290,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
               data: d
             }
           }))
+          setLoading(false)
         })
     }
   }, [csn])
@@ -721,6 +725,9 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
   return (
     <div className="power">
       <div className="power-container">
+        {loading ? <div className="power-loading">
+          <Loading text={"📊 Loading"} />
+        </div> : null}
         <canvas 
           className="power-canvas"
           width={width + "px"}

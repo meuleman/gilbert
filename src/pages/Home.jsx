@@ -691,7 +691,7 @@ function Home() {
   }
 
   useEffect(() => {
-    console.log("ACTIVE SET?????", activeSet)
+    console.log("ACTIVE SET", activeSet)
     // if(activeSet && activeSet.name !== "Query Set" && activeSet.regions?.length) {
     if(activeSet && activeSet.regions?.length) {
       const regions = activeSet.regions.slice(0, FILTER_MAX_REGIONS).map(toPosition)
@@ -859,31 +859,30 @@ function Home() {
           }
         }
       } 
+      setLoadingSelectedCSN(true)
       setLoadingRegionCSNS(true)
+      setSelectedTopCSN(null)
+      setRegionCSNS([])
       fetchTopPathsForRegions([toPosition(region)], 1)
         .then((response) => {
           if(!response) { 
             setRegionCSNS([])
+            setSelectedTopCSN(null)
+            setLoadingSelectedCSN(false)
             setLoadingRegionCSNS(false)
             return
           } else { 
             let dehydrated = getDehydrated([region], response.regions)
             let hydrated = dehydrated.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
             setRegionCSNS(hydrated)
-
-            // TODO: this should be a use effect based on selecting on of the region csns
-            setLoadingSelectedCSN(true)
-            retrieveFullDataForCSN(hydrated[0]).then((response) => {
-              console.log("FULL DATA", response)
-              setSelectedTopCSN(response)
-              setLoadingSelectedCSN(false)
-            })
-
+            setSelectedTopCSN(hydrated[0])
             setLoadingRegionCSNS(false)
+            setLoadingSelectedCSN(false)
           }
         }).catch((e) => {
           console.log("error fetching top paths for selected region", e)
           setRegionCSNS([])
+          setSelectedTopCSN(null),
           setLoadingRegionCSNS(false)
         })
     }
@@ -1020,7 +1019,7 @@ function Home() {
       if(hit === selected) {
         clearSelectedState()
       } else if(hit) {
-        console.log("setting selected from click", hit)
+        // console.log("setting selected from click", hit)
         setSelectedTopCSN(null)
         setRegionCSNS([])
         // setLoadingRegionCSNS(true) // TODO: this is to avoid flashing intermediate state of selected modal
