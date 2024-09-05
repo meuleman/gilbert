@@ -210,10 +210,16 @@ function rehydrate(index, list) {
 
 // This can take in either a layer object or a layer datasetName
 // As well as a field name or fieldIndex
+// To be used for filters
 function makeField(layer, fieldNameOrIndex, order) {
   let l = layer
   if(typeof layer === 'string') {
     l = fullList.find(l => l.datasetName == layer)
+  }
+  // TODO: is this the right place to put this?
+  // currently makeField is only used to make fields for filtering
+  if(l.datasetName == 'tf_1en6_enr_top10') {
+    l = fullList.find(l => l.datasetName == 'tf_1en6_enr')
   }
   let fieldIndex
   let fieldName
