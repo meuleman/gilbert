@@ -394,9 +394,12 @@ function Home() {
   }, [filters, regionset, selected, updateUrlParams]);
 
   useEffect(() => {
+    // if no filters, remove the query set
     if(!Object.keys(filters).length) {
       deleteSet("Query Set")
     }
+    // if the filters change at all we want to clear the selected
+    clearSelectedState()
   }, [filters])
 
   // cross scale narration
