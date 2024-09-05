@@ -237,9 +237,15 @@ function Home() {
     const calculateModalPosition = () => {
       if (!selected || !zoom || !zoom.transform || !scales) return { x: 0, y: 0 };
 
+      let hit = selected
+      if(selected.order !== zoom.order) {
+        hit = fromPosition(selected.chromosome, selected.start, selected.end, zoom.order)
+      } 
+      console.log("HIT", hit)
+
       const { k, x, y } = zoom.transform;
-      const selectedX = scales.xScale(selected.x) * k + x;
-      const selectedY = scales.yScale(selected.y) * k + y;
+      const selectedX = scales.xScale(hit.x) * k + x;
+      const selectedY = scales.yScale(hit.y) * k + y;
 
       return { x: selectedX, y: selectedY };
     };
@@ -953,13 +959,14 @@ function Home() {
   }, [setFactorPreviewField, setFactorPreviewValues])
 
   const handleSelectedCSNSankey = useCallback((csn) => {
-    let hit = csn.path.find(d => d.order == zoom.order)?.region
-    if(!hit) {
-      console.log("no hit?", csn)
-      hit = fromPosition(csn.chromosome, csn.i, csn.i+1, zoom.order)
-    }
+    // let hit = csn.path.find(d => d.order == zoom.order)?.region
+    // if(!hit) {
+    //   console.log("no hit?", csn)
+    //   hit = fromPosition(csn.chromosome, csn.i, csn.i+1, zoom.order)
+    // }
+    let hit = fromPosition(csn.chromosome, csn.start, csn.end, zoom.order)
     console.log("SELECTED SANKEY CSN", csn, hit)
-    setSelected(hit)
+    setSelected(csn?.region)
     setRegion(hit)
     // setLoadingSelectedCSN(true)
     // retrieveFullDataForCSN(csn).then((response) => {
@@ -980,9 +987,11 @@ function Home() {
 
   const handleHoveredCSN = useCallback((csn) => {
     setHoveredTopCSN(csn)
-    let hit = fromPosition(csn.chromosome, csn.i, csn.i+1, zoom.order)
+    // let hit = fromPosition(csn.chromosome, csn.i, csn.i+1, zoom.order)
+    // setHover(hit)
+    // the CSN has region information on it
+    setHover(csn?.region)
     // console.log("HOVERED CSN", csn, hit)
-    setHover(hit)
   }, [zoom.order])
 
   // const drawFilteredRegions = useCanvasFilteredRegions(filterSegmentsByCurrentOrder)

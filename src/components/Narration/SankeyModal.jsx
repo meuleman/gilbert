@@ -74,6 +74,11 @@ const SankeyModal = ({
 
   const zlheight = height
 
+  useEffect(() => {
+    console.log("selectedRegion", selectedRegion)
+    console.log("hoveredRegion", hoveredRegion)
+  }, [selectedRegion, hoveredRegion])
+
   const handleShowControl = useCallback(() => {
     setShowControls(!showControls)
   }, [showControls])
@@ -208,7 +213,9 @@ const SankeyModal = ({
                     maxPathScore={maxPathScore}
                     order={order}
                     showScore={false}
-                    highlight={!selectedRegion && !!n.path.find(r => hoveredRegion && r && r.order === hoveredRegion.order && r.region.chromosome === hoveredRegion.chromosome && r.region.i === hoveredRegion.i)}
+                    // highlight={!selectedRegion && !!n.path.find(r => hoveredRegion && r && r.order === hoveredRegion.order && r.region.chromosome === hoveredRegion.chromosome && r.region.i === hoveredRegion.i)}
+                    highlight={!selectedRegion && hoveredRegion && n.region && n.region.order === hoveredRegion.order && n.region.chromosome === hoveredRegion.chromosome && n.region.i === hoveredRegion.i}
+                    selected={selectedRegion && n.region && n.region.order === selectedRegion.order && n.region.chromosome === selectedRegion.chromosome && n.region.i === selectedRegion.i}
                     // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
                     text={false}
                     width={9.5} 
