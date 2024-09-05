@@ -25,8 +25,7 @@ function defaultContent(region, layer, orientation) {
         {showPosition(region)}
         <br/>
         {/* <span className="position">Order: {region.order}</span> */}
-        <span className="position">[{showKb(Math.pow(4, 14 - region.order))}]</span>
-        <br/>
+        {/* <span className="position">[{showKb(Math.pow(4, 14 - region.order))}]</span> */}
         <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
       </div> : null}
       {fields.map((f,i) => (
@@ -45,8 +44,7 @@ function defaultContent(region, layer, orientation) {
         <span style={{borderTop: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
         <br/>
         {/* <span className="position">Order: {region.order}</span> */}
-        <span className="position">[{showKb(Math.pow(4, 14 - region.order))}]</span>
-        <br/>
+        {/* <span className="position">[{showKb(Math.pow(4, 14 - region.order))}]</span> */}
         {showPosition(region)}
       </div> : null}
     </div>
