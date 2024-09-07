@@ -691,7 +691,7 @@ function Home() {
       return {
         ...r,
         i: r.top_positions[i], // hydrating assumes order 14 position
-        score: r.top_scores[i],
+        score: r.top_path_scores[i],
         scoreType: "full",
         path: dp,
         region: regions[ri] // the activeSet region
