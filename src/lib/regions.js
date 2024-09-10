@@ -104,3 +104,23 @@ export function sameHilbertRegion(a, b) {
   if(a.i !== b.i) return false
   return true
 }
+
+export function overlap(ar, br) {
+  // we always want "a" to be the longer region
+  let a = ar;
+  let b = br;
+  if(a.chromosome !== b.chromosome) return null;
+  if(b.end - b.start > a.end - a.start) {
+    a = br
+    b = ar
+  }
+  if((b.start >= a.start && b.start <= a.end) || (b.end >= a.start && b.end <= a.end)) {
+    // we have overlap
+    return br
+  }
+  return null
+}
+
+export function overlaps(a, regions, accessor = r => r) {
+  return regions.filter(r => overlap(a, accessor(r)))
+}

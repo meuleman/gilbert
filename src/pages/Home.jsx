@@ -5,7 +5,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import FiltersContext from '../components/ComboLock/FiltersContext'
 
 import Data from '../lib/data';
-import { urlify, jsonify, fromPosition, fromCoordinates, toPosition, fromIndex } from '../lib/regions'
+import { urlify, jsonify, fromPosition, fromCoordinates, toPosition, fromIndex, overlaps } from '../lib/regions'
+import { showPosition } from '../lib/display'
 import { convertFilterRegions } from '../lib/regionsets';
 import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
@@ -13,6 +14,7 @@ import { fetchTopCSNs, fetchTopPathsForRegions, rehydrateCSN, calculateCrossScal
 import { fetchFilterSegments } from '../lib/dataFiltering';
 import { calculateOrderSums, calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
 import { range, groups, group } from 'd3-array'
+import { Tooltip } from 'react-tooltip'
 
 import { FILTER_MAX_REGIONS } from '../lib/constants'
 
@@ -254,6 +256,31 @@ function Home() {
     // setModalPosition(showPosition(selected))
   }, [selected, zoom, scales])
 
+  const [hover, setHover] = useState(null)
+  const [hoveredPosition, setHoveredPosition] = useState({x: 0, y: 0})
+  useEffect(() => {
+    const calculateHoveredPosition = () => {
+      if (!hover || !zoom || !zoom.transform || !scales) return { x: 0, y: 0 };
+
+      let hit = hover
+      if(hover.order !== zoom.order) {
+        hit = fromPosition(hover.chromosome, hover.start, hover.end, zoom.order)
+      } 
+      // console.log("HIT", hit)
+
+      const { k, x, y } = zoom.transform;
+      const step = Math.pow(0.5, zoom.order)
+      const sw = scales.sizeScale(step) * k
+      const hoveredX = scales.xScale(hit.x) * k + x + sw/2
+      const hoveredY = scales.yScale(hit.y) * k + y// - sw/2
+
+      return { x: hoveredX, y: hoveredY };
+    };
+
+    setHoveredPosition(calculateHoveredPosition());
+  }, [hover, zoom, scales])
+
+
 
   const [simSearch, setSimSearch] = useState(null)
   const [similarRegions, setSimilarRegions] = useState([])
@@ -282,7 +309,6 @@ function Home() {
   }, [initialSelectedRegion])
 
    // the hover can be null or the data in a hilbert cell
-  const [hover, setHover] = useState(null)
   const [lastHover, setLastHover] = useState(null)
   // for when a region is hovered in the similar region list
   const [similarRegionListHover, setSimilarRegionListHover] = useState(null)
@@ -399,16 +425,7 @@ function Home() {
     }
   }, [filters, regionset, selected, updateUrlParams]);
 
-  useEffect(() => {
-    // if no filters, remove the query set
-    if(!hasFilters()) {
-      deleteSet("Query Set")
-    }
-    // if the filters change at all we want to clear the selected
-    // TODO: this shouldn't happen on page load if you have an initial region and filters
-    if(filters.userTriggered) clearSelectedState()
 
-  }, [filters])
 
   // cross scale narration
   const handleChangeCSNIndex = (e) => setCrossScaleNarrationIndex(e.target.value)
@@ -445,31 +462,31 @@ function Home() {
     }
   }, [selected, csnMethod, csnEnrThreshold])  // layerOrderNatural
 
-  const [csn, setCsn] = useState({path: [], layers: csnLayers})
-  useEffect(() => {
-    if(crossScaleNarration?.length) {
-      console.log("updated CSN?", crossScaleNarration)
-      let newCsn = crossScaleNarration[crossScaleNarrationIndex]
-      newCsn.path = newCsn.path.filter(d => !!d).sort((a,b) => a.order - b.order)
-      newCsn.layers = csnLayers
-      setCsn(newCsn)
-      // we update the layer order and layer
-      // TODO: if we want to update the layer order based on the csn, we can uncomment this
-      // if(selected) {
-      //   let newLayerOrder = Object.assign({}, layerOrderRef.current)
-      //   newCsn.path.forEach(d => {
-      //     newLayerOrder[d?.order] = d?.layer
-      //   })
-      //   if(newLayerOrder[selected.order] && !layerLockRef.current){
-      //     layerOrderRef.current = newLayerOrder // this is so that handleZoom uses most up to date in race condition
-      //     setLayerOrder(newLayerOrder)
-      //     setLayer(newLayerOrder[selected.order])
-      //   }
-      // }
-    } else {
-      setCsn({path: [], layers: csnLayers})
-    }
-  }, [selected, crossScaleNarrationIndex, crossScaleNarration])
+  // const [csn, setCsn] = useState({path: [], layers: csnLayers})
+  // useEffect(() => {
+  //   if(crossScaleNarration?.length) {
+  //     console.log("updated CSN?", crossScaleNarration)
+  //     let newCsn = crossScaleNarration[crossScaleNarrationIndex]
+  //     newCsn.path = newCsn.path.filter(d => !!d).sort((a,b) => a.order - b.order)
+  //     newCsn.layers = csnLayers
+  //     setCsn(newCsn)
+  //     // we update the layer order and layer
+  //     // TODO: if we want to update the layer order based on the csn, we can uncomment this
+  //     // if(selected) {
+  //     //   let newLayerOrder = Object.assign({}, layerOrderRef.current)
+  //     //   newCsn.path.forEach(d => {
+  //     //     newLayerOrder[d?.order] = d?.layer
+  //     //   })
+  //     //   if(newLayerOrder[selected.order] && !layerLockRef.current){
+  //     //     layerOrderRef.current = newLayerOrder // this is so that handleZoom uses most up to date in race condition
+  //     //     setLayerOrder(newLayerOrder)
+  //     //     setLayer(newLayerOrder[selected.order])
+  //     //   }
+  //     // }
+  //   } else {
+  //     setCsn({path: [], layers: csnLayers})
+  //   }
+  // }, [selected, crossScaleNarrationIndex, crossScaleNarration])
 
   
   const handleHover = useCallback((hit, similarRegionList=false) => {
@@ -857,22 +874,7 @@ function Home() {
       // if the region is smaller than the activeSet regions, the first one where the selected region is within the activeset region
       let region = selected
       if(activeSet?.regions?.length) {
-        let a = selected;
-        for(let i = 0; i < activeSet.regions.length; i++) {
-          let b = activeSet.regions[i]
-          // a is the longer region
-          if(a.chromosome !== b.chromosome) continue;
-          if(b.end - b.start > a.end - a.start) {
-            a = activeSet.regions[i]
-            b = selected
-          }
-          if((b.start >= a.start && b.start <= a.end) || (b.end >= a.start && b.end <= a.end)) {
-            // we have overlap
-            console.log("found region", activeSet.regions[i])
-            region = activeSet.regions[i]
-            break
-          }
-        }
+        region = overlaps(selected, activeSet.regions)[0] || selected
       } 
       setLoadingSelectedCSN(true)
       setLoadingRegionCSNS(true)
@@ -1000,6 +1002,28 @@ function Home() {
     // console.log("HOVERED CSN", csn, hit)
   }, [zoom.order])
 
+
+  // figure out which active regions are in the hovered segment if any
+  const [activeInHovered, setActiveInHovered] = useState(null)
+  const [intersectedGenes, setIntersectedGenes] = useState([])
+  const [associatedGenes, setAssociatedGenes] = useState([])
+  useEffect(() => {
+    if(hover && activeSet && activeSet.regions?.length && topPathsForRegions?.length) {
+      // find the regions within the hover
+      // let regions = overlaps(hover, activeSet.regions)
+      let paths = overlaps(hover, topPathsForRegions, r => r.region)
+      let intersected = [...new Set(paths.flatMap(p => p.genes.filter(g => g.in_gene).map(g => g.name)))]
+      let associated = [...new Set(paths.flatMap(p => p.genes.filter(g => !g.in_gene).map(g => g.name)))]
+      // get the paths
+      setActiveInHovered(paths)
+      setIntersectedGenes(intersected)
+      setAssociatedGenes(associated)
+    } else {
+      setActiveInHovered(null)
+    }
+
+  }, [hover, activeSet, topPathsForRegions])
+
   // const drawFilteredRegions = useCanvasFilteredRegions(filterSegmentsByCurrentOrder)
   const drawFilteredRegions = useCanvasFilteredRegions(activeRegionsByCurrentOrder)
 
@@ -1018,6 +1042,16 @@ function Home() {
     setRegionCSNS([])
     // setPowerNarration(null)
   }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setSelectedTopCSN])
+
+  useEffect(() => {
+    // if no filters, remove the query set
+    if(!hasFilters()) {
+      deleteSet("Query Set")
+    }
+    // if the filters change from a user interaction we want to clear the selected
+    if(filters.userTriggered) clearSelectedState()
+
+  }, [filters, hasFilters, clearSelectedState, deleteSet])
 
   // TODO: consistent clear state
   const handleModalClose = useCallback(() => {
@@ -1334,6 +1368,43 @@ function Home() {
                 />
               )}
             </div>
+
+            <div style={{
+              position: "absolute",
+              left: hoveredPosition.x,
+              top: hoveredPosition.y,
+              pointerEvents: "none"
+            }} data-tooltip-id="hovered"></div>
+            
+            {activeInHovered?.length ? <Tooltip id="hovered"
+            isOpen={hover && activeInHovered?.length}
+            delayShow={0}
+            delayHide={0}
+            delayUpdate={0}
+            place="right"
+            style={{
+              position: 'absolute',
+              left: hoveredPosition.x,
+              top: hoveredPosition.y,
+              pointerEvents: 'none',
+            }}
+            >
+              <h3>{activeInHovered?.length} paths</h3>
+              {intersectedGenes.length ? <span>{intersectedGenes.join(", ")} intersecting active regions.<br/></span> : null}
+              {associatedGenes.length ? <span>{associatedGenes.join(", ")} associated with active regions.<br/></span> : null}
+              {/* {activeInHovered.map(p => {
+                return <div key={p.chromosome + ":" + p.i}>
+                  {showPosition(p.region)}: {p.genes.map(g => 
+                  <span key={g.name} style={{
+                    fontWeight: g.in_gene ? "bold" : "normal",
+                    fontStyle: g.in_gene ? "italic" : "normal"
+                  }}>
+                    {g.name}
+                  </span>)}
+                </div>
+                })} */}
+            </Tooltip> : null}
+            
             
             
         </div>
