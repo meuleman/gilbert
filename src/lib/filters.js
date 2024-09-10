@@ -9,7 +9,7 @@ import counts_native from "../data/counts.segments.native_order_resolution.json"
 import counts_order14 from "../data/counts.order_14_resolution.json"
 
 function urlifyFilters(filtersMap) {
-  const filters = Object.keys(filtersMap).map(o => {
+  const filters = Object.keys(filtersMap).filter(k => k !== "userTriggered").map(o => {
     let f = filtersMap[o]
     return {
       order: +o,
@@ -18,6 +18,7 @@ function urlifyFilters(filtersMap) {
       field: f.field && f.field  // temporary fix until gwas layer with correct number of fields, remove
     }
   })
+  console.log("FILTERS FOR URL", filters)
   return encodeURIComponent(JSON.stringify(filters))
 }
 function parseFilters(filters) {

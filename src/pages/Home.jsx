@@ -190,7 +190,7 @@ function Home() {
   const [selected, setSelected] = useState(jsonify(initialSelectedRegion))
   const [selectedOrder, setSelectedOrder] = useState(selected?.order)
 
-  const { filters, setFilters, clearFilters } = useContext(FiltersContext);
+  const { filters, setFilters, clearFilters, hasFilters } = useContext(FiltersContext);
   const initialUpdateRef = useRef(true);
   useEffect(() => {
     if(initialUpdateRef.current) {
@@ -241,7 +241,7 @@ function Home() {
       if(selected.order !== zoom.order) {
         hit = fromPosition(selected.chromosome, selected.start, selected.end, zoom.order)
       } 
-      console.log("HIT", hit)
+      // console.log("HIT", hit)
 
       const { k, x, y } = zoom.transform;
       const selectedX = scales.xScale(hit.x) * k + x;
@@ -401,11 +401,13 @@ function Home() {
 
   useEffect(() => {
     // if no filters, remove the query set
-    if(!Object.keys(filters).length) {
+    if(!hasFilters()) {
       deleteSet("Query Set")
     }
     // if the filters change at all we want to clear the selected
-    clearSelectedState()
+    // TODO: this shouldn't happen on page load if you have an initial region and filters
+    if(filters.userTriggered) clearSelectedState()
+
   }, [filters])
 
   // cross scale narration
@@ -645,9 +647,8 @@ function Home() {
     console.log("filters changed in home!!", filters)
     filterRequestRef.current += 1
     const currentRequest = filterRequestRef.current
-    let nfs = Object.keys(filters).length
     // Fetch the filter segments from the API
-    if(nfs > 0) {
+    if(hasFilters()) {
       setFilterLoading("fetching")
       fetchFilterSegments(filters, FILTER_MAX_REGIONS)
         .then((response) => {
@@ -687,11 +688,14 @@ function Home() {
 
 
   function getDehydrated(regions, paths) {
+    console.l
     return paths.flatMap((r,ri) => r.dehydrated_paths.map((dp,i) => {
       return {
         ...r,
-        i: r.top_positions[i], // hydrating assumes order 14 position
-        score: r.top_scores[i],
+        i: r.top_positions[0], // hydrating assumes order 14 position
+        factor_score: r.top_factor_scores[0][i],
+        score: r.top_path_scores[0],
+        genes: r.genes[0]?.genes,
         scoreType: "full",
         path: dp,
         region: regions[ri] // the activeSet region
@@ -705,6 +709,7 @@ function Home() {
     if(activeSet && activeSet.regions?.length) {
       const regions = activeSet.regions.slice(0, FILTER_MAX_REGIONS).map(toPosition)
       if(regions.toString() == regionsRequestRef.current) {
+        console.log("cancelling redundant request")
         return
       } else {
         regionsRequestRef.current = regions.toString()
@@ -723,6 +728,8 @@ function Home() {
           console.log("error fetching top paths for regions", e)
           setTopPathsForRegions(null)
         })
+    } else {
+      regionsRequestRef.current = ""
     }
   }, [filteredSegments, filterOrder, activeSet])
 
@@ -757,7 +764,7 @@ function Home() {
   //   console.log("filters changed in home!!", filters)
   //   csnRequestRef.current += 1
   //   const currentRequest = csnRequestRef.current
-  //   if(Object.keys(filters).length == 0 && !selected) {
+  //   if(hasFilters() == 0 && !selected) {
   //     setTopFactorCSNS([])
   //     setTopFullCSNS([])
   //     return
@@ -767,10 +774,9 @@ function Home() {
   //     setShowFilter(true)
   //   }
 
-  //   let nfs = Object.keys(filters).length
   //   setCSNLoading("fetching")
   //   // Fetch the top csns from the API
-  //   if(nfs > 0) {
+  //   if(hasFilters()) {
   //     fetchTopCSNs(filters, selected, "factor", true, numPaths)
   //       .then((response) => {
   //       console.log("FACTOR RESPONSE", response)

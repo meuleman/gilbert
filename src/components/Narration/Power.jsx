@@ -394,21 +394,22 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
           //console.log("RENDER o", o, d)
           if(o < 14) {
             // set the central region's data to the field we chose 
-            const central = d.data.find(r => r.i == d.p.region.i)
-            if(d.region.data) {
-              central.data = d.region.data
-            } else {
-              // console.log("central", d.region, central)
-              let centralData = {}
-              if(d.layer.topValues) {
-                centralData["max_value"] = d.region.field.value
-                centralData["max_field"] = d.region.field.index
-              } else {
-                centralData[d.region.field.field] = d.region.field.value
-              }
-              central.data = centralData
-            }
+            // const central = d.data.find(r => r.i == d.p.region.i)
+            // if(d.region.data) {
+            //   central.data = d.region.data
+            // } else {
+            //   // console.log("central", d.region, central)
+            //   let centralData = {}
+            //   if(d.layer.topValues) {
+            //     centralData["max_value"] = d.region.field.value
+            //     centralData["max_field"] = d.region.field.index
+            //   } else {
+            //     centralData[d.region.field.field] = d.region.field.value
+            //   }
+            //   central.data = centralData
+            // }
           }
+          
           CanvasRenderer(d.layer.renderer, { 
             scales, 
             state: { 
@@ -437,7 +438,6 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
           ctx.lineWidth = 0.5
           ctx.globalAlpha = oscale(or - o)
           if(pd.layer){
-
             // pd.data.find(r => r.i == pd.p.region.i).data = pd.region.data
             CanvasRenderer(pd.layer.renderer, { 
               scales, 

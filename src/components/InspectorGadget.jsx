@@ -162,10 +162,10 @@ const InspectorGadget = ({
                 tipOrientation={tipOrientation}
                 onHover={handleZoom}
                 onClick={(c) => { console.log("narration", c)}}
-                onFactor={(p) => {
-                  let field = makeField(p.layer, p.field.index, p.order)
-                  handleFilter(field, p.order)
-                }}
+                // onFactor={(p) => {
+                //   let field = makeField(p.layer, p.field.index, p.order)
+                //   handleFilter(field, p.order)
+                // }}
                 /> 
               {loadingFullNarration ? 
               <Loading text={"📊"} /> 

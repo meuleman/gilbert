@@ -310,7 +310,7 @@ export default function CSNVerticalSankey({
     if(node.field == "Layer") return;
     let field = makeField(node.dataLayer, node.field, node.order)
     console.log("field!", field)
-    handleFilter(field, node.order)
+    handleFilter(field, node.order, true)
     // onFilter((oldNodeFilter) => {
     //   if(oldNodeFilter.find(n => n.id == node.id)) {
     //     const filtered = oldNodeFilter.filter(n => n.id != node.id)

@@ -37,7 +37,7 @@ const SankeyModal = ({
   const [showPanel, setShowPanel] = useState(true)
   const [showControls, setShowControls] = useState(false)
 
-  const { filters } = useContext(FiltersContext)
+  const { filters, hasFilters } = useContext(FiltersContext)
 
   useEffect(() => {
     setShowPanel(show)
@@ -45,7 +45,7 @@ const SankeyModal = ({
 
 
   useEffect(() => {
-    if(!Object.keys(filters).length){
+    if(!hasFilters()){
       setSort("full")
     }
   }, [filters])
@@ -75,8 +75,8 @@ const SankeyModal = ({
   const zlheight = height
 
   useEffect(() => {
-    console.log("selectedRegion", selectedRegion)
-    console.log("hoveredRegion", hoveredRegion)
+    // console.log("selectedRegion", selectedRegion)
+    // console.log("hoveredRegion", hoveredRegion)
   }, [selectedRegion, hoveredRegion])
 
   const handleShowControl = useCallback(() => {
@@ -174,7 +174,7 @@ const SankeyModal = ({
                     type="radio" 
                     value="factor" 
                     checked={sort === "factor"} 
-                    disabled={!Object.keys(filters).length}
+                    disabled={!hasFilters()}
                     onChange={() => setSort("factor")} 
                   />
                   Factor
@@ -183,7 +183,7 @@ const SankeyModal = ({
                   <input 
                     type="radio" 
                     value="full" 
-                    checked={sort === "full" || !Object.keys(filters).length} 
+                    checked={sort === "full" || !hasFilters()} 
                     onChange={() => setSort("full")} 
                   />
                   Full

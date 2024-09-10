@@ -189,7 +189,7 @@ const SelectGWAS = memo(({
 
   const handleChange = useCallback((selectedOption) => {
     console.log("SELECTED OPTION", selectedOption)
-    handleFilter(selectedOption, 14)
+    handleFilter(selectedOption, 14, true)
     setIsActive(false)
   }, [handleFilter])
 

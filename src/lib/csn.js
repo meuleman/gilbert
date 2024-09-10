@@ -300,7 +300,7 @@ async function calculateCrossScaleNarrationInWorker(selected, csnMethod, enrThre
     const clyrs = countLayers.map(serializeLayer)
     let fltrs = null
     if(filters) {
-      fltrs = Object.keys(filters).map(k => {
+      fltrs = Object.keys(filters).filter(k => k !== "userTriggered").map(k => {
         return {
           ...filters[k],
           layer: serializeLayer(filters[k].layer)

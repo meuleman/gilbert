@@ -17,11 +17,12 @@ import axios from "axios";
 Converts filtersMap to a list of filters
 */
 function getFilters(filtersMap, region) {
-  if (Object.keys(filtersMap).length === 0 && !region) {
+  let keys = Object.keys(filtersMap).filter(k => k !== "userTriggered")
+  if (keys.length === 0 && !region) {
     return Promise.resolve([]);
   }
   // order, index, dataset_name
-  const filters = Object.keys(filtersMap).map(o => {
+  const filters = keys.map(o => {
     let f = filtersMap[o]
     return {
       order: +o,

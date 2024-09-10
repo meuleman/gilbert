@@ -119,7 +119,7 @@ const SelectOrder = ({
   }, [filters, order, fieldMap])
 
   const handleChange = useCallback((selectedOption) => {
-    handleFilter(selectedOption, order)
+    handleFilter(selectedOption, order, true)
     setIsActive(false)
   }, [order, handleFilter])
 
