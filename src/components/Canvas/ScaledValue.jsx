@@ -90,10 +90,10 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
           let srw = f(rw * (shrinkScale(sample.value) || 0.1)) * 0.95
 
           // Debugging oversized rendering of fields. showing that the max isn't matching the values seen
-          if(srw > 50) {
-            let fi = fields.indexOf(sample.field)
-            console.log("BIG SAMPLE d", srw, d, sample, "field index", fi, "max", max[fi])
-          }
+          // if(srw > 50) {
+          //   let fi = fields.indexOf(sample.field)
+          //   console.log("BIG SAMPLE d", srw, d, sample, "field index", fi, "max", max[fi])
+          // }
           
           let points = []
           if(dm1) {
