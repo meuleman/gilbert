@@ -124,16 +124,33 @@ const SelectOrder = ({
     setIsActive(false)
   }, [order, handleFilter])
 
+  const [orderCounts, setOrderCounts] = useState(orderSums.filter(o => o.order == order)[0].counts)
+  
+  // parses the results from fetchOrderPreview and updates the orderCounts
+  const handleNewCounts = function (newCounts) {
+    let orderCountsCopy = JSON.parse(JSON.stringify(orderCounts))
+    newCounts.forEach((d) => {
+      let datasetName = d.dataset_name
+      let factorIndex = d.index
+      let count = d.preview[order]
+      if(datasetName in orderCountsCopy && factorIndex in orderCountsCopy[datasetName]) {
+        orderCountsCopy[datasetName][factorIndex] = count
+      }
+    })
+    setOrderCounts(orderCountsCopy)
+  }
 
-  // // to run fetchOrderPreview
-  // useEffect(() => {
-  //   if(Object.keys(filters).length && ([4].includes(order))) {
-  //     fetchOrderPreview(filters, filterFields, [order]).then((response) => {
-  //       console.log("MULTI-FILTER RESPONSE", response, order)
-  //     })
-  //   }
-
-  // }, [filters])
+  // to run fetchOrderPreview (currently only for orders 4-9)
+  useEffect(() => {
+    if(Object.keys(filters).filter(key => !isNaN(key)).length && ([4,5,6,7,8,9].includes(order))) {
+      fetchOrderPreview(filters, filterFields, [order]).then((response) => {
+        console.log("MULTI-FILTER RESPONSE", response, order)
+        handleNewCounts(response.previews)
+      })
+    } else {
+      setOrderCounts(orderSums.filter(o => o.order == order)[0].counts)
+    }
+  }, [filters])
 
   const formatLabel = useCallback((option) => {
     return (
@@ -150,10 +167,12 @@ const SelectOrder = ({
   useEffect(() => {
     let allFields = filterFields.map(f => {
       let layer = f.layer
-      let oc = orderSums.find(o => o.order == order)
+      // let oc = orderSums.find(o => o.order == order)
+      let oc = orderCounts
       let counts = null
       if(oc) {
-        counts = oc.counts[layer.datasetName]
+        // counts = oc.counts[layer.datasetName]
+        counts = oc[layer.datasetName]
       }
       return {
         ...f,
@@ -174,7 +193,7 @@ const SelectOrder = ({
     })
     setFieldMap(fieldMap)
 
-  }, [order, orderSums, showNone])
+  }, [order, orderCounts, showNone])
 
   const [isActive, setIsActive] = useState(false);
   const [previewBar, setPreviewBar] = useState(null)
