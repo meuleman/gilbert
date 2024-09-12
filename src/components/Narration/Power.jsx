@@ -413,7 +413,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
           CanvasRenderer(d.layer.renderer, { 
             scales, 
             state: { 
-              data: d.data,
+              data: d.data.filter(dd => dd.chromosome == r.chromosome),
               loading: false,
               points: d.points,
               meta,
@@ -443,7 +443,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
               scales, 
               state: { 
                 // data: { [pd.p.field.field]: pd.p.field.value },
-                data: pd.data,
+                data: pd.data.filter(dd => dd.chromosome === r.chromosome),
                 loading: false,
                 points: pd.points,
                 meta: pd.data.metas.find((meta) => meta.chromosome === r.chromosome),
