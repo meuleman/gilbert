@@ -6,6 +6,7 @@ import { showFloat, showInt, showKb } from '../../lib/display';
 import { filterFields } from '../../layers'
 import {Tooltip} from 'react-tooltip';
 import FiltersContext from './FiltersContext'
+import { fetchOrderPreview } from '../../lib/dataFiltering';
 
 const dot = (color = 'transparent') => ({
   alignItems: 'center',
@@ -122,6 +123,17 @@ const SelectOrder = ({
     handleFilter(selectedOption, order, true)
     setIsActive(false)
   }, [order, handleFilter])
+
+
+  // // to run fetchOrderPreview
+  // useEffect(() => {
+  //   if(Object.keys(filters).length && ([4].includes(order))) {
+  //     fetchOrderPreview(filters, filterFields, [order]).then((response) => {
+  //       console.log("MULTI-FILTER RESPONSE", response, order)
+  //     })
+  //   }
+
+  // }, [filters])
 
   const formatLabel = useCallback((option) => {
     return (
