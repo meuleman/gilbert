@@ -50,6 +50,7 @@ import SankeyModal from '../components/Narration/SankeyModal';
 import HeaderRegionSetModal from '../components/Regions/HeaderRegionSetModal';
 import ManageRegionSetsModal from '../components/Regions/ManageRegionSetsModal'
 import ActiveRegionSetModal from '../components/Regions/ActiveRegionSetModal'
+import SummarizePaths from '../components/Narration/SummarizePaths'
 
 
 // layer configurations
@@ -1140,6 +1141,11 @@ function Home() {
             {/* <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
               if(set) { setRegionSet(name) } else { setRegionSet('') }
             }} /> */}
+          </div>
+          <div className="header--path-summary">
+              <SummarizePaths
+                topFullCSNS={topFullCSNS}
+              />
           </div>
           <div className="header--search">
             {showFilter ? 
