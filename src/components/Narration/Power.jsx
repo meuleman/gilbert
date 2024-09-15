@@ -443,7 +443,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
               scales, 
               state: { 
                 // data: { [pd.p.field.field]: pd.p.field.value },
-                data: pd.data.filter(dd => dd.chromosome === pd.region.chromosome),
+                data: pd.data.filter(dd => dd.chromosome === r.chromosome),
                 loading: false,
                 points: pd.points,
                 meta: pd.data.metas.find((meta) => meta.chromosome === pd.region.chromosome),

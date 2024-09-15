@@ -50,6 +50,7 @@ import SankeyModal from '../components/Narration/SankeyModal';
 import HeaderRegionSetModal from '../components/Regions/HeaderRegionSetModal';
 import ManageRegionSetsModal from '../components/Regions/ManageRegionSetsModal'
 import ActiveRegionSetModal from '../components/Regions/ActiveRegionSetModal'
+import SummarizePaths from '../components/Narration/SummarizePaths'
 
 
 // layer configurations
@@ -208,7 +209,7 @@ function Home() {
     if(showFilter) {
       let path_density = layers.find(d => d.datasetName == "precomputed_csn_path_density_above_90th_percentile")
       const lo = {}
-      range(4, 14).map(o => {
+      range(4, 15).map(o => {
         lo[o] = filters[o]?.layer || path_density
       })
       setLayerOrder(lo)
@@ -1140,6 +1141,11 @@ function Home() {
             {/* <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
               if(set) { setRegionSet(name) } else { setRegionSet('') }
             }} /> */}
+          </div>
+          <div className="header--path-summary">
+              <SummarizePaths
+                topFullCSNS={topFullCSNS}
+              />
           </div>
           <div className="header--search">
             {showFilter ? 
