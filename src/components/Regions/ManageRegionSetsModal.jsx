@@ -23,7 +23,7 @@ const ManageRegionSetModal = ({
 
   const handleSelect = useCallback((set) => {
     setActiveSet(set)
-  }, [])
+  }, [setActiveSet])
 
   const handleDownload = useCallback((set) => {
     console.log("SET", set)
@@ -46,14 +46,16 @@ const ManageRegionSetModal = ({
       reader.readAsText(file);
     }
   }, [saveSet]);
+
   useEffect(() => {
     if (recentlySaved) {
       let newSet = sets.find(d => d.name === recentlySaved)
       if(newSet) {
         setActiveSet(newSet)
+        setRecentlySaved(null)
       }
     }
-  }, [sets, recentlySaved])
+  }, [sets, recentlySaved, setActiveSet])
   
 
   return (
