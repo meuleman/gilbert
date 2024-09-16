@@ -668,7 +668,8 @@ function Home() {
     // Fetch the filter segments from the API
     if(hasFilters()) {
       setFilterLoading("fetching")
-      fetchFilterSegments(filters, FILTER_MAX_REGIONS)
+      let bgRegions = activeSet?.regions.map(d => ({chromosome: d.chromosome, index: d.i, order: d.order}))
+      fetchFilterSegments(filters, bgRegions, FILTER_MAX_REGIONS)
         .then((response) => {
         console.log("FILTER RESPONSE", response)
         if(!response) {
