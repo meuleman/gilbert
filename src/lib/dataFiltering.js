@@ -44,11 +44,16 @@ Returns:
 
 region (and baseRegion): {order, chromosome, index}
 */
-function fetchFilterSegments(filtersMap, N) {
+function fetchFilterSegments(filtersMap, regions, N) {
   const filters = getFilters(filtersMap)
 
   const url = "https://explore.altius.org:5001/api/dataFiltering/data_filtering"
-  const postBody = N ? {filters, N} : {filters}
+  // const postBody = N ? {filters, N} : {filters}
+  const postBody = {
+    filters,
+    ...(N && { N }),
+    ...(regions && { regions })
+  };
   console.log("POST BODY", postBody)
   return axios({
     method: 'POST',
