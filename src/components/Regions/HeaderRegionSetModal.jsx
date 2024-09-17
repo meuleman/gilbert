@@ -72,7 +72,7 @@ const HeaderRegionSetModal = ({
 
   useEffect(() => {
     if(regions?.length) {
-      saveSet("Query Set", regions)
+      saveSet("Query Set", regions, {type: "filter", activate: true})
     } else {
       deleteSet("Query Set")
     }

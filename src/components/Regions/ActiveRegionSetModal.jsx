@@ -68,7 +68,7 @@ const ActiveRegionSetModal = ({
               onChange={handleNumRegions} 
             />
             <br></br>
-            {numRegions} / {activeSet.regions.length}
+            {numRegions} / {activeSet?.regions?.length}
           </label>
           <div className="buttons">
             <button data-tooltip-id={`active-download-regions`}

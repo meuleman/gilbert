@@ -40,23 +40,11 @@ const ManageRegionSetModal = ({
         // Process file content into an array
         const data = parseBED(content);
         // Store in local storage
-        saveSet(file.name, data)
-        setRecentlySaved(file.name)
+        saveSet(file.name, data, {type: "file", activate: true})
       };
       reader.readAsText(file);
     }
   }, [saveSet]);
-
-  useEffect(() => {
-    if (recentlySaved) {
-      let newSet = sets.find(d => d.name === recentlySaved)
-      if(newSet) {
-        setActiveSet(newSet)
-        setRecentlySaved(null)
-      }
-    }
-  }, [sets, recentlySaved, setActiveSet])
-  
 
   return (
     <div className={`manage-regionsets-modal`}>
