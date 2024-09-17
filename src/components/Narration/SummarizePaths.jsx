@@ -6,7 +6,7 @@ import './SummarizePaths.css'
 
 const SummarizePaths = ({
   topFullCSNS,
-  N=3,
+  N=5,
 } = {}) => {
   const [pathSummary, setPathSummary] = useState("")
   useEffect(() => {
