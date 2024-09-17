@@ -5,7 +5,7 @@ const ladFields = ["Constitutive", "Constitutive_Inter", "Facultative"]
 const ladColors = ["#D82A2A", "blue", "#A0A0A0"]
 
 export default {
-  name: "LADs (OCC)",
+  name: "LADs",
   datasetName: "lads_occ",
   baseURL: `${constants.baseS3URLPrefix}/20240419`,
   orders: [4,14],

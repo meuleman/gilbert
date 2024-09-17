@@ -3,7 +3,7 @@ import { scaleOrdinal } from "d3-scale";
 import * as constants from "../lib/constants";
 
 export default {
-  name: "TF Motifs (1e-6, OCC, Ranked)",
+  name: "TF Motifs (OCC, Ranked)",
   datasetName: "tf_1en6_rank_occ",
   baseURL: `${constants.baseS3URLPrefix}/20240702`,
   orders: [4,14],
