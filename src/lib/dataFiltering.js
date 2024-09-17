@@ -110,14 +110,13 @@ normalize: boolean
 Returns:
 { previews: [{preview: { order: fraction, ...}, dataset_name, index}, ...] }
 */
-function fetchOrderPreview(filtersMap, newFiltersList, orders) {
-  const filters = getFilters(filtersMap)
+function fetchOrderPreview(regions, newFiltersList, orders) {
   const newFilters = newFiltersList.map(d => {
     return {"dataset_name": d.layer.datasetName, "index": d.index}
   })
 
   const url = "https://explore.altius.org:5001/api/dataFiltering/preview_filter"
-  const postBody = {filters, newFilters, orders, normalize: false}
+  const postBody = {regions, newFilters, orders, normalize: false}
   console.log("POST BODY", postBody)
   return axios({
     method: 'POST',

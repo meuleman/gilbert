@@ -7,6 +7,7 @@ import { filterFields } from '../../layers'
 import {Tooltip} from 'react-tooltip';
 import FiltersContext from './FiltersContext'
 import { fetchOrderPreview } from '../../lib/dataFiltering';
+import RegionsContext from '../../components/Regions/RegionsContext';
 
 const dot = (color = 'transparent') => ({
   alignItems: 'center',
@@ -102,6 +103,7 @@ const SelectOrder = ({
   activeWidth, 
   restingWidth, 
   orderMargin = 0,
+  maxBGRegionSize = 10000,
 }) => {
   const [selectedField, setSelectedField] = useState(null)
   const [allFieldsGrouped, setAllFieldsGrouped] = useState([])
@@ -140,17 +142,27 @@ const SelectOrder = ({
     setOrderCounts(orderCountsCopy)
   }
 
+  const { sets, activeSet, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
+
   // to run fetchOrderPreview (currently only for orders 4-9)
   useEffect(() => {
-    if(Object.keys(filters).filter(key => !isNaN(key)).length && ([4,5,6,7,8,9].includes(order))) {
-      fetchOrderPreview(filters, filterFields, [order]).then((response) => {
+    if(activeSet?.regions.length && activeSet?.regions.length < maxBGRegionSize && ([4,5,6,7,8,9].includes(order))) {
+      // take the unique segments from the active set
+      let bgRegions = activeSet?.regions
+        .map(d => ({chromosome: d.chromosome, i: d.i, order: d.order}))
+        .filter((value, index, self) => 
+          index === self.findIndex((t) => (
+            t.chromosome === value.chromosome && t.i === value.i && t.order === value.order
+          ))
+        )
+      fetchOrderPreview(bgRegions, filterFields, [order]).then((response) => {
         console.log("MULTI-FILTER RESPONSE", response, order)
         handleNewCounts(response.previews)
       })
     } else {
       setOrderCounts(orderSums.filter(o => o.order == order)[0].counts)
     }
-  }, [filters])
+  }, [activeSet])
 
   const formatLabel = useCallback((option) => {
     return (
