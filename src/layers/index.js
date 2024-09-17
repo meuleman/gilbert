@@ -281,7 +281,7 @@ const variantLayers = [
 const countLayers = [
   fullList.find(d => d.datasetName == "dhs_enr_counts"),
   fullList.find(d => d.datasetName == "cs_enr_counts"),
-  fullList.find(d => d.datasetName == "tf_enr_counts"),
+  fullList.find(d => d.datasetName == "tf_1en6_enr_counts"),
   fullList.find(d => d.datasetName == "repeats_enr_counts"),
 ]
 
