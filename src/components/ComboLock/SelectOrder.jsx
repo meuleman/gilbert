@@ -127,6 +127,7 @@ const SelectOrder = ({
   }, [order, handleFilter])
 
   const [orderCounts, setOrderCounts] = useState(orderSums.filter(o => o.order == order)[0].counts)
+  const [showCounts, setShowCounts] = useState(true)
   
   // parses the results from fetchOrderPreview and updates the orderCounts
   const handleNewCounts = function (newCounts) {
@@ -146,6 +147,7 @@ const SelectOrder = ({
 
   // to run fetchOrderPreview (currently only for orders 4-9)
   useEffect(() => {
+    // small enough number of regions, available order
     if(activeSet?.regions.length && activeSet?.regions.length < maxBGRegionSize && ([4,5,6,7,8,9].includes(order))) {
       // take the unique segments from the active set
       let bgRegions = activeSet?.regions
@@ -159,8 +161,17 @@ const SelectOrder = ({
         console.log("MULTI-FILTER RESPONSE", response, order)
         handleNewCounts(response.previews)
       })
+      setShowCounts(true)
+
+    // too many regions, order too large with small enough region set
+    } else if(activeSet?.regions.length) {
+      setOrderCounts(orderSums.filter(o => o.order == order)[0].counts)
+      setShowCounts(false)
+
+    // no regions
     } else {
       setOrderCounts(orderSums.filter(o => o.order == order)[0].counts)
+      setShowCounts(true)
     }
   }, [activeSet])
 
@@ -170,11 +181,11 @@ const SelectOrder = ({
         <b>{option.field} </b>
         <i>{option.layer.name} </i>
         <span style={{color: "gray"}}> 
-          {showUniquePaths ? " " + showInt(option.count) + " regions" : " "} 
+          {showUniquePaths && showCounts ? " " + showInt(option.count) + " regions" : " "} 
         </span>
       </div>
     );
-  }, [showUniquePaths]);
+  }, [showUniquePaths, showCounts]);
 
   useEffect(() => {
     let allFields = filterFields.map(f => {

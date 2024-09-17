@@ -668,7 +668,14 @@ function Home() {
     // Fetch the filter segments from the API
     if(hasFilters()) {
       setFilterLoading("fetching")
-      let bgRegions = activeSet?.regions.map(d => ({chromosome: d.chromosome, i: d.i, order: d.order}))
+      // take the unique segments from the active set
+      let bgRegions = activeSet?.regions
+        .map(d => ({chromosome: d.chromosome, i: d.i, order: d.order}))
+        .filter((value, index, self) => 
+          index === self.findIndex((t) => (
+            t.chromosome === value.chromosome && t.i === value.i && t.order === value.order
+          ))
+        )
       fetchFilterSegments(filters, bgRegions) // FILTER_MAX_REGIONS
         .then((response) => {
         console.log("FILTER RESPONSE", response)
