@@ -75,7 +75,8 @@ const InspectorGadget = ({
   const [zoomedPathRegion, setZoomedPathRegion] = useState(null)
   useEffect(() => {
     if (narration && narration.path && narration.path.length) {
-      const z = Math.floor(zOrder)
+      let z = Math.floor(zOrder)
+      if(z > 14) z = 14
       let zr = narration.path.find(n => n.order == z)
       if(z == 14 && narration.variants && narration.variants.length) {
         let v = variantChooser(narration.variants)

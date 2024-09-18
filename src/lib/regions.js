@@ -114,7 +114,7 @@ export function overlap(ar, br) {
     a = br
     b = ar
   }
-  if((b.start >= a.start && b.start <= a.end) || (b.end >= a.start && b.end <= a.end)) {
+  if((b.start > a.start && b.start < a.end) || (b.end > a.start && b.end < a.end) || (b.start == a.start && b.end == a.end)) {
     // we have overlap
     return br
   }

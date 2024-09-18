@@ -688,14 +688,7 @@ function Home() {
     if(hasFilters()) {
       setFilterLoading("fetching")
       // take the unique segments from the active set
-      let bgRegions = activeSet?.regions
-        .map(d => ({chromosome: d.chromosome, i: d.i, order: d.order}))
-        .filter((value, index, self) => 
-          index === self.findIndex((t) => (
-            t.chromosome === value.chromosome && t.i === value.i && t.order === value.order
-          ))
-        )
-      fetchFilterSegments(filters, bgRegions) // FILTER_MAX_REGIONS
+      fetchFilterSegments(filters, activeSet?.regions) // FILTER_MAX_REGIONS
         .then((response) => {
         console.log("FILTER RESPONSE", response)
         if(!response) {
@@ -962,17 +955,17 @@ function Home() {
   // }, [zoom.order, filteredSegments, numSegments])
 
   const [activeRegionsByCurrentOrder, setActiveRegionsByCurrentOrder] = useState(new Map())
+  const [allRegionsByCurrentOrder, setAllRegionsByCurrentOrder] = useState(new Map())
   // group the top regions found through filtering by the current order
   useEffect(() => {
     let regions = activeSet?.regions
     if(regions?.length) {
-      const groupedRegions = group(
-        // regions,
-        regions.slice(0, numRegions), 
-        d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: d.order, to: zoom.order}))
-      console.log("groupedFactor active regions", groupedRegions, numRegions)
-      setActiveRegionsByCurrentOrder(groupedRegions)
-      // TODO: visualize the non-active regions as well, but different style
+      const groupedAllRegions = group(
+        regions, 
+        // d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: d.order, to: zoom.order}))
+        d => d.chromosome + ":" + (d.order > zoom.order ? hilbertPosToOrder(d.i, {from: d.order, to: zoom.order}) : d.i))
+      setAllRegionsByCurrentOrder(groupedAllRegions)
+
     } else {
       console.log("no regions!!")
       setActiveRegionsByCurrentOrder(new Map())
@@ -985,7 +978,22 @@ function Home() {
       clearFilters()
       deleteSet("Query Set")
     }
-  }, [zoom.order, activeSet, numRegions])
+  }, [zoom.order, activeSet])
+
+  useEffect(() => {
+    if(topPathsForRegions?.length) {
+      const groupedActiveRegions = group(
+        topPathsForRegions,
+        d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
+      setActiveRegionsByCurrentOrder(groupedActiveRegions)
+    } else {
+      console.log("no regions!!")
+      setActiveRegionsByCurrentOrder(new Map())
+      setAllFullCSNS([])
+      setTopFullCSNS([])
+    }
+
+  }, [zoom.order, topPathsForRegions])
 
 
 
@@ -1041,6 +1049,7 @@ function Home() {
       // find the regions within the hover
       // let regions = overlaps(hover, activeSet.regions)
       let paths = overlaps(hover, topPathsForRegions, r => r.region)
+      // console.log("OVERLAPS", hover, topPathsForRegions, paths)
       let intersected = [...new Set(paths.flatMap(p => p.genes.filter(g => g.in_gene).map(g => g.name)))]
       let associated = [...new Set(paths.flatMap(p => p.genes.filter(g => !g.in_gene).map(g => g.name)))]
       // get the paths
@@ -1054,7 +1063,8 @@ function Home() {
   }, [hover, activeSet, topPathsForRegions])
 
   // const drawFilteredRegions = useCanvasFilteredRegions(filterSegmentsByCurrentOrder)
-  const drawFilteredRegions = useCanvasFilteredRegions(activeRegionsByCurrentOrder)
+  const drawActiveFilteredRegions = useCanvasFilteredRegions(activeRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
+  const drawAllFilteredRegions = useCanvasFilteredRegions(allRegionsByCurrentOrder, { color: "gray", opacity: 0.5, strokeScale: 0.5, mask: false })
 
   const clearSelectedState = useCallback(() => {
     console.log("CLEARING STATE")
@@ -1356,7 +1366,8 @@ function Home() {
                   zoomDuration={duration}
                   onScales={setScales}
                   CanvasRenderers={[
-                    drawFilteredRegions,
+                    drawActiveFilteredRegions,
+                    drawAllFilteredRegions,
                   ]}
                   SVGRenderers={[
                     SVGChromosomeNames({ }),

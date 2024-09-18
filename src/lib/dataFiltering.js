@@ -47,12 +47,24 @@ region (and baseRegion): {order, chromosome, index}
 function fetchFilterSegments(filtersMap, regions, N) {
   const filters = getFilters(filtersMap)
 
+  // remove duplicate regions
+  const seen = new Set();
+  let uniqueRegions = null
+  if(regions) {
+    uniqueRegions = regions
+      .map(d => ({chromosome: d.chromosome, i: d.i, order: d.order}))
+      .filter((region) => {
+        const key = `${region.chromosome}-${region.i}-${region.order}`;
+        return seen.has(key) ? false : seen.add(key);
+      });
+  } 
+
   const url = "https://explore.altius.org:5001/api/dataFiltering/data_filtering"
   // const postBody = N ? {filters, N} : {filters}
   const postBody = {
     filters,
     ...(N && { N }),
-    ...(regions && { regions })
+    ...(uniqueRegions && { regions: uniqueRegions })
   };
   console.log("POST BODY", postBody)
   return axios({

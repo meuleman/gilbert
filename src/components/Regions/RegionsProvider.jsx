@@ -18,6 +18,21 @@ function convertExamples(examples) {
   })
 }
 
+/*
+RegionSet
+{
+  id: string,
+  type: "example" | "file",
+  name: string,                 // currently expected to be unique
+  regions: Array<Region>,       // all regions in the set
+  activeRegions: Array<Region>, // i.e. top 100
+  paths: Array<Path>,           // i.e. path for each region
+  createdAt: string,
+  updatedAt: string,
+  derived: string | null
+}
+*/
+
 const RegionsProvider = ({ children }) => {
   const [sets, setSets] = useState([])
   const [activeSet, setActiveSet] = useState(null)
@@ -25,10 +40,10 @@ const RegionsProvider = ({ children }) => {
   useEffect(() => {
     const exampleDate = "2024-01-01"
     const exampleSets = [
-      {"id": "example-1", "name": "Domain 20kb", "regions": convertExamples(Domain20kbRegions), createdAt: new Date(exampleDate).toISOString(), example: true},
-      {"id": "example-2", "name": "Domain 1kb", "regions": convertExamples(Domain1kbRegions), createdAt: new Date(exampleDate).toISOString(), example: true},
-      {"id": "example-3", "name": "HBG2 DHS Distance Masked", "regions": convertExamples(HBG2DHSMaskedRegions), createdAt: new Date(exampleDate).toISOString(), example:true},
-      {"id": "example-4", "name": "1MB Top paths", "regions": convertExamples(OneMbRegions), createdAt: new Date(exampleDate).toISOString(), example:true}
+      {"id": "example-1", type: "example", "name": "Domain 20kb", "regions": convertExamples(Domain20kbRegions), createdAt: new Date(exampleDate).toISOString(), example: true},
+      {"id": "example-2", type: "example", "name": "Domain 1kb", "regions": convertExamples(Domain1kbRegions), createdAt: new Date(exampleDate).toISOString(), example: true},
+      {"id": "example-3", type: "example", "name": "HBG2 DHS Distance Masked", "regions": convertExamples(HBG2DHSMaskedRegions), createdAt: new Date(exampleDate).toISOString(), example:true},
+      {"id": "example-4", type: "example", "name": "1MB Top paths", "regions": convertExamples(OneMbRegions), createdAt: new Date(exampleDate).toISOString(), example:true}
     ]
     setSets(exampleSets)
   }, []);
