@@ -12,6 +12,7 @@ import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/Hilber
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
 import { fetchTopCSNs, fetchTopPathsForRegions, rehydrateCSN, calculateCrossScaleNarrationInWorker, narrateRegion, retrieveFullDataForCSN } from '../lib/csn'
 import { fetchFilterSegments } from '../lib/dataFiltering';
+import { fetchGenesetEnrichment } from '../lib/genesetEnrichment';
 import { calculateOrderSums, calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
 import { range, groups, group } from 'd3-array'
 import { Tooltip } from 'react-tooltip'
@@ -722,6 +723,7 @@ function Home() {
   // collect the top N paths for each region
 
   const [topPathsForRegions, setTopPathsForRegions] = useState(null)
+  const [genesInPaths, setGenesInPaths] = useState([])
   const regionsRequestRef = useRef("")
 
 
@@ -761,6 +763,9 @@ function Home() {
             // convert the response into "dehydrated" csn paths with the region added
             let tpr = getDehydrated(activeSet.regions, response.regions)
             setTopPathsForRegions(tpr) 
+            // for geneset enrichment calculation
+            let gip = response.regions.flatMap(d => d.genes[0]?.genes).map(d => d.name)
+            setGenesInPaths(gip)
           }
         }).catch((e) => {
           console.log("error fetching top paths for regions", e)
@@ -783,6 +788,22 @@ function Home() {
       setAllFullCSNS(hydrated)
     }
   }, [topPathsForRegions])
+
+
+  // calculate geneset enrichment for genes in paths
+  useEffect(() => {
+    if(genesInPaths.length) {
+      fetchGenesetEnrichment(genesInPaths)
+      .then((response) => {
+
+        console.log("GENESET ENRICHMENT", response)
+
+      }).catch((e) => {
+        console.log("error calculating geneset enrichments", e)
+      })
+    }
+  }, [genesInPaths])
+
 
   useEffect(() => {
     // console.log("all full csns", allFullCSNS)
