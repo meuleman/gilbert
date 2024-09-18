@@ -6,6 +6,8 @@ import { fromPosition } from '../../lib/regions';
 import Domain20kbRegions from '../ExampleRegions/domains.samples_3517.20kb.strict_max_mi.non_overlapping.gte_HBG2.qualifyingDHS_maxMI_sorted.CT20231212.json'
 import Domain1kbRegions from '../ExampleRegions/domains.samples_3517.1kb.strict_max_mi.non_overlapping.gte_92.2per.maxMI_meanMI_sorted.CT20231212.json'
 import HBG2DHSMaskedRegions from '../ExampleRegions/top_100_HBG2_DHS_masked_regions_across_biosamples_CT20240126.json'
+import OneMbRegions from '../ExampleRegions/1mb_regions.json'
+import { range } from 'd3-array';
 
 function convertExamples(examples) {
   return examples.map(d => {
@@ -25,7 +27,8 @@ const RegionsProvider = ({ children }) => {
     const exampleSets = [
       {"id": "example-1", "name": "Domain 20kb", "regions": convertExamples(Domain20kbRegions), createdAt: new Date(exampleDate).toISOString(), example: true},
       {"id": "example-2", "name": "Domain 1kb", "regions": convertExamples(Domain1kbRegions), createdAt: new Date(exampleDate).toISOString(), example: true},
-      {"id": "example-3", "name": "HBG2 DHS Distance Masked", "regions": convertExamples(HBG2DHSMaskedRegions), createdAt: new Date(exampleDate).toISOString(), example:true}
+      {"id": "example-3", "name": "HBG2 DHS Distance Masked", "regions": convertExamples(HBG2DHSMaskedRegions), createdAt: new Date(exampleDate).toISOString(), example:true},
+      {"id": "example-4", "name": "1MB Top paths", "regions": convertExamples(OneMbRegions), createdAt: new Date(exampleDate).toISOString(), example:true}
     ]
     setSets(exampleSets)
   }, []);

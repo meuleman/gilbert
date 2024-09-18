@@ -580,6 +580,25 @@ function Home() {
   const onData = useCallback((payload) => {
     console.log("data payload", payload)
     setData(payload)
+
+    // const fetchInChunks = async (data, chunkSize) => {
+    //   let combinedResults = [];
+    //   for (let i = 0; i < data.length; i += chunkSize) {
+    //     const chunk = data.slice(i, i + chunkSize);
+    //     const response = await fetchTopPathsForRegions(chunk.map(toPosition), 1);
+    //     console.log("DATA PAYLOAD PATHS", i, response);
+    //     const tpr = getDehydrated(chunk, response.regions);
+    //     console.log("DATA PAYLOAD TPR",i, tpr);
+    //     combinedResults = combinedResults.concat(tpr);
+    //   }
+    //   return combinedResults;
+    // };
+
+    // fetchInChunks(payload.data, 200).then((combinedResults) => {
+    //   const sortedResults = combinedResults.sort((a, b) => b.score - a.score);
+    //   console.log("COMBINED", sortedResults)
+    //   saveSet("1mb", sortedResults, { type: "file", activate: true });
+    // });
   }, [setData])
 
 
@@ -953,6 +972,7 @@ function Home() {
         d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: d.order, to: zoom.order}))
       console.log("groupedFactor active regions", groupedRegions, numRegions)
       setActiveRegionsByCurrentOrder(groupedRegions)
+      // TODO: visualize the non-active regions as well, but different style
     } else {
       console.log("no regions!!")
       setActiveRegionsByCurrentOrder(new Map())
