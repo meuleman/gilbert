@@ -1175,10 +1175,10 @@ function Home() {
               />
           </div> */}
           <div className="header--search">
-            <div className="filter-button">
+            {/* <div className="filter-button">
               <button data-tooltip-id="filter-tooltip" data-tooltip-content="Filter regions by factor">🚥</button>
               <Tooltip id="filter-tooltip"></Tooltip>
-            </div>
+            </div> */}
             {showFilter ? 
               <SelectFactorPreview 
                 activeWidth={400}
