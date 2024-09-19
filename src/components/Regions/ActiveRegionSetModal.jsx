@@ -108,9 +108,9 @@ const ActiveRegionSetModal = ({
           /> : null}
         </div>
         <div className="section geneset-summary">
-          <h3>Geneset enrichment spectrum</h3>
+          {/* <h3>Geneset enrichment spectrum</h3> */}
           {/* TODO: show loading */}
-          <Spectrum />
+          {/* <Spectrum /> */}
         </div>
 
         <div className="section region-sets">

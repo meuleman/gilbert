@@ -1123,6 +1123,7 @@ function Home() {
   }, [height])
 
   const [showLayerLegend, setShowLayerLegend] = useState(true)
+  const [showSpectrum, setShowSpectrum] = useState(false)
   const [showManageRegionSets, setShowManageRegionSets] = useState(false)
   const [showActiveRegionSet, setShowActiveRegionSet] = useState(false)
 
@@ -1131,9 +1132,11 @@ function Home() {
       setShowManageRegionSets(false)
       setShowActiveRegionSet(true)
       setShowLayerLegend(false)
+      setShowSpectrum(true)
       setShowFilter(true)
     } else {
       setShowActiveRegionSet(false)
+      setShowSpectrum(false)
     }
   }, [activeSet])
 
@@ -1225,6 +1228,8 @@ function Home() {
           <LeftToolbar
             showLayerLegend={showLayerLegend}
             onLayerLegend={setShowLayerLegend}
+            showSpectrum={showSpectrum}
+            onSpectrum={setShowSpectrum}
             showManageRegionSets={showManageRegionSets}
             showActiveRegionSet={showActiveRegionSet}
             onManageRegionSets={setShowManageRegionSets}
@@ -1242,6 +1247,9 @@ function Home() {
             handleFactorClick={handleFactorClick}
             searchByFactorInds={searchByFactorInds}
           />
+        <Spectrum 
+          show={showSpectrum}
+        />
           
           
           {/* {selected ? 

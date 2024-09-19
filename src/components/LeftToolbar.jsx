@@ -6,6 +6,8 @@ import './LeftToolbar.css'; // Assuming you have a CSS file for styling
 const LeftToolbar = ({
   showLayerLegend,
   onLayerLegend = () => {},
+  showSpectrum,
+  onSpectrum = () => {},
   showManageRegionSets,
   onManageRegionSets = () => {},
   showActiveRegionSet,
@@ -33,6 +35,11 @@ const LeftToolbar = ({
         <Tooltip id="active-region-set">Active Region Set</Tooltip>
       </div>
       <div className="bottom-group">
+        <button className={`toolbar-button ${showSpectrum ? 'active' : ''}`} data-tooltip-id="show-spectrum"
+          onClick={() => onSpectrum(!showSpectrum)}
+          style={{'filter': showSpectrum ? 'grayscale(100%)' : 'none'}}
+        >🌈</button>
+        <Tooltip id="show-spectrum">{showSpectrum ? "Hide Spectrum" : "Show Spectrum"}</Tooltip>
         <button className={`toolbar-button ${showLayerLegend ? 'active' : ''}`} data-tooltip-id="show-layer-legend"
           onClick={() => onLayerLegend(!showLayerLegend)}
           style={{'filter': showLayerLegend ? 'grayscale(100%)' : 'none'}}

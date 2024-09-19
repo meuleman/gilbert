@@ -140,6 +140,7 @@ const Tooltip = ({ tooltipData, position }) => {
 
 
 const Spectrum = ({
+  show = false,
   windowSize = 100,
   width = 450,
   height = 100,
@@ -251,7 +252,8 @@ const Spectrum = ({
   // TODO: loading indicator
   // console.time("RENDER")
   const Container = (
-    <div className="spectrum-container" id="spectrum-container" style={{ height: height + 'px', position: 'relative', width: width + 'px' }}>
+    <div className="spectrum-container" id="spectrum-container" style={{ height: height + 'px', width: width + 'px' }}>
+      {/* <h3>Geneset enrichment spectrum</h3> */}
       {loadingSpectrum ? <div><Loading text="Loading Geneset Enrichments..."/></div> 
       : <div>
           {activeGenesetEnrichment?.length ? <svg
@@ -278,7 +280,7 @@ const Spectrum = ({
   // console.timeEnd("RENDER")
 
   return (
-    activeGenesetEnrichment?.length || loadingSpectrum ? Container : null
+    show && (activeGenesetEnrichment?.length || loadingSpectrum) ? Container : null
   );
 };
 
