@@ -131,7 +131,7 @@ const InspectorGadget = ({
         <div className="power-modal-selected">
         {/* {showPosition(selected)} */}
           { narration && showPosition(narration.region) }
-          <button onClick={() => setZoomOrder(selected.order + 0.5)}>reset zoom</button>
+          { /* <button onClick={() => setZoomOrder(selected.order + 0.5)}>reset zoom</button> */ }
         </div>
         <div className="header-buttons">
           <div className="close" onClick={onClose}>x</div>
@@ -183,6 +183,7 @@ const InspectorGadget = ({
               </div>
               
           </div>
+          { /* 
           <div className="zoom-text">
             At the {showKbOrder(zOrder)} scale, 
             {zoomedPathRegion?.field ? " the dominant factor is " : "no factors are significant for this path."}
@@ -190,6 +191,7 @@ const InspectorGadget = ({
               {zoomedPathRegion.layer?.name}: {zoomedPathRegion.field?.field}
             </span>: ""}
           </div>
+          */ }
           {/* { loadingFullNarration ? <Loading text={"📊 Preparing literature search..."} /> : <GoogleSearchLink narration={fullNarration} /> } */}
           <GoogleSearchLink narration={narration} />
         </div> : null }
