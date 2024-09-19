@@ -7,7 +7,7 @@ import { filterFields } from '../../layers'
 import FiltersContext from './FiltersContext'
 import Loading from '../Loading';
 import { fetchFilterPreview } from '../../lib/dataFiltering';
-
+import RegionsContext from '../../components/Regions/RegionsContext';
 
 
 const dot = (color = 'transparent') => ({
@@ -87,13 +87,15 @@ const SelectFactor = ({
     setSelectedField(null)
   }, [filters])
 
+  const { activeSet } = useContext(RegionsContext)
+
   const [loadingPreview, setLoadingPreview] = useState(false)
   useEffect(() => {
     console.log("selectedField kicking off preview", selectedField, filters)
     if(selectedField) {
       onPreviewValues(null)
       setLoadingPreview(true)
-      fetchFilterPreview(filtersRef.current, selectedField).then((response) => {
+      fetchFilterPreview(activeSet?.regions, filtersRef.current, selectedField).then((response) => {
         // setPreviewValues(response.preview_fractions)
         console.log("sending home a message", selectedField, response.previews[0].preview)
         onPreviewValues(selectedField, response.previews[0].preview)

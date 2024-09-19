@@ -91,13 +91,18 @@ newFilterFull: {field, dataset_name}
 Returns:
 { preview_fractions: { order: fraction, ...} }
 */
-function fetchFilterPreview(filtersMap, newFilterFull) {
+function fetchFilterPreview(regions, filtersMap, newFilterFull) {
+  const uniqueRegions = getUniqueRegions(regions)
   const filters = getFilters(filtersMap)
   const newFilters = [{"dataset_name": newFilterFull.layer.datasetName, "index": newFilterFull.index}]
 
   const url = "https://explore.altius.org:5001/api/dataFiltering/preview_filter"
-  const postBody = {filters, newFilters}
-  // console.log("POST BODY", postBody)
+  const postBody = {
+    filters, 
+    newFilters,
+    ...(uniqueRegions && { regions: uniqueRegions })
+  }
+  console.log("POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
