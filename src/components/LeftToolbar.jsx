@@ -16,14 +16,14 @@ const LeftToolbar = ({
   return (
     <div className="left-toolbar">
       <div className="top-group">
-        <button className="toolbar-button" data-tooltip-id="region-sets"
+        <button className={`toolbar-button ${showManageRegionSets ? 'active' : ''}`} data-tooltip-id="region-sets"
           onClick={() => {
             if(!showManageRegionSets) onActiveRegionSet(false)
             onManageRegionSets(!showManageRegionSets)
           }}
         >📚</button>
         <Tooltip id="region-sets">Manage Region Sets</Tooltip>
-        <button className="toolbar-button" data-tooltip-id="active-region-set"
+        <button className={`toolbar-button ${showActiveRegionSet ? 'active' : ''}`} data-tooltip-id="active-region-set"
           disabled={!activeSet}
           onClick={() => {
             if(!showActiveRegionSet) onManageRegionSets(false)
@@ -33,7 +33,7 @@ const LeftToolbar = ({
         <Tooltip id="active-region-set">Active Region Set</Tooltip>
       </div>
       <div className="bottom-group">
-        <button className="toolbar-button" data-tooltip-id="show-layer-legend"
+        <button className={`toolbar-button ${showLayerLegend ? 'active' : ''}`} data-tooltip-id="show-layer-legend"
           onClick={() => onLayerLegend(!showLayerLegend)}
           style={{'filter': showLayerLegend ? 'grayscale(100%)' : 'none'}}
         >💠</button>

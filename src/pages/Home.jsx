@@ -11,13 +11,10 @@ import { convertFilterRegions } from '../lib/regionsets';
 import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
 import { fetchTopCSNs, fetchTopPathsForRegions, rehydrateCSN, calculateCrossScaleNarrationInWorker, narrateRegion, retrieveFullDataForCSN } from '../lib/csn'
-import { fetchFilterSegments } from '../lib/dataFiltering';
-import { fetchGenesetEnrichment } from '../lib/genesetEnrichment';
 import { calculateOrderSums, calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
 import { range, groups, group } from 'd3-array'
 import { Tooltip } from 'react-tooltip'
-
-import { FILTER_MAX_REGIONS } from '../lib/constants'
+import Loading from '../components/Loading'
 
 import './Home.css'
 
@@ -80,6 +77,22 @@ import SimSearchResultList from '../components/SimSearch/ResultList'
 // import Spectrum from '../components/Spectrum';
 
 import RegionStrip from '../components/RegionStrip'
+
+// TODO: move this to a shared lib (also in RegionsProvider)
+function getDehydrated(regions, paths) {
+    return paths.flatMap((r,ri) => r.dehydrated_paths.map((dp,i) => {
+      return {
+        ...r,
+        i: r.top_positions[0], // hydrating assumes order 14 position
+        factor_score: r.top_factor_scores[0][i],
+        score: r.top_path_scores[0],
+        genes: r.genes[0]?.genes,
+        scoreType: "full",
+        path: dp,
+        region: regions[ri] // the activeSet region
+      }
+    }))
+  }
 
 
 // declare globally so it isn't recreated on every render
@@ -206,7 +219,7 @@ function Home() {
     }
   }, [initialFilters, setFilters])
 
-  const { sets, activeSet, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
+  const { sets, activeSet, activeRegions, activePaths, activeState, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
 
   useEffect(() => {
     if(showFilter) {
@@ -672,152 +685,106 @@ function Home() {
   const [hoveredTopCSN, setHoveredTopCSN] = useState(null)
   const [csnSort, setCSNSort] = useState("factor")
   const [regionCSNS, setRegionCSNS] = useState([])
-  const [filteredSegments, setFilteredSegments] = useState(null)
-  const [filterOrder, setFilterOrder] = useState(null)
-  const [filteredSegmentsCount, setFilteredSegmentsCount] = useState(null)
-  const [numSegments, setNumSegments] = useState(100) // the number of regions from query set
   const [numRegions, setNumRegions] = useState(100) // the number of regions from activeSet
-  const filterRequestRef = useRef(0)
-
-  // const FILTER_MAX_REGIONS = 1000
-
-
-  // fetch the segments with enrichments for filter factors
-  useEffect(() => {
-    console.log("filters changed in home!!", filters)
-    filterRequestRef.current += 1
-    const currentRequest = filterRequestRef.current
-    // Fetch the filter segments from the API
-    if(hasFilters()) {
-      setFilterLoading("fetching")
-      // take the unique segments from the active set
-      fetchFilterSegments(filters, activeSet?.regions) // FILTER_MAX_REGIONS
-        .then((response) => {
-        console.log("FILTER RESPONSE", response)
-        if(!response) {
-          setFilterLoading("Error!")
-          setFilteredSegments(null)
-          setFilterOrder(null)
-          return
-        }
-        if(currentRequest == filterRequestRef.current) {
-          // convert filtered segments to standard regions
-          setFilteredSegments(response.filtered_segments, response.order) // convertFilterRegions
-          setFilteredSegmentsCount(response.segment_count)
-          setFilterOrder(response.order)
-          setFilterLoading("")
-        }
-      }).catch((e) => {
-        console.log("error fetching top factor csns", e)
-        setFilterLoading("Error!")
-        setFilteredSegments(null)
-        setFilteredSegmentsCount(null)
-        setFilterOrder(null)
-      })
-    } else {
-      setFilteredSegments(null)
-      setFilteredSegmentsCount(null)
-      setFilterOrder(null)
-    }
-  }, [filters])
-
 
   // collect the top N paths for each region
 
-  const [topPathsForRegions, setTopPathsForRegions] = useState(null)
-  const [genesInPaths, setGenesInPaths] = useState([])
-  const regionsRequestRef = useRef("")
+  // const [topPathsForRegions, setTopPathsForRegions] = useState(null)
+  // const [genesInPaths, setGenesInPaths] = useState([])
+  // const regionsRequestRef = useRef("")
 
 
-  function getDehydrated(regions, paths) {
-    console.l
-    return paths.flatMap((r,ri) => r.dehydrated_paths.map((dp,i) => {
-      return {
-        ...r,
-        i: r.top_positions[0], // hydrating assumes order 14 position
-        factor_score: r.top_factor_scores[0][i],
-        score: r.top_path_scores[0],
-        genes: r.genes[0]?.genes,
-        scoreType: "full",
-        path: dp,
-        region: regions[ri] // the activeSet region
-      }
-    }))
-  }
+  // function getDehydrated(regions, paths) {
+  //   console.l
+  //   return paths.flatMap((r,ri) => r.dehydrated_paths.map((dp,i) => {
+  //     return {
+  //       ...r,
+  //       i: r.top_positions[0], // hydrating assumes order 14 position
+  //       factor_score: r.top_factor_scores[0][i],
+  //       score: r.top_path_scores[0],
+  //       genes: r.genes[0]?.genes,
+  //       scoreType: "full",
+  //       path: dp,
+  //       region: regions[ri] // the activeSet region
+  //     }
+  //   }))
+  // }
 
-  useEffect(() => {
-    console.log("ACTIVE SET", activeSet)
-    // if(activeSet && activeSet.name !== "Query Set" && activeSet.regions?.length) {
-    if(activeSet && activeSet.regions?.length) {
-      const regions = activeSet.regions.slice(0, FILTER_MAX_REGIONS).map(toPosition)
-      if(regions.toString() == regionsRequestRef.current) {
-        console.log("cancelling redundant request")
-        return
-      } else {
-        regionsRequestRef.current = regions.toString()
-      }
-      console.log("FETCHING TOP PATHS FOR QUERY SET", regions)
-      setCSNLoading("fetching")
-      fetchTopPathsForRegions(regions, 1)
-        .then((response) => {
-          if(!response) { setTopPathsForRegions(null)
-          } else { 
-            // convert the response into "dehydrated" csn paths with the region added
-            let tpr = getDehydrated(activeSet.regions, response.regions)
-            setTopPathsForRegions(tpr) 
-            // for geneset enrichment calculation
-            let gip = response.regions.flatMap(d => d.genes[0]?.genes).map(d => d.name)
-            setGenesInPaths(gip)
-          }
-        }).catch((e) => {
-          console.log("error fetching top paths for regions", e)
-          setTopPathsForRegions(null)
-        })
-    } else {
-      regionsRequestRef.current = ""
-    }
-  }, [filteredSegments, filterOrder, activeSet])
+  // useEffect(() => {
+  //   console.log("ACTIVE SET", activeSet, activeRegions)
+  //   // if(activeSet && activeSet.name !== "Query Set" && activeSet.regions?.length) {
+  //   if(activeSet && activeRegions?.length) {
+  //     const regions = activeRegions.slice(0, FILTER_MAX_REGIONS).map(toPosition)
+  //     if(regions.toString() == regionsRequestRef.current) {
+  //       console.log("cancelling redundant request")
+  //       return
+  //     } else {
+  //       regionsRequestRef.current = regions.toString()
+  //     }
+  //     console.log("FETCHING TOP PATHS FOR QUERY SET", regions)
+  //     setCSNLoading("fetching")
+  //     fetchTopPathsForRegions(regions, 1)
+  //       .then((response) => {
+  //         if(!response) { setTopPathsForRegions(null)
+  //         } else { 
+  //           // convert the response into "dehydrated" csn paths with the region added
+  //           let tpr = getDehydrated(activeRegions, response.regions)
+  //           setTopPathsForRegions(tpr) 
+  //           // for geneset enrichment calculation
+  //           let gip = response.regions.flatMap(d => d.genes[0]?.genes).map(d => d.name)
+  //           setGenesInPaths(gip)
+  //         }
+  //       }).catch((e) => {
+  //         console.log("error fetching top paths for regions", e)
+  //         setTopPathsForRegions(null)
+  //       })
+  //   } else {
+  //     regionsRequestRef.current = ""
+  //   }
+  // }, [activeRegions, activeSet])
 
-  const [allFullCSNS, setAllFullCSNS] = useState([])
-  useEffect(() => {
-    if(topPathsForRegions?.length) {
-      // console.log("top paths for regions", topPathsForRegions)
-      // TODO: if we get more than 1 path 
-      setCSNLoading("hydrating")
-      console.log("TOP PATHS FOR REGIONS", topPathsForRegions)
-      let hydrated = topPathsForRegions.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
-      console.log("hydrated", hydrated)
-      setAllFullCSNS(hydrated)
-    }
-  }, [topPathsForRegions])
+  // const [allFullCSNS, setAllFullCSNS] = useState([])
+  // useEffect(() => {
+  //   if(topPathsForRegions?.length) {
+  //     // console.log("top paths for regions", topPathsForRegions)
+  //     // TODO: if we get more than 1 path 
+  //     setCSNLoading("hydrating")
+  //     console.log("TOP PATHS FOR REGIONS", topPathsForRegions)
+  //     let hydrated = topPathsForRegions.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
+  //     console.log("hydrated", hydrated)
+  //     setAllFullCSNS(hydrated)
+  //   }
+  // }, [topPathsForRegions])
 
 
-  const [genesetEnrichment, setGenesetEnrichment] = useState([])
+  // const [genesetEnrichment, setGenesetEnrichment] = useState([])
 
-  // calculate geneset enrichment for genes in paths
-  useEffect(() => {
-    if(genesInPaths.length) {
-      fetchGenesetEnrichment(genesInPaths)
-      .then((response) => {
-        setGenesetEnrichment(response)
+  // // calculate geneset enrichment for genes in paths
+  // useEffect(() => {
+  //   if(genesInPaths.length) {
+  //     fetchGenesetEnrichment(genesInPaths)
+  //     .then((response) => {
+  //       setGenesetEnrichment(response)
 
-      }).catch((e) => {
-        console.log("error calculating geneset enrichments", e)
-      })
-    }
-  }, [genesInPaths])
+  //     }).catch((e) => {
+  //       console.log("error calculating geneset enrichments", e)
+  //     })
+  //   }
+  // }, [genesInPaths])
 
 
   useEffect(() => {
     // console.log("all full csns", allFullCSNS)
-    if(allFullCSNS?.length) {
-      let sorted = allFullCSNS.slice(0, numRegions)
+    if(activePaths?.length) {
+      let sorted = activePaths.slice(0, numRegions)
         .sort((a,b) => b.score - a.score)
       console.log("sorted", sorted)
       setTopFullCSNS(sorted)
       setCSNLoading("")
+    } else {
+      setTopFullCSNS([])
     }
-  }, [allFullCSNS, numRegions])
+  }, [activePaths, numRegions])
 
 
 
@@ -992,32 +959,22 @@ function Home() {
 
     } else {
       console.log("no regions!!")
-      setActiveRegionsByCurrentOrder(new Map())
-      setAllFullCSNS([])
-      setTopFullCSNS([])
-    }
-    // TODO should this have its own?
-    if(activeSet && activeSet?.name !== "Query Set") {
-      console.log("CLEARING", activeSet)
-      clearFilters()
-      deleteSet("Query Set")
+      setAllRegionsByCurrentOrder(new Map())
     }
   }, [zoom.order, activeSet])
 
   useEffect(() => {
-    if(topPathsForRegions?.length) {
+    if(activePaths?.length) {
       const groupedActiveRegions = group(
-        topPathsForRegions,
+        activePaths.slice(0, numRegions),
         d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
       setActiveRegionsByCurrentOrder(groupedActiveRegions)
     } else {
       console.log("no regions!!")
       setActiveRegionsByCurrentOrder(new Map())
-      setAllFullCSNS([])
-      setTopFullCSNS([])
     }
 
-  }, [zoom.order, topPathsForRegions])
+  }, [zoom.order, activePaths, numRegions])
 
 
 
@@ -1069,10 +1026,10 @@ function Home() {
   const [intersectedGenes, setIntersectedGenes] = useState([])
   const [associatedGenes, setAssociatedGenes] = useState([])
   useEffect(() => {
-    if(hover && activeSet && activeSet.regions?.length && topPathsForRegions?.length) {
+    if(hover && activeSet && activeSet.regions?.length && activePaths?.length) {
       // find the regions within the hover
       // let regions = overlaps(hover, activeSet.regions)
-      let paths = overlaps(hover, topPathsForRegions, r => r.region)
+      let paths = overlaps(hover, activePaths, r => r.region)
       // console.log("OVERLAPS", hover, topPathsForRegions, paths)
       let intersected = [...new Set(paths.flatMap(p => p.genes.filter(g => g.in_gene).map(g => g.name)))]
       let associated = [...new Set(paths.flatMap(p => p.genes.filter(g => !g.in_gene).map(g => g.name)))]
@@ -1084,7 +1041,7 @@ function Home() {
       setActiveInHovered(null)
     }
 
-  }, [hover, activeSet, topPathsForRegions])
+  }, [hover, activeSet, activePaths])
 
   // const drawFilteredRegions = useCanvasFilteredRegions(filterSegmentsByCurrentOrder)
   const drawActiveFilteredRegions = useCanvasFilteredRegions(activeRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
@@ -1107,14 +1064,9 @@ function Home() {
   }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN]) // setGenesetEnrichment
 
   useEffect(() => {
-    // if no filters, remove the query set
-    if(!hasFilters()) {
-      deleteSet("Query Set")
-    }
     // if the filters change from a user interaction we want to clear the selected
     if(filters.userTriggered) clearSelectedState()
-
-  }, [filters, hasFilters, clearSelectedState, deleteSet])
+  }, [filters, clearSelectedState])
 
   // TODO: consistent clear state
   const handleModalClose = useCallback(() => {
@@ -1173,6 +1125,16 @@ function Home() {
   const [showManageRegionSets, setShowManageRegionSets] = useState(false)
   const [showActiveRegionSet, setShowActiveRegionSet] = useState(false)
 
+  useEffect(() => {
+    if(activeSet) {
+      setShowManageRegionSets(false)
+      setShowActiveRegionSet(true)
+      setShowLayerLegend(false)
+    } else {
+      setShowActiveRegionSet(false)
+    }
+  }, [activeSet])
+
   // useEffect(() => {
   //   if(showManageRegionSets) {
   //     setShowActiveRegionSet(false)
@@ -1191,7 +1153,8 @@ function Home() {
             <LogoNav/>
           </div>
           <div className="header--region-list">
-            <HeaderRegionSetModal 
+            {activeState ? <Loading text={activeState} /> : null }
+            {/* <HeaderRegionSetModal 
               selectedRegion={selected}
               queryRegions={filteredSegments} 
               queryRegionsCount={filteredSegmentsCount}
@@ -1199,16 +1162,16 @@ function Home() {
               queryLoading={filterLoading}
               // onNumSegments={setNumSegments}
               onNumSegments={setNumRegions}
-            />
+            /> */}
             {/* <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
               if(set) { setRegionSet(name) } else { setRegionSet('') }
             }} /> */}
           </div>
-          <div className="header--path-summary">
+          {/* <div className="header--path-summary">
               <SummarizePaths
                 topFullCSNS={topFullCSNS}
               />
-          </div>
+          </div> */}
           <div className="header--search">
             {showFilter ? 
               <SelectFactorPreview 
@@ -1326,17 +1289,19 @@ function Home() {
             </InspectorGadget> : null}
             
             <div>
-              {showManageRegionSets ? <ManageRegionSetsModal 
-              /> : null}
+              <ManageRegionSetsModal 
+                show={showManageRegionSets}
+              /> 
 
-              {showActiveRegionSet ? <ActiveRegionSetModal
+              <ActiveRegionSetModal
+                show={showActiveRegionSet}
                 onNumRegions={setNumRegions}
                 // selectedRegion={selected}
                 // queryRegions={filteredSegments} 
                 // queryRegionsCount={filteredSegmentsCount}
                 // queryRegionOrder={filterOrder}
                 // queryLoading={filterLoading}
-              /> : null}
+              /> 
 
               <FilterSelects
                 show={showFilter}
@@ -1359,7 +1324,7 @@ function Home() {
                 hoveredRegion={hover}
                 factorCsns={topFactorCSNS}
                 fullCsns={topFullCSNS}
-                loading={csnLoading}
+                loading={activeState}
                 shrinkNone={false} 
                 onSelectedCSN={handleSelectedCSNSankey}
                 onHoveredCSN={handleHoveredCSN}
@@ -1507,9 +1472,7 @@ function Home() {
           </div>
         </div>
       </div>
-      <Spectrum 
-        genesetEnrichment={genesetEnrichment}
-      />
+      
       <div className='footer'>
         <div className='footer-row'>
           <div className='linear-tracks'>

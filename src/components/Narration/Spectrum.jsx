@@ -140,7 +140,7 @@ const Tooltip = ({ tooltipData, position }) => {
 const Spectrum = ({
   genesetEnrichment,
   windowSize = 100,
-  width = 500,
+  width = 450,
   height = 100,
   xtickMargin = 40,
   plotXStart = xtickMargin,
@@ -251,6 +251,7 @@ const Spectrum = ({
   // const ySscaleCurve = useMemo(() => d => plotYStop - (d / Math.max(...smoothData)) * (plotYStop - plotYStart), [plotYStop, plotYStart, smoothData]);
   const yScale = useMemo(() => d => plotYStart + (curveHeight) * (1 - (d / Math.max(...smoothData))), [smoothData, plotYStart, curveHeight]);
 
+  // TODO: loading indicator
   // console.time("RENDER")
   const Container = (
     <div className="spectrum-container" id="spectrum-container" style={{ height: height + 'px', position: 'relative', width: width + 'px' }}>

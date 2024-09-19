@@ -10,6 +10,9 @@
   width: 48px;
   padding: .6em 12px;
 }
+.toolbar-button.active {
+  background-color: #999;
+}
 
 /* Additional styles for grouping */
 .top-group {

@@ -11,6 +11,7 @@ import './ManageRegionSetsModal.css'
 
 
 const ManageRegionSetModal = ({
+  show = false,
   selectedRegion = null,
   hoveredRegion = null,
 } = {}) => {
@@ -47,7 +48,7 @@ const ManageRegionSetModal = ({
   }, [saveSet]);
 
   return (
-    <div className={`manage-regionsets-modal`}>
+    <div className={`manage-regionsets-modal ${show ? 'show' : ''}`}>
       <div className={`control-buttons`}>
       </div>
       <div className={`content`}>
@@ -63,7 +64,7 @@ const ManageRegionSetModal = ({
               {sets.map((set, index) => (
               <tr key={index}>
                 <td>
-                  {activeSet == set 
+                  {activeSet?.name == set.name 
                   ? <button onClick={() => handleSelect(null)}>❌</button>
                   : <button onClick={() => handleSelect(set)}>Select</button>}
                   </td>

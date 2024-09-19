@@ -6,6 +6,8 @@ import {showPosition, showInt, showKb} from '../../lib/display'
 import {Tooltip} from 'react-tooltip';
 import { download, parseBED } from '../../lib/regionsets'
 import RegionsContext from './RegionsContext'
+import Spectrum from '../Narration/Spectrum';
+import SummarizePaths from '../Narration/SummarizePaths';
 import { FILTER_MAX_REGIONS } from '../../lib/constants';
 
 import './ActiveRegionSetModal.css'
@@ -14,17 +16,18 @@ import './ActiveRegionSetModal.css'
 
 
 const ActiveRegionSetModal = ({
+  show = false,
   selectedRegion = null,
   hoveredRegion = null,
   onNumRegions = () => {},
 } = {}) => {
 
-  const { sets, activeSet, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
+  const { sets, activeSet, activeRegions, activePaths, activeGenesetEnrichment, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
 
   const [numRegions, setNumRegions] = useState(100)
   useEffect(() => {
-    setNumRegions(Math.min(activeSet?.regions?.length, 100))
-  }, [activeSet])
+    setNumRegions(Math.min(activeRegions?.length, 100))
+  }, [activeRegions])
 
   const [regions, setRegions] = useState([])
   useEffect(() => {
@@ -35,15 +38,14 @@ const ActiveRegionSetModal = ({
     }
   }, [activeSet])
  
-
-  const handleSelect = useCallback((region) => {
-    // setActiveSet(set)
-  }, [])
+  const handleSelect = useCallback((set) => {
+    setActiveSet(set)
+  }, [setActiveSet])
 
   const handleDownload = useCallback((set) => {
     console.log("SET", set)
-    download(set.regions, set.name)
-  }, [])
+    download(activeRegions, set.name)
+  }, [activeRegions])
 
   const handleNumRegions = useCallback((e) => {
     setNumRegions(+e.target.value)
@@ -54,30 +56,24 @@ const ActiveRegionSetModal = ({
 
 
   return (
-    <div className={`active-regionsets-modal`}>
+    <div className={`active-regionsets-modal ${show ? 'show' : ''}`}>
       <div className={`content`}>
         <div className="manage">
           <span className="set-name">{activeSet?.name}</span>
-          <label>
-            <input 
-              type="range" 
-              min="1" 
-              max={Math.min(regions.length, FILTER_MAX_REGIONS)}
-              step={1}
-              value={numRegions} 
-              onChange={handleNumRegions} 
-            />
-            <br></br>
-            {numRegions} / {activeSet?.regions?.length}
-          </label>
+          <span className="set-count">{activeRegions?.length} / {activeSet?.regions?.length} total regions</span>
+          
           <div className="buttons">
+            <button data-tooltip-id={`active-deselect`} onClick={() => handleSelect(null)}>❌</button>
+            <Tooltip id={`active-deselect`}>
+              Deselect active region set
+            </Tooltip>
             <button data-tooltip-id={`active-download-regions`}
               onClick={() => handleDownload(activeSet)}
             >
               ⬇️
             </button>
             <Tooltip id={`active-download-regions`}>
-              Download {numRegions} regions to BED file
+              Download {activeRegions?.length} regions to BED file
             </Tooltip>
             {/* <button data-tooltip-id="active-narrate-regions"
               disabled
@@ -91,7 +87,46 @@ const ActiveRegionSetModal = ({
           </div>
         </div>
 
-        <div className="region-sets">
+        
+
+        {activeSet?.type !== "filter" ? <div className="section active-filters">
+            <span>Active filters: </span>
+            <button>Clear filters</button>
+          </div>
+         : null}
+
+        <div className="section factor-summary">
+          <h3>Factor summary</h3>
+          {/* TODO: show loading */}
+          {activePaths?.length ? <SummarizePaths
+            topFullCSNS={activePaths.slice(0, numRegions)}
+          /> : null}
+        </div>
+        <div className="section geneset-summary">
+          <h3>Geneset enrichment spectrum</h3>
+          {/* TODO: show loading */}
+          {activeGenesetEnrichment?.length ? <Spectrum 
+            genesetEnrichment={activeGenesetEnrichment}
+          /> : null}
+        </div>
+
+        <div className="section region-sets">
+          <h3>Top {numRegions} regions</h3>
+
+          <div className="top-paths-selector">
+            <label>
+            <input 
+              type="range" 
+              min="1" 
+              max={Math.min(regions.length, FILTER_MAX_REGIONS)}
+              step={1}
+              value={numRegions} 
+              onChange={handleNumRegions} 
+            />
+              <i>Show top {numRegions} regions in visualizations.</i>
+          </label>
+        </div>
+
           <table>
             <thead>
               <tr>

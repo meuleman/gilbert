@@ -198,8 +198,7 @@ const SankeyModal = ({
         }}
       >
         <div className="loading-info">
-            {loading === "fetching" ? <Loading text={"Fetching CSNs..."} /> : null}
-            {loading === "hydrating" ? <Loading text={"Hydrating CSNs..."} /> : null}
+            {loading ? <Loading text={loading} /> : null}
         </div>
         {view === "heatmap" ? 
           <div className={`csn-lines ${loading ? "loading-csns" : ""}`}>

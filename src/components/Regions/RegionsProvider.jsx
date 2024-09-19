@@ -1,6 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useContext, useRef } from 'react';
 import RegionsContext from './RegionsContext';
-import { fromPosition } from '../../lib/regions';
+import FiltersContext from '../ComboLock/FiltersContext';
+import { fromPosition, toPosition } from '../../lib/regions';
+import { fetchFilterSegments } from '../../lib/dataFiltering';
+import { FILTER_MAX_REGIONS } from '../../lib/constants'
+import { fetchTopPathsForRegions, rehydrateCSN } from '../../lib/csn'
+import { fetchGenesetEnrichment } from '../../lib/genesetEnrichment';
+import { csnLayers, variantLayers } from '../../layers'
+
 // import { v4 as uuidv4 } from 'uuid';
 
 import Domain20kbRegions from '../ExampleRegions/domains.samples_3517.20kb.strict_max_mi.non_overlapping.gte_HBG2.qualifyingDHS_maxMI_sorted.CT20231212.json'
@@ -35,7 +42,16 @@ RegionSet
 
 const RegionsProvider = ({ children }) => {
   const [sets, setSets] = useState([])
-  const [activeSet, setActiveSet] = useState(null)
+  const [activeSet, setActiveSetter] = useState(null)
+  const activeSetRef = useRef(null)
+  useEffect(() => {
+    activeSetRef.current = activeSet
+  }, [activeSet])
+
+  const [activeState, setActiveState] = useState(null) // for loading and state updates
+  const [activeRegions, setActiveRegions] = useState(null) // for the active regions in the active set
+  const [activePaths, setActivePaths] = useState(null) // for the paths associated with active regions
+  const { filters, setFilters, clearFilters, hasFilters } = useContext(FiltersContext);
 
   useEffect(() => {
     const exampleDate = "2024-01-01"
@@ -87,17 +103,167 @@ const RegionsProvider = ({ children }) => {
     });
   }, []);
 
+  const setActiveSet = (set) => {
+    setActiveSetter(set)
+    setActiveState("")
+    setActiveRegions(set?.regions)
+    setActivePaths(null)
+    setActiveGenesetEnrichment([])
+  }
+  const clearActive = () => {
+    setActiveSet(null)
+    setActiveState(null)
+    setActiveRegions(null)
+    setActivePaths(null)
+    setActiveGenesetEnrichment([])
+  }
   const deleteSet = useCallback((name) => {
     setSets(prevSets => prevSets.filter(set => set.name !== name));
-    if (activeSet && activeSet.name === name) {
-      setActiveSet(null);
+    if (activeSetRef.current && activeSetRef.current.name === name) {
+      clearActive()
     }
-  }, [activeSet]);
+  }, []);
+
+  // fetch filtered regions given filters and potentially "background" regions
+  // this function assumes there are filters active
+  const filterRequestRef = useRef(0)
+  const requestFilteredRegions = useCallback((filters, regions, callback = () => {}) => {
+    filterRequestRef.current += 1
+    const currentRequest = filterRequestRef.current
+    // Fetch the filter segments from the API
+    setActiveState("fetching regions")
+    // take the unique segments from the active set
+    fetchFilterSegments(filters, regions)
+      .then((response) => {
+      if(!response) {
+        setActiveState("Error fetching regions!")
+        setActiveRegions(null)
+        callback(null)
+        return
+      }
+      if(currentRequest == filterRequestRef.current) {
+        // convert filtered segments to standard regions
+        setActiveRegions(response.filtered_segments) // convertFilterRegions
+        // setActiveRegionsCount(response.segment_count)
+        setActiveState("")
+        callback(response.filtered_segments)
+      }
+    }).catch((e) => {
+      setActiveState("Error fetching regions!")
+      setActiveRegions(null)
+      callback(null)
+    })
+  }, [])
+
+  // when the filters change, we manage the query set logic
+  useEffect(() => {
+    if(activeSetRef.current && activeSetRef.current.type !== "filter") {
+      if(hasFilters()) {
+        // filter the active set down based on filters and its regions
+        requestFilteredRegions(filters, activeSetRef.current.regions)
+      } else {
+        // no filters so we just activate the original regions in the set
+        setActiveRegions(activeSetRef.current.regions)
+      }
+    } else {
+      // no existing activeSet
+      if(hasFilters()) {
+        console.log("filter set, with filters", filters)
+        requestFilteredRegions(filters, null, (regions) => {
+          if(regions) {
+            saveSet("Filter Set", regions, {type: "filter", activate: true})
+            setActiveRegions(regions)
+          }
+        })
+      } else {
+        console.log("deleting filter set")
+        deleteSet("Filter Set")
+      }
+    }
+  }, [hasFilters, filters, saveSet, deleteSet, requestFilteredRegions])
+
+
+  // ACTIVE PATH logic
+  const [genesInPaths, setGenesInPaths] = useState([])
+  const pathsRequestRef = useRef("")
+
+
+  function getDehydrated(regions, paths) {
+    return paths.flatMap((r,ri) => r.dehydrated_paths.map((dp,i) => {
+      return {
+        ...r,
+        i: r.top_positions[0], // hydrating assumes order 14 position
+        factor_score: r.top_factor_scores[0][i],
+        score: r.top_path_scores[0],
+        genes: r.genes[0]?.genes,
+        scoreType: "full",
+        path: dp,
+        region: regions[ri] // the activeSet region
+      }
+    }))
+  }
+
+  useEffect(() => {
+    // if(activeSet && activeSet.name !== "Query Set" && activeSet.regions?.length) {
+    if(activeSet && activeRegions?.length) {
+      const regions = activeRegions.slice(0, FILTER_MAX_REGIONS).map(toPosition)
+      if(regions.toString() == pathsRequestRef.current) {
+        console.log("cancelling redundant request")
+        return
+      } else {
+        pathsRequestRef.current = regions.toString()
+      }
+      console.log("FETCHING TOP PATHS FOR QUERY SET", regions)
+      setActiveState("fetching top paths")
+      fetchTopPathsForRegions(regions, 1)
+        .then((response) => {
+          if(!response) { setActivePaths(null)
+          } else { 
+            // convert the response into "dehydrated" csn paths with the region added
+            let tpr = getDehydrated(activeRegions, response.regions)
+            let hydrated = tpr.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
+            setActivePaths(hydrated) 
+            setActiveState("")
+            // for geneset enrichment calculation
+            let gip = response.regions.flatMap(d => d.genes[0]?.genes).map(d => d.name)
+            setGenesInPaths(gip)
+          }
+        }).catch((e) => {
+          console.log("error fetching top paths for regions", e)
+          setActivePaths(null)
+        })
+    } else {
+      pathsRequestRef.current = ""
+    }
+  }, [activeRegions, activeSet])
+
+
+  const [activeGenesetEnrichment, setActiveGenesetEnrichment] = useState([])
+
+  // calculate geneset enrichment for genes in paths
+  useEffect(() => {
+    if(genesInPaths.length) {
+      fetchGenesetEnrichment(genesInPaths)
+      .then((response) => {
+        setActiveGenesetEnrichment(response)
+      }).catch((e) => {
+        console.log("error calculating geneset enrichments", e)
+      })
+    } else {
+      setActiveGenesetEnrichment([])
+    }
+  }, [genesInPaths])
+
  
+
   return (
     <RegionsContext.Provider value={{ 
       sets, 
       activeSet, 
+      activeState,
+      activeRegions,
+      activePaths,
+      activeGenesetEnrichment,
       saveSet, 
       deleteSet,
       setActiveSet 

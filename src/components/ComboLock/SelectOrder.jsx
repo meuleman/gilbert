@@ -149,15 +149,7 @@ const SelectOrder = ({
   useEffect(() => {
     // small enough number of regions, available order
     if(activeSet?.regions.length && activeSet?.regions.length < maxBGRegionSize && ([4,5,6,7,8,9].includes(order))) {
-      // take the unique segments from the active set
-      let bgRegions = activeSet?.regions
-        .map(d => ({chromosome: d.chromosome, i: d.i, order: d.order}))
-        .filter((value, index, self) => 
-          index === self.findIndex((t) => (
-            t.chromosome === value.chromosome && t.i === value.i && t.order === value.order
-          ))
-        )
-      fetchOrderPreview(bgRegions, filterFields, [order]).then((response) => {
+      fetchOrderPreview(activeSet?.regions, filterFields, [order]).then((response) => {
         console.log("MULTI-FILTER RESPONSE", response, order)
         handleNewCounts(response.previews)
       })

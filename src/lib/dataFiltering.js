@@ -33,6 +33,16 @@ function getFilters(filtersMap, region) {
   return filters
 }
 
+function getUniqueRegions(regions) {
+  if(!regions) return null
+  const seen = new Set();
+  return regions
+    .map(d => ({chromosome: d.chromosome, i: d.i, order: d.order}))
+    .filter((region) => {
+      const key = `${region.chromosome}-${region.i}-${region.order}`;
+      return seen.has(key) ? false : seen.add(key);
+    });
+}
 
 /*
 Get the top N segments filtered by filters
@@ -48,16 +58,7 @@ function fetchFilterSegments(filtersMap, regions, N) {
   const filters = getFilters(filtersMap)
 
   // remove duplicate regions
-  const seen = new Set();
-  let uniqueRegions = null
-  if(regions) {
-    uniqueRegions = regions
-      .map(d => ({chromosome: d.chromosome, i: d.i, order: d.order}))
-      .filter((region) => {
-        const key = `${region.chromosome}-${region.i}-${region.order}`;
-        return seen.has(key) ? false : seen.add(key);
-      });
-  } 
+  let uniqueRegions = getUniqueRegions(regions)
 
   const url = "https://explore.altius.org:5001/api/dataFiltering/data_filtering"
   // const postBody = N ? {filters, N} : {filters}
@@ -123,12 +124,14 @@ Returns:
 { previews: [{preview: { order: fraction, ...}, dataset_name, index}, ...] }
 */
 function fetchOrderPreview(regions, newFiltersList, orders) {
+
+  let uniqueRegions = getUniqueRegions(regions)
   const newFilters = newFiltersList.map(d => {
     return {"dataset_name": d.layer.datasetName, "index": d.index}
   })
 
   const url = "https://explore.altius.org:5001/api/dataFiltering/preview_filter"
-  const postBody = {regions, newFilters, orders, normalize: false}
+  const postBody = {regions: uniqueRegions, newFilters, orders, normalize: false}
   console.log("POST BODY", postBody)
   return axios({
     method: 'POST',
