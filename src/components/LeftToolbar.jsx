@@ -13,7 +13,7 @@ const LeftToolbar = ({
   showActiveRegionSet,
   onActiveRegionSet = () => {},
 } = {}) => {
-  const { sets, activeSet, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
+  const { sets, activeSet, saveSet, deleteSet, setActiveSet, activeGenesetEnrichment } = useContext(RegionsContext)
 
   return (
     <div className="left-toolbar">
@@ -36,10 +36,10 @@ const LeftToolbar = ({
       </div>
       <div className="bottom-group">
         <button className={`toolbar-button ${showSpectrum ? 'active' : ''}`} data-tooltip-id="show-spectrum"
-          onClick={() => onSpectrum(!showSpectrum)}
+          onClick={() => activeGenesetEnrichment?.length && onSpectrum(!showSpectrum)}
           style={{'filter': showSpectrum ? 'grayscale(100%)' : 'none'}}
         >🌈</button>
-        <Tooltip id="show-spectrum">{showSpectrum ? "Hide Spectrum" : "Show Spectrum"}</Tooltip>
+        <Tooltip id="show-spectrum">{showSpectrum ? "Hide Spectrum" : activeGenesetEnrichment?.length ? "Show Spectrum": "No Geneset Enrichments Found"}</Tooltip>
         <button className={`toolbar-button ${showLayerLegend ? 'active' : ''}`} data-tooltip-id="show-layer-legend"
           onClick={() => onLayerLegend(!showLayerLegend)}
           style={{'filter': showLayerLegend ? 'grayscale(100%)' : 'none'}}

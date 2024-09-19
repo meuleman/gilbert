@@ -219,7 +219,7 @@ function Home() {
     }
   }, [initialFilters, setFilters])
 
-  const { sets, activeSet, activeRegions, activePaths, activeState, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
+  const { sets, activeSet, activeRegions, activePaths, activeState, saveSet, deleteSet, setActiveSet, activeGenesetEnrichment } = useContext(RegionsContext)
 
   useEffect(() => {
     if(showFilter) {
@@ -1132,13 +1132,14 @@ function Home() {
       setShowManageRegionSets(false)
       setShowActiveRegionSet(true)
       setShowLayerLegend(false)
-      setShowSpectrum(true)
       setShowFilter(true)
+      
+      activeGenesetEnrichment?.length === 0 ? setShowSpectrum(false) : setShowSpectrum(true)
     } else {
       setShowActiveRegionSet(false)
       setShowSpectrum(false)
     }
-  }, [activeSet])
+  }, [activeSet, activeGenesetEnrichment])
 
   // useEffect(() => {
   //   if(showManageRegionSets) {
