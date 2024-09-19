@@ -18,8 +18,9 @@ const SummarizePaths = ({
     let preferentialFactors = topFullCSNS.flatMap(path => 
       path.path.filter(d => d.field)
       .map(s => 
-        ({field: s.field?.field, layerName: s.layer?.name, order: s.order, color: s.field?.color})
+        ({field: s.field?.field, value: s.field?.value, layerName: s.layer?.name, order: s.order, color: s.field?.color})
       )
+      .filter(d => d.layerName.toLowerCase().indexOf("occ") > -1 ? d.value > 0.5 : d.value > 1)
     )
     // count the occurrence of each factor, sort by count, and take the top N
     let topFactors = groups(preferentialFactors, d => d.field + "|" + d.layerName)

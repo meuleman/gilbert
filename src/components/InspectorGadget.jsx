@@ -107,9 +107,10 @@ const InspectorGadget = ({
   const handlePowerData = useCallback((data) => {
     // when the power data is done loading (when Narration changes)
     // then we load full
-    console.log("power data", data)
+    console.log("IG: power data", data)
+    console.log("IG: narration", narration)
     retrieveFullDataForCSN(narration).then((response) => {
-      console.log("FULL DATA", response)
+      console.log("IG: full narration", response)
       setFullNarration(response)
       setLoadingFullNarration(false)
     })
@@ -167,11 +168,8 @@ const InspectorGadget = ({
                 //   handleFilter(field, p.order)
                 // }}
                 /> 
-              {loadingFullNarration ? 
-              <Loading text={"📊"} /> 
-              : 
               <ScoreBars
-                csn={fullNarration} 
+                csn={loadingFullNarration ? narration : fullNarration} 
                 order={zOrder} 
                 highlight={true}
                 selected={true}
@@ -182,7 +180,6 @@ const InspectorGadget = ({
                 onHover={handleZoom}
                 onClick={(c) => { console.log("narration", c)}}
                 />
-              }
               </div>
               
           </div>
@@ -193,7 +190,8 @@ const InspectorGadget = ({
               {zoomedPathRegion.layer?.name}: {zoomedPathRegion.field?.field}
             </span>: ""}
           </div>
-          { loadingFullNarration ? <Loading text={"📊 Preparing literature search..."} /> : <GoogleSearchLink narration={fullNarration} /> }
+          {/* { loadingFullNarration ? <Loading text={"📊 Preparing literature search..."} /> : <GoogleSearchLink narration={fullNarration} /> } */}
+          <GoogleSearchLink narration={narration} />
         </div> : null }
         <div className="power-modal-children">
           {children}

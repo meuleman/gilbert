@@ -223,7 +223,7 @@ const RegionsProvider = ({ children }) => {
       return {
         ...r,
         i: r.top_positions[0], // hydrating assumes order 14 position
-        factor_score: r.top_factor_scores[0][i],
+        factors: r.top_factor_scores[0],
         score: r.top_path_scores[0],
         genes: r.genes[0]?.genes,
         scoreType: "full",

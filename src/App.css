@@ -39,7 +39,10 @@
   grid-column: span 3
 }
 
-.header--brand,
+.header--brand {
+  flex: 0 0 auto;
+  z-index: 20;
+}
 .header--search {
   flex: 0 0 auto;
   z-index: 20;
