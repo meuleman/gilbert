@@ -53,6 +53,8 @@ import ManageRegionSetsModal from '../components/Regions/ManageRegionSetsModal'
 import ActiveRegionSetModal from '../components/Regions/ActiveRegionSetModal'
 import SummarizePaths from '../components/Narration/SummarizePaths'
 
+import Spectrum from '../components/Narration/Spectrum';
+
 
 // layer configurations
 import { fullList as layers, csnLayers, variantLayers, countLayers } from '../layers'
@@ -74,7 +76,7 @@ import { getSet } from '../components/Regions/localstorage'
 import SelectedModal from '../components/SelectedModal'
 import InspectorGadget from '../components/InspectorGadget'
 import SimSearchResultList from '../components/SimSearch/ResultList'
-import GenesetEnrichment from '../components/SimSearch/GenesetEnrichment';
+// import GenesetEnrichment from '../components/SimSearch/GenesetEnrichment';
 // import Spectrum from '../components/Spectrum';
 
 import RegionStrip from '../components/RegionStrip'
@@ -293,7 +295,7 @@ function Home() {
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
   const [csnMethod, setCsnMethod] = useState("sum")
   const [csnEnrThreshold, setCsnEnrThreshold] = useState(0)
-  const [genesetEnrichment, setGenesetEnrichment] = useState(null)
+  // const [genesetEnrichment, setGenesetEnrichment] = useState(null)
 
   const selectedRef = useRef(selected);
   useEffect(() => {
@@ -305,7 +307,7 @@ function Home() {
       // TODO: need a reliable way to clear state when deselecting a region
       setSelected(null)
       setSimilarRegions([])
-      setGenesetEnrichment(null)
+      // setGenesetEnrichment(null)
       setCrossScaleNarration([])
     }
   }, [initialSelectedRegion])
@@ -513,17 +515,17 @@ function Home() {
           setSelectedOrder(zoom.order)
           processSimSearchResults(zoom.order, SBFResult)
           setSimSearchMethod("SBF")
-          GenesetEnrichment(SBFResult.simSearch, zoom.order).then((enrichmentResult) => {
-            setGenesetEnrichment(enrichmentResult)
-          })
+          // GenesetEnrichment(SBFResult.simSearch, zoom.order).then((enrichmentResult) => {
+          //   setGenesetEnrichment(enrichmentResult)
+          // })
         })
       } else if(simSearchMethod == "Region") {
         SimSearchRegion(selected, selected.order, layer, setSearchByFactorInds, newSearchByFactorInds, simSearchMethod).then((regionResult) => {
           processSimSearchResults(selected.order, regionResult)
           console.log("REGION RESULT", regionResult)
-          GenesetEnrichment(regionResult.simSearch.slice(1), zoom.order).then((enrichmentResult) => {
-            setGenesetEnrichment(enrichmentResult)
-          })
+          // GenesetEnrichment(regionResult.simSearch.slice(1), zoom.order).then((enrichmentResult) => {
+          //   setGenesetEnrichment(enrichmentResult)
+          // })
         })
       }
     } else {
@@ -531,7 +533,7 @@ function Home() {
       processSimSearchResults(zoom.order, {simSearch: null, factors: null, method: null, layer: null})
       setSimSearchMethod(null)
     }
-  }, [selected, zoom, setSearchByFactorInds, processSimSearchResults, setGenesetEnrichment, simSearchMethod, setSelected, setSelectedNarration, setSelectedOrder, layer])
+  }, [selected, zoom, setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, setSelectedNarration, setSelectedOrder, layer])  // setGenesetEnrichment
 
   
   const [showHilbert, setShowHilbert] = useState(false)
@@ -790,13 +792,14 @@ function Home() {
   }, [topPathsForRegions])
 
 
+  const [genesetEnrichment, setGenesetEnrichment] = useState([])
+
   // calculate geneset enrichment for genes in paths
   useEffect(() => {
     if(genesInPaths.length) {
       fetchGenesetEnrichment(genesInPaths)
       .then((response) => {
-
-        console.log("GENESET ENRICHMENT", response)
+        setGenesetEnrichment(response)
 
       }).catch((e) => {
         console.log("error calculating geneset enrichments", e)
@@ -1097,11 +1100,11 @@ function Home() {
     setSimilarRegions([])
     setSelectedNarration(null)
     setSimSearchMethod(null)
-    setGenesetEnrichment(null)
+    // setGenesetEnrichment(null)
     setSelectedTopCSN(null)
     setRegionCSNS([])
     // setPowerNarration(null)
-  }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setGenesetEnrichment, setSelectedTopCSN])
+  }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN]) // setGenesetEnrichment
 
   useEffect(() => {
     // if no filters, remove the query set
@@ -1504,6 +1507,9 @@ function Home() {
           </div>
         </div>
       </div>
+      <Spectrum 
+        genesetEnrichment={genesetEnrichment}
+      />
       <div className='footer'>
         <div className='footer-row'>
           <div className='linear-tracks'>
