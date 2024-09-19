@@ -242,7 +242,7 @@ const Spectrum = ({
         const genesetName = genesetOrder[topIndexInWindow.index];
         const enrichment = topIndexInWindow.score;
         setTooltipData({ index: topIndexInWindow.index, genesetName, enrichment: Math.round(enrichment * 10000) / 10000 });
-        setTooltipPosition({ x: e.clientX - parentOffset.x, y: e.clientY - parentOffset.y });
+        setTooltipPosition({ x: e.clientX - parentOffset.x, y: e.clientY - parentOffset.y - 75 });
       }
     };
 
