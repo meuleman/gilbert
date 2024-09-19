@@ -110,9 +110,7 @@ const ActiveRegionSetModal = ({
         <div className="section geneset-summary">
           <h3>Geneset enrichment spectrum</h3>
           {/* TODO: show loading */}
-          {activeGenesetEnrichment?.length ? <Spectrum 
-            genesetEnrichment={activeGenesetEnrichment}
-          /> : null}
+          {activeGenesetEnrichment?.length ? <Spectrum /> : null}
         </div>
 
         <div className="section region-sets">
