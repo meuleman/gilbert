@@ -101,7 +101,7 @@ const ActiveRegionSetModal = ({
          : null}
 
         <div className="section factor-summary">
-          <h3>Top Factors accross {activePaths?.length} regions</h3>
+          <h3>Top Factors accross {numRegions} regions</h3>
           {/* TODO: show loading */}
           {activePaths?.length ? <SummarizePaths
             topFullCSNS={activePaths.slice(0, numRegions)}
@@ -114,7 +114,7 @@ const ActiveRegionSetModal = ({
         </div>
 
         <div className="section region-sets">
-          <h3>Top {numRegions} regions</h3>
+          <h3>Top {numRegions} regions used in visualizations</h3>
 
           <div className="top-paths-selector">
             <label>
@@ -126,20 +126,17 @@ const ActiveRegionSetModal = ({
               value={numRegions} 
               onChange={handleNumRegions} 
             />
-              <i>Show top {numRegions} regions in visualizations.</i>
           </label>
         </div>
 
-          <table>
-            <thead>
-              <tr>
-                <th>Position</th>
-                <th>Score</th>
-              </tr>
-            </thead>
-          </table>
-          <div className="table-body-container">
+          <div className="table-body-container" style={{ fontSize: '12px' }}>
             <table>
+              <thead>
+                <tr>
+                  <th>Position</th>
+                  <th>Score</th>
+                </tr>
+              </thead>
               <tbody>
                 {regions.slice(0, numRegions).map((region, index) => (
                   <tr key={index}>
