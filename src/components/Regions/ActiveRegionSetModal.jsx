@@ -88,8 +88,6 @@ const ActiveRegionSetModal = ({
           </div>
         </div>
 
-        
-
         {activeSet?.type !== "filter" && hasFilters() ? <div className="section active-filters">
             <span>Active filters: </span>
             <span className="active-filters-list">
@@ -103,7 +101,7 @@ const ActiveRegionSetModal = ({
          : null}
 
         <div className="section factor-summary">
-          <h3>Factor summary</h3>
+          <h3>Top Factors accross {activePaths?.length} regions</h3>
           {/* TODO: show loading */}
           {activePaths?.length ? <SummarizePaths
             topFullCSNS={activePaths.slice(0, numRegions)}

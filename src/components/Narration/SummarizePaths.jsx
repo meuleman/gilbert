@@ -1,7 +1,9 @@
 // A component to display narration when clicking over hilbert cells
 
 import { useState, useEffect } from 'react'
-import { showKb } from '../../lib/display'
+import { groups } from 'd3-array'
+import {Tooltip} from 'react-tooltip';
+import { showKbOrder } from '../../lib/display'
 import './SummarizePaths.css'
 
 const SummarizePaths = ({
@@ -9,58 +11,63 @@ const SummarizePaths = ({
   N=5,
 } = {}) => {
   const [pathSummary, setPathSummary] = useState("")
+  const [topFactors, setTopFactors] = useState([])
   useEffect(() => {
+    if(!topFullCSNS || !topFullCSNS.length) return
     // collect all the factors that are preferentially listed in the top paths
-    let preferentialFactors = topFullCSNS.flatMap(path => path.path.map(s => ({field: s.field?.field, layerName: s.layer?.name, order: s.order})))
+    let preferentialFactors = topFullCSNS.flatMap(path => 
+      path.path.filter(d => d.field)
+      .map(s => 
+        ({field: s.field?.field, layerName: s.layer?.name, order: s.order, color: s.field?.color})
+      )
+    )
     // count the occurrence of each factor, sort by count, and take the top N
-    let topFactors = Object.entries(preferentialFactors.reduce((acc, factor) => {
-      if (factor.field && factor.layerName) {
-        let key = `${factor.field}|${factor.layerName}`
-        acc[key] = {count: (acc[key]?.count || 0) + 1, orders: (acc[key]?.orders || []).concat(factor.order)}
-      }
-      return acc
-    }, {})).map(([factor, value]) => ({factor, count: value.count, orders: value.orders})).sort((a, b) => b.count - a.count).slice(0, N)
+    let topFactors = groups(preferentialFactors, d => d.field + "|" + d.layerName)
+      .map(([key, values]) => {
+        let [field, layerName] = key.split("|")
+        let count = values.length
+        let color = values[0].color
+        let topOrders = groups(values, d => d.order)
+          .sort((a, b) => b[1].length - a[1].length)
+        return { field, layerName, count, color, topOrders, order: topOrders[0][0] }
+      })
+      .sort((a, b) => b.count - a.count)
+      .slice(0, N)
 
     // add top N factors to the summary
     if (topFactors.length) {
-      // let summary = `Out of ${topFullCSNS.length} paths, `
-      let summary = ""
-      topFactors.forEach((factor, i) => {
-        let [factorName, dataset] = factor.factor.split("|")
-        // find the most prominent order for this factor
-        let topOrder = Object.entries(factor.orders.reduce((acc, order) => {
-          acc[order] = (acc[order] || 0) + 1
-          return acc
-        }, {})).map(([order, count]) => ({order, count})).sort((a, b) => b.count - a.count)[0]
-        // convert order to scale
-        let topScale = showKb(4 ** (14 - parseInt(topOrder.order)))
-        summary += `${factorName} (${parseInt((factor.count / topFullCSNS.length) * 100)}%, ${topScale})`
+      setTopFactors(topFactors)
+    } else {
+      setTopFactors([])
+    }
 
-        // summary += `${factor.count} preferentially list ${factorName} (${dataset}, ${topScale})`
-        
-        // if ((i < topFactors.length - 1) && (topFactors.length > 2)) {
-        //   summary += ", "
-        // } 
-        // if (i == topFactors.length - 2) {
-        //   summary += " and "
-        // }
-        // if (i == topFactors.length - 1) {
-        //   summary += "."
-        // }
-        if (i < topFactors.length - 1) {
-          summary += ", "
-        } else {
-          summary += "."
-        }
-      })
-
-      setPathSummary(summary)
-    } else {setPathSummary("")}
-
-  }, [topFullCSNS])
+  }, [topFullCSNS, N])
 
   return (
-    <div className='path-summary'>{pathSummary}</div>
+    <div className='path-summary'>
+      {topFactors.map((factor, index) => (
+        <div key={factor.factor}
+          className='path-summary-factor'
+          data-tooltip-id={`factor-tooltip-${index}`}
+          data-tooltip-html={`Field: ${factor.field}<br>Layer: ${factor.layerName}<br>Count: ${factor.count}<br>Orders: ${factor.topOrders?.map(o => `${showKbOrder(o[0])}: ${o[1].length}`).join(', ')}`}
+        >
+          <div className="path-summary-factor-percent"
+          style={{
+            width: `${factor.count / topFullCSNS.length * 100}%`,
+            backgroundColor: factor.color,
+          }}>
+          </div>
+          <div className="path-summary-factor-name">
+            <span>{factor.field} ({showKbOrder(factor.order)})</span>
+            <span>{Math.round(factor.count / topFullCSNS.length * 100)}%</span>
+          </div>
+        </div>
+      ))}
+
+      {topFactors.map((factor, index) => (
+        <Tooltip key={`tooltip-factor-${index}`} id={`factor-tooltip-${index}`} />
+      ))}
+    </div>
   )
 }
 export default SummarizePaths
