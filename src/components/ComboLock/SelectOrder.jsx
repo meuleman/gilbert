@@ -8,6 +8,8 @@ import {Tooltip} from 'react-tooltip';
 import FiltersContext from './FiltersContext'
 import { fetchOrderPreview } from '../../lib/dataFiltering';
 import RegionsContext from '../../components/Regions/RegionsContext';
+import Loading from '../Loading';
+
 
 const dot = (color = 'transparent') => ({
   alignItems: 'center',
@@ -144,16 +146,22 @@ const SelectOrder = ({
   }
 
   const { sets, activeSet, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
+  const [previewLoading, setPreviewLoading] = useState(false)
 
   // to run fetchOrderPreview (currently only for orders 4-9)
   useEffect(() => {
     // small enough number of regions, available order
     if(activeSet?.regions.length && activeSet?.regions.length < maxBGRegionSize && ([4,5,6,7,8,9].includes(order))) {
-      fetchOrderPreview(activeSet?.regions, filterFields, [order]).then((response) => {
-        console.log("MULTI-FILTER RESPONSE", response, order)
-        handleNewCounts(response.previews)
-      })
-      setShowCounts(true)
+      setPreviewLoading(true)
+      setTimeout(() => {
+        // give the top paths call a chance to go first
+        fetchOrderPreview(activeSet?.regions, filterFields, [order]).then((response) => {
+          // console.log("MULTI-FILTER RESPONSE", response, order)
+          handleNewCounts(response.previews)
+          setPreviewLoading(false)
+          setShowCounts(true)
+        })
+      }, 500)
 
     // too many regions, order too large with small enough region set
     } else if(activeSet?.regions.length) {
@@ -271,7 +279,7 @@ const SelectOrder = ({
           options={allFieldsGrouped}
           styles={colourStyles(isActive, restingWidth, activeWidth)}
           value={selectedField}
-          isDisabled={disabled}
+          isDisabled={disabled || previewLoading}
           // menuPortalTarget={document.body}
           onChange={handleChange}
           onFocus={() => setIsActive(true)}
@@ -287,6 +295,8 @@ const SelectOrder = ({
           )}
         />
       </div>
+
+      {previewLoading ? <Loading text={"."} /> : null}
 
 
         

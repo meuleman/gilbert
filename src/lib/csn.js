@@ -51,13 +51,13 @@ function fetchTopCSNs(filtersMap, region, scoreType, diversity, N) {
 
   const url = "https://explore.altius.org:5001/api/csns/top_paths"
   const postBody = {filters, scoreType, region, diversity, N}
-  console.log("POST BODY", postBody)
+  // console.log("CSN POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
     data: postBody
   }).then(response => {
-    console.log("DATA", response.data)
+    // console.log("CSN DATA", response.data)
     return response.data
   }).catch(error => {
     console.error(`error:     ${JSON.stringify(error)}`);
@@ -81,13 +81,13 @@ function fetchFilterPreview(filtersMap, region, newFilterFull) {
 
   const url = "https://explore.altius.org:5001/api/csns/preview_filter"
   const postBody = {filters, region, newFilter}
-  console.log("POST BODY", postBody)
+  // console.log("FILTER PREVIEW POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
     data: postBody
   }).then(response => {
-    console.log("FILTER PREVIEW DATA", response.data)
+    // console.log("FILTER PREVIEW DATA", response.data)
     return response.data
   }).catch(error => {
     console.error(`error:     ${JSON.stringify(error)}`);
@@ -108,13 +108,13 @@ Returns:
 function fetchTopPathsForRegions(regions, N) {
   const url = "https://explore.altius.org:5001/api/csns/top_paths_for_regions"
   const postBody = {regions, N}
-  console.log("POST BODY", postBody)
+  // console.log("TOP PATHS POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
     data: postBody
   }).then(response => {
-    console.log("TOP PATHS FOR REGIONS DATA", response.data)
+    // console.log("TOP PATHS FOR REGIONS DATA", response.data)
     return response.data
   }).catch(error => {
     console.error(`error:     ${JSON.stringify(error)}`);

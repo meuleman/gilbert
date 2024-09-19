@@ -16,13 +16,13 @@ function fetchGenesetEnrichment(genes) {
 
   const url = "https://explore.altius.org:5001/api/genesetEnrichment/geneset_enrichment"
   const postBody = {genes}
-  console.log("POST BODY", postBody)
+  // console.log("GENESET POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
     data: postBody
   }).then(response => {
-    console.log("GENESET ENRICHMENTS", response.data)
+    // console.log("GENESET ENRICHMENTS", response.data)
     return response.data
   }).catch(error => {
     console.error(`error:     ${JSON.stringify(error)}`);

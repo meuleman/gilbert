@@ -1076,8 +1076,9 @@ function Home() {
   const handleClear = useCallback(() => {
     clearSelectedState()
     clearFilters()
+    setActiveSet(null)
     setShowFilter(false)
-  }, [clearSelectedState, clearFilters, setShowFilter])
+  }, [clearSelectedState, clearFilters, setShowFilter, setActiveSet])
 
   const handleClick = useCallback((hit, order, double) => {
     // console.log("app click handler", hit, order, double)
@@ -1130,6 +1131,7 @@ function Home() {
       setShowManageRegionSets(false)
       setShowActiveRegionSet(true)
       setShowLayerLegend(false)
+      setShowFilter(true)
     } else {
       setShowActiveRegionSet(false)
     }

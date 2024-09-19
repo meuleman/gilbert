@@ -72,3 +72,9 @@
 .active-regionsets-modal .table-body-container table {
   table-layout: fixed;
 }
+
+.active-regionsets-modal .active-filters-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}

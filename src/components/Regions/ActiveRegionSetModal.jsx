@@ -2,10 +2,11 @@ import { useState, useCallback, useEffect, useRef, useMemo, useContext } from 'r
 
 import { sum, max } from 'd3-array'
 import Loading from '../Loading'
-import {showPosition, showInt, showKb} from '../../lib/display'
+import {showPosition, showInt, showKbOrder} from '../../lib/display'
 import {Tooltip} from 'react-tooltip';
 import { download, parseBED } from '../../lib/regionsets'
 import RegionsContext from './RegionsContext'
+import FiltersContext from '../ComboLock/FiltersContext'
 import Spectrum from '../Narration/Spectrum';
 import SummarizePaths from '../Narration/SummarizePaths';
 import { FILTER_MAX_REGIONS } from '../../lib/constants';
@@ -23,6 +24,7 @@ const ActiveRegionSetModal = ({
 } = {}) => {
 
   const { sets, activeSet, activeRegions, activePaths, activeGenesetEnrichment, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
+  const { hasFilters, setFilters, listFilters } = useContext(FiltersContext)
 
   const [numRegions, setNumRegions] = useState(100)
   useEffect(() => {
@@ -43,7 +45,6 @@ const ActiveRegionSetModal = ({
   }, [setActiveSet])
 
   const handleDownload = useCallback((set) => {
-    console.log("SET", set)
     download(activeRegions, set.name)
   }, [activeRegions])
 
@@ -89,9 +90,15 @@ const ActiveRegionSetModal = ({
 
         
 
-        {activeSet?.type !== "filter" ? <div className="section active-filters">
+        {activeSet?.type !== "filter" && hasFilters() ? <div className="section active-filters">
             <span>Active filters: </span>
-            <button>Clear filters</button>
+            <span className="active-filters-list">
+            {listFilters().map(f => <span key={f.label}>
+              <span style={{"display": "inline-block", "background-color": f.color, "width": "10px", "height": "10px", "margin-right":"4px"}}>
+              </span>
+              {f.label} ({showKbOrder(f.order)})</span>)}
+            </span>
+            <button onClick={() => setFilters({})}>❌ Clear filters</button>
           </div>
          : null}
 

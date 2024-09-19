@@ -6,6 +6,7 @@ import {showPosition, showInt, showKb} from '../../lib/display'
 import {Tooltip} from 'react-tooltip';
 import { download, parseBED } from '../../lib/regionsets'
 import RegionsContext from './RegionsContext'
+import FiltersContext from '../ComboLock/FiltersContext'
 
 import './ManageRegionSetsModal.css'
 
@@ -17,6 +18,7 @@ const ManageRegionSetModal = ({
 } = {}) => {
 
   const { sets, activeSet, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
+  const { setFilters } = useContext(FiltersContext)
 
   useEffect(() => {
     console.log("manage, sets!", sets)
@@ -24,7 +26,10 @@ const ManageRegionSetModal = ({
 
   const handleSelect = useCallback((set) => {
     setActiveSet(set)
-  }, [setActiveSet])
+    if(set.type !== "filter") {
+      setFilters({})
+    }
+  }, [setActiveSet, setFilters])
 
   const handleDownload = useCallback((set) => {
     console.log("SET", set)

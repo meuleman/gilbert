@@ -22,10 +22,11 @@ const FiltersProvider = ({ children }) => {
     setFilters({ userTriggered: user })
   }
 
-  const hasFilters = useCallback(() => Object.keys(filters).filter(k => k !== "userTriggered").length > 0, [filters])
+  const listFilters = useCallback(() => Object.keys(filters).filter(k => k !== "userTriggered").map(k => filters[k]), [filters])
+  const hasFilters = useCallback(() => listFilters().length > 0, [listFilters])
   
   return (
-    <FiltersContext.Provider value={{ filters, handleFilter, setFilters, clearFilters, hasFilters}}>
+    <FiltersContext.Provider value={{ filters, handleFilter, setFilters, clearFilters, hasFilters, listFilters}}>
       {children}
     </FiltersContext.Provider>
   );

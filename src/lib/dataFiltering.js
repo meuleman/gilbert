@@ -67,13 +67,13 @@ function fetchFilterSegments(filtersMap, regions, N) {
     ...(N && { N }),
     ...(uniqueRegions && { regions: uniqueRegions })
   };
-  console.log("POST BODY", postBody)
+  // console.log("POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
     data: postBody
   }).then(response => {
-    console.log("DATA", response.data)
+    // console.log("FILTERED SEGMENTS", response.data)
     return response.data
   }).catch(error => {
     console.error(`error:     ${JSON.stringify(error)}`);
@@ -97,13 +97,13 @@ function fetchFilterPreview(filtersMap, newFilterFull) {
 
   const url = "https://explore.altius.org:5001/api/dataFiltering/preview_filter"
   const postBody = {filters, newFilters}
-  console.log("POST BODY", postBody)
+  // console.log("POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
     data: postBody
   }).then(response => {
-    console.log("FILTER PREVIEW DATA", response.data)
+    // console.log("FILTER PREVIEW DATA", response.data)
     return response.data
   }).catch(error => {
     console.error(`error:     ${JSON.stringify(error)}`);
@@ -132,13 +132,13 @@ function fetchOrderPreview(regions, newFiltersList, orders) {
 
   const url = "https://explore.altius.org:5001/api/dataFiltering/preview_filter"
   const postBody = {regions: uniqueRegions, newFilters, orders, normalize: false}
-  console.log("POST BODY", postBody)
+  // console.log("POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
     data: postBody
   }).then(response => {
-    console.log("FILTER PREVIEW DATA", response.data)
+    // console.log("FILTER PREVIEW DATA", response.data)
     return response.data
   }).catch(error => {
     console.error(`error:     ${JSON.stringify(error)}`);

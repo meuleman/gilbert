@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useContext, useMemo } from 'react'
 import FiltersContext from './ComboLock/FiltersContext'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
-import { showKb, showPosition } from '../lib/display'
+import { showKbOrder, showPosition } from '../lib/display'
 import GoogleSearchLink from './Narration/GoogleSearchLink'
 import ZoomLine from './Narration/ZoomLine'
 import ScoreBars from './Narration/ScoreBars'
@@ -187,7 +187,7 @@ const InspectorGadget = ({
               
           </div>
           <div className="zoom-text">
-            At the {showKb(Math.pow(4, 14 - Math.floor(zOrder)))} scale, 
+            At the {showKbOrder(zOrder)} scale, 
             {zoomedPathRegion?.field ? " the dominant factor is " : "no factors are significant for this path."}
             {zoomedPathRegion?.field ? <span>
               {zoomedPathRegion.layer?.name}: {zoomedPathRegion.field?.field}

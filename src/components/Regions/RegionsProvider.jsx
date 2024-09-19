@@ -43,6 +43,11 @@ RegionSet
 const RegionsProvider = ({ children }) => {
   const [sets, setSets] = useState([])
   const [activeSet, setActiveSetter] = useState(null)
+
+  const setsRef = useRef(sets)
+  useEffect(() => {
+    setsRef.current = sets
+  }, [sets])
   const activeSetRef = useRef(null)
   useEffect(() => {
     activeSetRef.current = activeSet
@@ -159,16 +164,41 @@ const RegionsProvider = ({ children }) => {
   useEffect(() => {
     if(activeSetRef.current && activeSetRef.current.type !== "filter") {
       if(hasFilters()) {
+        console.log("ARF: we have activeset and filters, filtering and making derived")
         // filter the active set down based on filters and its regions
-        requestFilteredRegions(filters, activeSetRef.current.regions)
-      } else {
+        let regions = activeSetRef.current.regions
+        let name = activeSetRef.current.name
+        if(activeSetRef.current.type === "derived") {
+          console.log("DERIVED", activeSetRef.current.derived)
+          let set = setsRef.current.find(s => s.name === activeSetRef.current.derived)
+          console.log("SET", set, sets)
+          regions = set?.regions
+          name = set?.name
+        }
+        requestFilteredRegions(filters, regions, (newRegions) => {
+          if(newRegions) {
+            saveSet("Filtered: " + name, newRegions, {
+              type: "derived", 
+              activate: true, 
+              derived: name
+            })
+            setActiveRegions(newRegions)
+          }
+        })
+      } else if(activeSetRef.current && activeSetRef.current.type === "derived") {
+        console.log("ARF: no more filters, set to the derived one", activeSetRef.current)
         // no filters so we just activate the original regions in the set
-        setActiveRegions(activeSetRef.current.regions)
+        let set = setsRef.current.find(s => s.name === activeSetRef.current.derived)
+        console.log("SET", set)
+        setActiveSet(set)
+      } else {
+        console.log("ARF:whats this logic", activeSetRef.current)
       }
     } else {
+      console.log("ARF: no existing activeSet or its a filter type")
       // no existing activeSet
       if(hasFilters()) {
-        console.log("filter set, with filters", filters)
+        console.log("ARF: filter set, with filters", filters)
         requestFilteredRegions(filters, null, (regions) => {
           if(regions) {
             saveSet("Filter Set", regions, {type: "filter", activate: true})
@@ -176,7 +206,7 @@ const RegionsProvider = ({ children }) => {
           }
         })
       } else {
-        console.log("deleting filter set")
+        console.log("ARF: deleting filter set")
         deleteSet("Filter Set")
       }
     }
@@ -213,7 +243,7 @@ const RegionsProvider = ({ children }) => {
       } else {
         pathsRequestRef.current = regions.toString()
       }
-      console.log("FETCHING TOP PATHS FOR QUERY SET", regions)
+      // console.log("FETCHING TOP PATHS FOR QUERY SET", regions)
       setActiveState("fetching top paths")
       fetchTopPathsForRegions(regions, 1)
         .then((response) => {
