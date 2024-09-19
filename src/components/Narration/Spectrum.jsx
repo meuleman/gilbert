@@ -153,15 +153,22 @@ const Spectrum = ({
   
 } = {}) => {
   
-  const { sets, activeSet, activeRegions, activePaths, activeGenesetEnrichment, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
+  const { activeRegions, activeGenesetEnrichment } = useContext(RegionsContext)
 
   const [enrichments, setEnrichments] = useState(new Array(genesetOrder.length).fill(0));
   const [smoothData, setSmoothData] = useState(new Array(genesetOrder.length).fill(0));
+  
   const [loadingSpectrum, setLoadingSpectrum] = useState(false);
+  useEffect(() => {
+    if(activeRegions?.length && activeGenesetEnrichment === null) {
+      setLoadingSpectrum(true)
+    } else {
+      setLoadingSpectrum(false)
+    }
+  }, [activeGenesetEnrichment, activeRegions])
   
   useEffect(() => {
-    if(activeGenesetEnrichment.length) {
-      setLoadingSpectrum(true)
+    if(activeGenesetEnrichment?.length) {
 
       console.time("INIT")
       let enrichments = new Array(genesetOrder.length).fill(0)
@@ -245,31 +252,33 @@ const Spectrum = ({
   // console.time("RENDER")
   const Container = (
     <div className="spectrum-container" id="spectrum-container" style={{ height: height + 'px', position: 'relative', width: width + 'px' }}>
-      {/* {loadingSpectrum ? <div><Loading text="Loading Geneset Enrichments..."/></div> : null} */}
-      {activeGenesetEnrichment.length ? <svg
-        ref={svgRef}
-        id="spectrum-svg"
-        className="spectrum"
-        width={width}
-        height={height}
-        // style={{ position: 'absolute' }}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-      >
+      {loadingSpectrum ? <div><Loading text="Loading Geneset Enrichments..."/></div> 
+      : <div>
+          {activeGenesetEnrichment?.length ? <svg
+            ref={svgRef}
+            id="spectrum-svg"
+            className="spectrum"
+            width={width}
+            height={height}
+            // style={{ position: 'absolute' }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          >
 
-        <SpectrumBar data={smoothData} xScale={xScale} y={plotYStop} height={spectrumBarHeight} colorbarX={colorscale} />
-        <Curve data={smoothData} xScale={xScale} yScale={yScale} height={plotYStop} color={"#000"} />
-        <YTicks data={smoothData} yScale={yScale} xScale={xScale} numTicks={5} />
-        <Labels labels={labels} xScale={xScale} />
-      </svg> : <svg></svg>}
-      <Tooltip tooltipData={tooltipData} position={tooltipPosition} />
-
+            <SpectrumBar data={smoothData} xScale={xScale} y={plotYStop} height={spectrumBarHeight} colorbarX={colorscale} />
+            <Curve data={smoothData} xScale={xScale} yScale={yScale} height={plotYStop} color={"#000"} />
+            <YTicks data={smoothData} yScale={yScale} xScale={xScale} numTicks={5} />
+            <Labels labels={labels} xScale={xScale} />
+          </svg> : <svg></svg>}
+          <Tooltip tooltipData={tooltipData} position={tooltipPosition} />
+        </div>
+      }
     </div>
   )
   // console.timeEnd("RENDER")
 
   return (
-    Container
+    activeGenesetEnrichment?.length || loadingSpectrum ? Container : null
   );
 };
 

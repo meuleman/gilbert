@@ -113,14 +113,14 @@ const RegionsProvider = ({ children }) => {
     setActiveState("")
     setActiveRegions(set?.regions)
     setActivePaths(null)
-    setActiveGenesetEnrichment([])
+    setActiveGenesetEnrichment(null)
   }
   const clearActive = () => {
     setActiveSet(null)
     setActiveState(null)
     setActiveRegions(null)
     setActivePaths(null)
-    setActiveGenesetEnrichment([])
+    setActiveGenesetEnrichment(null)
   }
   const deleteSet = useCallback((name) => {
     setSets(prevSets => prevSets.filter(set => set.name !== name));
@@ -268,7 +268,7 @@ const RegionsProvider = ({ children }) => {
   }, [activeRegions, activeSet])
 
 
-  const [activeGenesetEnrichment, setActiveGenesetEnrichment] = useState([])
+  const [activeGenesetEnrichment, setActiveGenesetEnrichment] = useState(null)
 
   // calculate geneset enrichment for genes in paths
   useEffect(() => {
@@ -280,7 +280,7 @@ const RegionsProvider = ({ children }) => {
         console.log("error calculating geneset enrichments", e)
       })
     } else {
-      setActiveGenesetEnrichment([])
+      setActiveGenesetEnrichment(null)
     }
   }, [genesInPaths])
 
