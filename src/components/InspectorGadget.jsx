@@ -3,8 +3,7 @@ import FiltersContext from './ComboLock/FiltersContext'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
 import { showKb, showPosition } from '../lib/display'
-import CSNSentence from './Narration/Sentence'
-import CSNLine from './Narration/Line'
+import GoogleSearchLink from './Narration/GoogleSearchLink'
 import ZoomLine from './Narration/ZoomLine'
 import ScoreBars from './Narration/ScoreBars'
 import Power from './Narration/Power'
@@ -194,6 +193,7 @@ const InspectorGadget = ({
               {zoomedPathRegion.layer?.name}: {zoomedPathRegion.field?.field}
             </span>: ""}
           </div>
+          { loadingFullNarration ? <Loading text={"📊 Preparing literature search..."} /> : <GoogleSearchLink narration={fullNarration} /> }
         </div> : null }
         <div className="power-modal-children">
           {children}
