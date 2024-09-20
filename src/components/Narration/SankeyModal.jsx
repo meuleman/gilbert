@@ -34,14 +34,14 @@ const SankeyModal = ({
 
   const [loadingCSN, setLoadingCSN] = useState(false)
 
-  const [showPanel, setShowPanel] = useState(true)
+  const [showPanel, setShowPanel] = useState(false)
   const [showControls, setShowControls] = useState(false)
 
   const { filters, hasFilters } = useContext(FiltersContext)
 
-  useEffect(() => {
-    setShowPanel(show)
-  }, [show])
+  // useEffect(() => {
+  //   setShowPanel(show)
+  // }, [show])
 
 
   useEffect(() => {
