@@ -64,7 +64,7 @@ function tooltipContent(region, layer, orientation) {
       {/* <span className="position">Order: {region.order}</span> */}
       <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>
         {/* {layer?.name || "-"} */}
-        Winning factor
+        Preferred factor
       </span>
       {fields.map((f,i) => (
         <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
@@ -102,8 +102,10 @@ function tooltipContent(region, layer, orientation) {
           </span>
         </div>
       ))}
+      { /*
       <span style={{borderTop: "1px solid gray", marginTop: "4px"}}>
         Path score: {showFloat(region.score)}</span>
+      */ }
     </div>
 
   )

@@ -177,6 +177,21 @@ export default function ScoreBars({
               </text>
             </g>
           })}
+          {
+            <text
+              y={h + scoreHeight}
+              x={width / 2}
+              textAnchor="middle"
+              fontFamily="Courier"
+              fontSize={11}
+              fill="#111"
+              paintOrder="stroke"
+              fontWeight={"bold"}
+            >
+              {showFloat(csn.score)}
+            </text>
+          }
+
         </g> : null}
 
       </svg>
