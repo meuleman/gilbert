@@ -197,16 +197,18 @@ const Spectrum = ({
   const yScale = useMemo(() => d => plotYStart + (curveHeight) * (1 - (d / Math.max(...smoothData))), [smoothData, plotYStart, curveHeight]);
   // const yScaleInvert = useMemo(() => y => (1 - (y - plotYStart) / curveHeight) * Math.max(...smoothData), [plotYStart, curveHeight, smoothData]);
 
-  const colorbarX = i => {
-    let c = colors[i % colors.length];
-    let r = Math.round(c[0] * 255);
-    let g = Math.round(c[1] * 255);
-    let b = Math.round(c[2] * 255);
-    let rgbColor = `rgb(${r}, ${g}, ${b})`;
-    let hsl = d3.hsl(rgbColor);
-    hsl.l = 0.5;
-    return hsl.toString();
-  };
+  const colorbarX = useMemo(() => {
+    return (i) => {
+      let c = colors[i % colors.length];
+      let r = Math.round(c[0] * 255);
+      let g = Math.round(c[1] * 255);
+      let b = Math.round(c[2] * 255);
+      let rgbColor = `rgb(${r}, ${g}, ${b})`;
+      let hsl = d3.hsl(rgbColor);
+      hsl.l = 0.5;
+      return hsl.toString();
+    };
+  }, [colors]);
 
   
   // for tooltip
