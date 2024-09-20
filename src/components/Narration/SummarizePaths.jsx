@@ -31,7 +31,7 @@ const SummarizePaths = ({
         let color = values[0].color
         let topOrders = groups(values, d => d.order)
           .sort((a, b) => b[1].length - a[1].length)
-        return { field, layerName, count, color, topOrders, order: topOrders[0][0] }
+        return { field, layerName, count, color, topOrders, order: topOrders[0][0], total: topFullCSNS.length }
       })
       .sort((a, b) => b.count - a.count)
       .slice(0, N)
@@ -56,13 +56,13 @@ const SummarizePaths = ({
         >
           <div className="path-summary-factor-percent"
           style={{
-            width: `${factor.count / topFullCSNS?.length * 100}%`,
+            width: `${factor.count / factor.total * 100}%`,
             backgroundColor: factor.color,
           }}>
           </div>
           <div className="path-summary-factor-name">
             <span>{factor.field} ({showKbOrder(factor.order)})</span>
-            <span>{Math.round(factor.count / topFullCSNS?.length * 100)}%</span>
+            <span>{Math.round(factor.count / factor.total * 100)}%</span>
           </div>
         </div>
       ))}
