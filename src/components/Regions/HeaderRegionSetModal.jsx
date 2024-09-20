@@ -4,6 +4,7 @@ import Loading from '../Loading'
 import RegionsContext from './RegionsContext'
 import FiltersContext from '../ComboLock/FiltersContext'
 import { download } from '../../lib/regionsets'
+import { showKbOrder } from '../../lib/display'
 import {Tooltip} from 'react-tooltip';
 
 import './HeaderRegionSetModal.css'
@@ -59,7 +60,8 @@ const HeaderRegionSetModal = ({
         {activeRegions?.length ? 
         <div className="query-controls">
           <label>
-            <span className="header-active-count" data-tooltip-id="header-active-count">{numTopRegions}</span> / <span>{activeRegions?.length} regions</span>
+            <span className="header-active-count" data-tooltip-id="header-active-count">{numTopRegions}</span> / <span>{activeRegions?.length} (
+             {activeRegions?.[0] ? showKbOrder(activeRegions?.[0]?.order) : ""}) regions</span>
             <Tooltip id="header-active-count">
               {numTopRegions} top regions used in visualizations
             </Tooltip>
