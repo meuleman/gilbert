@@ -1,7 +1,19 @@
-.regionset-modal {
+.header-regionset-modal {
   position: relative;
   z-index: 20;
 }
 
-.regionset-modal .query-controls {
+.header-regionset-modal .header-active-count{
+  border-bottom: 1px dashed gray;
+}
+
+.header-regionset-modal .query-controls span {
+  line-height: 40px;
+}
+.header-regionset-modal .query-controls input {
+  margin: 0px 4px;
+  height: 10px;
+}
+.header-regionset-modal .query-controls button {
+  margin: 2px 4px;
 }

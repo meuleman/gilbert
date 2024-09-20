@@ -3,7 +3,6 @@ import RegionsContext from './RegionsContext';
 import FiltersContext from '../ComboLock/FiltersContext';
 import { fromPosition, toPosition } from '../../lib/regions';
 import { fetchFilterSegments } from '../../lib/dataFiltering';
-import { FILTER_MAX_REGIONS } from '../../lib/constants'
 import { fetchTopPathsForRegions, rehydrateCSN } from '../../lib/csn'
 import { fetchGenesetEnrichment } from '../../lib/genesetEnrichment';
 import { csnLayers, variantLayers } from '../../layers'
@@ -57,6 +56,12 @@ const RegionsProvider = ({ children }) => {
   const [activeRegions, setActiveRegions] = useState(null) // for the active regions in the active set
   const [activePaths, setActivePaths] = useState(null) // for the paths associated with active regions
   const { filters, setFilters, clearFilters, hasFilters } = useContext(FiltersContext);
+
+  const defaultTopRegions = 100
+  const [numTopRegions, setNumTopRegions] = useState(defaultTopRegions)
+  useEffect(() => {
+    setNumTopRegions(Math.min(activeRegions?.length, defaultTopRegions))
+  }, [activeRegions])
 
   useEffect(() => {
     const exampleDate = "2024-01-01"
@@ -236,7 +241,9 @@ const RegionsProvider = ({ children }) => {
   useEffect(() => {
     // if(activeSet && activeSet.name !== "Query Set" && activeSet.regions?.length) {
     if(activeSet && activeRegions?.length) {
-      const regions = activeRegions.slice(0, FILTER_MAX_REGIONS).map(toPosition)
+      // TODO: eventually we will slice the activeRegions by an interval
+      // currently we always get the top 100 (defaultTopRegions) and allow numTopRegions to be betwen 0 and 100
+      const regions = activeRegions.slice(0, defaultTopRegions).map(toPosition)
       if(regions.toString() == pathsRequestRef.current) {
         console.log("cancelling redundant request")
         return
@@ -294,6 +301,8 @@ const RegionsProvider = ({ children }) => {
       activeRegions,
       activePaths,
       activeGenesetEnrichment,
+      numTopRegions,
+      setNumTopRegions,
       saveSet, 
       deleteSet,
       setActiveSet 

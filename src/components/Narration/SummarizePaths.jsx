@@ -8,6 +8,7 @@ import './SummarizePaths.css'
 
 const SummarizePaths = ({
   topFullCSNS,
+  show = false,
   N=5,
 } = {}) => {
   const [pathSummary, setPathSummary] = useState("")
@@ -45,22 +46,23 @@ const SummarizePaths = ({
   }, [topFullCSNS, N])
 
   return (
-    <div className='path-summary'>
-      {topFactors.map((factor, index) => (
-        <div key={factor.factor}
+    <div className={'path-summary' + (show ? ' show' : ' hide')}>
+      {!topFactors?.length && <div>No factors found</div>}
+      {topFactors?.map((factor, index) => (
+        <div key={"factor-" + index}
           className='path-summary-factor'
           data-tooltip-id={`factor-tooltip-${index}`}
           data-tooltip-html={`Field: ${factor.field}<br>Layer: ${factor.layerName}<br>Count: ${factor.count}<br>Orders: ${factor.topOrders?.map(o => `${showKbOrder(o[0])}: ${o[1].length}`).join(', ')}`}
         >
           <div className="path-summary-factor-percent"
           style={{
-            width: `${factor.count / topFullCSNS.length * 100}%`,
+            width: `${factor.count / topFullCSNS?.length * 100}%`,
             backgroundColor: factor.color,
           }}>
           </div>
           <div className="path-summary-factor-name">
             <span>{factor.field} ({showKbOrder(factor.order)})</span>
-            <span>{Math.round(factor.count / topFullCSNS.length * 100)}%</span>
+            <span>{Math.round(factor.count / topFullCSNS?.length * 100)}%</span>
           </div>
         </div>
       ))}

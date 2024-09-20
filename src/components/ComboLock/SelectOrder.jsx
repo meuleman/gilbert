@@ -296,7 +296,7 @@ const SelectOrder = ({
         />
       </div>
 
-      {previewLoading ? <Loading text={"."} /> : null}
+      {previewLoading ? <Loading text={""} /> : null}
 
 
         

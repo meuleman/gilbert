@@ -259,7 +259,7 @@ const Spectrum = ({
   // TODO: loading indicator
   // console.time("RENDER")
   const Container = (
-    <div className="spectrum-container" id="spectrum-container" style={{ height: height + 'px', width: width + 'px' }}>
+    <div className={"spectrum-component" + (show ? " show": " hide")} style={{ height: height + 'px', width: width + 'px' }}>
       {/* <h3>Geneset enrichment spectrum</h3> */}
       {loadingSpectrum ? <div><Loading text="Loading Geneset Enrichments..."/></div> 
       : <div>
@@ -287,7 +287,7 @@ const Spectrum = ({
   // console.timeEnd("RENDER")
 
   return (
-    show && (activeGenesetEnrichment?.length || loadingSpectrum) ? Container : null
+    Container
   );
 };
 

@@ -16,9 +16,17 @@
   }
 }
 
+.loading {
+  display: flex;
+  flex-direction: row;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+}
+
 .loading span {
   display: inline-block;
-  animation: wave 1.5s infinite;
+  /* animation: wave 1.5s infinite; */
 }
 
 .loading.emoji {
@@ -29,4 +37,20 @@
 
 .loading.error {
   color: red;
+}
+
+.spinner-div {
+  margin: auto;
+  margin-right: 4px;
+  border: 2px solid #111;
+  border-radius: 50%;
+  border-top: 2px solid #eee;
+  width: 20px;
+  height: 20px;
+  animation: spinner 1s linear infinite;
+}
+
+@keyframes spinner {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

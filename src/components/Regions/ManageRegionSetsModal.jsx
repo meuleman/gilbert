@@ -36,7 +36,6 @@ const ManageRegionSetModal = ({
     download(set.regions, set.name)
   }, [])
 
-  const [recentlySaved, setRecentlySaved] = useState(null)
   const handleFileChange = useCallback((event) => {
     const file = event.target.files[0];
     if (file) {
@@ -46,11 +45,12 @@ const ManageRegionSetModal = ({
         // Process file content into an array
         const data = parseBED(content);
         // Store in local storage
+        setFilters({})
         saveSet(file.name, data, {type: "file", activate: true})
       };
       reader.readAsText(file);
     }
-  }, [saveSet]);
+  }, [saveSet, setFilters]);
 
   return (
     <div className={`manage-regionsets-modal ${show ? 'show' : ''}`}>

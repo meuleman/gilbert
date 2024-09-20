@@ -8,12 +8,14 @@ const LeftToolbar = ({
   onLayerLegend = () => {},
   showSpectrum,
   onSpectrum = () => {},
+  showTopFactors,
+  onTopFactors = () => {},
   showManageRegionSets,
   onManageRegionSets = () => {},
   showActiveRegionSet,
   onActiveRegionSet = () => {},
 } = {}) => {
-  const { sets, activeSet, saveSet, deleteSet, setActiveSet, activeGenesetEnrichment } = useContext(RegionsContext)
+  const { activeSet, activeGenesetEnrichment, activePaths } = useContext(RegionsContext)
 
   return (
     <div className="left-toolbar">
@@ -33,13 +35,26 @@ const LeftToolbar = ({
           }}
         >📘</button>
         <Tooltip id="active-region-set">Active Region Set</Tooltip>
+
+        <button className={`toolbar-button ${showTopFactors ? 'active' : ''}`} data-tooltip-id="show-topfactors"
+          onClick={() => activePaths?.length && onTopFactors(!showTopFactors)}
+          disabled={!activePaths?.length}
+          style={{
+            'filter': showTopFactors ? 'grayscale(100%)' : 'none',
+            'transform': 'rotate(90deg) scaleX(-1)'
+          }}
+        >📊</button>
+        <Tooltip id="show-topfactors">{showTopFactors ? "Hide Top Factors" : "Show Top Factors"}</Tooltip>
+
       </div>
+
       <div className="bottom-group">
         <button className={`toolbar-button ${showSpectrum ? 'active' : ''}`} data-tooltip-id="show-spectrum"
           onClick={() => activeGenesetEnrichment?.length && onSpectrum(!showSpectrum)}
+          disabled={!activeGenesetEnrichment?.length}
           style={{'filter': showSpectrum ? 'grayscale(100%)' : 'none'}}
         >🌈</button>
-        <Tooltip id="show-spectrum">{showSpectrum ? "Hide Spectrum" : activeGenesetEnrichment?.length ? "Show Spectrum": "No Geneset Enrichments Found"}</Tooltip>
+        <Tooltip id="show-spectrum">{showSpectrum ? "Hide Geneset Enrichment Spectrum" : activeGenesetEnrichment?.length ? "Show Geneset Enrichment Spectrum": "No Geneset Enrichments Found"}</Tooltip>
         <button className={`toolbar-button ${showLayerLegend ? 'active' : ''}`} data-tooltip-id="show-layer-legend"
           onClick={() => onLayerLegend(!showLayerLegend)}
           style={{'filter': showLayerLegend ? 'grayscale(100%)' : 'none'}}

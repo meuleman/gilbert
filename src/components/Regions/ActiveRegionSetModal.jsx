@@ -20,16 +20,18 @@ const ActiveRegionSetModal = ({
   show = false,
   selectedRegion = null,
   hoveredRegion = null,
-  onNumRegions = () => {},
 } = {}) => {
 
-  const { sets, activeSet, activeRegions, activePaths, activeGenesetEnrichment, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
-  const { hasFilters, setFilters, listFilters } = useContext(FiltersContext)
+  const { 
+    activeSet, 
+    activeRegions, 
+    numTopRegions, 
+    setNumTopRegions, 
+    activePaths, 
+    setActiveSet 
+  } = useContext(RegionsContext)
 
-  const [numRegions, setNumRegions] = useState(100)
-  useEffect(() => {
-    setNumRegions(Math.min(activeRegions?.length, 100))
-  }, [activeRegions])
+  const { hasFilters, setFilters, listFilters } = useContext(FiltersContext)
 
   const [regions, setRegions] = useState([])
   useEffect(() => {
@@ -39,32 +41,29 @@ const ActiveRegionSetModal = ({
       setRegions([])
     }
   }, [activeSet])
- 
-  const handleSelect = useCallback((set) => {
-    setActiveSet(set)
-  }, [setActiveSet])
+
+  const handleDeselect = useCallback(() => {
+    setActiveSet(null)
+    setFilters({})
+  }, [setActiveSet, setFilters])
 
   const handleDownload = useCallback((set) => {
     download(activeRegions, set.name)
   }, [activeRegions])
 
   const handleNumRegions = useCallback((e) => {
-    setNumRegions(+e.target.value)
-  }, [onNumRegions])
-  useEffect(() => {
-    onNumRegions(numRegions)
-  }, [numRegions])
-
+    setNumTopRegions(+e.target.value)
+  }, [setNumTopRegions])
 
   return (
     <div className={`active-regionsets-modal ${show ? 'show' : ''}`}>
       <div className={`content`}>
         <div className="manage">
           <span className="set-name">{activeSet?.name}</span>
-          <span className="set-count">{activeRegions?.length} / {activeSet?.regions?.length} total regions</span>
+          <span className="set-count">{activeRegions?.length} total regions</span>
           
           <div className="buttons">
-            <button data-tooltip-id={`active-deselect`} onClick={() => handleSelect(null)}>❌</button>
+            <button data-tooltip-id={`active-deselect`} onClick={handleDeselect}>❌</button>
             <Tooltip id={`active-deselect`}>
               Deselect active region set
             </Tooltip>
@@ -75,14 +74,6 @@ const ActiveRegionSetModal = ({
             </button>
             <Tooltip id={`active-download-regions`}>
               Download {activeRegions?.length} regions to BED file
-            </Tooltip>
-            {/* <button data-tooltip-id="active-narrate-regions"
-              disabled
-            >
-              📖
-            </button> */}
-            <Tooltip id="active-narrate-regions">
-              Narrate {numRegions} regions
             </Tooltip>
 
           </div>
@@ -99,22 +90,9 @@ const ActiveRegionSetModal = ({
             <button onClick={() => setFilters({})}>❌ Clear filters</button>
           </div>
          : null}
-
-        <div className="section factor-summary">
-          <h3>Top Factors accross {numRegions} regions</h3>
-          {/* TODO: show loading */}
-          {activePaths?.length ? <SummarizePaths
-            topFullCSNS={activePaths.slice(0, numRegions)}
-          /> : null}
-        </div>
-        <div className="section geneset-summary">
-          {/* <h3>Geneset enrichment spectrum</h3> */}
-          {/* TODO: show loading */}
-          {/* <Spectrum /> */}
-        </div>
-
+        
         <div className="section region-sets">
-          <h3>Top {numRegions} regions used in visualizations</h3>
+          <h3>Top {numTopRegions} regions used in visualizations</h3>
 
           <div className="top-paths-selector">
             <label>
@@ -123,25 +101,25 @@ const ActiveRegionSetModal = ({
               min="1" 
               max={Math.min(regions.length, FILTER_MAX_REGIONS)}
               step={1}
-              value={numRegions} 
+              value={numTopRegions} 
               onChange={handleNumRegions} 
             />
           </label>
         </div>
 
           <div className="table-body-container" style={{ fontSize: '12px' }}>
-            <table>
+            <table style={{ width: '100%', tableLayout: 'fixed' }}>
               <thead>
                 <tr>
-                  <th>Position</th>
-                  <th>Score</th>
+                  <th style={{ width: '80%' }}>Position</th>
+                  <th style={{ width: '20%' }}>Score</th>
                 </tr>
               </thead>
               <tbody>
-                {regions.slice(0, numRegions).map((region, index) => (
+                {regions.slice(0, numTopRegions).map((region, index) => (
                   <tr key={index}>
-                    <td>{showPosition(region)}</td>
-                    <td>{region.score?.toFixed(3)}</td>
+                    <td style={{ width: '80%' }}>{showPosition(region)}</td>
+                    <td style={{ width: '20%' }}>{region.score?.toFixed(3)}</td>
                   </tr>
                 ))}
               </tbody>

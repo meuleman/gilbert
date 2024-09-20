@@ -219,7 +219,14 @@ function Home() {
     }
   }, [initialFilters, setFilters])
 
-  const { sets, activeSet, activeRegions, activePaths, activeState, saveSet, deleteSet, setActiveSet, activeGenesetEnrichment } = useContext(RegionsContext)
+  const { 
+    activeSet, 
+    activePaths, 
+    activeState, 
+    numTopRegions, 
+    setActiveSet, 
+    activeGenesetEnrichment 
+  } = useContext(RegionsContext)
 
   useEffect(() => {
     if(showFilter) {
@@ -685,7 +692,7 @@ function Home() {
   const [hoveredTopCSN, setHoveredTopCSN] = useState(null)
   const [csnSort, setCSNSort] = useState("factor")
   const [regionCSNS, setRegionCSNS] = useState([])
-  const [numRegions, setNumRegions] = useState(100) // the number of regions from activeSet
+  // const [numRegions, setNumRegions] = useState(100) // the number of regions from activeSet
 
   // collect the top N paths for each region
 
@@ -776,7 +783,7 @@ function Home() {
   useEffect(() => {
     // console.log("all full csns", allFullCSNS)
     if(activePaths?.length) {
-      let sorted = activePaths.slice(0, numRegions)
+      let sorted = activePaths.slice(0, numTopRegions)
         .sort((a,b) => b.score - a.score)
       console.log("sorted", sorted)
       setTopFullCSNS(sorted)
@@ -784,7 +791,7 @@ function Home() {
     } else {
       setTopFullCSNS([])
     }
-  }, [activePaths, numRegions])
+  }, [activePaths, numTopRegions])
 
 
 
@@ -966,7 +973,7 @@ function Home() {
   useEffect(() => {
     if(activePaths?.length) {
       const groupedActiveRegions = group(
-        activePaths.slice(0, numRegions),
+        activePaths.slice(0, numTopRegions),
         d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
       setActiveRegionsByCurrentOrder(groupedActiveRegions)
     } else {
@@ -974,7 +981,7 @@ function Home() {
       setActiveRegionsByCurrentOrder(new Map())
     }
 
-  }, [zoom.order, activePaths, numRegions])
+  }, [zoom.order, activePaths, numTopRegions])
 
 
 
@@ -1124,22 +1131,34 @@ function Home() {
 
   const [showLayerLegend, setShowLayerLegend] = useState(true)
   const [showSpectrum, setShowSpectrum] = useState(false)
+  const [showTopFactors, setShowTopFactors] = useState(false)
   const [showManageRegionSets, setShowManageRegionSets] = useState(false)
   const [showActiveRegionSet, setShowActiveRegionSet] = useState(false)
 
   useEffect(() => {
     if(activeSet) {
       setShowManageRegionSets(false)
-      setShowActiveRegionSet(true)
       setShowLayerLegend(false)
       setShowFilter(true)
-      
-      activeGenesetEnrichment?.length === 0 ? setShowSpectrum(false) : setShowSpectrum(true)
+      // setShowActiveRegionSet(true)
+      // setShowTopFactors(true)
     } else {
       setShowActiveRegionSet(false)
-      setShowSpectrum(false)
+      // setShowSpectrum(false)
+      // setShowTopFactors(false)
     }
-  }, [activeSet, activeGenesetEnrichment])
+  }, [activeSet])
+
+  useEffect(() => {
+    activeGenesetEnrichment?.length === 0 ? setShowSpectrum(false) : setShowSpectrum(true)
+  }, [activeGenesetEnrichment])
+  useEffect(() => {
+    if(activePaths?.length) {
+      setShowTopFactors(true)
+    } else {
+      setShowTopFactors(false)
+    }
+  }, [activePaths])
 
   // useEffect(() => {
   //   if(showManageRegionSets) {
@@ -1159,16 +1178,9 @@ function Home() {
             <LogoNav/>
           </div>
           <div className="header--region-list">
-            {activeState ? <Loading text={activeState} /> : null }
-            {/* <HeaderRegionSetModal 
+            <HeaderRegionSetModal 
               selectedRegion={selected}
-              queryRegions={filteredSegments} 
-              queryRegionsCount={filteredSegmentsCount}
-              queryRegionOrder={filterOrder}
-              queryLoading={filterLoading}
-              // onNumSegments={setNumSegments}
-              onNumSegments={setNumRegions}
-            /> */}
+            />
             {/* <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
               if(set) { setRegionSet(name) } else { setRegionSet('') }
             }} /> */}
@@ -1231,6 +1243,8 @@ function Home() {
             onLayerLegend={setShowLayerLegend}
             showSpectrum={showSpectrum}
             onSpectrum={setShowSpectrum}
+            showTopFactors={showTopFactors}
+            onTopFactors={setShowTopFactors}
             showManageRegionSets={showManageRegionSets}
             showActiveRegionSet={showActiveRegionSet}
             onManageRegionSets={setShowManageRegionSets}
@@ -1248,9 +1262,18 @@ function Home() {
             handleFactorClick={handleFactorClick}
             searchByFactorInds={searchByFactorInds}
           />
-        <Spectrum 
-          show={showSpectrum}
-        />
+          <div className="spectrum-container">
+            <Spectrum 
+              show={showSpectrum}
+            />
+          </div>
+          <div className="topfactors-container">
+            <SummarizePaths
+              show={showTopFactors}
+              topFullCSNS={activePaths?.slice(0, numTopRegions)}
+            /> 
+          </div>
+
           
           
           {/* {selected ? 
@@ -1310,7 +1333,6 @@ function Home() {
 
               <ActiveRegionSetModal
                 show={showActiveRegionSet}
-                onNumRegions={setNumRegions}
                 // selectedRegion={selected}
                 // queryRegions={filteredSegments} 
                 // queryRegionsCount={filteredSegmentsCount}
@@ -1385,26 +1407,26 @@ function Home() {
                     ),
                     // TODO: highlight search region (from autocomplete)
                     // SVGSelected({ hit: region, stroke: "gray", strokeWidthMultiplier: 0.4, showGenes: false }),
-                    ...DisplaySimSearchRegions({ 
-                      similarRegions: similarRegions,
-                      // simSearch: simSearch, 
-                      // detailLevel: simSearchDetailLevel, 
-                      selectedRegion: region,
-                      // order: selectedOrder, 
-                      color: "gray", 
-                      clickedColor: "red",
-                      checkRanges: checkRanges,
-                      similarRegionListHover: similarRegionListHover,
-                      width: 0.05, 
-                      showGenes: false 
-                    }),
-                    ...DisplayExampleRegions({
-                      exampleRegions: exampleRegions,
-                      order: zoom.order,
-                      width: 0.2,
-                      color: "red",
-                      numRegions: 100,
-                    }),
+                    // ...DisplaySimSearchRegions({ 
+                    //   similarRegions: similarRegions,
+                    //   // simSearch: simSearch, 
+                    //   // detailLevel: simSearchDetailLevel, 
+                    //   selectedRegion: region,
+                    //   // order: selectedOrder, 
+                    //   color: "gray", 
+                    //   clickedColor: "red",
+                    //   checkRanges: checkRanges,
+                    //   similarRegionListHover: similarRegionListHover,
+                    //   width: 0.05, 
+                    //   showGenes: false 
+                    // }),
+                    // ...DisplayExampleRegions({
+                    //   exampleRegions: exampleRegions,
+                    //   order: zoom.order,
+                    //   width: 0.2,
+                    //   color: "red",
+                    //   numRegions: 100,
+                    // }),
                     showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
                   ]}
                   onZoom={handleZoom}
