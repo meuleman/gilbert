@@ -86,7 +86,7 @@ export default function CSNVerticalSankey({
   csns,
   selected,
   shrinkNone = true,
-  collapseThreshold = 10,
+  bundleThreshold = 0.10, // 10% of the paths
   tipOrientation = "bottom",
   nodeWidth = 15,
   nodePadding = 5,
@@ -151,14 +151,14 @@ export default function CSNVerticalSankey({
         })
       })
 
-      // we want to collapse nodes into their layer if they have less than collapseThreshold paths
+      // we want to collapse nodes into their layer if they have less than bundleThreshold paths
       Object.keys(nodesMap).forEach(id => {
         let n = nodesMap[id]
         // TODO: if we collapse a layer and all children are the same field
         // TODO: we still want to be able to click to filter that field
         // let nunique = groups(n.children || [], d => d.field?.field).length
         // if(n.count < collapseThreshold && nunique > 1) {
-        if(n.count < collapseThreshold) {
+        if(n.count < (bundleThreshold * csns.length)) {
           let lid = `${n.order}-${n.dataLayer.name}`
           // first we either update the layer node or create a new one
           let nl = nodesMap[lid]
@@ -175,7 +175,7 @@ export default function CSNVerticalSankey({
               id: lid,
               order: n.order,
               dataLayer: n.dataLayer,
-              field: "Layer",
+              field: "Bundle",
               children: [n],
               color: n.color
             }

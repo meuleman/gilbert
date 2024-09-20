@@ -52,7 +52,7 @@ const SummarizePaths = ({
         <div key={"factor-" + index}
           className='path-summary-factor'
           data-tooltip-id={`factor-tooltip-${index}`}
-          data-tooltip-html={`Field: ${factor.field}<br>Layer: ${factor.layerName}<br>Count: ${factor.count}<br>Orders: ${factor.topOrders?.map(o => `${showKbOrder(o[0])}: ${o[1].length}`).join(', ')}`}
+          data-tooltip-html={`${factor.field}<br>${factor.layerName}<br>Count: ${factor.count}<br>Orders: ${factor.topOrders?.map(o => `${showKbOrder(o[0])}: ${o[1].length}`).join(', ')}`}
         >
           <div className="path-summary-factor-percent"
           style={{
