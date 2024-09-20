@@ -956,6 +956,7 @@ function Home() {
   const [allRegionsByCurrentOrder, setAllRegionsByCurrentOrder] = useState(new Map())
   // group the top regions found through filtering by the current order
   useEffect(() => {
+    console.log("activeSEt?", activeSet)
     let regions = activeSet?.regions
     if(regions?.length) {
       const groupedAllRegions = group(
@@ -977,7 +978,7 @@ function Home() {
         d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
       setActiveRegionsByCurrentOrder(groupedActiveRegions)
     } else {
-      console.log("no regions!!")
+      console.log("no paths!!")
       setActiveRegionsByCurrentOrder(new Map())
     }
 
@@ -1191,10 +1192,14 @@ function Home() {
               />
           </div> */}
           <div className="header--search">
-            {/* <div className="filter-button">
-              <button data-tooltip-id="filter-tooltip" data-tooltip-content="Filter regions by factor">🚥</button>
-              <Tooltip id="filter-tooltip"></Tooltip>
-            </div> */}
+            <div className="filter-button">
+              <button className={`filter-button ${showFilter ? 'active' : null}`}
+                data-tooltip-id="filter-button-tooltip"
+                data-tooltip-content="Filter regions by factor"
+                onClick={() => setShowFilter(!showFilter)}
+              >🔒</button>
+              <Tooltip id="filter-button-tooltip"></Tooltip>
+            </div>
             {showFilter ? 
               <SelectFactorPreview 
                 activeWidth={400}

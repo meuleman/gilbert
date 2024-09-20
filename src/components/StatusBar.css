@@ -71,9 +71,11 @@
   /* border: 1px solid blue; */
 }
 
-.filter-button {
+.status-bar .filter-button {
   /* border: 1px solid gray; */
   background: #eee;
+}
+.filter-button {
   padding: 0px 12px;
   height: 38px;
 }

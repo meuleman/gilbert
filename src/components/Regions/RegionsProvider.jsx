@@ -129,9 +129,9 @@ const RegionsProvider = ({ children }) => {
   }
   const deleteSet = useCallback((name) => {
     setSets(prevSets => prevSets.filter(set => set.name !== name));
-    if (activeSetRef.current && activeSetRef.current.name === name) {
-      clearActive()
-    }
+    // if (activeSetRef.current && activeSetRef.current.name === name) {
+    //   clearActive()
+    // }
   }, []);
 
   // fetch filtered regions given filters and potentially "background" regions
@@ -196,6 +196,7 @@ const RegionsProvider = ({ children }) => {
         let set = setsRef.current.find(s => s.name === activeSetRef.current.derived)
         console.log("SET", set)
         setActiveSet(set)
+        setsRef.current.filter(s => s.type === "derived").forEach(s => deleteSet(s.name))
       } else {
         console.log("ARF:whats this logic", activeSetRef.current)
       }

@@ -139,7 +139,7 @@ const StatusBar = ({
             🔒
           </button>
           <Tooltip id="filter" place="top" effect="solid" className="tooltip-custom">
-            Filter paths by factor
+            Filter regions by factor
           </Tooltip>
 
           <button className={`clear-button`}

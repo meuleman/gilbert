@@ -20,13 +20,13 @@ const ManageRegionSetModal = ({
   const { sets, activeSet, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
   const { setFilters } = useContext(FiltersContext)
 
-  useEffect(() => {
-    console.log("manage, sets!", sets)
-  }, [sets])
+  // useEffect(() => {
+  //   console.log("manage, sets!", sets)
+  // }, [sets])
 
   const handleSelect = useCallback((set) => {
     setActiveSet(set)
-    if(set.type !== "filter") {
+    if(set?.type !== "filter") {
       setFilters({})
     }
   }, [setActiveSet, setFilters])
@@ -89,7 +89,10 @@ const ManageRegionSetModal = ({
                   </Tooltip>
                 </td>
                 <td>
-                  <button onClick={() => deleteSet(set.name)} disabled={set.example}>🗑️</button> 
+                  <button onClick={() => {
+                    setActiveSet(null)
+                    deleteSet(set.name)
+                  }} disabled={set.example}>🗑️</button> 
                 </td>
               </tr>
               ))}
