@@ -55,7 +55,11 @@ const LeftToolbar = ({
           onClick={() => activeGenesetEnrichment?.length && onSpectrum(!showSpectrum)}
           disabled={!activeGenesetEnrichment?.length}
           style={{'filter': showSpectrum ? 'grayscale(100%)' : 'none'}}
-        >🌈</button>
+        >
+            {loadingSpectrum ? 
+            <Loading text=""/>
+            : '🌈'}
+        </button>
         
         <Tooltip id="show-spectrum">
           {loadingSpectrum ? 

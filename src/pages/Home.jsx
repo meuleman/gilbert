@@ -73,8 +73,6 @@ import { getSet } from '../components/Regions/localstorage'
 import SelectedModal from '../components/SelectedModal'
 import InspectorGadget from '../components/InspectorGadget'
 import SimSearchResultList from '../components/SimSearch/ResultList'
-// import GenesetEnrichment from '../components/SimSearch/GenesetEnrichment';
-// import Spectrum from '../components/Spectrum';
 
 import RegionStrip from '../components/RegionStrip'
 
@@ -316,7 +314,6 @@ function Home() {
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
   const [csnMethod, setCsnMethod] = useState("sum")
   const [csnEnrThreshold, setCsnEnrThreshold] = useState(0)
-  // const [genesetEnrichment, setGenesetEnrichment] = useState(null)
 
   const selectedRef = useRef(selected);
   useEffect(() => {
@@ -328,7 +325,6 @@ function Home() {
       // TODO: need a reliable way to clear state when deselecting a region
       setSelected(null)
       setSimilarRegions([])
-      // setGenesetEnrichment(null)
       setCrossScaleNarration([])
     }
   }, [initialSelectedRegion])
@@ -408,9 +404,6 @@ function Home() {
   //       // console.log("sim searchregion results", selected, layer.name, regionResult)
   //       if(!regionResult || !regionResult.simSearch) return;
   //       processSimSearchResults(selected.order, regionResult)
-  //       GenesetEnrichment(regionResult.simSearch.slice(1), selected.order).then((enrichmentResult) => {
-  //         setGenesetEnrichment(enrichmentResult)
-  //       })
   //       setSimSearchMethod("Region")
   //     }).catch(e => {
   //       console.log("caught error in sim search", e)
@@ -421,7 +414,7 @@ function Home() {
   //       narrationResult && setSelectedNarration(narrationResult.narrationRanks)
   //     })
   //   }
-  // }, [selected, layer, setSearchByFactorInds, processSimSearchResults, setGenesetEnrichment, setSimSearchMethod, setSelectedNarration])
+  // }, [selected, layer, setSearchByFactorInds, processSimSearchResults, setSimSearchMethod, setSelectedNarration])
 
   
 
@@ -536,17 +529,11 @@ function Home() {
           setSelectedOrder(zoom.order)
           processSimSearchResults(zoom.order, SBFResult)
           setSimSearchMethod("SBF")
-          // GenesetEnrichment(SBFResult.simSearch, zoom.order).then((enrichmentResult) => {
-          //   setGenesetEnrichment(enrichmentResult)
-          // })
         })
       } else if(simSearchMethod == "Region") {
         SimSearchRegion(selected, selected.order, layer, setSearchByFactorInds, newSearchByFactorInds, simSearchMethod).then((regionResult) => {
           processSimSearchResults(selected.order, regionResult)
           console.log("REGION RESULT", regionResult)
-          // GenesetEnrichment(regionResult.simSearch.slice(1), zoom.order).then((enrichmentResult) => {
-          //   setGenesetEnrichment(enrichmentResult)
-          // })
         })
       }
     } else {
@@ -693,92 +680,6 @@ function Home() {
   const [hoveredTopCSN, setHoveredTopCSN] = useState(null)
   const [csnSort, setCSNSort] = useState("factor")
   const [regionCSNS, setRegionCSNS] = useState([])
-  // const [numRegions, setNumRegions] = useState(100) // the number of regions from activeSet
-
-  // collect the top N paths for each region
-
-  // const [topPathsForRegions, setTopPathsForRegions] = useState(null)
-  // const [genesInPaths, setGenesInPaths] = useState([])
-  // const regionsRequestRef = useRef("")
-
-
-  // function getDehydrated(regions, paths) {
-  //   console.l
-  //   return paths.flatMap((r,ri) => r.dehydrated_paths.map((dp,i) => {
-  //     return {
-  //       ...r,
-  //       i: r.top_positions[0], // hydrating assumes order 14 position
-  //       factor_score: r.top_factor_scores[0][i],
-  //       score: r.top_path_scores[0],
-  //       genes: r.genes[0]?.genes,
-  //       scoreType: "full",
-  //       path: dp,
-  //       region: regions[ri] // the activeSet region
-  //     }
-  //   }))
-  // }
-
-  // useEffect(() => {
-  //   console.log("ACTIVE SET", activeSet, activeRegions)
-  //   // if(activeSet && activeSet.name !== "Query Set" && activeSet.regions?.length) {
-  //   if(activeSet && activeRegions?.length) {
-  //     const regions = activeRegions.slice(0, FILTER_MAX_REGIONS).map(toPosition)
-  //     if(regions.toString() == regionsRequestRef.current) {
-  //       console.log("cancelling redundant request")
-  //       return
-  //     } else {
-  //       regionsRequestRef.current = regions.toString()
-  //     }
-  //     console.log("FETCHING TOP PATHS FOR QUERY SET", regions)
-  //     setCSNLoading("fetching")
-  //     fetchTopPathsForRegions(regions, 1)
-  //       .then((response) => {
-  //         if(!response) { setTopPathsForRegions(null)
-  //         } else { 
-  //           // convert the response into "dehydrated" csn paths with the region added
-  //           let tpr = getDehydrated(activeRegions, response.regions)
-  //           setTopPathsForRegions(tpr) 
-  //           // for geneset enrichment calculation
-  //           let gip = response.regions.flatMap(d => d.genes[0]?.genes).map(d => d.name)
-  //           setGenesInPaths(gip)
-  //         }
-  //       }).catch((e) => {
-  //         console.log("error fetching top paths for regions", e)
-  //         setTopPathsForRegions(null)
-  //       })
-  //   } else {
-  //     regionsRequestRef.current = ""
-  //   }
-  // }, [activeRegions, activeSet])
-
-  // const [allFullCSNS, setAllFullCSNS] = useState([])
-  // useEffect(() => {
-  //   if(topPathsForRegions?.length) {
-  //     // console.log("top paths for regions", topPathsForRegions)
-  //     // TODO: if we get more than 1 path 
-  //     setCSNLoading("hydrating")
-  //     console.log("TOP PATHS FOR REGIONS", topPathsForRegions)
-  //     let hydrated = topPathsForRegions.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
-  //     console.log("hydrated", hydrated)
-  //     setAllFullCSNS(hydrated)
-  //   }
-  // }, [topPathsForRegions])
-
-
-  // const [genesetEnrichment, setGenesetEnrichment] = useState([])
-
-  // // calculate geneset enrichment for genes in paths
-  // useEffect(() => {
-  //   if(genesInPaths.length) {
-  //     fetchGenesetEnrichment(genesInPaths)
-  //     .then((response) => {
-  //       setGenesetEnrichment(response)
-
-  //     }).catch((e) => {
-  //       console.log("error calculating geneset enrichments", e)
-  //     })
-  //   }
-  // }, [genesInPaths])
 
 
   useEffect(() => {
@@ -795,98 +696,10 @@ function Home() {
   }, [activePaths, numTopRegions])
 
 
-
-  // // fetch the top csns, both by full path score and by filtered factor scores
-  // useEffect(() => {
-  //   console.log("filters changed in home!!", filters)
-  //   csnRequestRef.current += 1
-  //   const currentRequest = csnRequestRef.current
-  //   if(hasFilters() == 0 && !selected) {
-  //     setTopFactorCSNS([])
-  //     setTopFullCSNS([])
-  //     return
-  //   }
-  //   // TODO: should this be more wholistically done somewhere else?
-  //   if(selected) {
-  //     setShowFilter(true)
-  //   }
-
-  //   setCSNLoading("fetching")
-  //   // Fetch the top csns from the API
-  //   if(hasFilters()) {
-  //     fetchTopCSNs(filters, selected, "factor", true, numPaths)
-  //       .then((response) => {
-  //       console.log("FACTOR RESPONSE", response)
-  //       if(!response) {
-  //         setCSNLoading("Error!")
-  //         setTopFactorCSNS([])
-  //         return
-  //       }
-  //       if(currentRequest == csnRequestRef.current) {
-  //         let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
-  //         hydrated.forEach(d => d.scoreType = "factor")
-  //         setTopFactorCSNS(hydrated)
-  //         setCSNLoading("")
-  //       }
-  //     }).catch((e) => {
-  //       console.log("error fetching top factor csns", e)
-  //       setCSNLoading("Error!")
-  //       setTopFactorCSNS([])
-  //     })
-  //   } else {
-  //     setTopFactorCSNS([])
-  //   }
-  //   // for now we just pull both in parallel
-  //   fetchTopCSNs(filters, selected, "full", true, numPaths)
-  //     .then((response) => {
-  //       console.log("FULL RESPONSE", response)
-  //       if(!response) {
-  //         // setCSNLoading("Error!")
-  //         setTopFullCSNS([])
-  //         return
-  //       }
-  //       if(currentRequest == csnRequestRef.current) {
-  //         let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
-  //         hydrated.forEach(d => d.scoreType = "full")
-  //         setTopFullCSNS(hydrated)
-  //         setCSNLoading("")
-  //       }
-  //     }).catch((e) => {
-  //       console.log("error fetching top full csns", e)
-  //       // setCSNLoading("Error!")
-  //       setTopFullCSNS([])
-  //     })
-  // }, [filters, numPaths, selected])
-
-
-
   // const [pathDiversity, setPathDiversity] = useState(true)
   const [loadingRegionCSNS, setLoadingRegionCSNS] = useState(false)
   const [loadingSelectedCSN, setLoadingSelectedCSN] = useState(false)
-  // // Fetch the CSNS via API for the selected region
-  // useEffect(() => {
-  //   if(selected){
-  //     let nfs = Object.keys(filters).length
-  //     setLoadingRegionCSNS(true)
-  //     setRegionCSNS([])
-  //     fetchTopCSNs(filters, selected, nfs ? "factor" : "full", pathDiversity, 100)
-  //     .then((response) => {
-  //       // console.log("top csns for selected response", selected, response)
-  //       if(!response || !response?.csns?.length) {
-  //         setRegionCSNS([])
-  //         setLoadingRegionCSNS(false)
-  //         return
-  //       }
-  //       let hydrated = response.csns.map(csn => rehydrateCSN(csn, [...csnLayers, ...variantLayers]))
-  //       hydrated.forEach(d => d.scoreType = "factor")
-  //       setRegionCSNS(hydrated)
-  //       setLoadingRegionCSNS(false)
-  //     })
-  //   } else {
-  //     setLoadingRegionCSNS(false)
-  //     setRegionCSNS([])
-  //   }
-  // }, [filters, selected, pathDiversity])
+  
   useEffect(() => {
     if(selected) {
       // TODO: check if logic is what we want

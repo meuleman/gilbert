@@ -6,6 +6,7 @@ import labels from '../../data/spectrumLabels.json';
 import Loading from '../Loading';
 import * as d3 from 'd3'
 import RegionsContext from '../Regions/RegionsContext';
+import scaleCanvas from '../../lib/canvas'
 // import Tooltip from './Tooltips/Tooltip';
 
 
@@ -234,6 +235,10 @@ const Spectrum = ({
 
   // create canvas
   const canvasRef = useRef(null);
+  useEffect(() => {
+    scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
+  }, [canvasRef, width, height])
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');

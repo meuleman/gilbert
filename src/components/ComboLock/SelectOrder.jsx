@@ -255,7 +255,7 @@ const SelectOrder = ({
               ❌
             </button>
             <Tooltip id="deselect" place="top" effect="solid" className="tooltip-custom">
-              Deselect
+              Deselect {selectedField?.field} {selectedField?.layer?.name}
             </Tooltip>
           </div>
         : null }
@@ -273,6 +273,8 @@ const SelectOrder = ({
           </div>
           : null}
       </div>
+
+      {previewLoading ? <Loading text={""} /> : null}
 
       <div className="filter-group">
         <Select
@@ -296,7 +298,6 @@ const SelectOrder = ({
         />
       </div>
 
-      {previewLoading ? <Loading text={""} /> : null}
 
 
         
