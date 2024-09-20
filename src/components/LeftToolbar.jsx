@@ -62,8 +62,7 @@ const LeftToolbar = ({
         </button>
         
         <Tooltip id="show-spectrum">
-          {loadingSpectrum ? 
-            <Loading text="Loading Geneset Enrichments..."/> 
+          {loadingSpectrum ? "Loading Geneset Enrichments..."
             : showSpectrum ? "Hide Geneset Enrichment Spectrum" 
             : activeGenesetEnrichment?.length ? "Show Geneset Enrichment Spectrum"
             : "No Geneset Enrichments Found"
