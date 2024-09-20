@@ -107,6 +107,9 @@ const Labels = ({ labels, xScale }) => {
 const Tooltip = ({ tooltipData, position }) => {
   if (!tooltipData) return null;
 
+  let genesetName = tooltipData.genesetName.split("_").slice(1).join(" ").toLowerCase()
+  genesetName = genesetName.charAt(0).toUpperCase() + genesetName.slice(1)
+
   return (
     <div
       className="spectrum-tooltip"
@@ -116,23 +119,26 @@ const Tooltip = ({ tooltipData, position }) => {
         opacity: 1,
         zIndex: 1,
         minWidth: '200px',
-        backgroundColor: 'white',
+        // backgroundColor: 'white',
+        background: "#efefef",
         border: 'solid',
         borderWidth: '1px',
         borderRadius: '5px',
         padding: '10px',
         position: 'absolute',
         display: 'inline',
+        fontSize: '16px',
+        color: 'black',
       }}
     >
       {/* <div>
         xIndex: <b>{tooltipData.index}</b>
       </div> */}
       <div>
-        Geneset: <b>{tooltipData.genesetName.split("_").slice(1).join(" ")}</b>
+        {genesetName}
       </div>
       <div>
-        Enrichment -log10(p-value): <b>{tooltipData.enrichment}</b>
+        -log10(p): {tooltipData.enrichment}
       </div>
     </div>
   );
@@ -155,6 +161,7 @@ const Spectrum = ({
 } = {}) => {
   
   const { activeRegions, activeGenesetEnrichment } = useContext(RegionsContext)
+  // console.log("activeGenesetEnrichment", activeGenesetEnrichment)
 
   const [enrichments, setEnrichments] = useState(new Array(genesetOrder.length).fill(0));
   const [smoothData, setSmoothData] = useState(new Array(genesetOrder.length).fill(0));
