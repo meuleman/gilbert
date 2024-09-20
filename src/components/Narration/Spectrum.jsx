@@ -253,7 +253,7 @@ const Spectrum = ({
   
   }, [smoothData, xScale, yScale, plotYStop, spectrumBarHeight, colorbarX, labels]);
 
-
+  console.log("Spectrum render")
   return (
     <div className={"spectrum-component" + (show ? " show": " hide")} style={{ height: height + 'px', width: width + 'px' }}>
       <div style={{ position: 'relative' }}>
@@ -267,4 +267,4 @@ const Spectrum = ({
   );
 };
 
-export default Spectrum;
+export default React.memo(Spectrum);
