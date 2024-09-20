@@ -225,7 +225,8 @@ function Home() {
     activeState, 
     numTopRegions, 
     setActiveSet, 
-    activeGenesetEnrichment 
+    activeGenesetEnrichment,
+    activeRegions
   } = useContext(RegionsContext)
 
   useEffect(() => {
@@ -1134,6 +1135,15 @@ function Home() {
   const [showTopFactors, setShowTopFactors] = useState(false)
   const [showManageRegionSets, setShowManageRegionSets] = useState(false)
   const [showActiveRegionSet, setShowActiveRegionSet] = useState(false)
+  const [loadingSpectrum, setLoadingSpectrum] = useState(false);
+  
+  useEffect(() => {
+    if(activeRegions?.length && activeGenesetEnrichment === null) {
+      setLoadingSpectrum(true)
+    } else {
+      setLoadingSpectrum(false)
+    }
+  }, [activeGenesetEnrichment, activeRegions])
 
   useEffect(() => {
     if(activeSet) {
@@ -1149,11 +1159,14 @@ function Home() {
     }
   }, [activeSet])
 
+  // console.log(showSpectrum, activeGenesetEnrichment)
+
   useEffect(() => { 
     if(!activeSet) {
       setShowSpectrum(false)
     } else {
-      activeGenesetEnrichment?.length === 0 ? setShowSpectrum(false) : setShowSpectrum(true)
+      // console.log("FIRING FROM HERE!!!", activeGenesetEnrichment?.length)
+      activeGenesetEnrichment?.length > 0 ? setShowSpectrum(true) : setShowSpectrum(false)
     }
   }, [activeSet, activeGenesetEnrichment])
   useEffect(() => {
@@ -1251,6 +1264,7 @@ function Home() {
             onLayerLegend={setShowLayerLegend}
             showSpectrum={showSpectrum}
             onSpectrum={setShowSpectrum}
+            loadingSpectrum={loadingSpectrum}
             showTopFactors={showTopFactors}
             onTopFactors={setShowTopFactors}
             showManageRegionSets={showManageRegionSets}

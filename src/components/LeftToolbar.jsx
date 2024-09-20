@@ -2,12 +2,14 @@ import React, { useContext } from 'react';
 import { Tooltip } from 'react-tooltip';
 import RegionsContext from './Regions/RegionsContext'
 import './LeftToolbar.css'; // Assuming you have a CSS file for styling
+import Loading from './Loading';
 
 const LeftToolbar = ({
   showLayerLegend,
   onLayerLegend = () => {},
   showSpectrum,
   onSpectrum = () => {},
+  loadingSpectrum = false,
   showTopFactors,
   onTopFactors = () => {},
   showManageRegionSets,
@@ -54,7 +56,17 @@ const LeftToolbar = ({
           disabled={!activeGenesetEnrichment?.length}
           style={{'filter': showSpectrum ? 'grayscale(100%)' : 'none'}}
         >🌈</button>
-        <Tooltip id="show-spectrum">{showSpectrum ? "Hide Geneset Enrichment Spectrum" : activeGenesetEnrichment?.length ? "Show Geneset Enrichment Spectrum": "No Geneset Enrichments Found"}</Tooltip>
+        
+        <Tooltip id="show-spectrum">
+          {loadingSpectrum ? 
+            <Loading text="Loading Geneset Enrichments..."/> 
+            : showSpectrum ? "Hide Geneset Enrichment Spectrum" 
+            : activeGenesetEnrichment?.length ? "Show Geneset Enrichment Spectrum"
+            : "No Geneset Enrichments Found"
+          }
+          
+          {/* {showSpectrum ? "Hide Geneset Enrichment Spectrum" : activeGenesetEnrichment?.length ? "Show Geneset Enrichment Spectrum": "No Geneset Enrichments Found"} */}
+        </Tooltip>
         <button className={`toolbar-button ${showLayerLegend ? 'active' : ''}`} data-tooltip-id="show-layer-legend"
           onClick={() => onLayerLegend(!showLayerLegend)}
           style={{'filter': showLayerLegend ? 'grayscale(100%)' : 'none'}}
