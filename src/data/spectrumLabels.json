@@ -1,9 +1,9 @@
 [
     {"label": "Development", "i": 600}, 
     {"label": "Immune", "i": 2100}, 
-    {"label": "Signaling", "i": 3400},
-    {"label": "Ion Transport", "i": 4300},
-    {"label": "Housekeeping", "i": 5200},
-    {"label": "Lipid", "i": 6400},
-    {"label": "Metabolism", "i": 7000}
+    {"label": "Signaling", "i": 3150},
+    {"label": "Ion Transport", "i": 4025},
+    {"label": "Housekeeping", "i": 5150},
+    {"label": "Lipid", "i": 6350},
+    {"label": "Metabolism", "i": 6850}
 ]
