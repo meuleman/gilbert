@@ -214,6 +214,7 @@ const RegionsProvider = ({ children }) => {
       } else {
         console.log("ARF: deleting filter set")
         deleteSet("Filter Set")
+        clearActive()
       }
     }
   }, [hasFilters, filters, saveSet, deleteSet, requestFilteredRegions])

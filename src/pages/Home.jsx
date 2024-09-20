@@ -1065,11 +1065,10 @@ function Home() {
     setSimilarRegions([])
     setSelectedNarration(null)
     setSimSearchMethod(null)
-    // setGenesetEnrichment(null)
     setSelectedTopCSN(null)
     setRegionCSNS([])
     // setPowerNarration(null)
-  }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN]) // setGenesetEnrichment
+  }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN]) 
 
   useEffect(() => {
     // if the filters change from a user interaction we want to clear the selected
@@ -1150,9 +1149,13 @@ function Home() {
     }
   }, [activeSet])
 
-  useEffect(() => {
-    activeGenesetEnrichment?.length === 0 ? setShowSpectrum(false) : setShowSpectrum(true)
-  }, [activeGenesetEnrichment])
+  useEffect(() => { 
+    if(!activeSet) {
+      setShowSpectrum(false)
+    } else {
+      activeGenesetEnrichment?.length === 0 ? setShowSpectrum(false) : setShowSpectrum(true)
+    }
+  }, [activeSet, activeGenesetEnrichment])
   useEffect(() => {
     if(activePaths?.length) {
       setShowTopFactors(true)
@@ -1358,7 +1361,7 @@ function Home() {
               />
 
               <SankeyModal 
-                show={true}
+                show={activeSet}
                 width={400} 
                 height={height-10} 
                 numPaths={numPaths}
