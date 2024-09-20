@@ -183,13 +183,9 @@ const InspectorGadget = ({
               </div>
               
           </div>
-          { /* 
+          { /*
           <div className="zoom-text">
-            At the {showKbOrder(zOrder)} scale, 
-            {zoomedPathRegion?.field ? " the dominant factor is " : "no factors are significant for this path."}
-            {zoomedPathRegion?.field ? <span>
-              {zoomedPathRegion.layer?.name}: {zoomedPathRegion.field?.field}
-            </span>: ""}
+            {zoomedPathRegion?.field ? `${zoomedPathRegion.field?.field} ${zoomedPathRegion.layer?.name} (${showKbOrder(zOrder)})` : ""}
           </div>
           */ }
           {/* { loadingFullNarration ? <Loading text={"📊 Preparing literature search..."} /> : <GoogleSearchLink narration={fullNarration} /> } */}
