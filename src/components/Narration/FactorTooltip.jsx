@@ -58,57 +58,61 @@ function tooltipContent(region, layer, orientation) {
 
   
   return (
-    <div style={{display: 'flex', flexDirection: 'column'}}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       <span>{showPosition(region)}</span>
       {/* <span className="position">[{showKb(Math.pow(4, 14 - region.order))}]</span> */}
       {/* <span className="position">Order: {region.order}</span> */}
-      <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>
+      <span style={{ borderBottom: "1px solid gray", padding: "4px", margin: "4px 0", fontStyle: 'italic', fontSize: '11pt' }}>
         {/* {layer?.name || "-"} */}
         Preferred factor
       </span>
-      {fields.map((f,i) => (
-        <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-          <span className="tooltip-factor-name">
-            <span style={{color: layer.fieldColor(f.field), marginRight: '4px'}}>⏺</span>
-            {f.field} 
+      {fields.map((f, i) => (
+        <div key={i} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span className="tooltip-factor-name" style={{ display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+            <span style={{ color: layer.fieldColor(f.field), marginRight: '4px' }}>⏺</span>
+            {f.field}
           </span>
-          <span className="tooltip-layer-name">{layer?.name}</span>
-          <span>
+          <span className="tooltip-layer-name" style={{ flex: '1', textAlign: 'left', paddingLeft: '10px' }}>{layer?.name}</span>
+          <span style={{ fontWeight: 'bold' }}>
             {typeof f.value == "number" ? showFloat(f.value) : f.value}
             {typeof f.count == "number" && ` (${showInt(f.count)})`}
           </span>
         </div>
       ))}
-      {fields.length == 0 ? <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+      {fields.length == 0 && (
+        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <span>
-            <span style={{marginRight: '4px'}}></span>
-             -
-          </span>
-          <span>
+            <span style={{ marginRight: '4px' }}></span>
             -
           </span>
-        </div> : null}
-      {fullData.length ? <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>Other factors</span> : null}
-      {fullData.map((f,i) => (
-        <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-          <span className="tooltip-factor-name"  >
-            <span style={{color: f.layer.fieldColor(f.field), marginRight: '4px'}}>⏺</span>
-            {f.field} 
+          <span>-</span>
+        </div>
+      )}
+      {fullData.length > 0 && (
+        <span style={{ borderBottom: "1px solid gray", padding: "4px", margin: "4px 0", fontStyle: 'italic', fontSize: '11pt' }}>
+          Other factors
+        </span>
+      )}
+      {fullData.map((f, i) => (
+        <div key={i} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span className="tooltip-factor-name" style={{ display: 'flex', alignItems: 'center' }}>
+            <span style={{ color: f.layer.fieldColor(f.field), marginRight: '4px' }}>⏺</span>
+            {f.field}
           </span>
-          <span className="tooltip-layer-name">{f.layer.name}</span>
+          <span className="tooltip-layer-name" style={{ flex: '1', textAlign: 'left', paddingLeft: '10px' }}>{f.layer.name}</span>
           <span>
             {typeof f.value == "number" ? showFloat(f.value) : f.value}
             {typeof f.count == "number" && ` (${showInt(f.count)})`}
           </span>
         </div>
       ))}
-      { /*
-      <span style={{borderTop: "1px solid gray", marginTop: "4px"}}>
-        Path score: {showFloat(region.score)}</span>
-      */ }
+      {/*
+      <span style={{ borderTop: "1px solid gray", marginTop: "4px" }}>
+        Path score: {showFloat(region.score)}
+      </span>
+      */}
     </div>
-
-  )
+  );
 }
 
 export {
