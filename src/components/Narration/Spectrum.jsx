@@ -43,9 +43,11 @@ const Tooltip = ({ tooltipData, position }) => {
       <div>
         {genesetName}
       </div>
-      <div>
+      {tooltipData.enrichment ? 
+        <div>
         -log10(p): {tooltipData.enrichment}
-      </div>
+        </div> 
+      : null}
     </div>
   );
 };
@@ -184,12 +186,20 @@ const Spectrum = ({
       // console.log("SMOOTH", Math.max(...enrichmentsSmooth))
 
       setSmoothData(enrichmentsSmooth)
+    } else {
+      setEnrichments(new Array(genesetOrder.length).fill(0))
+      setSmoothData(new Array(genesetOrder.length).fill(0))
     }
 
   }, [activeGenesetEnrichment, genesetOrder, windowSize]);
 
   const handleMouseLeave = () => {
     setTooltipData(null);
+  };
+
+  const handleMouseClick = () => {
+    // setQueryGeneset(tooltipData.genesetName);
+    console.log(tooltipData.genesetName)
   };
 
   const xScale = useMemo(() => i => plotXStart + (i / (genesetOrder.length - 1)) * (plotXStop - plotXStart), [plotXStart, plotXStop, genesetOrder.length]);
@@ -255,13 +265,13 @@ const Spectrum = ({
   
   }, [smoothData, xScale, yScale, plotYStop, spectrumBarHeight, colorbarX, labels]);
 
-  console.log("Spectrum render")
+  // console.log("Spectrum render")
   return (
     <div className={"spectrum-component" + (show ? " show": " hide")} style={{ height: height + 'px', width: width + 'px' }}>
       <div style={{ position: 'relative' }}>
 
         {/* <YTicks data={smoothData} yScale={yScale} xScale={xScale} height={height} numTicks={5} /> */}
-        <canvas ref={canvasRef} width={width} height={height} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}/>
+        <canvas ref={canvasRef} width={width} height={height} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} onMouseDown={handleMouseClick}/>
         <Tooltip tooltipData={tooltipData} position={tooltipPosition} />
 
       </div>

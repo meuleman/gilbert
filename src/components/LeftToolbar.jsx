@@ -52,8 +52,9 @@ const LeftToolbar = ({
 
       <div className="bottom-group">
         <button className={`toolbar-button ${showSpectrum ? 'active' : ''}`} data-tooltip-id="show-spectrum"
-          onClick={() => activeGenesetEnrichment?.length && onSpectrum(!showSpectrum)}
-          disabled={!activeGenesetEnrichment?.length}
+          // onClick={() => activeGenesetEnrichment?.length && onSpectrum(!showSpectrum)}
+          onClick={() => onSpectrum(!showSpectrum)}
+          // disabled={!activeGenesetEnrichment?.length}
           style={{'filter': showSpectrum ? 'grayscale(100%)' : 'none'}}
         >
             {loadingSpectrum ? 
