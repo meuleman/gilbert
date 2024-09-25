@@ -78,9 +78,9 @@ const fullList = [
   Variants_aPC_rank,
   Variants_GWAS,
   Variants_GWAS_rank,
-  DHS_OE_Chi,
-  DHS_Components_Sfc,
-  DHS_Components_Sfc_max,
+  // DHS_OE_Chi,
+  // DHS_Components_Sfc,
+  // DHS_Components_Sfc_max,
   DHS_OCC,
   DHS_rank_OCC,
   DHS_enr,
@@ -92,32 +92,32 @@ const fullList = [
   // DHS_Coreg_Multiscale,
   // DHS_Coreg_Best_Scale_max,
   // Chromatin_OE_Chi,
-  Chromatin_States_Sfc,
-  Chromatin_States_Sfc_max,
+  // Chromatin_States_Sfc,
+  // Chromatin_States_Sfc_max,
   chromatin_states_occ,
   chromatin_states_rank_occ,
   chromatin_states_enr,
   chromatin_states_enr_max,
   chromatin_states_enr_counts,
   // TF_Motifs_OE_Chi,
-  TF_Motifs_Sfc,
-  TF_Motifs_Sfc_max,
-  tf_motifs_occ,
-  tf_motifs_rank_occ,
-  tf_motifs_enr,
-  tf_motifs_enr_max,
-  tf_motifs_enr_counts,
-  tf_motifs_enr_top10,
+  // TF_Motifs_Sfc,
+  // TF_Motifs_Sfc_max,
+  // tf_motifs_occ,
+  // tf_motifs_rank_occ,
+  // tf_motifs_enr,
+  // tf_motifs_enr_max,
+  // tf_motifs_enr_counts,
+  // tf_motifs_enr_top10,
   tf_motifs_1en6_enr,
   tf_motifs_1en6_enr_max,
   tf_motifs_1en6_enr_counts,
   tf_motifs_1en6_enr_top10,
   tf_motifs_1en6_occ,
   tf_motifs_1en6_rank_occ,
-  DHS_mapped_TF_motifs_sfc,
-  DHS_mapped_TF_motifs_sfc_max,
-  Repeats_Sfc,
-  Repeats_Sfc_max,
+  // DHS_mapped_TF_motifs_sfc,
+  // DHS_mapped_TF_motifs_sfc_max,
+  // Repeats_Sfc,
+  // Repeats_Sfc_max,
   Repeats_enr,
   Repeats_enr_max,
   Repeats_enr_counts,
@@ -125,15 +125,127 @@ const fullList = [
   Repeats_rank_occ,
   UKBB,
   UKBB_Counts,
-  CpG_Island_Density,
+  // CpG_Island_Density,
   ENCSR000EOT,
   CD3,
   CD3Fiberseq,
-  LADs,
-  LADs_new,
+  // LADs,
+  // LADs_new,
   LADs_occ,
   CSN_path_density_90,
 ]
+
+const datasetMapping = {
+  'DHS': {
+    'ENR': {
+      'layers': {
+        'default': fullList.find(d => d.name == "DHS Components (ENR, Full)"),
+        'max': fullList.find(d => d.name == "DHS Components (ENR)"),
+        'counts': fullList.find(d => d.name == "DHS Components (ENR, Counts)"),
+      },
+      'filtering': fullList.find(d => d.name == "DHS Components (ENR, Full)"),
+      'narration': fullList.find(d => d.name == "DHS Components (ENR, Full)")
+    },
+    'OCC': {
+      'layers': {
+        'default': fullList.find(d => d.name == "DHS Components (OCC)"),
+        'rank': fullList.find(d => d.name == "DHS Components (OCC, Ranked)"),
+      },
+      'filtering': fullList.find(d => d.name == "DHS Components (OCC, Ranked)"),
+      'narration': fullList.find(d => d.name == "DHS Components (OCC, Ranked)")
+    }
+  },
+  'chromatinStates': {
+    'ENR': {
+      'layers': {
+        'default': fullList.find(d => d.name == "Chromatin States (ENR, Full)"),
+        'max': fullList.find(d => d.name == "Chromatin States (ENR)"),
+        'counts': fullList.find(d => d.name == "Chromatin States (ENR, Counts)"),
+      },
+      'filtering': fullList.find(d => d.name == "Chromatin States (ENR, Full)"),
+      'narration': fullList.find(d => d.name == "Chromatin States (ENR, Full)")
+    },
+    'OCC': {
+      'layers': {
+        'default': fullList.find(d => d.name == "Chromatin States (OCC)"),
+        'rank': fullList.find(d => d.name == "Chromatin States (OCC, Ranked)"),
+      },
+      'filtering': fullList.find(d => d.name == "Chromatin States (OCC, Ranked)"),
+      'narration': fullList.find(d => d.name == "Chromatin States (OCC, Ranked)")
+    },
+  },
+  'tfMotifs': {
+    'ENR': {
+      'layers': {
+        'default': fullList.find(d => d.name == "TF Motifs (1e-6, ENR, Full)"),
+        'max': fullList.find(d => d.name == "TF Motifs (1e-6, ENR)"),
+        'counts': fullList.find(d => d.name == "TF Motifs (1e-6, ENR, Counts)"),
+        'top10': fullList.find(d => d.name == "TF Motifs (1e-6, ENR, Top 10)"),
+      },
+      'filtering': fullList.find(d => d.name == "TF Motifs (1e-6, ENR, Full)"),
+      'narration': fullList.find(d => d.name == "TF Motifs (1e-6, ENR, Top 10)")
+    },
+    'OCC': {
+      'layers': {
+        'default': fullList.find(d => d.name == "TF Motifs (1e-6, OCC)"),
+        'rank': fullList.find(d => d.name == "TF Motifs (1e-6, OCC, Ranked)"),
+      },
+      'filtering': fullList.find(d => d.name == "TF Motifs (1e-6, OCC, Ranked)"),
+      'narration': fullList.find(d => d.name == "TF Motifs (1e-6, OCC, Ranked)")
+    },
+  },
+  'repeats': {
+    'ENR': {
+      'layers': {
+        'default': fullList.find(d => d.name == "Repeats (ENR, Full)"),
+        'max': fullList.find(d => d.name == "Repeats (ENR)"),
+        'counts': fullList.find(d => d.name == "Repeats (ENR, Counts)"),
+      },
+      'filtering': fullList.find(d => d.name == "Repeats (ENR, Full)"),
+      'narration': fullList.find(d => d.name == "Repeats (ENR, Full)")
+    },
+    'OCC': {
+      'layers': {
+        'default': fullList.find(d => d.name == "Repeats (OCC)"),
+        'rank': fullList.find(d => d.name == "Repeats (OCC, Ranked)"),
+      },
+      'filtering': fullList.find(d => d.name == "Repeats (OCC, Ranked)"),
+      'narration': fullList.find(d => d.name == "Repeats (OCC, Ranked)")
+    },
+  },
+  'GWAS': {
+    'variant': {
+      'layers': {
+        'default': fullList.find(d => d.name == "Variants (GWAS)"),
+        'rank': fullList.find(d => d.name == "Variants (GWAS, Ranked)"),
+      },
+      'filtering': fullList.find(d => d.name == "Variants (GWAS, Ranked)"), // change to full dataset/not a layer
+      'narration': fullList.find(d => d.name == "Variants (GWAS, Ranked)"), // 
+    },
+  },
+  'categorical': {
+    'variant' : {
+      'layers': {
+        'default': fullList.find(d => d.name == "Variants (Categorical)"),
+        'rank': fullList.find(d => d.name == "Variants (Categorical, Ranked)"),
+      },
+      'filtering': fullList.find(d => d.name == "Variants (Categorical, Ranked)"),
+      'narration': fullList.find(d => d.name == "Variants (Categorical, Ranked)"),
+    },
+  },
+  'aPC': {
+    'variant': {
+      'layers': {
+        'default': fullList.find(d => d.name == "Variants (aPC)"),
+        'rank': fullList.find(d => d.name == "Variants (aPC, Ranked)"),
+      },
+      'filtering': fullList.find(d => d.name == "Variants (aPC, Ranked)"),
+      'narration': fullList.find(d => d.name == "Variants (aPC, Ranked)"),
+    }
+  }
+}
+
+console.log("DATASET MAPPING", datasetMapping)
 
 
 const csnLayers = [
@@ -147,6 +259,19 @@ const csnLayers = [
   fullList.find(d => d.name == "Repeats (OCC, Ranked)"),
 ]
 
+const filterLayers = [
+  fullList.find(d => d.name == "DHS Components (ENR, Full)"),
+  fullList.find(d => d.name == "Chromatin States (ENR, Full)"),
+  fullList.find(d => d.datasetName == "tf_1en6_enr"),
+  fullList.find(d => d.name == "Repeats (ENR, Full)"),
+  fullList.find(d => d.name == "DHS Components (OCC, Ranked)"),
+  fullList.find(d => d.name == "Chromatin States (OCC, Ranked)"),
+  fullList.find(d => d.datasetName == "tf_1en6_rank_occ"),
+  fullList.find(d => d.name == "Repeats (OCC, Ranked)"),
+  fullList.find(d => d.datasetName == "variants_favor_categorical_rank"),
+  fullList.find(d => d.datasetName == "variants_favor_apc_rank"),
+]
+
 const variantLayers = [
   fullList.find(d => d.datasetName == "variants_favor_categorical_rank"),
   fullList.find(d => d.datasetName == "variants_favor_apc_rank"),
@@ -156,7 +281,7 @@ const variantLayers = [
 const countLayers = [
   fullList.find(d => d.datasetName == "dhs_enr_counts"),
   fullList.find(d => d.datasetName == "cs_enr_counts"),
-  fullList.find(d => d.datasetName == "tf_enr_counts"),
+  fullList.find(d => d.datasetName == "tf_1en6_enr_counts"),
   fullList.find(d => d.datasetName == "repeats_enr_counts"),
 ]
 
@@ -197,10 +322,16 @@ function rehydrate(index, list) {
 
 // This can take in either a layer object or a layer datasetName
 // As well as a field name or fieldIndex
+// To be used for filters
 function makeField(layer, fieldNameOrIndex, order) {
   let l = layer
   if(typeof layer === 'string') {
     l = fullList.find(l => l.datasetName == layer)
+  }
+  // TODO: is this the right place to put this?
+  // currently makeField is only used to make fields for filtering
+  if(l.datasetName == 'tf_1en6_enr_top10') {
+    l = fullList.find(l => l.datasetName == 'tf_1en6_enr')
   }
   let fieldIndex
   let fieldName
@@ -230,6 +361,12 @@ const fields = factorLayers.flatMap(layer => {
   })
   return fs 
 })
+const filterFields = filterLayers.flatMap(layer => {
+  let fs = layer.fieldColor.domain().map((f, i) => {
+    return makeField(layer, f)
+  })
+  return fs 
+})
 
 
 export {
@@ -241,6 +378,7 @@ export {
   fieldMapping,
   rehydrate,
   fields,
+  filterFields,
   makeField,
 }
 

@@ -2,15 +2,15 @@ import { useState, useCallback, useEffect, useContext, useMemo } from 'react'
 import FiltersContext from './ComboLock/FiltersContext'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
-import { showKb } from '../lib/display'
-import CSNSentence from './Narration/Sentence'
-import CSNLine from './Narration/Line'
+import { showKbOrder, showPosition } from '../lib/display'
+import GoogleSearchLink from './Narration/GoogleSearchLink'
 import ZoomLine from './Narration/ZoomLine'
 import ScoreBars from './Narration/ScoreBars'
 import Power from './Narration/Power'
 import Loading from './Loading'
 import { scaleLinear } from 'd3-scale'
-import { variantChooser } from '../lib/csn'
+import { retrieveFullDataForCSN, variantChooser } from '../lib/csn'
+import { fetchGWASforPositions } from '../lib/gwas'
 import { makeField } from '../layers'
 
 import './InspectorGadget.css'
@@ -44,12 +44,18 @@ const InspectorGadget = ({
   }, [minimized, setMinimized])
 
   const [zOrder, setZoomOrder] = useState(zoomOrder)
+  // useEffect(() => {
+  //   console.log("zoom order changed", zoomOrder)
+  //   if(zoomOrder < 4) zoomOrder = 4
+  //   setZoomOrder(zoomOrder)
+  // }, [zoomOrder])
   useEffect(() => {
-    console.log("zoom order changed", zoomOrder)
-    if(zoomOrder < 4) zoomOrder = 4
-    setZoomOrder(zoomOrder)
-  }, [zoomOrder])
-
+    // console.log("zoom order changed", zoomOrder)
+    if(!narration) return
+    let zr = narration.region.order + 0.5
+    if(zr < 4) zr = 4
+    setZoomOrder(zr)
+  }, [narration])
 
   const handleZoom = useCallback((or) => {
     if(or < 4) or = 4
@@ -69,7 +75,8 @@ const InspectorGadget = ({
   const [zoomedPathRegion, setZoomedPathRegion] = useState(null)
   useEffect(() => {
     if (narration && narration.path && narration.path.length) {
-      const z = Math.floor(zOrder)
+      let z = Math.floor(zOrder)
+      if(z > 14) z = 14
       let zr = narration.path.find(n => n.order == z)
       if(z == 14 && narration.variants && narration.variants.length) {
         let v = variantChooser(narration.variants)
@@ -90,6 +97,40 @@ const InspectorGadget = ({
     return left
   }, [modalPosition, powerWidth])
 
+  const [fullNarration, setFullNarration] = useState(null)
+  const [loadingFullNarration, setLoadingFullNarration] = useState(false)
+  useEffect(()=> {
+    // defaults to the un-annotated Narration passed in
+    setFullNarration(narration)
+    setLoadingFullNarration(true)
+  }, [narration])
+
+  const handlePowerData = useCallback((data) => {
+    // when the power data is done loading (when Narration changes)
+    // then we load full
+    console.log("IG: power data", data)
+    console.log("IG: narration", narration)
+
+    Promise.all([
+      retrieveFullDataForCSN(narration),
+      fetchGWASforPositions([{chromosome: narration.chromosome, index: narration.i}])
+    ]).then(([fullDataResponse, gwasRepsonse]) => {
+      // refactor GWAS response
+      console.log("IG: gwas response", gwasRepsonse)
+      console.log("IG: full data response", fullDataResponse)
+      const csnGWAS = gwasRepsonse[0]['trait_names'].map((trait, i) => {
+        return {trait: trait, mlog_pvalue: gwasRepsonse[0]['scores'][i], pvalue: 10 ** -(gwasRepsonse[0]['scores'][i])}
+      }).sort((a,b) => b.mlog_pvalue - a.mlog_pvalue)
+      // add GWAS associations to the full data response
+      let csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14)
+      csnOrder14Segment ? csnOrder14Segment["GWAS"] = csnGWAS : null
+      console.log("IG: full narration", fullDataResponse)
+      setFullNarration(fullDataResponse)
+      setLoadingFullNarration(false)
+    })
+  }, [narration])
+
+
   
   return (
     <>
@@ -102,7 +143,9 @@ const InspectorGadget = ({
       }}>
       <div className="header">
         <div className="power-modal-selected">
-          <button onClick={() => setZoomOrder(selected.order + 0.5)}>reset zoom</button>
+        {/* {showPosition(selected)} */}
+          { narration && showPosition(narration.region) }
+          { /* <button onClick={() => setZoomOrder(selected.order + 0.5)}>reset zoom</button> */ }
         </div>
         <div className="header-buttons">
           <div className="close" onClick={onClose}>x</div>
@@ -118,10 +161,11 @@ const InspectorGadget = ({
               height={powerHeight} 
               userOrder={zOrder}
               onOrder={handleZoom}
+              onData={handlePowerData}
               />
             <div className="zoom-scores">
               <ZoomLine 
-                csn={narration} 
+                csn={fullNarration} 
                 order={zOrder} 
                 maxPathScore={maxPathScore}
                 highlight={true}
@@ -133,13 +177,13 @@ const InspectorGadget = ({
                 tipOrientation={tipOrientation}
                 onHover={handleZoom}
                 onClick={(c) => { console.log("narration", c)}}
-                onFactor={(p) => {
-                  let field = makeField(p.layer, p.field.index, p.order)
-                  handleFilter(field, p.order)
-                }}
+                // onFactor={(p) => {
+                //   let field = makeField(p.layer, p.field.index, p.order)
+                //   handleFilter(field, p.order)
+                // }}
                 /> 
               <ScoreBars
-                csn={narration} 
+                csn={loadingFullNarration ? narration : fullNarration} 
                 order={zOrder} 
                 highlight={true}
                 selected={true}
@@ -153,13 +197,13 @@ const InspectorGadget = ({
               </div>
               
           </div>
+          { /*
           <div className="zoom-text">
-            At the {showKb(Math.pow(4, 14 - Math.floor(zOrder)))} scale, 
-            {zoomedPathRegion?.field ? " the dominant factor is " : "no factors are significant for this path."}
-            {zoomedPathRegion?.field ? <span>
-              {zoomedPathRegion.layer?.name}: {zoomedPathRegion.field?.field}
-            </span>: ""}
+            {zoomedPathRegion?.field ? `${zoomedPathRegion.field?.field} ${zoomedPathRegion.layer?.name} (${showKbOrder(zOrder)})` : ""}
           </div>
+          */ }
+          {/* { loadingFullNarration ? <Loading text={"📊 Preparing literature search..."} /> : <GoogleSearchLink narration={fullNarration} /> } */}
+          <GoogleSearchLink narration={narration} />
         </div> : null }
         <div className="power-modal-children">
           {children}

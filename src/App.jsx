@@ -7,6 +7,7 @@ import YC240322 from './pages/YC240322'
 import Filter from './pages/Filter'
 
 import FiltersProvider from './components/ComboLock/FiltersProvider';
+import RegionsProvider from './components/Regions/RegionsProvider';
 
 
 import './App.css'
@@ -20,7 +21,9 @@ function App() {
       <Routes>
         <Route path="/" element={
           <FiltersProvider>
-            <Home />
+            <RegionsProvider>
+              <Home />
+            </RegionsProvider>
           </FiltersProvider>
         } />
         <Route path="/regions" element={<RegionSets />} />

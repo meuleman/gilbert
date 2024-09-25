@@ -34,3 +34,10 @@
   margin-top: 4px;
   border: 1px solid lightgray;
 }
+
+.power .power-loading {
+  position: absolute;
+  top: 120px;
+  left: 100px;
+  font-size: 24px;
+}

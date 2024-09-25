@@ -1,0 +1,80 @@
+
+.active-regionsets-modal {
+  display: none;
+  flex-direction: column;
+  /* align-items: center; */
+  /* justify-content: center; */
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: calc(500px);
+  height: calc(100% - 4px);
+  border: 1px solid #eee;
+  background-color: rgba(255,255,255,0.9);
+  z-index: 13;
+}
+.active-regionsets-modal.show {
+  display: flex;
+}
+
+.active-regionsets-modal .content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.active-regionsets-modal .manage {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 15px;
+  line-height: 40px;
+  /* background-color: #f5f5f5; */
+}
+
+.active-regionsets-modal .section {
+  border-top: 1px solid lightgray;
+  padding: 6px;
+}
+.active-regionsets-modal .section h3 {
+  margin: 0;
+}
+
+.active-regionsets-modal .region-sets {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow-y: auto;
+  max-height:100%;
+  /* height: calc(100% - 80px); */
+}
+
+.active-regionsets-modal .region-sets table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.active-regionsets-modal .region-sets thead {
+  /* background-color: #f8f8f8; */
+}
+
+.active-regionsets-modal .region-sets th, .active-regionsets-modal .region-sets td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.active-regionsets-modal .table-body-container {
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.active-regionsets-modal .table-body-container table {
+  table-layout: fixed;
+}
+
+.active-regionsets-modal .active-filters-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}

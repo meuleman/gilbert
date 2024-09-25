@@ -133,13 +133,13 @@ const StatusBar = ({
             <input type="number" min={-2} max={2} value={orderOffset} onChange={(e) => onOrderOffset(+e.target.value)} />
             <span>effective order {zoom.order}</span>
           </label>
-          <button className={`filter-button ${showFilter ? 'active' : null}`}
+          {/* <button className={`filter-button ${showFilter ? 'active' : null}`}
             onClick={() => onFilter(!showFilter)}
             data-tooltip-id="filter">
             🔒
-          </button>
+          </button> */}
           <Tooltip id="filter" place="top" effect="solid" className="tooltip-custom">
-            Filter paths by factor
+            Filter regions by factor
           </Tooltip>
 
           <button className={`clear-button`}

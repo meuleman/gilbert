@@ -3,9 +3,13 @@ import Select from 'react-select';
 import chroma from 'chroma-js';
 import { groups } from 'd3-array';
 import { showFloat, showInt, showKb } from '../../lib/display';
-import { fields } from '../../layers'
+import { filterFields } from '../../layers'
 import {Tooltip} from 'react-tooltip';
 import FiltersContext from './FiltersContext'
+import { fetchOrderPreview } from '../../lib/dataFiltering';
+import RegionsContext from '../../components/Regions/RegionsContext';
+import Loading from '../Loading';
+
 
 const dot = (color = 'transparent') => ({
   alignItems: 'center',
@@ -101,6 +105,7 @@ const SelectOrder = ({
   activeWidth, 
   restingWidth, 
   orderMargin = 0,
+  maxBGRegionSize = 10000,
 }) => {
   const [selectedField, setSelectedField] = useState(null)
   const [allFieldsGrouped, setAllFieldsGrouped] = useState([])
@@ -119,9 +124,56 @@ const SelectOrder = ({
   }, [filters, order, fieldMap])
 
   const handleChange = useCallback((selectedOption) => {
-    handleFilter(selectedOption, order)
+    handleFilter(selectedOption, order, true)
     setIsActive(false)
   }, [order, handleFilter])
+
+  const [orderCounts, setOrderCounts] = useState(orderSums.filter(o => o.order == order)[0].counts)
+  const [showCounts, setShowCounts] = useState(true)
+  
+  // parses the results from fetchOrderPreview and updates the orderCounts
+  const handleNewCounts = function (newCounts) {
+    let orderCountsCopy = JSON.parse(JSON.stringify(orderCounts))
+    newCounts.forEach((d) => {
+      let datasetName = d.dataset_name
+      let factorIndex = d.index
+      let count = d.preview[order]
+      if(datasetName in orderCountsCopy && factorIndex in orderCountsCopy[datasetName]) {
+        orderCountsCopy[datasetName][factorIndex] = count
+      }
+    })
+    setOrderCounts(orderCountsCopy)
+  }
+
+  const { sets, activeSet, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
+  const [previewLoading, setPreviewLoading] = useState(false)
+
+  // to run fetchOrderPreview (currently only for orders 4-9)
+  useEffect(() => {
+    // small enough number of regions, available order
+    if(activeSet?.regions.length && activeSet?.regions.length < maxBGRegionSize && ([4,5,6,7,8,9].includes(order))) {
+      setPreviewLoading(true)
+      setTimeout(() => {
+        // give the top paths call a chance to go first
+        fetchOrderPreview(activeSet?.regions, filterFields, [order]).then((response) => {
+          // console.log("MULTI-FILTER RESPONSE", response, order)
+          handleNewCounts(response.previews)
+          setPreviewLoading(false)
+          setShowCounts(true)
+        })
+      }, 500)
+
+    // too many regions, order too large with small enough region set
+    } else if(activeSet?.regions.length) {
+      setOrderCounts(orderSums.filter(o => o.order == order)[0].counts)
+      setShowCounts(false)
+
+    // no regions
+    } else {
+      setOrderCounts(orderSums.filter(o => o.order == order)[0].counts)
+      setShowCounts(true)
+    }
+  }, [activeSet])
 
   const formatLabel = useCallback((option) => {
     return (
@@ -129,19 +181,21 @@ const SelectOrder = ({
         <b>{option.field} </b>
         <i>{option.layer.name} </i>
         <span style={{color: "gray"}}> 
-          {showUniquePaths ? " " + showInt(option.count) + " paths " : " "} 
+          {showUniquePaths && showCounts ? " " + showInt(option.count) + " regions" : " "} 
         </span>
       </div>
     );
-  }, [showUniquePaths]);
+  }, [showUniquePaths, showCounts]);
 
   useEffect(() => {
-    let allFields = fields.map(f => {
+    let allFields = filterFields.map(f => {
       let layer = f.layer
-      let oc = orderSums.find(o => o.order == order)
+      // let oc = orderSums.find(o => o.order == order)
+      let oc = orderCounts
       let counts = null
       if(oc) {
-        counts = oc.counts[layer.datasetName]
+        // counts = oc.counts[layer.datasetName]
+        counts = oc[layer.datasetName]
       }
       return {
         ...f,
@@ -162,7 +216,7 @@ const SelectOrder = ({
     })
     setFieldMap(fieldMap)
 
-  }, [order, orderSums, showNone])
+  }, [order, orderCounts, showNone])
 
   const [isActive, setIsActive] = useState(false);
   const [previewBar, setPreviewBar] = useState(null)
@@ -201,7 +255,7 @@ const SelectOrder = ({
               ❌
             </button>
             <Tooltip id="deselect" place="top" effect="solid" className="tooltip-custom">
-              Deselect
+              Deselect {selectedField?.field} {selectedField?.layer?.name}
             </Tooltip>
           </div>
         : null }
@@ -220,12 +274,14 @@ const SelectOrder = ({
           : null}
       </div>
 
+      {previewLoading ? <Loading text={""} /> : null}
+
       <div className="filter-group">
         <Select
           options={allFieldsGrouped}
           styles={colourStyles(isActive, restingWidth, activeWidth)}
           value={selectedField}
-          isDisabled={disabled}
+          isDisabled={disabled || previewLoading}
           // menuPortalTarget={document.body}
           onChange={handleChange}
           onFocus={() => setIsActive(true)}
@@ -241,6 +297,7 @@ const SelectOrder = ({
           )}
         />
       </div>
+
 
 
         

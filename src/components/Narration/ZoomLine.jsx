@@ -221,6 +221,20 @@ export default function ZoomLine({
               </text>
             </g>
           })}
+          {
+            showScore && <text
+              y={h + scoreHeight}
+              x={width / 2}
+              textAnchor="middle"
+              fontFamily="Courier"
+              fontSize={11}
+              fill="#111"
+              pointerEvents="none"
+              fontWeight={"bold"}
+            >
+              Path
+            </text>
+          }
         </g> : null}
 
       </svg>

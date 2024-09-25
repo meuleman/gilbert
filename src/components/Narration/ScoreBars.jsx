@@ -160,7 +160,7 @@ export default function ScoreBars({
         {path.length && yScale && text ? <g>
           {range(4, 15).map(o => {
             let p = path.find(d => d.order == o)
-            let bp = showKb(Math.pow(4, 14 - o))
+            // let bp = showKb(Math.pow(4, 14 - o))
             return <g key={o} onMouseMove={(e) => handleHover(e, o)}>
               <text
                 y={yScale(o) + 2*rw/3}
@@ -177,6 +177,21 @@ export default function ScoreBars({
               </text>
             </g>
           })}
+          {
+            <text
+              y={h + scoreHeight}
+              x={width / 2}
+              textAnchor="middle"
+              fontFamily="Courier"
+              fontSize={11}
+              fill="#111"
+              paintOrder="stroke"
+              fontWeight={"bold"}
+            >
+              {showFloat(csn.score)}
+            </text>
+          }
+
         </g> : null}
 
       </svg>

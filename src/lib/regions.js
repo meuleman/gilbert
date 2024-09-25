@@ -11,6 +11,13 @@ export function parsePosition(coords) {
   return { chromosome, start, end }
 }
 
+export function toPosition(region) {
+  let chromosome = region.chromosome
+  let start = region.regionStart || region.start
+  let end = region.regionEnd || region.end
+  return `${chromosome}:${start}-${end}` 
+}
+
 export function fromRegion(region, order) {
   return fromPosition(region.chromosome, region.start, region.end, order || region.order)
 }
@@ -18,6 +25,13 @@ export function fromRegion(region, order) {
 export function fromCoordinates(coords) {
   const parsed = parsePosition(coords)
   return fromPosition(parsed.chromosome, parsed.start, parsed.end)
+}
+
+export function fromIndex(chromosome, index, order) {
+  let regionSize = 4 ** (14 - order)
+  let start = regionSize * index
+  let end = regionSize * (index + 1)
+  return fromPosition(chromosome, start, end, order)
 }
 
 // convert a genome region to a gilbert region
@@ -89,4 +103,24 @@ export function sameHilbertRegion(a, b) {
   if(a.chromosome !== b.chromosome) return false
   if(a.i !== b.i) return false
   return true
+}
+
+export function overlap(ar, br) {
+  // we always want "a" to be the longer region
+  let a = ar;
+  let b = br;
+  if(a.chromosome !== b.chromosome) return null;
+  if(b.end - b.start > a.end - a.start) {
+    a = br
+    b = ar
+  }
+  if((b.start > a.start && b.start < a.end) || (b.end > a.start && b.end < a.end) || (b.start == a.start && b.end == a.end)) {
+    // we have overlap
+    return br
+  }
+  return null
+}
+
+export function overlaps(a, regions, accessor = r => r) {
+  return regions.filter(r => overlap(a, accessor(r)))
 }

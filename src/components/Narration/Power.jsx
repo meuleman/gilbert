@@ -15,6 +15,7 @@ import { getGencodesInView } from '../../lib/Genes';
 
 import order_14 from '../../layers/order_14';
 
+import Loading from '../Loading';
 import { Renderer as CanvasRenderer } from '../Canvas/Renderer';
 
 
@@ -118,6 +119,8 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
   const canvasRefStrip = useRef(null);
   const canvasRefGenes = useRef(null);
   const tooltipRef = useRef(null)
+
+  const [loading, setLoading] = useState(false)
 
   const percentScale = useMemo(() => scaleLinear().domain([1, 100]).range([4, 14.999]), [])
 
@@ -256,7 +259,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
       })
       // console.log("in power", csn)
       // console.log("order points", orderPoints)
-
+      setLoading(true)
       Promise.all(orderPoints.map(p => {
         if(p.layer?.layers){ 
           return Promise.all(p.layer.layers.map(l => dataClient.fetchData(l, p.order, p.points)))
@@ -287,6 +290,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
               data: d
             }
           }))
+          setLoading(false)
         })
     }
   }, [csn])
@@ -390,25 +394,26 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
           //console.log("RENDER o", o, d)
           if(o < 14) {
             // set the central region's data to the field we chose 
-            const central = d.data.find(r => r.i == d.p.region.i)
-            if(d.region.data) {
-              central.data = d.region.data
-            } else {
-              // console.log("central", d.region, central)
-              let centralData = {}
-              if(d.layer.topValues) {
-                centralData["max_value"] = d.region.field.value
-                centralData["max_field"] = d.region.field.index
-              } else {
-                centralData[d.region.field.field] = d.region.field.value
-              }
-              central.data = centralData
-            }
+            // const central = d.data.find(r => r.i == d.p.region.i)
+            // if(d.region.data) {
+            //   central.data = d.region.data
+            // } else {
+            //   // console.log("central", d.region, central)
+            //   let centralData = {}
+            //   if(d.layer.topValues) {
+            //     centralData["max_value"] = d.region.field.value
+            //     centralData["max_field"] = d.region.field.index
+            //   } else {
+            //     centralData[d.region.field.field] = d.region.field.value
+            //   }
+            //   central.data = centralData
+            // }
           }
+          
           CanvasRenderer(d.layer.renderer, { 
             scales, 
             state: { 
-              data: d.data,
+              data: d.data.filter(dd => dd.chromosome === r.chromosome),
               loading: false,
               points: d.points,
               meta,
@@ -433,16 +438,15 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
           ctx.lineWidth = 0.5
           ctx.globalAlpha = oscale(or - o)
           if(pd.layer){
-
             // pd.data.find(r => r.i == pd.p.region.i).data = pd.region.data
             CanvasRenderer(pd.layer.renderer, { 
               scales, 
               state: { 
                 // data: { [pd.p.field.field]: pd.p.field.value },
-                data: pd.data,
+                data: pd.data.filter(dd => dd.chromosome === r.chromosome),
                 loading: false,
                 points: pd.points,
-                meta: pd.data.metas.find((meta) => meta.chromosome === r.chromosome),
+                meta: pd.data.metas.find((meta) => meta.chromosome === pd.region.chromosome),
                 order: o-1,
                 transform
               }, 
@@ -721,6 +725,9 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
   return (
     <div className="power">
       <div className="power-container">
+        {loading ? <div className="power-loading">
+          <Loading text={"📊 Loading"} />
+        </div> : null}
         <canvas 
           className="power-canvas"
           width={width + "px"}

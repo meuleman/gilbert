@@ -88,22 +88,13 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
           }
           // let a = alphaScale(sample.value)
           let srw = f(rw * (shrinkScale(sample.value) || 0.1)) * 0.95
-          
-          // ctx.globalAlpha = a < 0 ? 0 : a
-          // ctx.fillRect(f(xx - srw/2), f(yy - srw/2), srw, srw)
-          // ctx.strokeRect(f(xx - srw/2), f(yy - srw/2), srw, srw)
-          
-          // if(dm1) {
-          //   let { xoff, yoff, w, h } = getOffsets(d, dm1, rw, srw)
-          //   ctx.fillRect(f(xx + xoff), f(yy + yoff), w, h)
-          //   ctx.strokeRect(f(xx + xoff), f(yy + yoff), w, h)
-          // }
-          // if(dp1) {
-          //   let { xoff, yoff, w, h } = getOffsets(d, dp1, rw, srw)
-          //   ctx.fillRect(f(xx + xoff), f(yy + yoff), w, h)
-          //   ctx.strokeRect(f(xx + xoff), f(yy + yoff), w, h)
-          // }
 
+          // Debugging oversized rendering of fields. showing that the max isn't matching the values seen
+          // if(srw > 50) {
+          //   let fi = fields.indexOf(sample.field)
+          //   console.log("BIG SAMPLE d", srw, d, sample, "field index", fi, "max", max[fi])
+          // }
+          
           let points = []
           if(dm1) {
             let { xoff, yoff, w, h } = getOffsets(d, dm1, rw, srw)

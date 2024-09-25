@@ -51,7 +51,7 @@ onmessage = async function(e) {
   const clyrs = countLayers.map(deserializeLayer)
   let fltrs = null
   if(filters) {
-    fltrs = Object.keys(filters).map(k => {
+    fltrs = Object.keys(filters).filter(k => k !== "userTriggered").map(k => {
       return {
         ...filters[k],
         layer: deserializeLayer(filters[k].layer)

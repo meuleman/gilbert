@@ -34,24 +34,24 @@ const SankeyModal = ({
 
   const [loadingCSN, setLoadingCSN] = useState(false)
 
-  const [showPanel, setShowPanel] = useState(true)
+  const [showPanel, setShowPanel] = useState(false)
   const [showControls, setShowControls] = useState(false)
 
-  const { filters } = useContext(FiltersContext)
+  const { filters, hasFilters } = useContext(FiltersContext)
+
+  // useEffect(() => {
+  //   setShowPanel(show)
+  // }, [show])
+
 
   useEffect(() => {
-    setShowPanel(show)
-  }, [show])
-
-
-  useEffect(() => {
-    if(!Object.keys(filters).length){
+    if(!hasFilters()){
       setSort("full")
     }
   }, [filters])
 
   const [view, setView] = useState("sankey")
-  const [sort, setSort] = useState("factor")
+  const [sort, setSort] = useState("full")
   useEffect(() => {
     onSort(sort)
   }, [sort])
@@ -73,6 +73,11 @@ const SankeyModal = ({
   }, [factorCsns, fullCsns, sort])
 
   const zlheight = height
+
+  useEffect(() => {
+    // console.log("selectedRegion", selectedRegion)
+    // console.log("hoveredRegion", hoveredRegion)
+  }, [selectedRegion, hoveredRegion])
 
   const handleShowControl = useCallback(() => {
     setShowControls(!showControls)
@@ -169,7 +174,7 @@ const SankeyModal = ({
                     type="radio" 
                     value="factor" 
                     checked={sort === "factor"} 
-                    disabled={!Object.keys(filters).length}
+                    disabled={!hasFilters()}
                     onChange={() => setSort("factor")} 
                   />
                   Factor
@@ -178,7 +183,7 @@ const SankeyModal = ({
                   <input 
                     type="radio" 
                     value="full" 
-                    checked={sort === "full" || !Object.keys(filters).length} 
+                    checked={sort === "full" || !hasFilters()} 
                     onChange={() => setSort("full")} 
                   />
                   Full
@@ -193,8 +198,7 @@ const SankeyModal = ({
         }}
       >
         <div className="loading-info">
-            {loading === "fetching" ? <Loading text={"Fetching CSNs..."} /> : null}
-            {loading === "hydrating" ? <Loading text={"Hydrating CSNs..."} /> : null}
+            {loading ? <Loading text={loading} /> : null}
         </div>
         {view === "heatmap" ? 
           <div className={`csn-lines ${loading ? "loading-csns" : ""}`}>
@@ -208,7 +212,9 @@ const SankeyModal = ({
                     maxPathScore={maxPathScore}
                     order={order}
                     showScore={false}
-                    highlight={!selectedRegion && !!n.path.find(r => hoveredRegion && r && r.order === hoveredRegion.order && r.region.chromosome === hoveredRegion.chromosome && r.region.i === hoveredRegion.i)}
+                    // highlight={!selectedRegion && !!n.path.find(r => hoveredRegion && r && r.order === hoveredRegion.order && r.region.chromosome === hoveredRegion.chromosome && r.region.i === hoveredRegion.i)}
+                    highlight={!selectedRegion && hoveredRegion && n.region && n.region.order === hoveredRegion.order && n.region.chromosome === hoveredRegion.chromosome && n.region.i === hoveredRegion.i}
+                    selected={selectedRegion && n.region && n.region.order === selectedRegion.order && n.region.chromosome === selectedRegion.chromosome && n.region.i === selectedRegion.i}
                     // selected={crossScaleNarrationIndex === i || selectedNarrationIndex === i}
                     text={false}
                     width={9.5} 

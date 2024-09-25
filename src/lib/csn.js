@@ -51,13 +51,13 @@ function fetchTopCSNs(filtersMap, region, scoreType, diversity, N) {
 
   const url = "https://explore.altius.org:5001/api/csns/top_paths"
   const postBody = {filters, scoreType, region, diversity, N}
-  console.log("POST BODY", postBody)
+  // console.log("CSN POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
     data: postBody
   }).then(response => {
-    console.log("DATA", response.data)
+    // console.log("CSN DATA", response.data)
     return response.data
   }).catch(error => {
     console.error(`error:     ${JSON.stringify(error)}`);
@@ -81,13 +81,13 @@ function fetchFilterPreview(filtersMap, region, newFilterFull) {
 
   const url = "https://explore.altius.org:5001/api/csns/preview_filter"
   const postBody = {filters, region, newFilter}
-  console.log("POST BODY", postBody)
+  // console.log("FILTER PREVIEW POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
     data: postBody
   }).then(response => {
-    console.log("FILTER PREVIEW DATA", response.data)
+    // console.log("FILTER PREVIEW DATA", response.data)
     return response.data
   }).catch(error => {
     console.error(`error:     ${JSON.stringify(error)}`);
@@ -95,6 +95,34 @@ function fetchFilterPreview(filtersMap, region, newFilterFull) {
     return null
   })
 }
+
+
+/*
+Collects the top N paths for each region in regions
+region: [{chromosome, start, end}, ...]
+N: number of paths to return per region
+
+Returns:
+{ regions: [{ chromosome: chromosome, start: start, end: end, top_scores: [], top_positions: [], dehydrated_paths: [] }, ...] }
+*/
+function fetchTopPathsForRegions(regions, N) {
+  const url = "https://explore.altius.org:5001/api/csns/top_paths_for_regions"
+  const postBody = {regions, N}
+  // console.log("TOP PATHS POST BODY", postBody)
+  return axios({
+    method: 'POST',
+    url: url,
+    data: postBody
+  }).then(response => {
+    // console.log("TOP PATHS FOR REGIONS DATA", response.data)
+    return response.data
+  }).catch(error => {
+    console.error(`error:     ${JSON.stringify(error)}`);
+    console.error(`post body: ${JSON.stringify(postBody)}`);
+    return null
+  })
+}
+
 
 /*
 filters: [{order, field}, ...]
@@ -127,18 +155,26 @@ function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
   let countLayerNames = countLayers.map(d => d.datasetName)  // so we can track counts vs full data
 
   let singleBPRegion = csn.path.filter(d => d.region.order === 14)[0].region
+  let timings = {}
   let csnWithFull = Promise.all(csn.path.map(p => {
     let order = p.order
     let fullData = {}
     let counts = {}
     let data = {}
+
     let orderAcrossLayers = Promise.all(csnLayerList.map((layer, l) => {
       // if the layer includes current order
       if((layer.orders[0] <= order) && (layer.orders[1] >= order)) {
         // get hilbert ranges
         const orderRange = getRange(singleBPRegion, order)
+        timings[`${layer.datasetName}-${order}`] = { start: +Date.now() }
+        // console.log("FETCH", layer.datasetName, order, orderRange)
         return fetchData(layer, order, orderRange)
           .then((response) => {
+            let timing = timings[`${layer.datasetName}-${order}`]
+            timing.end = +Date.now()
+            timing.duration = (timing.end - timing.start) / 1000
+            
             data[l] = response[0]  // save data
             let meta = response.metas[0]
             let bytesData = response[0]?.bytes
@@ -175,12 +211,18 @@ function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
     return orderAcrossLayers.then((response) => {
       p['fullData'] = fullData
       p['counts'] = counts
-      p['data'] = data
+      if(p.field && !p.field.value) {
+        // set the value from the fullData
+        let li = csnLayerList.indexOf(p.layer)
+        p.field.value = fullData[`${li},${p.field.index}`]
+      }
+      // p['data'] = data
       return
     })
   }))
 
   return csnWithFull.then(() => {
+    console.log("TIMINGS", timings)
     return csn
   })
 }
@@ -258,7 +300,7 @@ async function calculateCrossScaleNarrationInWorker(selected, csnMethod, enrThre
     const clyrs = countLayers.map(serializeLayer)
     let fltrs = null
     if(filters) {
-      fltrs = Object.keys(filters).map(k => {
+      fltrs = Object.keys(filters).filter(k => k !== "userTriggered").map(k => {
         return {
           ...filters[k],
           layer: serializeLayer(filters[k].layer)
@@ -308,7 +350,7 @@ function rehydrateCSN(csn, layers) {
         field: l.fieldName,
         index: l.fieldIndex,
         color: l.layer.fieldColor(l.fieldName),
-        value: csn.factors[i]
+        value: csn.factors?.[i]
       }
       region.field = field
     }
@@ -463,6 +505,7 @@ export {
   fetchDehydratedCSN,
   rehydrateCSN,
   fetchTopCSNs,
+  fetchTopPathsForRegions,
   fetchFilterPreview,
   retrieveFullDataForCSN
 }

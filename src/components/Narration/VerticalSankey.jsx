@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef, useContext} from 'react'
 import { sankey, sankeyJustify, sankeyCenter, sankeyLinkHorizontal } from 'd3-sankey';
-import { range, max } from 'd3-array';
+import { range, max, groups } from 'd3-array';
 import { path as d3path } from 'd3-path';
 import Tooltip from '../Tooltips/Tooltip';
 import { showKb } from '../../lib/display'
@@ -86,7 +86,7 @@ export default function CSNVerticalSankey({
   csns,
   selected,
   shrinkNone = true,
-  collapseThreshold = 10,
+  bundleThreshold = 0.10, // 10% of the paths
   tipOrientation = "bottom",
   nodeWidth = 15,
   nodePadding = 5,
@@ -151,10 +151,14 @@ export default function CSNVerticalSankey({
         })
       })
 
-      // we want to collapse nodes into their layer if they have less than collapseThreshold paths
+      // we want to collapse nodes into their layer if they have less than bundleThreshold paths
       Object.keys(nodesMap).forEach(id => {
         let n = nodesMap[id]
-        if(n.count < collapseThreshold) {
+        // TODO: if we collapse a layer and all children are the same field
+        // TODO: we still want to be able to click to filter that field
+        // let nunique = groups(n.children || [], d => d.field?.field).length
+        // if(n.count < collapseThreshold && nunique > 1) {
+        if(n.count < (bundleThreshold * csns.length)) {
           let lid = `${n.order}-${n.dataLayer.name}`
           // first we either update the layer node or create a new one
           let nl = nodesMap[lid]
@@ -171,7 +175,7 @@ export default function CSNVerticalSankey({
               id: lid,
               order: n.order,
               dataLayer: n.dataLayer,
-              field: "Layer",
+              field: "Bundle",
               children: [n],
               color: n.color
             }
@@ -306,7 +310,7 @@ export default function CSNVerticalSankey({
     if(node.field == "Layer") return;
     let field = makeField(node.dataLayer, node.field, node.order)
     console.log("field!", field)
-    handleFilter(field, node.order)
+    handleFilter(field, node.order, true)
     // onFilter((oldNodeFilter) => {
     //   if(oldNodeFilter.find(n => n.id == node.id)) {
     //     const filtered = oldNodeFilter.filter(n => n.id != node.id)

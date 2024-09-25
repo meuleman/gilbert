@@ -25,6 +25,11 @@ function showKb(diff) {
   return scaleAsStr
 }
 
+const showKbOrder = (order) => {
+  let diff = Math.pow(4, 14 - Math.floor(order))
+  return showKb(diff)
+}
+
 const showFloat = format(".2f")
 
 const showInt = format(",")
@@ -48,6 +53,7 @@ function showPosition(d, full=true) {
 
 export {
   showKb,
+  showKbOrder,
   showPosition,
   showFloat,
   showInt

@@ -5,27 +5,85 @@ import { createSegments, joinSegments } from "./segments.js"
 import { HilbertChromosome, hilbertPosToOrder } from './HilbertChromosome';
 import { makeField } from '../layers';
 
-// import counts_native from "../data/counts.native_order_resolution.json"
+import counts_native from "../data/counts.segments.native_order_resolution.json"
 import counts_order14 from "../data/counts.order_14_resolution.json"
 
 function urlifyFilters(filtersMap) {
-  const filters = Object.keys(filtersMap).map(o => {
+  const filters = Object.keys(filtersMap).filter(k => k !== "userTriggered").map(o => {
     let f = filtersMap[o]
     return {
       order: +o,
       index: f.index,
-      dataset_name: f.layer.datasetName
+      dataset_name: f.layer ? f.layer.datasetName : f.datasetName,  // temporary fix until gwas layer with correct number of fields
+      field: f.field && f.field  // temporary fix until gwas layer with correct number of fields, remove
     }
   })
+  console.log("FILTERS FOR URL", filters)
   return encodeURIComponent(JSON.stringify(filters))
 }
 function parseFilters(filters) {
   let parsed = JSON.parse(decodeURIComponent(filters))
   let fs = {}
   parsed.forEach(f => {
-    fs[f.order] = makeField(f.dataset_name, f.index, f.order)
+    if(f.dataset_name == "gwas_full_data_rank") {  // temporary fix until gwas layer with correct number of fields
+      fs[f.order] = { 
+        id: "gwas_full_data_rank:" + f.index, 
+        datasetName: "gwas_full_data_rank",
+        label: f.field + " " + "gwas_full_data_rank",
+        field: f.field,
+        index: f.index, 
+        order: 14,
+      }
+    } else {
+      fs[f.order] = makeField(f.dataset_name, f.index, f.order)
+    }
   })
   return fs 
+}
+
+function calculateSegmentOrderSums() {
+  console.log("CALC ORDER SUMS", counts_native)
+  const orderSums = Object.keys(counts_native).map(o => {
+    let chrms = Object.keys(counts_native[o])//.map(chrm => counts[o][chrm])
+    let total = 0
+    let layer_total = {}
+    let ret = {}
+    let maxf = { value: 0 }
+    chrms.forEach(c => {
+      if(c == "totalSegmentCount") return
+      const chrm = counts_native[o][c]
+      const layers = Object.keys(chrm)
+      layers.forEach(l => {
+        if(!ret[l]) {
+          ret[l] = {}
+          layer_total[l] = 0
+          Object.keys(chrm[l]).forEach(k => {
+            ret[l][k] = 0
+          })
+        }
+        Object.keys(chrm[l]).forEach(k => {
+          if(!ret[l][k]) ret[l][k] = 0
+          ret[l][k] += chrm[l][k]
+          total += chrm[l][k]
+          layer_total[l] += chrm[l][k]
+          if(chrm[l][k] > maxf.value){
+            maxf.value = chrm[l][k]
+            maxf.layer = l
+            maxf.field = k
+          }
+        })
+      })
+    })
+    return { 
+      order: o, 
+      counts: ret, 
+      total, 
+      totalSegments: counts_native[o].totalSegmentCount, 
+      layer_total, 
+      maxField: maxf 
+    }
+  })
+  return orderSums
 }
 
 function calculateOrderSums() {
@@ -441,6 +499,7 @@ export {
   urlifyFilters,
   parseFilters,
   calculateOrderSums,
+  calculateSegmentOrderSums,
   filterIndices,
   sampleRegions,
   sampleScoredRegions,

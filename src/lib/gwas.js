@@ -15,7 +15,7 @@ Returns:
 function fetchGWASforPositions(positions) {
   const url = "https://explore.altius.org:5001/api/gwas/gwas_for_positions"
   const postBody = {'positions': positions}
-  console.log("POST BODY", postBody)
+  console.log("GWAS POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,

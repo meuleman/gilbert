@@ -9,9 +9,10 @@ import chroma from 'chroma-js';
 import {Tooltip} from 'react-tooltip';
 
 import FiltersContext from './FiltersContext'
-import { makeField, fields } from '../../layers'
+import { makeField, filterFields } from '../../layers'
 import variants_gwas_rank from '../../layers/variants_rank_gwas'
-import gwas from '../../layers/variants_gwas_fields.json'
+// import gwas from '../../layers/variants_gwas_fields.json'
+import gwas from '../../layers/gwas_filter_traits.json'  // temporary fix until gwas layer with correct number of fields
 
 
 const dot = (color = 'transparent') => ({
@@ -104,22 +105,34 @@ const SelectGWAS = memo(({
   const { filters, handleFilter } = useContext(FiltersContext);
 
   const allFields = useMemo(() => {
+    let oc = orderSums.find(o => o.order == 14)
     let gf = gwas.fields.map((f, i) => {
-      let field = makeField(variants_gwas_rank, f, 14);
+      // let field = makeField(variants_gwas_rank, f, 14);  // temporary fix until gwas layer with correct number of fields
+      let field = {  // temporary fix until gwas layer with correct number of fields
+        id: "gwas_full_data_rank:" + i, 
+        // layer: l, 
+        datasetName: "gwas_full_data_rank",
+        label: f + " " + "gwas_full_data_rank",
+        field: f,
+        index: i, 
+        color: "black",
+        order: 14,
+      }
       field.i = i;
-      field.count = gwas.counts[i];
-      if(field.field.length > 60) {
-        field.label = '⚫️ ' + field.field.slice(0,60) + "..."
+      // field.count = gwas.counts[i];
+      field.count = oc.counts["gwas_full_data_rank"][field.index]  // temporary fix until gwas layer with correct number of fields
+      if(field.field.length > 50) {
+        field.label = '⚫️ ' + field.field.slice(0,50) + "..."
       } else {
         field.label = '⚫️ ' + field.field
       }
+      field.label += ' (' + showInt(field.count) + " regions)"
       return field;
     }).sort((a, b) => b.count - a.count)
 
 
-    let ff = fields.map(f => {
+    let ff = filterFields.map(f => {
       let layer = f.layer
-      let oc = orderSums.find(o => o.order == 14)
       let counts = null
       if(oc) {
         counts = oc.counts[layer.datasetName]
@@ -127,7 +140,7 @@ const SelectGWAS = memo(({
       let count = counts ? counts[f.index] : "?"
       return {
         ...f,
-        label: '⚪️ ' + f.field + " " + f.layer.name + " " + count,
+        label: '⚪️ ' + f.field + " (" + showInt(count) + " regions)",
         order: 14,
         count,
       }
@@ -137,7 +150,7 @@ const SelectGWAS = memo(({
   }, [orderSums]);
 
   const allFieldsGrouped = useMemo(() => {
-    const grouped = groups(allFields, f => f.layer.name)
+    const grouped = groups(allFields, f => f.layer ? f.layer.name : f.datasetName)  // temporary fix until gwas layer with correct number of fields
       .map(d => ({ label: d[0], options: d[1].sort((a,b) => b.count - a.count) }))
       .filter(d => d.options.length)
       console.log("GROUPED", grouped)
@@ -176,7 +189,7 @@ const SelectGWAS = memo(({
 
   const handleChange = useCallback((selectedOption) => {
     console.log("SELECTED OPTION", selectedOption)
-    handleFilter(selectedOption, 14)
+    handleFilter(selectedOption, 14, true)
     setIsActive(false)
   }, [handleFilter])
 

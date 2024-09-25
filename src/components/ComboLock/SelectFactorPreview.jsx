@@ -3,11 +3,11 @@ import Select from 'react-select';
 import chroma from 'chroma-js';
 import { groups } from 'd3-array';
 
-import { fields } from '../../layers'
+import { filterFields } from '../../layers'
 import FiltersContext from './FiltersContext'
 import Loading from '../Loading';
-import { fetchFilterPreview } from '../../lib/csn'
-
+import { fetchFilterPreview } from '../../lib/dataFiltering';
+import RegionsContext from '../../components/Regions/RegionsContext';
 
 
 const dot = (color = 'transparent') => ({
@@ -87,16 +87,18 @@ const SelectFactor = ({
     setSelectedField(null)
   }, [filters])
 
+  const { activeSet } = useContext(RegionsContext)
+
   const [loadingPreview, setLoadingPreview] = useState(false)
   useEffect(() => {
     console.log("selectedField kicking off preview", selectedField, filters)
     if(selectedField) {
       onPreviewValues(null)
       setLoadingPreview(true)
-      fetchFilterPreview(filtersRef.current, null, selectedField).then((preview) => {
-        // setPreviewValues(preview.preview_fractions)
-        console.log("sending home a message", selectedField, preview.preview_fractions)
-        onPreviewValues(selectedField, preview.preview_fractions)
+      fetchFilterPreview(activeSet?.regions, filtersRef.current, selectedField).then((response) => {
+        // setPreviewValues(response.preview_fractions)
+        console.log("sending home a message", selectedField, response.previews[0].preview)
+        onPreviewValues(selectedField, response.previews[0].preview)
         setLoadingPreview(false)
         // setSelectedField(null)
       })
@@ -117,7 +119,7 @@ const SelectFactor = ({
   }, []);
 
   useEffect(() => {
-    const grouped = groups(fields, f => f.layer.name)
+    const grouped = groups(filterFields, f => f.layer.name)
       .map(d => ({ label: d[0], options: d[1] }))
       .filter(d => d.options.length)
     setAllFields(grouped)

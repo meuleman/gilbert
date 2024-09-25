@@ -30,22 +30,24 @@
 
 /* ................................. HEADER REDUX ............................. */
 
-.footer {
-  grid-column: span 2;
-  background-color: #eee;
-}
 
 .header {
   box-sizing: border-box;
   display: flex;
   column-gap: 14px;
   padding: 14px;
+  grid-column: span 3
 }
 
-.header--brand,
-.header--search {
+.header--brand {
   flex: 0 0 auto;
   z-index: 20;
+}
+.header--search {
+  /* flex: 0 0 auto; */
+  z-index: 20;
+  display: flex;
+  flex-direction: row;
 }
 
 /* .header--narration {
@@ -54,17 +56,9 @@
 
 .primary-grid {
   display: grid;
-  grid-template-columns: [left-col] 1fr [right-col] 200px [end-col];
-  grid-template-rows: [header] max-content [content] 1fr [footer] max-content [end];
+  grid-template-columns: [left-col] 52px [main-col] 1fr [lens-col] 200px [end-col];
+  grid-template-rows: [header] 94px [content] 1fr [footer] 90px [end];
   height: 100vh;
-}
-
-
-/* ................................. HEADER REDUX ............................. */
-
-.header2 {
-  display: flex;
-  align-items: center;
 }
 
 /* .................................... HEADER ................................ */
@@ -73,7 +67,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  grid-column: span 2; 
+  grid-row: header;
+  z-index: 20;
 }
+
+.lensmode {
+  grid-column: lens-col; /* Place in the lens column */
+  grid-row: header; /* Place in the header row */
+}
+
+
 
 .header-panel {
   display: flex; /* Add display:flex to center content vertically */
@@ -112,18 +116,16 @@
 /* .................................... FOOTER ................................ */
 
 .footer {
-  padding: 5px;
+  /* padding: 5px; */
+  grid-column: span 3;
+  /* background-color: #eee; */
 }
-
-
 
 .footer-row {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
-
-/* .................................... FOOTER ................................ */
 
 
 .hilbert-container {
@@ -145,6 +147,8 @@
 
 .lenses {
   min-height: 0;
+  grid-column: lens-col; /* Place in the lens column */
+  grid-row: content; /* Place in the content row */
 }
 
 .zoom-legend-container {
@@ -152,12 +156,22 @@
   overflow: auto;  
   min-height: 0;
 }
+
+.left-toolbar {
+  grid-column: left-col; /* Place in the left column */
+  grid-row: content; /* Place in the content row */
+  width: 60px;
+  z-index: 20;
+}
+
   
 /* .............................HILBERT VISUALIZATION ......................... */
 
 .visualization {
   position: relative;
   overflow: hidden;
+  grid-column: main-col; /* Place in the main column */
+  grid-row: content; /* Place in the content row */
 }
 
 /* ........................ GLOBAL STYLES FOR POSITIONS ........................ */

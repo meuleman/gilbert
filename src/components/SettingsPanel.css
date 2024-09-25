@@ -9,6 +9,7 @@
   padding: 6px;
   display: flex; /* Add display:flex to center content vertically */
   flex-direction: column; /* Stack content vertically within panels */
+  z-index: 20;
 }
 
 
