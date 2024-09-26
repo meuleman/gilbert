@@ -15,7 +15,7 @@ Returns: [{geneset, p-value}, ...]
 function fetchGenesetEnrichment(genes) {
 
   const url = "https://explore.altius.org:5001/api/genesetEnrichment/geneset_enrichment"
-  const postBody = {genes}
+  const postBody = {genes, threshold: 0.01}
   // console.log("GENESET POST BODY", postBody)
   return axios({
     method: 'POST',
