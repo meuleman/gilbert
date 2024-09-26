@@ -289,7 +289,7 @@ const RegionsProvider = ({ children }) => {
         console.log("error calculating geneset enrichments", e)
       })
     } else {
-      setActiveGenesetEnrichment(null)
+      setActiveGenesetEnrichment([])
     }
   }, [genesInPaths])
 
