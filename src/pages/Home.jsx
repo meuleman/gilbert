@@ -855,6 +855,8 @@ function Home() {
       // console.log("OVERLAPS", hover, topPathsForRegions, paths)
       let intersected = [...new Set(paths.flatMap(p => p.genes.filter(g => g.in_gene).map(g => g.name)))]
       let associated = [...new Set(paths.flatMap(p => p.genes.filter(g => !g.in_gene).map(g => g.name)))]
+      // make sure the 'associated' genes do not contain any 'intersected'/overlapping genes
+      associated = associated.filter(g => !intersected.includes(g))
       // get the paths
       setActiveInHovered(paths)
       setIntersectedGenes(intersected)
@@ -1295,9 +1297,9 @@ function Home() {
               pointerEvents: 'none',
             }}
             >
-              <h3>{activeInHovered?.length} paths</h3>
-              {intersectedGenes.length ? <span>{intersectedGenes.join(", ")} intersecting active regions.<br/></span> : null}
-              {associatedGenes.length ? <span>{associatedGenes.join(", ")} associated with active regions.<br/></span> : null}
+              <b>{activeInHovered?.length} {activeInHovered?.length > 1 ? "paths" : "path"}</b><br/>
+              {intersectedGenes.length ? <span>Overlapping genes: {intersectedGenes.join(", ")}<br/></span> : null}
+              {associatedGenes.length ? <span>Nearby genes: {associatedGenes.join(", ")}<br/></span> : null}
               {/* {activeInHovered.map(p => {
                 return <div key={p.chromosome + ":" + p.i}>
                   {showPosition(p.region)}: {p.genes.map(g => 
