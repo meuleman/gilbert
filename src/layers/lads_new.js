@@ -6,7 +6,7 @@ export default {
   name: "LADs (NEW)",
   datasetName: "LADs_fract_map_named",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseURLPrefix}/20240223`,
+  baseURL: `${constants.baseURLPrefix}/20240223`,  // removed from s3
   orders: [4,13],
   renderer: "CanvasSimpleValue",
   fieldChoice: topValue,

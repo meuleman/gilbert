@@ -181,7 +181,8 @@ const intersectIndices14 = (lower, higher) => {
 function fetchIndices(filteredGroupedSelects, progressCb) {
   return Promise.all(filteredGroupedSelects.map(g => {
     return Promise.all(g[1].map(os => {
-      const base = `https://altius-gilbert.s3.us-west-2.amazonaws.com/20240703/csn_index_files`
+      // const base = `https://altius-gilbert.s3.us-west-2.amazonaws.com/20240703/csn_index_files`  // dataset removed from s3
+      console.log("csn_index_files dataset no longer exists on s3")
       let dsName = os.layer.datasetName
       const url = `${base}/${os.order}.${os.chromosome}.${dsName}.${os.index}.order_14_resolution.indices.int32.bytes`
       return fetch(url)

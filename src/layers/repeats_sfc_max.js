@@ -8,7 +8,7 @@ const repeatsColors = [ "#FF0000",  "#FF0000",  "#00FF00",  "#0000FF",  "#0000FF
 export default {
   name: "Repeats",
   datasetName: "repeats_sfc_max",
-  baseURL: `${constants.baseURLPrefix}/20240223`,
+  baseURL: `${constants.baseURLPrefix}/20240223`,  // removed from s3
   orders: [4,13],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,

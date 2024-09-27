@@ -5,7 +5,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "LADs",
   datasetName: "aggregated_LADs",
-  baseURL: `${constants.baseURLPrefix}/20231030`,
+  baseURL: `${constants.baseURLPrefix}/20231030`,  // removed from s3
   orders: [4,8],
   renderer: "CanvasSimpleValue",    
   fieldChoice: bandsValue,

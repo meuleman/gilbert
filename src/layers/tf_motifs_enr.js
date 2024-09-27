@@ -11,7 +11,7 @@ export default {
   name: "TF Motifs (ENR, Full)",
   datasetName: "tf_enr",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseS3URLPrefix}/20240327`,
+  baseURL: `${constants.baseS3URLPrefix}/20240327`,  // removed from s3
   orders: [4,13],
   renderer: "CanvasScaledValue",
   fieldChoice: topValue,

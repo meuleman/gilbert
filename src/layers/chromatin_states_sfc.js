@@ -6,7 +6,7 @@ export default {
   name: "Chromatin States (Full)",
   datasetName: "cs_sfc",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseURLPrefix}/20240223`,
+  baseURL: `${constants.baseURLPrefix}/20240223`,  // removed from s3
   orders: [4,13],
   renderer: "CanvasScaledValue",
   fieldChoice: topValue,

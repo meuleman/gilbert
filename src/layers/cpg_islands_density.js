@@ -7,7 +7,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "CpG Islands",
   datasetName: "cpg_islands_density",
-  baseURL: `${constants.baseURLPrefix}/20230724`,
+  baseURL: `${constants.baseURLPrefix}/20230724`,  // removed from s3
   // baseURL: `https://resources.altius.org/~ctrader/public/hilbert/20230724`,
   orders: [4,14],
   renderer: "CanvasOpacityValue",
