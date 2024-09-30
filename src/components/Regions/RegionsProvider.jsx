@@ -115,7 +115,7 @@ const RegionsProvider = ({ children }) => {
 
   const setActiveSet = (set) => {
     setActiveSetter(set)
-    setActiveState("")
+    setActiveState(null)
     setActiveRegions(set?.regions)
     setActivePaths(null)
     setActiveGenesetEnrichment(null)
@@ -262,7 +262,7 @@ const RegionsProvider = ({ children }) => {
             let tpr = getDehydrated(activeRegions, response.regions)
             let hydrated = tpr.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
             setActivePaths(hydrated) 
-            setActiveState("")
+            setActiveState(null)
             // for geneset enrichment calculation
             let gip = response.regions.flatMap(d => d.genes[0]?.genes).map(d => d.name)
             setGenesInPaths(gip)

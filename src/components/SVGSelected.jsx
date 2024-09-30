@@ -4,6 +4,9 @@ import { interpolateBrBG } from "d3-scale-chromatic"
 import { getRangesOverCell } from "../lib/Genes"
 import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome"
 
+
+// TODO: rename this component to be focused on rendering gene paths not individual selected regions
+
 // Render a square around the selected hilbert cell (either hover or selected)
 // Optionally render genes that are overlapping with this cell
 export default function SVGBBox({ 
@@ -146,18 +149,8 @@ export default function SVGBBox({
         </defs>
          {/* {highlightPath && highlightRects} */}
          {highlightPath && highlightPaths}
-         { /*}
-          <rect
-            x={xScale(hit.x) - rw/2}
-            y={yScale(hit.y) - rw/2}
-            width={rw}
-            height={rw}
-            fill={fill}
-            stroke={stroke}
-            strokeWidth={sw}
-          ></rect>
-        */ }
-          <circle
+         
+          {/* <circle
             cx={xScale(hit.x)}
             cy={yScale(hit.y)}
             r={rw*radiusMultiplier}
@@ -167,7 +160,7 @@ export default function SVGBBox({
             strokeDasharray={loading ? circumference / 12 : circumference}
             strokeDashoffset={loading ? circumference / 12 : 0}
             className={loading ? 'spinner' : ''}
-          ></circle>
+          ></circle> */}
           {showGenes && genePaths}
     </g>
     )

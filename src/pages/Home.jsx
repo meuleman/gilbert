@@ -67,7 +67,8 @@ import SimSearchByFactor from '../components/SimSearch/SimSearchByFactor'
 
 import DisplaySimSearchRegions from '../components/SimSearch/DisplaySimSearchRegions'
 import DisplayExampleRegions from '../components/ExampleRegions/DisplayExampleRegions';
-import useCanvasFilteredRegions from '../components/ComboLock/CanvasFilteredRegions';
+import useCanvasFilteredRegions from '../components/Canvas/FilteredRegions';
+import useCanvasAnnotationRegions from '../components/Canvas/Annotation';
 
 import { getSet } from '../components/Regions/localstorage'
 import SelectedModal from '../components/SelectedModal'
@@ -167,6 +168,7 @@ function Home() {
   }
 
   const [isZooming, setIsZooming] = useState(false)
+  const [mapLoading, setMapLoading] = useState(false)
 
   const [layerLock, setLayerLock] = useState(false)
   const [layerLockFromIcon, setLayerLockFromIcon] = useState(null)
@@ -243,6 +245,7 @@ function Home() {
 
 
 
+
   const handleZoom = useCallback((newZoom) => {
     if(zoomRef.current.order !== newZoom.order && !layerLockRef.current) {
       setLayer(layerOrderRef.current[newZoom.order])
@@ -280,10 +283,10 @@ function Home() {
   }, [selected, zoom, scales])
 
   const [hover, setHover] = useState(null)
-  const [hoveredPosition, setHoveredPosition] = useState({x: 0, y: 0})
+  const [hoveredPosition, setHoveredPosition] = useState({x: 0, y: 0, sw: 0})
   useEffect(() => {
     const calculateHoveredPosition = () => {
-      if (!hover || !zoom || !zoom.transform || !scales) return { x: 0, y: 0 };
+      if (!hover || !zoom || !zoom.transform || !scales) return { x: 0, y: 0, sw: 0 };
 
       let hit = hover
       if(hover.order !== zoom.order) {
@@ -297,7 +300,7 @@ function Home() {
       const hoveredX = scales.xScale(hit.x) * k + x + sw/2
       const hoveredY = scales.yScale(hit.y) * k + y// - sw/2
 
-      return { x: hoveredX, y: hoveredY };
+      return { x: hoveredX, y: hoveredY, sw, stepSize: scales.sizeScale(step) };
     };
 
     setHoveredPosition(calculateHoveredPosition());
@@ -867,9 +870,45 @@ function Home() {
 
   }, [hover, activeSet, activePaths])
 
+  useEffect(() => {
+    if(mapLoading || activeState) {
+      console.log("WAIT WAIT WAIT", new Date())
+      document.body.style.cursor = "wait"
+      return;
+    }
+    if(hover) {
+      if(activeSet) {
+        if(activeInHovered?.length) {
+          document.body.style.cursor = "pointer"
+        } else {
+          document.body.style.cursor = "default"
+        }
+      } else {
+        document.body.style.cursor = "pointer"
+      }
+    } else {
+      document.body.style.cursor = "default"
+    }
+  }, [hover, activeInHovered, activeSet, activeState, mapLoading])
+
   // const drawFilteredRegions = useCanvasFilteredRegions(filterSegmentsByCurrentOrder)
   const drawActiveFilteredRegions = useCanvasFilteredRegions(activeRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
   const drawAllFilteredRegions = useCanvasFilteredRegions(allRegionsByCurrentOrder, { color: "gray", opacity: 0.5, strokeScale: 0.5, mask: false })
+  const drawAnnotationRegionSelected = useCanvasAnnotationRegions(selected, "selected", { 
+    stroke: "orange", 
+    mask: !activeSet, 
+    radiusMultiplier: 1, 
+    strokeWidthMultiplier: 0.35, 
+    showGenes: false 
+  })
+  const drawAnnotationRegionHover = useCanvasAnnotationRegions(hover, "hover", { 
+    // if there is an activeSet and no paths in the hover, lets make it lightgray to indicate you can't click on it
+    stroke: activeSet && !activeInHovered?.length ? "lightgray" : "black", 
+    radiusMultiplier: 1, 
+    strokeWidthMultiplier: 0.1, 
+    showGenes, 
+    highlightPath: true 
+  })
 
   const clearSelectedState = useCallback(() => {
     console.log("CLEARING STATE")
@@ -905,22 +944,25 @@ function Home() {
 
   const handleClick = useCallback((hit, order, double) => {
     // console.log("app click handler", hit, order, double)
-    console.log("HANDLE CLICK", hit)
-    try {
-      if(hit === selected) {
-        clearSelectedState()
-      } else if(hit) {
-        // console.log("setting selected from click", hit)
-        setSelectedTopCSN(null)
-        setRegionCSNS([])
-        // setLoadingRegionCSNS(true) // TODO: this is to avoid flashing intermediate state of selected modal
+    console.log("HANDLE CLICK", hit, selectedRef.current)
+    if(hit && selectedRef.current) {
+      clearSelectedState()
+    } else if(hit) {
+      if(activePathsRef.current?.length) {
+        let paths = overlaps(hit, activePathsRef.current, r => r.region)
+        if(paths.length) {
+          // setSelectedTopCSN(paths[0])
+          setSelectedOrder(order)
+          setSelected(hit)
+        }
+      } else {
+        // setSelectedTopCSN(null)
+        // setRegionCSNS([])
         setSelectedOrder(order)
         setSelected(hit)
       }
-    } catch(e) {
-      console.log("caught error in click", e)
     }
-  }, [selected, setSelected, setSelectedOrder, clearSelectedState])
+  }, [])
 
   const autocompleteRef = useRef(null)
   // keybinding that closes the modal on escape
@@ -983,8 +1025,12 @@ function Home() {
       // console.log("FIRING FROM HERE!!!", activeGenesetEnrichment?.length)
       activeGenesetEnrichment?.length > 0 ? setShowSpectrum(true) : setShowSpectrum(false)
     }
+
   }, [activeSet, activeGenesetEnrichment])
+
+  const activePathsRef = useRef(activePaths)
   useEffect(() => {
+    activePathsRef.current = activePaths
     if(activePaths?.length) {
       setShowTopFactors(true)
     } else {
@@ -1231,39 +1277,20 @@ function Home() {
                   CanvasRenderers={[
                     drawActiveFilteredRegions,
                     drawAllFilteredRegions,
+                    drawAnnotationRegionSelected,
+                    drawAnnotationRegionHover
                   ]}
                   SVGRenderers={[
                     SVGChromosomeNames({ }),
                     showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
-                    RegionMask({ regions: [selected, ...similarRegions ]}),
+                    // RegionMask({ regions: [selected, ...similarRegions ]}),
                     SVGSelected({ hit: hover, dataOrder: zoom.order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
-                    (
-                      (checkRanges(selected, similarRegionListHover)) ? 
-                      SVGSelected({ hit: selected, stroke: "darkgold", strokeWidthMultiplier: 0.05, showGenes: false })
-                      : SVGSelected({ hit: selected, stroke: "gold", strokeWidthMultiplier: 0.35, showGenes: false })
-                    ),
-                    // TODO: highlight search region (from autocomplete)
-                    // SVGSelected({ hit: region, stroke: "gray", strokeWidthMultiplier: 0.4, showGenes: false }),
-                    // ...DisplaySimSearchRegions({ 
-                    //   similarRegions: similarRegions,
-                    //   // simSearch: simSearch, 
-                    //   // detailLevel: simSearchDetailLevel, 
-                    //   selectedRegion: region,
-                    //   // order: selectedOrder, 
-                    //   color: "gray", 
-                    //   clickedColor: "red",
-                    //   checkRanges: checkRanges,
-                    //   similarRegionListHover: similarRegionListHover,
-                    //   width: 0.05, 
-                    //   showGenes: false 
-                    // }),
-                    // ...DisplayExampleRegions({
-                    //   exampleRegions: exampleRegions,
-                    //   order: zoom.order,
-                    //   width: 0.2,
-                    //   color: "red",
-                    //   numRegions: 100,
-                    // }),
+                    // SVGSelected({ hit: selected, stroke: "gold", strokeWidthMultiplier: 0.35, showGenes: false }),
+                    // (
+                    //   (checkRanges(selected, similarRegionListHover)) ? 
+                    //   SVGSelected({ hit: selected, stroke: "darkgold", strokeWidthMultiplier: 0.05, showGenes: false })
+                    //   : SVGSelected({ hit: selected, stroke: "gold", strokeWidthMultiplier: 0.35, showGenes: false })
+                    // ),
                     showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
                   ]}
                   onZoom={handleZoom}
@@ -1271,6 +1298,7 @@ function Home() {
                   onClick={handleClick}
                   onData={onData}
                   onZooming={(d) => setIsZooming(d.zooming)}
+                  onLoading={setMapLoading}
                   // onLayer={handleLayer}
                   debug={showDebug}
                 />
@@ -1282,7 +1310,9 @@ function Home() {
               left: hoveredPosition.x,
               top: hoveredPosition.y,
               pointerEvents: "none"
-            }} data-tooltip-id="hovered"></div>
+            }} data-tooltip-id="hovered">
+              {/* {true || mapLoading || activeState ? <div style={{ marginTop: -hoveredPosition.stepSize*1.5, marginLeft: -hoveredPosition.sw/2 - hoveredPosition.stepSize }} ><Loading /></div> : null} */}
+            </div>
             
             {activeInHovered?.length ? <Tooltip id="hovered"
             isOpen={hover && activeInHovered?.length}

@@ -256,7 +256,7 @@ const HilbertGenome = ({
   }, [state.data, state.dataOrder, state.dataLayer])
 
   useEffect(() => {
-    onLoading({ loading: state.loading })
+    onLoading(state.loading)
   }, [state.loading, onLoading])
 
   useEffect(() => {
