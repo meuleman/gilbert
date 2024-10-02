@@ -10,48 +10,50 @@ import scaleCanvas from '../../lib/canvas'
 // import Tooltip from './Tooltips/Tooltip';
 
 
-const Tooltip = ({ tooltipData, position }) => {
-  if (!tooltipData) return null;
-
-  let genesetName = tooltipData.genesetName.split("_").slice(1).join(" ").toLowerCase()
+const Tooltip = ({ geneset, x, y, visible }) => {
+  if (!visible || !geneset) return null;
+  let genesetName = geneset.geneset.split("_").slice(1).join(" ").toLowerCase()
   genesetName = genesetName.charAt(0).toUpperCase() + genesetName.slice(1)
+  let enrichment = Math.round(geneset.score * 10000) / 10000
+
+  const tooltipRef = useRef();
+
+  const content = (
+  <div>
+    <div>
+      {genesetName}
+    </div>
+    {(enrichment > 0) &&
+      <div>
+        -log10(p): {enrichment}
+      </div> 
+    }
+  </div>)
+
+  useEffect(() => {
+    if (tooltipRef.current) {
+      tooltipRef.current.style.left = `${x + 20}px`;
+      tooltipRef.current.style.bottom = `${y}px`;
+      tooltipRef.current.style.display = visible ? 'block' : 'none';
+      tooltipRef.current.style.minWidth = '200px';
+      tooltipRef.current.style.background = "#efefef";
+      tooltipRef.current.style.border = 'solid';
+      tooltipRef.current.style.borderWidth = '1px';
+      tooltipRef.current.style.borderRadius = '5px';
+      tooltipRef.current.style.padding = '10px';
+      // tooltipRef.current.style.position = 'absolute';
+      // tooltipRef.current.style.display = 'inline';
+      tooltipRef.current.style.fontSize = '16px';
+      tooltipRef.current.style.color = 'black';
+    }
+  }, [x, y, visible]);
 
   return (
-    <div
-      className="spectrum-tooltip"
-      style={{
-        left: position.x + 20 + 'px',
-        top: position.y + 'px',
-        opacity: 1,
-        zIndex: 1,
-        minWidth: '200px',
-        // backgroundColor: 'white',
-        background: "#efefef",
-        border: 'solid',
-        borderWidth: '1px',
-        borderRadius: '5px',
-        padding: '10px',
-        position: 'absolute',
-        display: 'inline',
-        fontSize: '16px',
-        color: 'black',
-      }}
-    >
-      {/* <div>
-        xIndex: <b>{tooltipData.index}</b>
-      </div> */}
-      <div>
-        {genesetName}
-      </div>
-      {tooltipData.enrichment ? 
-        <div>
-        -log10(p): {tooltipData.enrichment}
-        </div> 
-      : null}
+    <div ref={tooltipRef} style={{ position: 'absolute', background: '#fff', border: '1px solid #ccc', padding: '5px', pointerEvents: 'none' }}>
+      {content}
     </div>
   );
 };
-
 
 const Spectrum = ({
   show = false,
@@ -146,10 +148,8 @@ const Spectrum = ({
   const [enrichments, setEnrichments] = useState(new Array(genesetOrder.length).fill(0));
   const [smoothData, setSmoothData] = useState(new Array(genesetOrder.length).fill(0));
 
-  const [tooltipData, setTooltipData] = useState(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [tooltip, setTooltip] = useState({ content: null, x: 0, y: 0, visible: false });
 
-  
   useEffect(() => {
     if(activeGenesetEnrichment?.length) {
 
@@ -193,14 +193,10 @@ const Spectrum = ({
 
   }, [activeGenesetEnrichment, genesetOrder, windowSize]);
 
-  const handleMouseLeave = () => {
-    setTooltipData(null);
-  };
-
-  const handleMouseClick = () => {
-    // setQueryGeneset(tooltipData.genesetName);
-    console.log(tooltipData.genesetName)
-  };
+  // const handleMouseClick = () => {
+  //   // setQueryGeneset(tooltipData.genesetName);
+  //   console.log(tooltipData.genesetName)
+  // };
 
   const xScale = useMemo(() => i => plotXStart + (i / (genesetOrder.length - 1)) * (plotXStop - plotXStart), [plotXStart, plotXStop, genesetOrder.length]);
   const xScaleInvert = useMemo(() => x => (x - plotXStart) / (plotXStop - plotXStart) * (genesetOrder.length - 1), [plotXStart, plotXStop, genesetOrder.length]);
@@ -220,31 +216,6 @@ const Spectrum = ({
     };
   }, [colors]);
 
-  
-  // for tooltip
-  const handleMouseMove = useCallback((e) => {
-    if(!enrichments?.length) return //!xScaleRef.current || 
-    const { clientX } = e;
-    const rect = e.target.getBoundingClientRect();
-    const x = clientX - rect.x; // x position within the element.
-
-    const xIndex = Math.floor(xScaleInvert(x))
-    if (xIndex >= 0 && xIndex < genesetOrder.length) {
-      const hoverWindowSize = 50;
-      let startIndex = Math.max(0, xIndex - hoverWindowSize / 2);
-      let endIndex = Math.min(enrichments.length, xIndex + hoverWindowSize / 2);
-      let windowValues = enrichments.slice(startIndex, endIndex);
-
-      let topIndexInWindow = windowValues.map((v, i) => ({score: v, index: i + startIndex})).sort((a, b) => b.score - a.score)[0]
-      const genesetName = genesetOrder[topIndexInWindow.index];
-      const enrichment = topIndexInWindow.score;
-
-      setTooltipData({ index: topIndexInWindow.index, genesetName, enrichment: Math.round(enrichment * 10000) / 10000 });
-      setTooltipPosition({ x: e.clientX - rect.x, y: e.clientY - rect.y - 75 });
-    }
-
-  }, [enrichments])
-
   // create canvas
   const canvasRef = useRef(null);
   useEffect(() => {
@@ -262,17 +233,82 @@ const Spectrum = ({
     SpectrumBar({ data: smoothData, ctx, xScale, y: plotYStop, height: spectrumBarHeight, colorbarX });
     Curve({ data: smoothData, ctx, xScale, yScale, height: plotYStop, color: "#000" });
     Labels({ labels, ctx, xScale });
-  
+
+    const handleMouseMove = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      
+      // determine which section of spectrum is hovered over and adjust content accordingly
+      if (isHoveringSpectrumBar(mouseX, mouseY)) {  // colorbar
+        let geneset = determineGeneset(mouseX)
+        // set the enrichment score to 0 so it will not be shown
+        geneset['score'] = 0
+        setTooltip({ content: geneset, x: mouseX, y: height - mouseY, visible: true });
+      } else if (isHoveringCurve(mouseX, mouseY, smoothData)) {  // curve
+        let geneset = determineGeneset(mouseX)
+        setTooltip({ content: geneset, x: mouseX, y: height - mouseY, visible: true });
+      } else {
+        handleMouseLeave();
+      }
+    }
+
+    const handleMouseLeave = () => {
+      setTooltip({ content: null, x: 0, y: 0, visible: false });
+    };
+
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseleave', handleMouseLeave);
+    
+    return () => {
+      canvas.removeEventListener('mousemove', handleMouseMove);
+      canvas.removeEventListener('mouseleave', handleMouseLeave);
+    };
   }, [smoothData, xScale, yScale, plotYStop, spectrumBarHeight, colorbarX, labels]);
+
+  // determines if mouse hovering over spectrum color bar
+  const isHoveringSpectrumBar = (x, y) => {
+    return x >= plotXStart && x <= plotXStop && y >= plotYStop && y <= height
+  };
+
+  // determines if mouse hovering over spectrum curve
+  const isHoveringCurve = (x, y, data) => {
+    // ensure that the y value is within the curve
+    const index = Math.floor(xScaleInvert(x))
+    if (index >= 0 && index < data.length) {
+      const yValue = yScale(data[index])
+      return x >= plotXStart && x <= plotXStop && y >= yValue && y <= plotYStop
+    } else {
+      return false
+    }
+  }
+
+  // determines geneset to show on hover given the x position
+  const determineGeneset = (x) => {
+    const index = Math.floor(xScaleInvert(x))
+    if (index >= 0 && index < genesetOrder.length) {
+      const hoverWindowSize = 50;
+      let startIndex = Math.max(0, index - hoverWindowSize / 2);
+      let endIndex = Math.min(enrichments.length, index + hoverWindowSize / 2);
+      let windowValues = enrichments.slice(startIndex, endIndex);
+      
+      let topIndexInWindow = {score: 0, index: index}
+      if(Math.max(...windowValues) !== 0) {
+        topIndexInWindow = windowValues.map((v, i) => ({score: v, index: i + startIndex})).sort((a, b) => b.score - a.score)[0]
+      }
+      topIndexInWindow['geneset'] = genesetOrder[topIndexInWindow.index]
+      return topIndexInWindow
+    } else {
+      return null
+    }
+  }
 
   // console.log("Spectrum render")
   return (
     <div className={"spectrum-component" + (show ? " show": " hide")} style={{ height: height + 'px', width: width + 'px' }}>
       <div style={{ position: 'relative' }}>
-
-        {/* <YTicks data={smoothData} yScale={yScale} xScale={xScale} height={height} numTicks={5} /> */}
-        <canvas ref={canvasRef} width={width} height={height} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} onMouseDown={handleMouseClick}/>
-        <Tooltip tooltipData={tooltipData} position={tooltipPosition} />
+        <canvas ref={canvasRef} width={width} height={height}/>
+        <Tooltip geneset={tooltip.content} x={tooltip.x} y={tooltip.y} visible={tooltip.visible} />
 
       </div>
     </div>
