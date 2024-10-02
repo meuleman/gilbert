@@ -247,7 +247,11 @@ const Spectrum = ({
         setTooltip({ content: geneset, x: mouseX, y: height - mouseY, visible: true });
       } else if (isHoveringCurve(mouseX, mouseY, smoothData)) {  // curve
         let geneset = determineGeneset(mouseX)
-        setTooltip({ content: geneset, x: mouseX, y: height - mouseY, visible: true });
+        if(geneset.score !== 0) {
+          setTooltip({ content: geneset, x: mouseX, y: height - mouseY, visible: true });
+        } else {
+          handleMouseLeave();
+        }
       } else {
         handleMouseLeave();
       }
