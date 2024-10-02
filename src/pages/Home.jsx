@@ -4,17 +4,14 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 // import FiltersProvider from '../components/ComboLock/FiltersProvider'
 import FiltersContext from '../components/ComboLock/FiltersContext'
 
-import Data from '../lib/data';
-import { urlify, jsonify, fromPosition, fromCoordinates, toPosition, fromIndex, overlaps } from '../lib/regions'
-import { showPosition } from '../lib/display'
-import { convertFilterRegions } from '../lib/regionsets';
-import { HilbertChromosome, checkRanges, hilbertPosToOrder } from '../lib/HilbertChromosome'
-import { debounceNamed, debouncerTimed } from '../lib/debounce'
-import { fetchTopCSNs, fetchTopPathsForRegions, rehydrateCSN, calculateCrossScaleNarrationInWorker, narrateRegion, retrieveFullDataForCSN } from '../lib/csn'
-import { calculateOrderSums, calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
-import { range, groups, group } from 'd3-array'
+import { urlify, jsonify, fromPosition, fromRange, fromCoordinates, toPosition, fromIndex, overlaps } from '../lib/regions'
+import { hilbertPosToOrder } from '../lib/HilbertChromosome'
+import { debouncerTimed } from '../lib/debounce'
+import { fetchTopPathsForRegions, rehydrateCSN } from '../lib/csn'
+import { calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
+import { gencode, getRangesOverCell } from '../lib/Genes'
+import { range, group } from 'd3-array'
 import { Tooltip } from 'react-tooltip'
-import Loading from '../components/Loading'
 
 import './Home.css'
 
@@ -213,7 +210,7 @@ function Home() {
   const initialUpdateRef = useRef(true);
   useEffect(() => {
     if(initialUpdateRef.current) {
-      console.log("INITIAL FILTERS", initialFilters)
+      // console.log("INITIAL FILTERS", initialFilters)
       setFilters(parseFilters(initialFilters || "[]"))
       initialUpdateRef.current = false
     }
@@ -225,6 +222,7 @@ function Home() {
     activeState, 
     numTopRegions, 
     setActiveSet, 
+    saveSet,
     activeGenesetEnrichment,
     activeRegions
   } = useContext(RegionsContext)
@@ -242,8 +240,6 @@ function Home() {
       setLayerOrder(layerOrderNatural)
     }
   }, [filters, showFilter, layerOrderNatural])
-
-
 
 
   const handleZoom = useCallback((newZoom) => {
@@ -292,7 +288,6 @@ function Home() {
       if(hover.order !== zoom.order) {
         hit = fromPosition(hover.chromosome, hover.start, hover.end, zoom.order)
       } 
-      // console.log("HIT", hit)
 
       const { k, x, y } = zoom.transform;
       const step = Math.pow(0.5, zoom.order)
@@ -348,10 +343,6 @@ function Home() {
     dataRef.current = data
   }, [data])
 
-  // const [trackState, setTrackState] = useState(data)
-  // const [tracks, setTracks] = useState([])
-  // const [tracksLoading, setTracksLoading] = useState(false)
-
   const [searchByFactorInds, setSearchByFactorInds] = useState([])
 
   const processSimSearchResults = useCallback((order, result) => {
@@ -361,8 +352,6 @@ function Home() {
       const similarRanges = similarRegions.map((d) => {
         return fromCoordinates(d.coordinates)
       })
-      // console.log("similar regions", similarRegions)
-      // console.log("similar ranges", similarRanges)
 
       setSimilarRegions(similarRanges)
     } else {
@@ -371,55 +360,6 @@ function Home() {
     }
   }, [setSimSearch, setSimilarRegions, setSelected])
 
-  // this debounced function fetches the data and updates the state
-  // const fetchLayerData = useMemo(() => {
-  //   const dataClient = Data({ 
-  //     debug: false
-  //   })
-  //   return (layer, order, bbox, key, setter) => {
-  //     // we dont want to fetch data if the order is not within the layer order range
-  //     if (order < layer.orders[0] || order > layer.orders[1]) return;
-
-  //     let hilbert = HilbertChromosome(order, { padding: 2 })
-  //     let points = hilbert.fromBbox(bbox) 
-
-  //     let myPromise = dataClient.fetchData(layer, order, points)
-  //     let myCallback = (data) => {
-  //       // console.log("got data", data, order)
-  //       if(data) {
-  //         setter({ data, layer, order})
-  //       }
-  //     }
-  //     // debounce a function call with a name to make sure no collisions
-  //     // collision would be accidentally debouncing a different data call because we reuse this function
-  //     debounceNamed(myPromise, myCallback, 50, key+":"+layer.name+":"+order) // layer.name + order makes unique call 
-  //   }
-  // }, []);
-
-
-  
-
-  // do a sim search if selected changes
-  // useEffect(() => {
-  //   if(selected){
-  //     // console.log("selected changed", selected, layer.name)
-  //     SimSearchRegion(selected, selected.order, layer, setSearchByFactorInds, []).then((regionResult) => {
-  //       // console.log("sim searchregion results", selected, layer.name, regionResult)
-  //       if(!regionResult || !regionResult.simSearch) return;
-  //       processSimSearchResults(selected.order, regionResult)
-  //       setSimSearchMethod("Region")
-  //     }).catch(e => {
-  //       console.log("caught error in sim search", e)
-  //       setSimSearch(null)
-  //       setSimilarRegions([])
-  //     })
-  //     narrateRegion(selected, selected.order).then((narrationResult) => {
-  //       narrationResult && setSelectedNarration(narrationResult.narrationRanks)
-  //     })
-  //   }
-  // }, [selected, layer, setSearchByFactorInds, processSimSearchResults, setSimSearchMethod, setSelectedNarration])
-
-  
 
   const updateUrlParams = useCallback((newRegionSet, newSelected, newFilters) => {
     const params = new URLSearchParams();
@@ -454,60 +394,6 @@ function Home() {
   const handleCsnMethodChange = (e) => setCsnMethod(e.target.value)
   // function to change the ENR threshold for CSN
   const handleCsnEnrThresholdChange = (e) => setCsnEnrThreshold(e.target.value)
-
-  useEffect(() => {
-    // setCrossScaleNarrationIndex(0)
-    
-    if(selected && selected.order > 4){
-      // clear the cross scale narration first
-      // setCrossScaleNarration([])
-      // setCsn({path: [], layers: csnLayers})
-      // setLoadingCSN(true)
-
-      // calculateCrossScaleNarrationInWorker(selected, csnMethod, csnEnrThreshold, csnLayers, variantLayers, countLayers).then(crossScaleResponse => {
-      //   // filter to just unique paths
-      //   const filteredPaths = findUniquePaths(crossScaleResponse.paths).slice(0, 100)
-      //   console.log("CLIENT CSN: filteredPaths", filteredPaths)
-      //   // setFullCSNPaths(crossScaleResponse.paths)
-      //   // setCrossScaleNarration(filteredPaths)
-      //   // setLoadingCSN(false)
-      // })
-
-    } else {
-      // we set the layer order back to non-CSN if no selected region
-      // if(layerOrderNatural && layerOrderNatural[zoomRef.current.order]) {
-      //   setLayerOrder(layerOrderNatural)
-      //   setLayer(layerOrderNatural[zoomRef.current.order])
-      // }
-      // console.log("else selected")
-    }
-  }, [selected, csnMethod, csnEnrThreshold])  // layerOrderNatural
-
-  // const [csn, setCsn] = useState({path: [], layers: csnLayers})
-  // useEffect(() => {
-  //   if(crossScaleNarration?.length) {
-  //     console.log("updated CSN?", crossScaleNarration)
-  //     let newCsn = crossScaleNarration[crossScaleNarrationIndex]
-  //     newCsn.path = newCsn.path.filter(d => !!d).sort((a,b) => a.order - b.order)
-  //     newCsn.layers = csnLayers
-  //     setCsn(newCsn)
-  //     // we update the layer order and layer
-  //     // TODO: if we want to update the layer order based on the csn, we can uncomment this
-  //     // if(selected) {
-  //     //   let newLayerOrder = Object.assign({}, layerOrderRef.current)
-  //     //   newCsn.path.forEach(d => {
-  //     //     newLayerOrder[d?.order] = d?.layer
-  //     //   })
-  //     //   if(newLayerOrder[selected.order] && !layerLockRef.current){
-  //     //     layerOrderRef.current = newLayerOrder // this is so that handleZoom uses most up to date in race condition
-  //     //     setLayerOrder(newLayerOrder)
-  //     //     setLayer(newLayerOrder[selected.order])
-  //     //   }
-  //     // }
-  //   } else {
-  //     setCsn({path: [], layers: csnLayers})
-  //   }
-  // }, [selected, crossScaleNarrationIndex, crossScaleNarration])
 
   
   const handleHover = useCallback((hit, similarRegionList=false) => {
@@ -576,19 +462,21 @@ function Home() {
 
   const handleChangeLocationViaAutocomplete = useCallback((autocompleteRegion) => {
     if (!autocompleteRegion) return
-    // console.log(`autocompleteRegion ${JSON.stringify(autocompleteRegion)}`);
     console.log("autocomplete", autocompleteRegion)
-
-    const hit = fromPosition(autocompleteRegion.chrom, autocompleteRegion.start, autocompleteRegion.stop)
-    hit.data = {}
-    hit.description = {
-      type: autocompleteRegion.type,
-      name: autocompleteRegion.name
+    let range = []
+    // console.log("gencode", gencode)
+    if(autocompleteRegion.type == "gene") {
+      let gene = gencode.find(d => d.hgnc == autocompleteRegion.name)
+      // console.log("GENE", gene)
+      range = fromRange(gene.chromosome, gene.start, gene.end, 100)
+    } else {
+      range = fromRange(autocompleteRegion.chrom, autocompleteRegion.start, autocompleteRegion.stop, 100)
     }
-    console.log("autocomplete hilbert region", hit)
-    setRegion(hit)
-    setSelected(hit)
-  }, [setRegion, setSelected])
+    const mid = range[Math.floor(range.length / 2)]
+    setRegion(mid)
+    // console.log("autocomplete range", range)
+    saveSet(autocompleteRegion.name || autocompleteRegion.location, range, { activate: true, type: "search"})
+  }, [setRegion, saveSet])
 
   
   const onData = useCallback((payload) => {
@@ -618,55 +506,11 @@ function Home() {
 
   const [powerOrder, setPowerOrder] = useState(zoom.order + 0.5)
 
-  // // when in layer suggestion mode, this function will update the
-  // // layer order based on the current viewable data
-  // let LayerSuggestionMode = true
-  // useMemo(() => {
-  //   if(LayerSuggestionMode) {
-  //     LayerSuggestion(data, layerOrder, setLayerOrder, [
-  //       DHS_Components_Sfc_max,
-  //       Chromatin_States_Sfc_max,
-  //       TF_Motifs_Sfc_max,
-  //       Repeats_Sfc_max
-  //     ])
-  //   }
-  // }, [data])
-
-
- // setter for tracks array
-
-  // console.log("tracks?", trackMinus1, trackPlus1)
-
-  // When data or selected changes, we want to update the tracks
-  // useEffect(() => {
-  //   if(!dataRef.current) return
-  //   if(isZooming) return;
-  //   const minOrder = Math.max(layerRef.current.orders[0], dataRef.current.order - 5)
-  //   let promises = range(minOrder, dataRef.current.order).map(order => {
-  //     return new Promise((resolve) => {
-  //       fetchLayerData(layerRef.current, order, dataRef.current.bbox, "pyramid", (response) => {
-  //         resolve(response)
-  //       })
-  //     })
-  //   })
-  //   // if(isZooming) setTracksLoading(true)
-  //   Promise.all(promises).then((responses) => {
-  //     setTrackState(dataRef.current)
-  //     setTracks(responses)
-  //     setTracksLoading(false)
-  //   })
-  // // make sure this updates only when the data changes
-  // // the pyramid will lag behind a little bit but wont make too many requests
-  // }, [zoom, data, isZooming, fetchLayerData]) 
-
-
-  // const [filters, setFilters] = useState([])
-
 
   const orderSums = useMemo(() => {
     // return calculateOrderSums()
     let os = calculateSegmentOrderSums()
-    console.log("OS", os)
+    // console.log("OS", os)
     return os
   }, [])
   const [filteredIndices, setFilteredIndices] = useState([])
@@ -742,38 +586,11 @@ function Home() {
   }, [selected, activeSet])
 
   const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
-  const [topCSNSFullByCurrentOrder, setTopCSNSFullByCurrentOrder] = useState(new Map())
-  // we want to group the top csns by the current order
-  // useEffect(() => {
-  //   if(topFactorCSNS.length) {
-  //     const groupedFactor = group(topFactorCSNS, d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
-  //     // const groupedFull = group(topFullCSNS, d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
-  //     console.log("groupedFactor", groupedFactor)
-  //     // console.log("groupedFull", groupedFull)
-  //     setTopCSNSFactorByCurrentOrder(groupedFactor)
-  //     // setTopCSNSFullByCurrentOrder(groupedFull)
-  //   } else {
-  //     setTopCSNSFactorByCurrentOrder(new Map())
-  //   }
-  // }, [zoom.order, topFactorCSNS])
-
-  // const [filterSegmentsByCurrentOrder, setFilterSegmentsByCurrentOrder] = useState(new Map())
-  // // group the top regions found through filtering by the current order
-  // useEffect(() => {
-  //   if(filteredSegments?.length && filterOrder) {
-  //     const groupedFactor = group(filteredSegments.slice(0, numSegments), d => d.chromosome + ":" + hilbertPosToOrder(d.index, {from: filterOrder, to: zoom.order}))
-  //     console.log("groupedFactor", groupedFactor)
-  //     setFilterSegmentsByCurrentOrder(groupedFactor)
-  //   } else {
-  //     setFilterSegmentsByCurrentOrder(new Map())
-  //   }
-  // }, [zoom.order, filteredSegments, numSegments])
 
   const [activeRegionsByCurrentOrder, setActiveRegionsByCurrentOrder] = useState(new Map())
   const [allRegionsByCurrentOrder, setAllRegionsByCurrentOrder] = useState(new Map())
   // group the top regions found through filtering by the current order
   useEffect(() => {
-    console.log("activeSEt?", activeSet)
     let regions = activeSet?.regions
     if(regions?.length) {
       const groupedAllRegions = group(
@@ -783,7 +600,7 @@ function Home() {
       setAllRegionsByCurrentOrder(groupedAllRegions)
 
     } else {
-      console.log("no regions!!")
+      // console.log("no regions!!")
       setAllRegionsByCurrentOrder(new Map())
     }
   }, [zoom.order, activeSet])
@@ -795,7 +612,7 @@ function Home() {
         d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
       setActiveRegionsByCurrentOrder(groupedActiveRegions)
     } else {
-      console.log("no paths!!")
+      // console.log("no paths!!")
       setActiveRegionsByCurrentOrder(new Map())
     }
 
@@ -804,46 +621,23 @@ function Home() {
 
 
   const handleFactorPreview = useCallback((field, values) => {
-    console.log("preview factor!", field, values)
+    // console.log("preview factor!", field, values)
     setFactorPreviewField(field)
     setFactorPreviewValues(values)
   }, [setFactorPreviewField, setFactorPreviewValues])
 
   const handleSelectedCSNSankey = useCallback((csn) => {
-    // let hit = csn.path.find(d => d.order == zoom.order)?.region
-    // if(!hit) {
-    //   console.log("no hit?", csn)
-    //   hit = fromPosition(csn.chromosome, csn.i, csn.i+1, zoom.order)
-    // }
     let hit = fromPosition(csn.chromosome, csn.start, csn.end, zoom.order)
     console.log("SELECTED SANKEY CSN", csn, hit)
     setSelected(csn?.region)
     setRegion(hit)
-    // setLoadingSelectedCSN(true)
-    // retrieveFullDataForCSN(csn).then((response) => {
-    //   setSelectedTopCSN(response)
-    //   setLoadingSelectedCSN(false)
-    // })
   }, [zoom.order])
 
-  // const handleSelectedCSNSelectedModal = (csn) => {
-  //   if(!csn) return
-  //   setLoadingSelectedCSN(true)
-  //   retrieveFullDataForCSN(csn).then((response) => {
-  //     setSelectedTopCSN(response)
-  //     console.log("full data response", response)
-  //     setLoadingSelectedCSN(false)
-  //   })
-  // }
 
   const handleHoveredCSN = useCallback((csn) => {
     setHoveredTopCSN(csn)
-    // let hit = fromPosition(csn.chromosome, csn.i, csn.i+1, zoom.order)
-    // setHover(hit)
-    // the CSN has region information on it
     setHover(csn?.region)
-    // console.log("HOVERED CSN", csn, hit)
-  }, [zoom.order])
+  }, [])
 
 
   // figure out which active regions are in the hovered segment if any
@@ -872,7 +666,6 @@ function Home() {
 
   useEffect(() => {
     if(mapLoading || activeState) {
-      console.log("WAIT WAIT WAIT", new Date())
       document.body.style.cursor = "wait"
       return;
     }

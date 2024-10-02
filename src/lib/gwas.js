@@ -15,13 +15,13 @@ Returns:
 function fetchGWASforPositions(positions) {
   const url = "https://explore.altius.org:5001/api/gwas/gwas_for_positions"
   const postBody = {'positions': positions}
-  console.log("GWAS POST BODY", postBody)
+  // console.log("GWAS POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
     data: postBody
   }).then(response => {
-    console.log("DATA", response.data)
+    // console.log("DATA", response.data)
     return response.data
   }).catch(error => {
     console.error(`error:     ${JSON.stringify(error)}`);

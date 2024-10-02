@@ -70,6 +70,31 @@ export function fromPosition(chromosome, start, end, order) {
   return hit
 }
 
+// Get a set of regions from a range, targeting a specific count of regions
+// We find the order that gets us closest to that target count
+// Then we generate a set of regions from that order
+export function fromRange(chromosome, start, end, targetCount) {
+  start = +start;
+  end = +end;
+  let length = end - start
+  let order = orderDomain[1];
+  let p = hilbertPosToOrder(1, { from: order, to: orderDomain[1] })
+  let n = Math.floor(length / p)
+  let lastN = n
+  while(n > targetCount) {
+    order--;
+    lastN = n
+    p = hilbertPosToOrder(1, { from: order, to: orderDomain[1] })
+    n = Math.floor(length / p)
+    // console.log("order", order, "n", n)
+    if(order == orderDomain[0]) break;
+  }
+  let hilbert = HilbertChromosome(order, { padding: 2 })
+  let regions = hilbert.fromRegion(chromosome, start, end)
+  console.log("order", order, "lastn", lastN, "n", n, "regions", regions.length)
+  return regions
+}
+
 export function urlify(region) {
   if(region) {
     // We only keep the core identifying information about the region

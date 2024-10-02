@@ -95,10 +95,10 @@ const StatusBar = ({
         <div style={{width: '30px'}}>
         
         </div>
-        <div className="filtered-regions">
+        {/* <div className="filtered-regions">
           {topCSNCount ? <span>{topCSNCount} top path{topCSNCount > 1 ? "s" : ""} (representing {topCSNRepresented} paths)</span> : null}
           {filteredPathCount ? <span> {filteredPathCount} total filtered paths</span> : null}
-        </div>
+        </div> */}
         <div className="status-bar-hover">
           {hover && (
             <>

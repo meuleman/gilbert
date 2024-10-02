@@ -80,6 +80,6 @@
   height: 38px;
 }
 .filter-button.active {
-  background: white;
+  background: gray;
   /* border: 1px solid blue; */
 }

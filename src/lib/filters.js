@@ -18,7 +18,7 @@ function urlifyFilters(filtersMap) {
       field: f.field && f.field  // temporary fix until gwas layer with correct number of fields, remove
     }
   })
-  console.log("FILTERS FOR URL", filters)
+  // console.log("FILTERS FOR URL", filters)
   return encodeURIComponent(JSON.stringify(filters))
 }
 function parseFilters(filters) {
@@ -42,7 +42,7 @@ function parseFilters(filters) {
 }
 
 function calculateSegmentOrderSums() {
-  console.log("CALC ORDER SUMS", counts_native)
+  // console.log("CALC ORDER SUMS", counts_native)
   const orderSums = Object.keys(counts_native).map(o => {
     let chrms = Object.keys(counts_native[o])//.map(chrm => counts[o][chrm])
     let total = 0

@@ -153,7 +153,7 @@ const SelectGWAS = memo(({
     const grouped = groups(allFields, f => f.layer ? f.layer.name : f.datasetName)  // temporary fix until gwas layer with correct number of fields
       .map(d => ({ label: d[0], options: d[1].sort((a,b) => b.count - a.count) }))
       .filter(d => d.options.length)
-      console.log("GROUPED", grouped)
+      // console.log("GROUPED", grouped)
       return grouped
   }, [allFields])
 
@@ -188,14 +188,14 @@ const SelectGWAS = memo(({
   }, [filters, fieldMap])
 
   const handleChange = useCallback((selectedOption) => {
-    console.log("SELECTED OPTION", selectedOption)
+    // console.log("SELECTED OPTION", selectedOption)
     handleFilter(selectedOption, 14, true)
     setIsActive(false)
   }, [handleFilter])
 
   const [previewBar, setPreviewBar] = useState(null)
   useEffect(() => {
-    console.log("GWAS PREVIEW", previewField, previewValues)
+    // console.log("GWAS PREVIEW", previewField, previewValues)
     if(previewField && previewValues) {
       let matchingField = {...previewField}
       matchingField['order'] = 14
