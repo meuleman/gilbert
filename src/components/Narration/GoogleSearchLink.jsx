@@ -10,6 +10,8 @@ const Sentence = ({
     let fields = narration.path.filter(d => {
       if(d.layer?.datasetName?.indexOf("occ") > -1) {
         return d.field?.value > 0.75
+      } else if(d.layer?.datasetName?.indexOf("gwas") > -1) {
+        return true
       } else {
         return d.field?.value > 2
       }
