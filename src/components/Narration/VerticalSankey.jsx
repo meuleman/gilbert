@@ -50,6 +50,28 @@ function tooltipContent(node, layer, orientation) {
   if(node.children) {
     node.children.sort((a,b) => b.count - a.count)
   }
+  
+  let [dataset, layerType] = layer.name.replace(")", "").split("(")
+  
+  // clean dataset name
+  dataset = dataset.replace("DHS Components", "DHSs").trim()
+  dataset = dataset.replace("Chromatin States", "States").trim()
+  dataset = dataset.replace("TF Motifs", "Motifs").trim()
+  
+  // clean layer type
+  if(layerType?.includes("ENR")) {
+    layerType = ""
+  } else if(layerType?.includes("GWAS")) {
+    layerType = ""
+  } else if(layerType?.includes("Categorical")) {
+    layerType = ""
+  } else if(layerType?.includes("aPC")) {
+    layerType = ""
+  } else if(layerType?.includes("OCC")) {
+    layerType = " (OCC)"
+  }
+  dataset = dataset + layerType
+
   return (
     <div style={{display: 'flex', flexDirection: 'column'}}>
       <span>
@@ -57,8 +79,8 @@ function tooltipContent(node, layer, orientation) {
       </span>
       <span>
         <span style={{color: node.color, marginRight: '4px'}}>⏺</span>
-        {node.field}: {node.value} paths</span>
-      <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer?.name}</span>
+        {node.field === "Bundle" ? node.field : node.field + " " + dataset}: {node.value} paths</span>
+      {node.children ? <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{dataset}</span> : null}
       {node.children ? node.children.map(c => {
         return <div key={c.id}>{c.field}: {c.count} paths</div>
       }) : null}
