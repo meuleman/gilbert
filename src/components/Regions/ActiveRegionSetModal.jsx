@@ -112,14 +112,16 @@ const ActiveRegionSetModal = ({
               <thead>
                 <tr>
                   <th style={{ width: '80%' }}>Position</th>
-                  <th style={{ width: '20%' }}>Score</th>
+                  {activeRegions?.[0]?.score && <th style={{ width: '10%' }}>Score</th>}
+                  <th style={{ width: '10%' }}>Path Score</th>
                 </tr>
               </thead>
               <tbody>
                 {regions.slice(0, numTopRegions).map((region, index) => (
                   <tr key={index}>
                     <td style={{ width: '80%' }}>{showPosition(region)}</td>
-                    <td style={{ width: '20%' }}>{region.score?.toFixed(3)}</td>
+                    {activeRegions?.[0]?.score && <td style={{ width: '10%' }}>{region.score?.toFixed(3)}</td>}
+                    <td style={{ width: '10%' }}>{activePaths?.[index]?.score?.toFixed(3)}</td>
                   </tr>
                 ))}
               </tbody>

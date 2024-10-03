@@ -533,7 +533,7 @@ function Home() {
     // console.log("all full csns", allFullCSNS)
     if(activePaths?.length) {
       let sorted = activePaths.slice(0, numTopRegions)
-        .sort((a,b) => b.score - a.score)
+        // .sort((a,b) => b.score - a.score)
       console.log("sorted", sorted)
       setTopFullCSNS(sorted)
       setCSNLoading("")
@@ -645,9 +645,10 @@ function Home() {
   const [intersectedGenes, setIntersectedGenes] = useState([])
   const [associatedGenes, setAssociatedGenes] = useState([])
   useEffect(() => {
-    if(hover && activeSet && activeSet.regions?.length && activePaths?.length) {
+    if(hover && activeSet && activeRegions?.length && activePaths?.length) {
       // find the regions within the hover
       // let regions = overlaps(hover, activeSet.regions)
+      console.log("activepaths", activePaths, "activeregions", activeSet.regions)
       let paths = overlaps(hover, activePaths, r => r.region)
       // console.log("OVERLAPS", hover, topPathsForRegions, paths)
       let intersected = [...new Set(paths.flatMap(p => p.genes.filter(g => g.in_gene).map(g => g.name)))]
@@ -662,7 +663,7 @@ function Home() {
       setActiveInHovered(null)
     }
 
-  }, [hover, activeSet, activePaths])
+  }, [hover, activeSet, activePaths, activeRegions])
 
   useEffect(() => {
     if(mapLoading || activeState) {

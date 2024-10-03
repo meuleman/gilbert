@@ -261,7 +261,16 @@ const RegionsProvider = ({ children }) => {
             // convert the response into "dehydrated" csn paths with the region added
             let tpr = getDehydrated(activeRegions, response.regions)
             let hydrated = tpr.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
-            setActivePaths(hydrated) 
+            // combine the regions with the paths so we can sort them by the path score
+            let combined = activeRegions.map((r,i) => {
+              return { i, r, p: hydrated[i], score: hydrated[i]?.score }
+            }).sort((a,b) => b.score - a.score)
+
+            let reorderedRegions = combined.map(d => d.r)
+            let reorderedPaths = combined.map(d => d.p).filter(d => !!d)
+            setActivePaths(reorderedPaths) 
+            setActiveRegions(reorderedRegions)
+
             setActiveState(null)
             // for geneset enrichment calculation
             let gip = response.regions.flatMap(d => d.genes[0]?.genes).map(d => d.name)
