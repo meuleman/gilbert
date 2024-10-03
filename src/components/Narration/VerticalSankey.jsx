@@ -57,6 +57,7 @@ function tooltipContent(node, layer, orientation) {
   dataset = dataset.replace("DHS Components", "DHSs").trim()
   dataset = dataset.replace("Chromatin States", "States").trim()
   dataset = dataset.replace("TF Motifs", "Motifs").trim()
+  dataset = dataset.replace("ZNone", "None").trim()
   
   // clean layer type
   if(layerType?.includes("ENR")) {
@@ -79,9 +80,9 @@ function tooltipContent(node, layer, orientation) {
       </span>
       <span>
         <span style={{color: node.color, marginRight: '4px'}}>⏺</span>
-        {((node.field === "Bundle") || (node.field === "None")) ? node.field : node.field + " " + dataset}: {node.value} paths</span>
-      {node.children ? <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{dataset}</span> : null}
-      {node.children ? node.children.map(c => {
+        {((node.field === "Bundle") || (node.field === "None")) ? (dataset === "None" ? dataset : node.field) : node.field + " " + dataset}: {node.value} paths</span>
+      {(node.children && (dataset !== "None")) ? <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{dataset}</span> : null}
+      {(node.children && (dataset !== "None")) ? node.children.map(c => {
         return <div key={c.id}>{c.field}: {c.count} paths</div>
       }) : null}
     </div>
