@@ -553,8 +553,8 @@ function Home() {
       // if an activeSet we grab the first region (since they are ordered) that falls witin the selected region
       // if the region is smaller than the activeSet regions, the first one where the selected region is within the activeset region
       let region = selected
-      if(activeSet?.regions?.length) {
-        region = overlaps(selected, activeSet.regions)[0] || selected
+      if(activeRegions?.length) {
+        region = overlaps(selected, activeRegions)[0] || selected
       } 
       setLoadingSelectedCSN(true)
       setLoadingRegionCSNS(true)
@@ -583,7 +583,7 @@ function Home() {
           setLoadingRegionCSNS(false)
         })
     }
-  }, [selected, activeSet])
+  }, [selected, activeRegions])
 
   const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
 
@@ -591,7 +591,7 @@ function Home() {
   const [allRegionsByCurrentOrder, setAllRegionsByCurrentOrder] = useState(new Map())
   // group the top regions found through filtering by the current order
   useEffect(() => {
-    let regions = activeSet?.regions
+    let regions = activeRegions
     if(regions?.length) {
       const groupedAllRegions = group(
         regions, 
@@ -616,7 +616,7 @@ function Home() {
       setActiveRegionsByCurrentOrder(new Map())
     }
 
-  }, [zoom.order, activePaths, numTopRegions])
+  }, [zoom.order, activePaths, activeRegions, numTopRegions])
 
 
 
