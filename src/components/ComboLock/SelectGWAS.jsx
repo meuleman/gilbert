@@ -214,11 +214,11 @@ const SelectGWAS = memo(({
         <div className="button-column">
         {selectedField && !previewBar ? 
           <div>
-            <button className="deselect" data-tooltip-id="deselect" onClick={() => handleChange()}>
+            <button className="deselect" data-tooltip-id="deselect-14" onClick={() => handleChange()}>
               ❌
             </button>
-            <Tooltip id="deselect" place="top" effect="solid" className="tooltip-custom">
-              Deselect
+            <Tooltip id="deselect-14" place="top" effect="solid" className="tooltip-custom">
+              Deselect {selectedField?.field} {selectedField?.layer ? selectedField?.layer?.name : "Variants"}
             </Tooltip>
           </div>
         : null }

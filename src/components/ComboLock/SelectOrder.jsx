@@ -251,10 +251,10 @@ const SelectOrder = ({
         </Tooltip>
         {selectedField && !previewBar ? 
           <div>
-            <button className="deselect" data-tooltip-id="deselect" onClick={() => handleChange()}>
+            <button className="deselect" data-tooltip-id={`deselect-${order}`} onClick={() => handleChange()}>
               ❌
             </button>
-            <Tooltip id="deselect" place="top" effect="solid" className="tooltip-custom">
+            <Tooltip id={`deselect-${order}`} place="top" effect="solid" className="tooltip-custom">
               Deselect {selectedField?.field} {selectedField?.layer?.name}
             </Tooltip>
           </div>
