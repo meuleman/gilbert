@@ -35,12 +35,12 @@ const ActiveRegionSetModal = ({
 
   const [regions, setRegions] = useState([])
   useEffect(() => {
-    if(activeSet) {
-      setRegions(activeSet.regions)
+    if(activeRegions) {
+      setRegions(activeRegions)
     } else {
       setRegions([])
     }
-  }, [activeSet])
+  }, [activeRegions])
 
   const handleDeselect = useCallback(() => {
     setActiveSet(null)
