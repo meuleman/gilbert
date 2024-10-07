@@ -18,6 +18,7 @@ import './Home.css'
 import LogoNav from '../components/LogoNav';
 // base component
 import HilbertGenome from '../components/HilbertGenome'
+import LinearGenome from '../components/LinearGenome'
 // rendering components
 import SVGHilbertPaths from '../components/SVGHilbertPaths'
 import SVGGenePaths from '../components/SVGGenePaths'
@@ -397,7 +398,7 @@ function Home() {
 
   
   const handleHover = useCallback((hit, similarRegionList=false) => {
-    // if(hit && !selectedRef.current) {}
+    if(hit && !selectedRef.current) {}
     if(similarRegionList) {
       setSimilarRegionListHover(hit)
     }
@@ -482,6 +483,7 @@ function Home() {
   const onData = useCallback((payload) => {
     console.log("data payload", payload)
     setData(payload)
+    // setHover(payload.center)
 
     // const fetchInChunks = async (data, chunkSize) => {
     //   let combinedResults = [];
@@ -700,6 +702,14 @@ function Home() {
     stroke: activeSet && !activeInHovered?.length ? "lightgray" : "black", 
     radiusMultiplier: 1, 
     strokeWidthMultiplier: 0.1, 
+    showGenes, 
+    highlightPath: true 
+  })
+  const drawAnnotationRegionCenter = useCanvasAnnotationRegions(data?.center, "hover", { 
+    // if there is an activeSet and no paths in the hover, lets make it lightgray to indicate you can't click on it
+    stroke: "gray",
+    radiusMultiplier: 0.5, 
+    strokeWidthMultiplier: 0.05, 
     showGenes, 
     highlightPath: true 
   })
@@ -1072,7 +1082,8 @@ function Home() {
                     drawActiveFilteredRegions,
                     drawAllFilteredRegions,
                     drawAnnotationRegionSelected,
-                    drawAnnotationRegionHover
+                    drawAnnotationRegionHover,
+                    drawAnnotationRegionCenter,
                   ]}
                   SVGRenderers={[
                     SVGChromosomeNames({ }),
@@ -1175,8 +1186,15 @@ function Home() {
         <div className='footer-row'>
           <div className='linear-tracks'>
 
-            {selected  && <RegionStrip region={selected} segments={100} layer={layer} width={width} height={40} /> }
-            {!selected && hover && <RegionStrip region={hover} segments={100} layer={layer} width={width} height={40} /> }
+            <LinearGenome 
+              center={data?.center} 
+              data={data?.data} 
+              order={data?.dataOrder}
+              layer={data?.layer}
+              width={width} height={40} />
+
+            {/* {selected  && <RegionStrip region={selected} segments={100} layer={layer} width={width} height={40} /> }
+            {!selected && hover && <RegionStrip region={hover} segments={100} layer={layer} width={width} height={40} /> } */}
 
             {/* <TrackPyramid
               state={trackState} 

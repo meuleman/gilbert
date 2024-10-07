@@ -238,22 +238,7 @@ const HilbertGenome = ({
       }
     }
   }, [state.zooming, state.order, state.points, state.metas, state.metaLayer, state.transform, layer]);
-
-  // when the data changes, let the parent component know
-  useEffect(() => {
-    if(!state.dataLayer) return
-    // if(state.zooming) return
-    onData({
-      data: state.data, 
-      dataOrder: state.dataOrder,
-      meta: state.metas.get(state.dataOrder), 
-      points: state.points, 
-      bbox: state.bbox,
-      order: state.order, 
-      layer: state.dataLayer,
-      loading: state.loading
-    })
-  }, [state.data, state.dataOrder, state.dataLayer])
+ 
 
   useEffect(() => {
     onLoading(state.loading)
@@ -527,6 +512,45 @@ const HilbertGenome = ({
     return qt
   }, [state.points])
 
+  const regionFromXY = useCallback((x, y) => {
+    let ut = untransform(x, y, state.transform)
+    let step = Math.pow(0.5, state.order)
+    let hit = qt.find(xScale.invert(ut.x), yScale.invert(ut.y), step * 3)
+    if(hit) {
+      let datum = state.data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
+      if(datum)
+        return datum
+    } else {
+      return
+    }
+  }, [state.data, state.order, state.transform, xScale, yScale, qt])
+
+  // when the data changes, let the parent component know
+  useEffect(() => {
+    if(!state.dataLayer) return
+    // if(state.zooming) return
+    let center = regionFromXY(width/2, height/2)
+    onData({
+      data: state.data, 
+      dataOrder: state.dataOrder,
+      center,
+      meta: state.metas.get(state.dataOrder), 
+      points: state.points, 
+      bbox: state.bbox,
+      order: state.order, 
+      layer: state.dataLayer,
+      loading: state.loading
+    })
+  }, [
+    state.data, 
+    state.dataOrder, 
+    state.dataLayer, 
+    width, 
+    height, 
+    state.loading
+  ])
+    // regionFromXY, state.points, state.bbox, state.order, state.metas, onData, state.loading])
+
   // Mouse move event handler
   const handleMouseMove = useCallback((event) => {
     if(!qt) return
@@ -536,42 +560,21 @@ const HilbertGenome = ({
       ex = event.nativeEvent.offsetX
       ey = event.nativeEvent.offsetY
     }
-    // console.log("mouse y", event)
-    let ut = untransform(ex, ey, state.transform)
-    let step = Math.pow(0.5, state.dataOrder)
-    let xx = xScale.invert(ut.x)
-    let yy = yScale.invert(ut.y)
-    let hit = qt.find(xx, yy, step * 3)
-
-    let hover = hit;
-    if(hit) {
-      let datum = state.data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
-      if(datum)
-        hover = datum
-    } else {
-      // return
-    }
-    onHover(hover);
-  }, [state.data, state.transform, state.dataOrder, qt, xScale, yScale])
+    let hover = regionFromXY(ex, ey)
+    if(hover)
+      onHover(hover);
+  }, [state.order, regionFromXY])
     
   const handleClick = useCallback((event) => {
     if(!qt) return
     let ex = event.nativeEvent.offsetX
     let ey = event.nativeEvent.offsetY
-    let ut = untransform(ex, ey, state.transform)
-    let step = Math.pow(0.5, state.order)
-    let hit = qt.find(xScale.invert(ut.x), yScale.invert(ut.y), step * 3)
-    
-    let clicked = hit;
-    if(hit) {
-      let datum = state.data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
-      if(datum)
-        clicked = datum
-    } else {
-      return
-    }
-    onClick(clicked, state.order, false);
-  }, [state.data, state.transform, state.order, qt, xScale, yScale]) 
+    let clicked = regionFromXY(ex, ey)
+    if(clicked)
+      onClick(clicked, state.order, false);
+  }, [state.order, regionFromXY])
+
+  
 
 
 

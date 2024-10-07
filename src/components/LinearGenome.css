@@ -1,0 +1,12 @@
+.linear-genome {
+  position: relative;
+
+
+}
+
+.linear-genome-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+}
