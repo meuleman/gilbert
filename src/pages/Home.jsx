@@ -1191,7 +1191,10 @@ function Home() {
               data={data?.data} 
               order={data?.dataOrder}
               layer={data?.layer}
-              width={width} height={40} />
+              width={width} height={100} 
+              hover={hover}
+              onHover={handleHover}
+              />
 
             {/* {selected  && <RegionStrip region={selected} segments={100} layer={layer} width={width} height={40} /> }
             {!selected && hover && <RegionStrip region={hover} segments={100} layer={layer} width={width} height={40} /> } */}

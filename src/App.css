@@ -57,7 +57,7 @@
 .primary-grid {
   display: grid;
   grid-template-columns: [left-col] 52px [main-col] 1fr [lens-col] 200px [end-col];
-  grid-template-rows: [header] 94px [content] 1fr [footer] 90px [end];
+  grid-template-rows: [header] 94px [content] 1fr [footer] 150px [end];
   height: 100vh;
 }
 

@@ -172,5 +172,23 @@ function fetchBytes(url, from, to, options = {}) {
 
 Data.fetchBytes = fetchBytes
 
+function getDataBounds(meta) {
+  if(!meta) return { min: null, max: null, fields: null }
+  let nonzero_min = meta["nonzero_min"]
+  let fields, max, min
+  if ((meta["fields"].length == 2) && (meta["fields"][0] == "max_field") && (meta["fields"][1] == "max_value")) {
+    fields = meta["full_fields"]
+    max = meta["full_max"]
+    min = nonzero_min ? nonzero_min : meta["full_min"]
+  } else {
+    fields = meta["fields"]
+    max = meta["max"]
+    min = nonzero_min ? nonzero_min : meta["min"]
+  }
+  if(!min.length && min < 0) min = 0;
+  return { min, max, fields }
+}
+Data.getDataBounds = getDataBounds
+
 export default Data
 

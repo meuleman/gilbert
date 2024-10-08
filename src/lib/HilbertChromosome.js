@@ -139,11 +139,17 @@ export function HilbertChromosome(order, {
   hilbert.fromRegion = function(chr, start, end, bbox = null) {
     let hstart = hilbertPosToOrder(start, { from: 14, to: order})
     let hend = hilbertPosToOrder(end, { from: 14, to: order})
+    let chromosome = customOffsetsMap.get(chr)
+    let iMax = hilbertPosToOrder(chromosome.length, { from: maxOrder, to: order })
+    if(hend > iMax) hend = iMax
     return fromRange(chr, hstart, hend, bbox)
   }
 
   function fromRange(chr, hstart, hend, bbox=null) {
     let chromosome = customOffsetsMap.get(chr)
+    let iMax = hilbertPosToOrder(chromosome.length, { from: maxOrder, to: order })
+    if(hend > iMax) hend = iMax
+ 
     let points = []
     for(let i = hstart; i <= hend; i++) {
       let h = get2D(i)
