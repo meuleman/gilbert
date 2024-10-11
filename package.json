@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ant-design/icons": "^5.5.1",
     "@duckdb/duckdb-wasm": "^1.28.1-dev106.0",
     "@observablehq/plot": "^0.6.7",
+    "antd": "^5.21.3",
     "axios": "^1.4.0",
     "chroma-js": "^2.4.2",
     "d3-array": "^3.2.3",

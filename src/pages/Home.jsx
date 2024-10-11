@@ -1,6 +1,9 @@
 import {useEffect, useState, useRef, useCallback, useMemo, useContext } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
+import { FilterOutlined } from '@ant-design/icons';
+
+
 // import FiltersProvider from '../components/ComboLock/FiltersProvider'
 import FiltersContext from '../components/ComboLock/FiltersContext'
 
@@ -57,7 +60,7 @@ import { fullList as layers, csnLayers, variantLayers, countLayers } from '../la
 // import RegionFilesSelect from '../components/Regions/RegionFilesSelect'
 // autocomplete
 import Autocomplete from '../components/Autocomplete/Autocomplete'
-
+import GeneSearch from '../components/GeneSearch'
 
 // region SimSearch
 import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
@@ -460,24 +463,39 @@ function Home() {
     setShowGaps(!showGaps)
   }
   
-
-  const handleChangeLocationViaAutocomplete = useCallback((autocompleteRegion) => {
-    if (!autocompleteRegion) return
-    console.log("autocomplete", autocompleteRegion)
+  const handleChangeLocationViaGeneSearch= useCallback((selected) => {
+    if (!selected) return
+    console.log("selected", selected)
     let range = []
     // console.log("gencode", gencode)
-    if(autocompleteRegion.type == "gene") {
-      let gene = gencode.find(d => d.hgnc == autocompleteRegion.name)
-      // console.log("GENE", gene)
-      range = fromRange(gene.chromosome, gene.start, gene.end, 100)
+    if(selected.gene) {
+      range = fromRange(selected.gene.chromosome, selected.gene.start, selected.gene.end, 100)
     } else {
-      range = fromRange(autocompleteRegion.chrom, autocompleteRegion.start, autocompleteRegion.stop, 100)
+      range = fromRange(selected.chromosome, selected.start, selected.end, 100)
     }
     const mid = range[Math.floor(range.length / 2)]
     setRegion(mid)
     // console.log("autocomplete range", range)
-    saveSet(autocompleteRegion.name || autocompleteRegion.location, range, { activate: true, type: "search"})
+    saveSet(selected.value, range, { activate: true, type: "search"})
   }, [setRegion, saveSet])
+
+  // const handleChangeLocationViaAutocomplete = useCallback((autocompleteRegion) => {
+  //   if (!autocompleteRegion) return
+  //   console.log("autocomplete", autocompleteRegion)
+  //   let range = []
+  //   // console.log("gencode", gencode)
+  //   if(autocompleteRegion.type == "gene") {
+  //     let gene = gencode.find(d => d.hgnc == autocompleteRegion.name)
+  //     // console.log("GENE", gene)
+  //     range = fromRange(gene.chromosome, gene.start, gene.end, 100)
+  //   } else {
+  //     range = fromRange(autocompleteRegion.chrom, autocompleteRegion.start, autocompleteRegion.stop, 100)
+  //   }
+  //   const mid = range[Math.floor(range.length / 2)]
+  //   setRegion(mid)
+  //   // console.log("autocomplete range", range)
+  //   saveSet(autocompleteRegion.name || autocompleteRegion.location, range, { activate: true, type: "search"})
+  // }, [setRegion, saveSet])
 
   
   const onData = useCallback((payload) => {
@@ -878,7 +896,9 @@ function Home() {
                 data-tooltip-id="filter-button-tooltip"
                 data-tooltip-content="Filter regions by factor"
                 onClick={() => setShowFilter(!showFilter)}
-              >🔒</button>
+              >
+                <FilterOutlined />
+              </button>
               <Tooltip id="filter-button-tooltip"></Tooltip>
             </div>
             {showFilter ? 
@@ -888,10 +908,14 @@ function Home() {
                 onPreviewValues={handleFactorPreview}
                 />
             : 
-            <Autocomplete
-              ref={autocompleteRef}
-              onChangeLocation={handleChangeLocationViaAutocomplete}
-            /> }
+            //<Autocomplete
+            //   ref={autocompleteRef}
+            //   onChangeLocation={handleChangeLocationViaAutocomplete}
+            // /> 
+            <GeneSearch
+              onSelect={handleChangeLocationViaGeneSearch}
+            />
+            }
           </div>
         </div>
         <div className="lensmode">
