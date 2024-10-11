@@ -650,7 +650,7 @@ function Home() {
     if(hover && activeSet && activeRegions?.length && activePaths?.length) {
       // find the regions within the hover
       // let regions = overlaps(hover, activeSet.regions)
-      console.log("activepaths", activePaths, "activeregions", activeSet.regions)
+      // console.log("activepaths", activePaths, "activeregions", activeSet.regions)
       let paths = overlaps(hover, activePaths, r => r.region)
       // console.log("OVERLAPS", hover, topPathsForRegions, paths)
       let intersected = [...new Set(paths.flatMap(p => p.genes.filter(g => g.in_gene).map(g => g.name)))]

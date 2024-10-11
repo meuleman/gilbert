@@ -39,7 +39,7 @@ function scaleLinearAboveThresh(threshold, min, max) {
 
 // A canvas rendering function that renders a single colored rectangle for each data point
 // with opacity scaled to the max of the order
-export default function CanvasSimpleValueComponent({ canvasRef, state, scales, layer }) {
+export default function OpacityValueComponent({ canvasRef, state, scales, layer }) {
   if(canvasRef.current) {
     const ctx = canvasRef.current.getContext('2d');
     if(!ctx) return;
@@ -110,7 +110,7 @@ export default function CanvasSimpleValueComponent({ canvasRef, state, scales, l
       localMin = scaleMinThreshold
     }
     // set domain
-    alphaScale.domain([[localMin], [localMax]])
+    alphaScale.domain([localMin, localMax])
 
     // assign alpha value to each datapoint
     for(i = 0; i < data.length; i++) {

@@ -1,8 +1,12 @@
-import { useRef, useCallback, useEffect, useMemo, useState } from "react"
+import { useRef, useCallback, useEffect, useMemo, useState, memo } from "react"
 import { scaleLinear } from 'd3-scale';
+import { extent } from 'd3-array'
+import { Tooltip } from 'react-tooltip'
+
 import Data from '../lib/data';
 import scaleCanvas from '../lib/canvas'
 import { HilbertChromosome } from '../lib/HilbertChromosome';
+import { defaultContent } from './Tooltips/Content';
 
 import "./LinearGenome.css"
 
@@ -144,6 +148,7 @@ const LinearGenome = ({
           ctx.globalAlpha = 1  
           const meta = metas?.find((meta) => meta.chromosome === region.chromosome)
           let { min, max, fields } = Data.getDataBounds(meta)
+          max = extent(data, d => layer.fieldChoice(d)?.value)[1]
           if(layer.datasetName == "variants_gwas") {
             max = 100
           }
@@ -153,11 +158,12 @@ const LinearGenome = ({
             
             if(sample && sample.field){
               // console.log("sample", sample, yScale(sample.value))
-              let domain = [min < 0 ? 0 : min, max]
-              if (Array.isArray(min)) {
-                let fi = fields.indexOf(sample.field)
-                domain = [min[fi] < 0 ? 0 : min[fi], max[fi]]
-              }
+              let domain = [0, max]
+              // let domain = [min < 0 ? 0 : min, max]
+              // if (Array.isArray(min)) {
+              //   let fi = fields.indexOf(sample.field)
+              //   domain = [min[fi] < 0 ? 0 : min[fi], max[fi]]
+              // }
               
               const yScale = scaleLinear()
                 .domain(domain)
@@ -273,13 +279,23 @@ const LinearGenome = ({
 
 
   const [hoverData, setHoverData] = useState(null)
-  const [bandwidth, setBandwidth] = useState(1)
+  // const [bandwidth, setBandwidth] = useState(1)
   useEffect(() => {
-    setHoverData(hover)
+    let hd = null
     if(hover) {
-      setBandwidth(xScaleRef.current(hover?.end) - xScaleRef.current(hover?.start))
+      let bw = xScaleRef.current(hover?.end) - xScaleRef.current(hover?.start)
+      let sx = xScaleRef.current(hover?.start) + bw/2
+      // we allow for hover thats out of range to indicate at the edges
+      if(sx < 0) sx = 0
+      if(sx > width) sx = width
+      hd = {
+        ...hover,
+        sx,
+        bw
+      }
     }
-  }, [hover])
+    setHoverData(hd)
+  }, [hover, width])
 
   const handleMouseMove = useCallback((event) => {
     if(xScaleRef.current) {
@@ -287,27 +303,71 @@ const LinearGenome = ({
       const ex = event.clientX - rect.x; // x position within the element.
       let x = xScaleRef.current.invert(ex)
       let data = dataPoints.filter(d => d.start <= x && d.end >= x)
-      setHoverData(data[0])
-      setBandwidth(xScaleRef.current(data[0]?.end) - xScaleRef.current(data[0]?.start))
-      onHover(data[0])
+
+      let bw = xScaleRef.current(data[0]?.end) - xScaleRef.current(data[0]?.start)
+      let hd = null
+      if(data[0]) {
+        hd = {
+          ...data[0],
+          sx: xScaleRef.current(data[0]?.start) + bw/2, // screen space x
+          bw
+        }
+      }
+      setHoverData(hd)
+      onHover(hd)
+    }
+  }, [dataPoints])
+
+  const handleMouseClick = useCallback((event) => {
+    console.log("clicked", event)
+    if(xScaleRef.current) {
+      const rect = event.target.getBoundingClientRect();
+      const ex = event.clientX - rect.x; // x position within the element.
+      let x = xScaleRef.current.invert(ex)
+      let data = dataPoints.filter(d => d.start <= x && d.end >= x)
+      console.log("clicked", data)
     }
   }, [dataPoints])
 
   return (
     <div className="linear-genome">
-    <svg className="linear-genome-svg" width={width} height={height}>
-      {hoverData && <rect width="2" height={height} x={xScaleRef.current(hoverData.start) + bandwidth/2} fill="black" />}
-    </svg>
-    <canvas 
-      className="linear-genome-canvas"
-      width={width + "px"}
-      height={height + "px"}
-      ref={canvasRef}
-      onMouseMove={handleMouseMove}
-    />
+      <svg className="linear-genome-svg" width={width} height={height}>
+        {hoverData && <rect width="2" height={height} x={hoverData.sx} fill="black" />}
+      </svg>
+      <canvas 
+        className="linear-genome-canvas"
+        width={width + "px"}
+        height={height + "px"}
+        ref={canvasRef}
+        onMouseMove={handleMouseMove}
+        onClick={handleMouseClick}
+      />
+      <div style={{
+        position: "absolute",
+        left: hoverData?.sx + "px",
+        top: "5px",
+        pointerEvents: "none"
+      }} data-tooltip-id="linear-genome-hovered">
+      </div>
+      {hoverData ? <Tooltip id="linear-genome-hovered"
+        isOpen={!!hoverData}
+        delayShow={0}
+        delayHide={0}
+        delayUpdate={0}
+        place="top"
+        style={{
+          position: 'absolute',
+          left: hoverData.sx + "px",
+          top: "5px",
+          pointerEvents: 'none',
+        }}
+        >
+          {defaultContent(hoverData, layer, "")}
+        </Tooltip>: null}
     </div>
-)
-
+  )
 }
+const MemoLinearGenome = memo(LinearGenome)
+MemoLinearGenome.displayName = "LinearGenome"
 
-export default LinearGenome
+export default MemoLinearGenome

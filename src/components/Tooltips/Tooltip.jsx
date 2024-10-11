@@ -1,55 +1,6 @@
 import { useRef, useEffect, useState, useImperativeHandle, forwardRef, useMemo } from 'react';
-import { showPosition, showFloat, showKb } from '../../lib/display'
-
-
-function defaultContent(region, layer, orientation) {
-  // let field = layer.fieldChoice(region)
-  let fields = []
-  if(region.data.max_field >= 0 && region.data.max_value >= 0) {
-    fields.push(layer.fieldChoice(region))
-    // fields.push({ field: region.data.max_field, value: region.data.max_value })
-  } else if(region.data.bp) {
-    fields.push(layer.fieldChoice(region))
-  } else {
-    fields = Object.keys(region.data).map(key => ({ field: key, value: region.data[key] }))
-      .sort((a,b) => a.value - b.value)
-      .filter(d => d.value > 0)
-    if(orientation == "bottom") {
-      fields = fields.reverse()
-    }
-  }
-  
-  return (
-    <div style={{display: 'flex', flexDirection: 'column'}}>
-      {orientation == "bottom" ? <div>
-        {showPosition(region)}
-        <br/>
-        {/* <span className="position">Order: {region.order}</span> */}
-        {/* <span className="position">[{showKb(Math.pow(4, 14 - region.order))}]</span> */}
-        <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
-      </div> : null}
-      {fields.map((f,i) => (
-        <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-          <span>
-            <span style={{color: layer.fieldColor(f.field), marginRight: '4px'}}>⏺</span>
-            {f.field} 
-          </span>
-          <span>
-            {typeof f.value == "number" ? showFloat(f.value) : f.value}
-          </span>
-        </div>
-      ))}
-      
-      {orientation !== "bottom" ? <div>
-        <span style={{borderTop: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
-        <br/>
-        {/* <span className="position">Order: {region.order}</span> */}
-        {/* <span className="position">[{showKb(Math.pow(4, 14 - region.order))}]</span> */}
-        {showPosition(region)}
-      </div> : null}
-    </div>
-  )
-}
+// import { showPosition, showFloat, showKb } from '../../lib/display'
+import { defaultContent } from './Content'
 
 const Tooltip = forwardRef(({ 
   orientation: defaultOrientation, 
