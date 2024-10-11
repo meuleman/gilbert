@@ -7,6 +7,7 @@ import Data from '../lib/data';
 import scaleCanvas from '../lib/canvas'
 import { HilbertChromosome } from '../lib/HilbertChromosome';
 import { defaultContent } from './Tooltips/Content';
+import { getGencodesInView } from '../lib/Genes';
 
 import "./LinearGenome.css"
 
@@ -142,6 +143,74 @@ const LinearGenome = ({
         
 
         // Render the gene track
+        let minw = points[0].end - points[0].start
+        const gs = getGencodesInView(points, order, 100000000)
+          .filter(d => d.end - d.start > minw)
+        const rows = [];
+        const padding = (points[0].end - points[0].start) * 0
+        gs.forEach(gene => {
+          let placed = false;
+          for (let i = 0; i < rows.length; i++) {
+            if (!rows[i].some(g => g.start < gene.end + padding && g.end > gene.start - padding)) {
+              rows[i].push(gene);
+              placed = true;
+              break;
+            }
+          }
+          if (!placed) {
+            rows.push([gene]);
+          }
+        });
+
+        ctx.globalAlpha = 1
+        ctx.textAlign = "center"
+        // we want a global coordinate system essentially for the 1D visualization
+        rows.map((r,i) => {
+          r.map((g,j) => {
+            const h = geneHeight - 5
+
+            ctx.fillStyle = "black";
+            let x = xScale(g.start) + Math.abs(xScale(g.end) - xScale(g.start))/2
+            if(x < 10) x = 10
+            if(x > width - 10) x = width - 10
+            let y = Math.floor(h - i*15)
+            ctx.fillText(g.hgnc, Math.floor(x), y - 5);
+
+            // draw the polarity circle for start and triangle for end
+            ctx.fillStyle = "black"
+            ctx.beginPath();
+            let r = 2
+            let px = g.posneg == "-" ? xScale(g.end) + r/2 : xScale(g.start) - r/2
+            // ctx.moveTo(px, y);
+            ctx.arc(px, y, r, 0, 2 * Math.PI);
+            ctx.fill();
+
+            let pex = g.posneg == "-" ? xScale(g.start) + r/2 : xScale(g.end) - r/2
+            ctx.beginPath();
+            if (g.posneg === "-") {
+              ctx.moveTo(pex, y - r/2);
+              ctx.lineTo(pex - r, y);
+              ctx.lineTo(pex, y + r/2);
+            } else {
+              ctx.moveTo(pex, y - r/2);
+              ctx.lineTo(pex + r, y);
+              ctx.lineTo(pex, y + r/2);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // draw the gene line
+            // ctx.beginPath();
+            ctx.moveTo(Math.floor(xScale(g.start)), y);
+            ctx.lineTo(Math.floor(xScale(g.end)), y);
+            // console.log("g", g, xs(g.start), xs(g.end))
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            
+          })
+        })
 
         // Render the data track
         if(data && layer && data[0]) {
@@ -280,7 +349,8 @@ const LinearGenome = ({
 
   const [hoverData, setHoverData] = useState(null)
   // const [bandwidth, setBandwidth] = useState(1)
-  useEffect(() => {
+
+  const processHover = useCallback((hover) =>{
     let hd = null
     if(hover) {
       let bw = xScaleRef.current(hover?.end) - xScaleRef.current(hover?.start)
@@ -288,14 +358,21 @@ const LinearGenome = ({
       // we allow for hover thats out of range to indicate at the edges
       if(sx < 0) sx = 0
       if(sx > width) sx = width
+      let gs = getGencodesInView([hover], order, 100000000)
       hd = {
         ...hover,
         sx,
-        bw
+        bw,
+        genes: gs
       }
     }
+    return hd
+  }, [width, order])
+
+  useEffect(() => {
+    let hd = processHover(hover)
     setHoverData(hd)
-  }, [hover, width])
+  }, [hover, processHover])
 
   const handleMouseMove = useCallback((event) => {
     if(xScaleRef.current) {
@@ -304,15 +381,7 @@ const LinearGenome = ({
       let x = xScaleRef.current.invert(ex)
       let data = dataPoints.filter(d => d.start <= x && d.end >= x)
 
-      let bw = xScaleRef.current(data[0]?.end) - xScaleRef.current(data[0]?.start)
-      let hd = null
-      if(data[0]) {
-        hd = {
-          ...data[0],
-          sx: xScaleRef.current(data[0]?.start) + bw/2, // screen space x
-          bw
-        }
-      }
+      let hd = processHover(data[0])
       setHoverData(hd)
       onHover(hd)
     }
@@ -325,7 +394,8 @@ const LinearGenome = ({
       const ex = event.clientX - rect.x; // x position within the element.
       let x = xScaleRef.current.invert(ex)
       let data = dataPoints.filter(d => d.start <= x && d.end >= x)
-      console.log("clicked", data)
+      let hd = processHover(data[0])
+      console.log("clicked", hd)
     }
   }, [dataPoints])
 

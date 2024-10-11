@@ -23,6 +23,13 @@ export function defaultContent(region, layer, orientation) {
       {orientation == "bottom" ? <div>
         {showPosition(region)}
         <br/>
+
+        {region.genes?.length ? <div>
+          {region.genes.map(g => (
+            <div key={g.hgnc}>{g.hgnc} ({g.posneg})</div>
+          ))}
+        </div> : null}
+
         <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
       </div> : null}
 
@@ -38,10 +45,16 @@ export function defaultContent(region, layer, orientation) {
         </div>
       ))}
       {!fields?.length ? <span>N/A</span> : null}
+
       
       {orientation !== "bottom" ? <div>
         <span style={{borderTop: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
         <br/>
+        {region.genes?.length ? <div>
+          {region.genes.map(g => (
+            <div key={g.hgnc}>{g.hgnc} ({g.posneg})</div>
+          ))}
+        </div> : null}
         {showPosition(region)}
       </div> : null}
     </div>
