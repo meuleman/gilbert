@@ -9,6 +9,7 @@ import Filter from './pages/Filter'
 import FiltersProvider from './components/ComboLock/FiltersProvider';
 import RegionsProvider from './components/Regions/RegionsProvider';
 
+import 'antd/dist/reset.css';
 
 import './App.css'
 
