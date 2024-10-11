@@ -13,6 +13,9 @@
   margin: 0;
   padding: 0;
 }
+.status-bar input {
+  line-height: 26px;
+}
 .status-bar .status-bar-row {
   padding: 1px 5px;
   display: flex;
