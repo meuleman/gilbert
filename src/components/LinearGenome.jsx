@@ -1,6 +1,8 @@
 import { useRef, useCallback, useEffect, useMemo, useState, memo } from "react"
 import { scaleLinear } from 'd3-scale';
 import { extent } from 'd3-array'
+import { select } from 'd3-selection';
+import { zoom, zoomIdentity } from 'd3-zoom';
 import { Tooltip } from 'react-tooltip'
 
 import Data from '../lib/data';
@@ -9,19 +11,34 @@ import { HilbertChromosome } from '../lib/HilbertChromosome';
 import { defaultContent } from './Tooltips/Content';
 import { getGencodesInView } from '../lib/Genes';
 
+import { useZoom } from '../contexts/ZoomContext';
+
 import "./LinearGenome.css"
 
 const LinearGenome = ({
   center = null, // center of the view, a region
   hover = null,
   data = [],
-  order,
+  dataOrder = null,
   layer = null,
-  zoom = {},
   width = 640,
   height = 100,
   onHover = () => {}
 } = {}) => {
+
+  const { 
+    transform, 
+    order, 
+    orderZoomScale, 
+    orderRaw, 
+    zoomMin,
+    zoomMax,
+    zooming, 
+    setTransform, 
+    setZooming 
+  } = useZoom()
+
+  let zoomExtent = useMemo(() => [zoomMin, zoomMax], [zoomMin, zoomMax])
 
   let geneHeight = useMemo(() => height * .40, [height])
   let trackHeight = useMemo(() => height * .40, [height])
@@ -37,12 +54,16 @@ const LinearGenome = ({
   // the final 1d track data as calculated by the data1D use effect
   // This updates when the data is done loading, after we receive new data from the 2d map
   const [dataPoints, setDataPoints] = useState([])
+  const [targetRegions, setTargetRegions] = useState(250)
+  const [renderPoints, setRenderPoints] = useState([])
+
+  const genes = useMemo(() => getGencodesInView(dataPoints, order, 100000000), [dataPoints, order])
 
   // grab the continuous data (and relevant metaddata) from the center of the map
   const data1D = useMemo(() => {
     if(!center) return []
     let cdata = data.filter(d => d.chromosome === center.chromosome)
-    console.log("cdata length", cdata.length)
+    // console.log("cdata length", cdata.length)
     let centerIndex = cdata.findIndex(d => d.i == center.i)
     if (centerIndex === -1) return []
 
@@ -58,7 +79,7 @@ const LinearGenome = ({
       right++
     }
 
-    console.log("left", centerIndex - left, "right", right - centerIndex, "length", right - left + 1)
+    // console.log("left", centerIndex - left, "right", right - centerIndex, "length", right - left + 1)
     return {
       data: cdata.slice(left, right + 1),
       metas: data.metas,
@@ -67,24 +88,52 @@ const LinearGenome = ({
       centerIndex,
       left,
       right,
-      order,
+      order: dataOrder,
       layer
     }
-  }, [data, center, order, layer])
+  }, [data, center, dataOrder, layer])
 
 
+  // depend on order or dataOrder? 
+  // allow the useeffect to update when render updates?
+  // how am i going to scale things based on the actual order (orderRaw? or transform.k?)
   const render = useCallback((region, targetSize, data, metas, layer, points) => {
     if(canvasRef.current){
+      // console.log("rendering")
+      console.log("order zoom", order, transform.k, orderRaw)
+
+
       const ctx = canvasRef.current.getContext('2d');
       ctx.clearRect(0, 0, width, height)
 
-      if(region && points) {
+      if(region && points && points.length && Math.floor(orderRaw) == order && order == dataOrder) {
+        // figure out scale factor
+        const diff = orderRaw - order
+        const scaleFactor = 1 + 3 * diff
         // Set up the x scale for the whole track
         const bpbw = points[0].end - points[0].start
         let xExtent = [region.start - targetSize * bpbw, region.start + targetSize * bpbw + bpbw]
-        const xScale = scaleLinear()
+
+        const xs = scaleLinear()
           .domain(xExtent)
           .range([0, width])
+        
+        const centerX = width / 2
+        const xScale = (x) => {
+          if (typeof x === 'function') {
+            // This allows chaining of other d3 scale methods
+            return xScale;
+          }
+          const normalizedX = xs(x);
+          const scaledX = (normalizedX - centerX) * scaleFactor + centerX;
+          return scaledX;
+        }
+        xScale.invert = (scaledX) => {
+          const normalizedX = (scaledX - centerX) / scaleFactor + centerX;
+          return xs.invert(normalizedX);
+        }
+        
+
         const bw = xScale(points[0].end) - xScale(points[0].start)
         xScaleRef.current = xScale
 
@@ -144,7 +193,7 @@ const LinearGenome = ({
 
         // Render the gene track
         let minw = points[0].end - points[0].start
-        const gs = getGencodesInView(points, order, 100000000)
+        const gs = genes
           .filter(d => d.end - d.start > minw)
         const rows = [];
         const padding = (points[0].end - points[0].start) * 0
@@ -275,7 +324,18 @@ const LinearGenome = ({
         xScaleRef.current = null
       }
     }
-  }, [width, height, geneHeight, trackHeight])
+  }, [
+    width, 
+    height, 
+    geneHeight, 
+    trackHeight, 
+    axisHeight, 
+    genes, 
+    dataOrder, 
+    order, 
+    orderRaw, 
+    transform 
+  ])
 
   useEffect(() => {
     // Calculate the data points we need for the track. We start with the data from the 2D map
@@ -290,6 +350,7 @@ const LinearGenome = ({
     // find a target number of regions, based on the cdata length
     let targetRegions = Math.floor(data1D.cdata.length/2)
     if(targetRegions > 250) targetRegions = 250
+    setTargetRegions(targetRegions)
     // console.log("target regions", targetRegions)
     // we want to get more data if we dont have enough in either left or right
     let leftDeficit = targetRegions - (data1D.centerIndex - data1D.left)
@@ -320,8 +381,9 @@ const LinearGenome = ({
     let data = leftPoints.concat(rightPoints)
     setDataPoints(data)
     let newPoints = newLeftPoints.concat(newRightPoints)
-    let renderPoints = newLeftPoints.concat(leftPoints).concat(rightPoints).concat(newRightPoints).sort((a,b) => a.i - b.i)
-    render(data1D.center, targetRegions, data, data1D.metas, data1D.layer, renderPoints)
+    let rps = newLeftPoints.concat(leftPoints).concat(rightPoints).concat(newRightPoints).sort((a,b) => a.i - b.i)
+    setRenderPoints(rps)
+    // render(data1D.center, targetRegions, data, data1D.metas, data1D.layer, renderPoints)
 
     if(newPoints.length){
       if(layer.layers) {
@@ -330,8 +392,8 @@ const LinearGenome = ({
             .concat(leftPoints).concat(rightPoints)
             .sort((a,b) => a.i - b.i)
           setDataPoints(data)
-          render(data1D.center, targetRegions, data, data1D.metas, data1D.layer, renderPoints)
-          console.log("data", data)
+          // render(data1D.center, targetRegions, data, data1D.metas, data1D.layer, renderPoints)
+          // console.log("data", data)
         })
       } else {
         dataClient.fetchData(layer, data1D.order, newPoints).then((response) => {
@@ -339,12 +401,16 @@ const LinearGenome = ({
             .concat(leftPoints).concat(rightPoints)
             .sort((a,b) => a.i - b.i)
           setDataPoints(data)
-          render(data1D.center, targetRegions, data, data1D.metas, data1D.layer, renderPoints)
-          console.log("data", data)
+          // render(data1D.center, targetRegions, data, data1D.metas, data1D.layer, renderPoints)
+          // console.log("data", data)
         })
       }
     }
   }, [data1D]) // only want this to change when data1D changes, so we pack everything in it
+  
+  useEffect(() => {
+    render(data1D.center, targetRegions, dataPoints, data1D.metas, data1D.layer, renderPoints) 
+  }, [targetRegions, renderPoints, dataPoints, data1D, render])
 
 
   const [hoverData, setHoverData] = useState(null)
@@ -352,13 +418,13 @@ const LinearGenome = ({
 
   const processHover = useCallback((hover) =>{
     let hd = null
-    if(hover) {
+    if(hover && xScaleRef.current) {
       let bw = xScaleRef.current(hover?.end) - xScaleRef.current(hover?.start)
       let sx = xScaleRef.current(hover?.start) + bw/2
       // we allow for hover thats out of range to indicate at the edges
       if(sx < 0) sx = 0
       if(sx > width) sx = width
-      let gs = getGencodesInView([hover], order, 100000000)
+      let gs = getGencodesInView([hover], dataOrder, 100000000)
       hd = {
         ...hover,
         sx,
@@ -367,9 +433,10 @@ const LinearGenome = ({
       }
     }
     return hd
-  }, [width, order])
+  }, [width, dataOrder])
 
   useEffect(() => {
+    console.log("hover updated")
     let hd = processHover(hover)
     setHoverData(hd)
   }, [hover, processHover])
@@ -380,12 +447,13 @@ const LinearGenome = ({
       const ex = event.clientX - rect.x; // x position within the element.
       let x = xScaleRef.current.invert(ex)
       let data = dataPoints.filter(d => d.start <= x && d.end >= x)
+      console.log("mouse move", ex, x, data[0])
 
       let hd = processHover(data[0])
       setHoverData(hd)
       onHover(hd)
     }
-  }, [dataPoints])
+  }, [dataPoints, processHover, onHover])
 
   const handleMouseClick = useCallback((event) => {
     console.log("clicked", event)
@@ -397,20 +465,95 @@ const LinearGenome = ({
       let hd = processHover(data[0])
       console.log("clicked", hd)
     }
-  }, [dataPoints])
+  }, [dataPoints, processHover])
+
+  const svgRef = useRef(null);
+
+  
+
+  const handleZoom = useCallback((event) => {
+    if(dataPoints?.length && xScaleRef.current) {
+      const { transform: newTransform } = event;
+      
+      const newK = newTransform.k
+      
+      // Update transform.x only if dragged
+      let newX = transform.x;
+      // if (event.sourceEvent && event.sourceEvent.type === 'mousemove') {
+      //   const centerX = width / 2;
+      //   const invertedX = xScaleRef.current.invert(centerX - newTransform.x);
+      //   const centerPoint = dataPoints.find(d => d.start <= invertedX && d.end >= invertedX);
+      //   if (centerPoint) {
+      //     newX = centerX - xScaleRef.current(centerPoint.start);
+      //   }
+      // }
+
+      const nt = { k: newK, x: newX, y: transform.y }
+      // console.log("old transform", transform)
+      // console.log("new transform", nt)
+      if(JSON.stringify(transform) !== JSON.stringify(nt)) {
+        // console.log("changed transform")
+        // console.log(JSON.stringify(transform))
+        // console.log(JSON.stringify(nt))
+        setTransform(nt);
+        setZooming(true);
+      }
+    }
+  }, [transform, dataPoints, width, orderZoomScale, setTransform, setZooming])
+
+  const zoomBehavior = useMemo(() => {
+    const extentMargin = Math.max(width/2, height/2)
+    return zoom()
+      .extent([
+        [0, 0],
+        [width, height]
+      ])
+      .translateExtent([
+        [-extentMargin, -extentMargin],
+        [width + extentMargin, height + extentMargin]
+      ])
+    .scaleExtent(zoomExtent)
+      .on('zoom', handleZoom)
+      .on('end', () => {
+        setZooming(false);
+      });
+  }, [width, height, zoomExtent, handleZoom, setZooming])
+
+  useEffect(() => {
+    if (!svgRef.current || !xScaleRef.current) return;
+    const svg = select(svgRef.current);
+    svg.call(zoomBehavior);
+    // zoomBehavior.transform(svg, zoomIdentity.translate(transform.x, 0).scale(transform.k));
+
+    return () => {
+      svg.on('.zoom', null);
+    };
+  }, [zoomBehavior]);
+
+  useEffect(() => {
+    // zoomBehavior.transform(select(svgRef.current), transform)
+    if(svgRef.current)
+    zoomBehavior.transform(select(svgRef.current), zoomIdentity.translate(transform.x, 0).scale(transform.k));
+
+  }, [transform, zoomBehavior]);
+
 
   return (
     <div className="linear-genome">
-      <svg className="linear-genome-svg" width={width} height={height}>
-        {hoverData && <rect width="2" height={height} x={hoverData.sx} fill="black" />}
+      <svg className="linear-genome-svg" width={width} height={height} 
+        ref={svgRef}
+        onMouseMove={handleMouseMove}
+        onClick={handleMouseClick}
+        >
+        {hoverData && <rect pointerEvents="none" width="2" height={height} x={hoverData.sx} fill="black" />}
       </svg>
       <canvas 
         className="linear-genome-canvas"
         width={width + "px"}
         height={height + "px"}
         ref={canvasRef}
-        onMouseMove={handleMouseMove}
-        onClick={handleMouseClick}
+        // onMouseMove={handleMouseMove}
+        // onClick={handleMouseClick}
       />
       <div style={{
         position: "absolute",

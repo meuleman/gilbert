@@ -5,7 +5,7 @@ import { scaleLinear } from 'd3-scale';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { select } from 'd3-selection';
 import { quadtree } from 'd3-quadtree';
-import { range } from 'd3-array';
+import { sum, range } from 'd3-array';
 import { easeLinear, easePolyOut, easeExpOut, easeQuadOut } from 'd3-ease';
 
 import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome';
@@ -15,16 +15,18 @@ import { debouncer, debouncerTimed } from '../lib/debounce'
 import scaleCanvas from '../lib/canvas';
 import { Renderer as CanvasRenderer } from './Canvas/Renderer';
 
+import { useZoom } from '../contexts/ZoomContext';
+
 import './HilbertGenome.css';
 
 // Define the initial state
 const initialState = {
   // The transform drives pretty much everything. It is set by the d3-zoom behavior (scrolling and panning)
-  transform: zoomIdentity,
+  // transform: zoomIdentity, // now handled by ZoomContext
   // The bbox is calculated from the transform and is used to determine which data points are visible
   bbox: null,
   // The hilbert order determined by the zoom level (the k component of the transform)
-  order: 0,
+  // order: 0, // now handled by ZoomContext
   // The hilbert points in view for the current order
   points: [],
   // the loading state
@@ -65,8 +67,8 @@ const actions = {
 function reducer(state, action) {
   switch (action.type) {
     case actions.ZOOM: {
-      const { transform, bbox, order, points } = action.payload;
-      return { ...state, transform, bbox, order, points };
+      const { bbox, points } = action.payload;
+      return { ...state, bbox, points };
     }
     case actions.ZOOMING: {
       const { zooming } = action.payload;
@@ -124,8 +126,6 @@ const HilbertGenome = ({
     height,
     activeLayer,
     selected = null,
-    pinOrder = 0,
-    orderOffset = 0,
     SVGRenderers = [],
     CanvasRenderers = [],
     onZoom = () => {},
@@ -154,7 +154,9 @@ const HilbertGenome = ({
   const xScale = useMemo(() => scaleLinear().domain([xMin, xMax]).range(xRange), [xMin, xMax, xRange]);
   const yScale = useMemo(() => scaleLinear().domain([yMin, yMax]).range(yRange), [yMin, yMax, yRange]);
   const sizeScale = useMemo(() => scaleLinear().domain([sizeMin, sizeMax]).range(sizeRange), [sizeMin, sizeMax, sizeRange]);
-  const orderZoomScale = useMemo(() =>  scaleLinear().domain(zoomExtent).range([1, Math.pow(2, orderDomain[1] - orderDomain[0] + 0.999)]), [orderDomain, zoomExtent])
+  // const orderZoomScale = useMemo(() =>  scaleLinear().domain(zoomExtent).range([1, Math.pow(2, orderDomain[1] - orderDomain[0] + 0.999)]), [orderDomain, zoomExtent])
+  const { transform, order, zooming, orderZoomScale, setTransform, setZooming } = useZoom();
+
 
   const scales = useMemo(() => ({ xScale, yScale, sizeScale, orderZoomScale, width, height }), [xScale, yScale, sizeScale, orderZoomScale, width, height])
   useEffect(() => {
@@ -170,7 +172,7 @@ const HilbertGenome = ({
   const fetchData = useMemo(() => {
     return () => {
       // we dont want to fetch data if the order is not within the layer order range
-      if (state.order < layer.orders[0] || state.order > layer.orders[1]) return;
+      if (order < layer.orders[0] || order > layer.orders[1]) return;
       if(state.metaLayer?.datasetName !== layer?.datasetName) return;
       
       const dataClient = Data({ 
@@ -183,44 +185,26 @@ const HilbertGenome = ({
           }
           dispatch({ type: actions.SET_DATA, payload: { 
             data, 
-            order: state.order, 
+            order: order, 
             layer, 
             points: state.points, 
-            meta: state.metas.get(state.order),
-            transform: state.transform
+            meta: state.metas.get(order),
+            transform: transform
           } });
-          if(state.zooming) {
-            // TODO: we no longer want to update the selected as we zoom, that should be determined outside the component
-            // TODO: consider if we want to emit some other event with the hit at the current order
-            // if we are zooming we want to update the selected hit to be the datum at the current order
-            // let pos = hilbertPosToOrder(zoomToRegion.start + (zoomToRegion.end - zoomToRegion.start)/2, { from: orderDomain[1], to: state.order })
-            // let hilbert = HilbertChromosome(state.order, { padding: 2 })
-            // let hit = hilbert.get2DPoint(pos, zoomToRegion.chromosome)
-            // let datum = data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
-            // if(datum){
-            //   let selected = {
-            //     ...datum,
-            //     ...zoomToRegion
-            //   }
-            //   // onHover(selected)
-              // onClick(selected, state.order, false)
-            // }
-          }
         }
-        // dispatch({ type: actions.SET_LOADING, payload: { loading: false } });
       }
       // TODO: we should cancel dataClient.fetchData requests if they are in progress when a new request is made
       // this would require some more tracking of requests and plumbing in dataClient to be able to abort them
-      if(state.zooming) {
+      if(zooming) {
         dataDebounceTimed(() => {
           dispatch({ type: actions.SET_LOADING, payload: { loading: true } });
           if(layer.layers) {
             let promises = layer.layers.map(l => {
-              return dataClient.fetchData(l, state.order, state.points)
+              return dataClient.fetchData(l, order, state.points)
             })
             return Promise.all(promises)
           } else {
-            return dataClient.fetchData(layer, state.order, state.points)
+            return dataClient.fetchData(layer, order, state.points)
           }
         }, myCallback, 150)
       } else {
@@ -228,16 +212,16 @@ const HilbertGenome = ({
           dispatch({ type: actions.SET_LOADING, payload: { loading: true } });
           if(layer.layers) {
             let promises = layer.layers.map(l => {
-              return dataClient.fetchData(l, state.order, state.points)
+              return dataClient.fetchData(l, order, state.points)
             })
             return Promise.all(promises)
           } else {
-            return dataClient.fetchData(layer, state.order, state.points)
+            return dataClient.fetchData(layer, order, state.points)
           }
         }, myCallback, 150)
       }
     }
-  }, [state.zooming, state.order, state.points, state.metas, state.metaLayer, state.transform, layer]);
+  }, [zooming, order, state.points, state.metas, state.metaLayer, transform, layer]);
  
 
   useEffect(() => {
@@ -245,8 +229,8 @@ const HilbertGenome = ({
   }, [state.loading, onLoading])
 
   useEffect(() => {
-    onZooming({ zooming: state.zooming })
-  }, [state.zooming, onZooming])
+    onZooming({ zooming: zooming })
+  }, [zooming, onZooming])
 
   useEffect(() => {
     if (layer) {
@@ -287,7 +271,7 @@ const HilbertGenome = ({
         [width + extentMargin, height + extentMargin]
       ])
       .scaleExtent(zoomExtent)
-    }, [zoomExtent, width, height])
+  }, [zoomExtent, width, height])
 
 
   // we setup a function we can call to re-render our layer
@@ -306,7 +290,7 @@ const HilbertGenome = ({
           data: state.data, 
           loading: state.loading,
           points, 
-          order: state.order, 
+          order: order, 
           // points: state.dataPoints,
           // order: state.dataOrder,
           transform
@@ -333,94 +317,99 @@ const HilbertGenome = ({
           data: state.data, 
           loading: state.loading,
           points, 
-          order: state.order, 
+          order: order, 
           transform
         })
       })
     }
-  }, [state.data, state.loading, state.order, state.dataOrder, state.dataMeta, scales, state.dataLayer, canvasRef, CanvasRenderers])
+  }, [
+    state.data, 
+    state.dataPoints, 
+    state.loading, 
+    order, 
+    state.dataOrder, 
+    state.dataMeta, 
+    scales, 
+    state.dataLayer, 
+    CanvasRenderers // TODO: memoize this
+  ])
 
 
   // Zoom event handler
   // This is responsible for setting up most of the rendering dependencies
   const handleZoom = useCallback((event) => {
     zoomDebounce(() => new Promise((resolve, reject) => {resolve()}), () => {
-      let transform = event.transform;
-      let order
-      let orderRaw = orderDomain[0] + Math.log2(orderZoomScale(transform.k))
-      order = Math.floor(orderRaw)
-      if(orderOffset) {
-        order += orderOffset
-      }
-      // make sure our order never goes out of bounds
-      if(order < orderDomain[0]) order = orderDomain[0]
-      if(order > orderDomain[1]) order = orderDomain[1]
+      setTransform(event.transform)
+    },1)
+  }, [setTransform])
 
-      // update the svg transform (zooms the svg)
-      select(sceneRef.current)
-        .attr("transform", transform)
-
-      // calculate new state dependencies based on order and zoom 
-      let hilbert = HilbertChromosome(order, { padding: 2 })
-      let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
-      let points = hilbert.fromBbox(bbox)
-
-      const payload = {
-        transform,
-        order,
-        bbox,
-        points,
-      }
-
-      // update the state
-      dispatch({ type: actions.ZOOM, payload })
-
-      // update hover with the mouse event
-      // if(event.sourceEvent){
-      //   handleMouseMove(event.sourceEvent)
-      // }
-      
-      // update the parent component
-      onZoom(payload)
-      // we want to update our canvas renderer immediately with new transform
-      renderCanvas(transform, points)
-    }, 1)
+  const handleTransform = useCallback((transform) => {
+    // update the svg transform (zooms the svg)
+    select(sceneRef.current)
+      .attr("transform", transform)
+    // calculate new state dependencies based on order and zoom 
+    let hilbert = HilbertChromosome(order, { padding: 2 })
+    let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
+    let points = hilbert.fromBbox(bbox)
+    const payload = {
+      bbox,
+      points,
+    }
+    // update the state
+    dispatch({ type: actions.ZOOM, payload })
+    // update the parent component
+    onZoom(payload)
+    // we want to update our canvas renderer immediately with new transform
   }, [
+    order,
     xScale, yScale, 
     width, height, 
-    orderDomain, orderZoomScale, 
-    renderCanvas,
     onZoom,
-    // pinOrder,
-    orderOffset,
-    // zoomToRegion
   ]);
 
-  // we want to re-render (by calling handleZoom) when the order offset changes, but not everytime the transform changes
-  // so we don't add state.transform to the dependencies
   useEffect(() => {
-    handleZoom({ transform: state.transform })
-  }, [orderOffset])
+    handleTransform(transform)
+  }, [transform, handleTransform]) 
+
+  // we rerender the canvas anytime the transform or points change
+  // but we only want to do it if they actually change
+  const prevTransformRef = useRef(transform);
+  const prevPointsRef = useRef(state.points);
+  function pointSummary(points) { 
+    return points[0]?.i + sum(points, p => p.i)
+  }
+  
 
 
   useEffect(() => {
     // we want to fetch after every time the points recalculate
     // this will be often but the fetch is debounced
     fetchData()
-  }, [state.points, state.metas, state.metaLayer, fetchData])
+  }, [
+    state.points, 
+    state.metas, 
+    state.metaLayer, 
+    fetchData
+  ])
+
+  useEffect(() => {
+    const hasTransformChanged = JSON.stringify(transform) !== JSON.stringify(prevTransformRef.current);
+    const havePointsChanged = pointSummary(state.points) !== pointSummary(prevPointsRef.current);
+
+    if (hasTransformChanged || havePointsChanged) {
+      renderCanvas(transform, state.points);
+      prevTransformRef.current = transform;
+      prevPointsRef.current = state.points;
+    }
+  }, [transform, state.points, renderCanvas])
 
   useEffect(() => {
     // we want to make sure and render again once the data loads
     // if data's transform is not same as current transform dont render
-    let sameTransform = JSON.stringify(state.dataTransform) === JSON.stringify(state.transform)
-    // console.log("rerender?", sameTransform)
-    if(!sameTransform) {
-      // console.log("data transform", state.dataTransform)
-      // console.log("current transform", state.transform)
-      return;
-    }
-    renderCanvas(state.transform, state.points)
-  }, [state.data, state.points, state.transform, renderCanvas ])
+    let sameTransform = JSON.stringify(state.dataTransform) === JSON.stringify(transform)
+    if(!sameTransform) return;
+    renderCanvas(transform, state.points)
+  }, [state.data, state.points, transform, renderCanvas ])
 
 
   // setup the event handlers for zoom and attach it to the DOM
@@ -437,7 +426,7 @@ const HilbertGenome = ({
 
   // run the zoom with the initial transform when the component mounts
   useEffect(() => {
-    zoomBehavior.transform(select(svgRef.current), state.transform)
+    zoomBehavior.transform(select(svgRef.current), transform)
   }, [width, height]);
 
   useEffect(() => {
@@ -513,8 +502,8 @@ const HilbertGenome = ({
   }, [state.points])
 
   const regionFromXY = useCallback((x, y) => {
-    let ut = untransform(x, y, state.transform)
-    let step = Math.pow(0.5, state.order)
+    let ut = untransform(x, y, transform)
+    let step = Math.pow(0.5, order)
     let hit = qt.find(xScale.invert(ut.x), yScale.invert(ut.y), step * 3)
     if(hit) {
       let datum = state.data.find(x => x.i == hit.i && x.chromosome == hit.chromosome)
@@ -523,12 +512,11 @@ const HilbertGenome = ({
     } else {
       return
     }
-  }, [state.data, state.order, state.transform, xScale, yScale, qt])
+  }, [state.data, order, transform, xScale, yScale, qt])
 
   // when the data changes, let the parent component know
   useEffect(() => {
     if(!state.dataLayer) return
-    // if(state.zooming) return
     let center = regionFromXY(width/2, height/2)
     onData({
       data: state.data, 
@@ -537,11 +525,12 @@ const HilbertGenome = ({
       meta: state.metas.get(state.dataOrder), 
       points: state.points, 
       bbox: state.bbox,
-      order: state.order, 
+      order: order, 
       layer: state.dataLayer,
       loading: state.loading
     })
   }, [
+    order,
     state.data, 
     state.dataOrder, 
     state.dataLayer, 
@@ -549,7 +538,7 @@ const HilbertGenome = ({
     height, 
     state.loading
   ])
-    // regionFromXY, state.points, state.bbox, state.order, state.metas, onData, state.loading])
+    // regionFromXY, state.points, state.bbox, order, state.metas, onData, state.loading])
 
   // Mouse move event handler
   const handleMouseMove = useCallback((event) => {
@@ -563,7 +552,7 @@ const HilbertGenome = ({
     let hover = regionFromXY(ex, ey)
     if(hover)
       onHover(hover);
-  }, [state.order, regionFromXY])
+  }, [order, regionFromXY])
     
   const handleClick = useCallback((event) => {
     if(!qt) return
@@ -571,8 +560,8 @@ const HilbertGenome = ({
     let ey = event.nativeEvent.offsetY
     let clicked = regionFromXY(ex, ey)
     if(clicked)
-      onClick(clicked, state.order, false);
-  }, [state.order, regionFromXY])
+      onClick(clicked, order, false);
+  }, [order, regionFromXY])
 
   
 
@@ -585,8 +574,8 @@ const HilbertGenome = ({
     let ex = event.nativeEvent.offsetX
     let ey = event.nativeEvent.offsetY
 
-    let ut = untransform(ex, ey, state.transform)
-    let step = Math.pow(0.5, state.order)
+    let ut = untransform(ex, ey, transform)
+    let step = Math.pow(0.5, order)
     let hit = qt.find(xScale.invert(ut.x), yScale.invert(ut.y), step * 3)
     
     let clicked = hit;
@@ -597,10 +586,10 @@ const HilbertGenome = ({
     } else { 
       return;
     }
-    onClick(clicked, state.order, true);
-    zoomToBox(hit.x, hit.y, hit.x + step, hit.y + step, state.order + 2)
+    onClick(clicked, order, true);
+    zoomToBox(hit.x, hit.y, hit.x + step, hit.y + step, order + 2)
 
-  }, [state.data, state.transform, state.order, qt, xScale, yScale, zoomToBox]) 
+  }, [state.data, transform, order, qt, xScale, yScale, zoomToBox]) 
 
   const onMouseLeave = useCallback((event) => {
     onHover(null);
@@ -649,6 +638,22 @@ const HilbertGenome = ({
             {SVGRenderers.filter(d => d).map((Renderer, index) => <Renderer key={index} state={state} scales={scales} />)}
           </g>
 
+          <line 
+            x1={width/2}
+            y1={0}
+            x2={width/2}
+            y2={height}
+            stroke="lightgray"
+            strokeDasharray="4,4"
+          />
+          <line 
+            x1={0}
+            y1={height/2}
+            x2={width}
+            y2={height/2}
+            stroke="lightgray"
+            strokeDasharray="4,4"
+          />
         </g>
         
       </svg>
@@ -660,11 +665,11 @@ const HilbertGenome = ({
             console.log("layer", layer)
             console.log("canvas ref", canvasRef.current)
           }}>
-        <div className="debug-item">order: {state.order}</div>
+        <div className="debug-item">order: {order}</div>
         <div className="debug-item">layer: {layer?.name}</div>
         <div className="debug-item">loading: {state.loading ? "LOADING" : "DONE"}</div>
         <div className="debug-item">points: {state.points.length}</div>
-        <div className="debug-item">zoom: {state.transform.k}</div>
+        <div className="debug-item">zoom: {transform.k}</div>
       </div>}
     </div>
     

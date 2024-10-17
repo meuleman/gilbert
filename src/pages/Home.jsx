@@ -6,6 +6,7 @@ import { FilterOutlined } from '@ant-design/icons';
 
 // import FiltersProvider from '../components/ComboLock/FiltersProvider'
 import FiltersContext from '../components/ComboLock/FiltersContext'
+import { useZoom } from '../contexts/zoomContext';
 
 import { urlify, jsonify, fromPosition, fromRange, fromCoordinates, toPosition, fromIndex, overlaps } from '../lib/regions'
 import { hilbertPosToOrder } from '../lib/HilbertChromosome'
@@ -117,8 +118,9 @@ function Home() {
 
   const navigate = useNavigate();
 
-  const orderDomain = useMemo(() => [4, 14], [])
-  const zoomExtent = [0.85, 4000]
+  const { order, transform, orderOffset, setOrderOffset, zoomMin, zoomMax, orderMin, orderMax } = useZoom()
+  const zoomExtent = useMemo(() => [zoomMin, zoomMax], [zoomMin, zoomMax])
+  const orderDomain= useMemo(() => [orderMin, orderMax], [orderMin, orderMax])
 
   const containerRef = useRef()
 
@@ -190,12 +192,27 @@ function Home() {
     layerRef.current = layer
   }, [layer])
 
+  // TODO:
+  // something is wrong with the order being calculated by the zoom
+  // also why isn't zoom legend showing up?
+  
+
+
   // We want to keep track of the zoom state
-  const [zoom, setZoom] = useState({order: 4, points: [], bbox: {}, transform: {}})
+  const [zoom, setZoom] = useState({points: [], bbox: {}})
   const zoomRef = useRef(zoom)
   useEffect(() => {
     zoomRef.current = zoom
   }, [zoom])
+
+  const orderRef = useRef(order)
+  useEffect(() => {
+    if (orderRef.current !== order && !layerLockRef.current) {
+      setLayer(layerOrderRef.current[order])
+    }
+    orderRef.current = order
+    console.log("order", order)
+  }, [order])
 
   // if we have filters in the url, show the filter modal on loading
   const anyFilters = Object.keys(parseFilters(initialFilters || "[]")).length > 0
@@ -245,17 +262,18 @@ function Home() {
     }
   }, [filters, showFilter, layerOrderNatural])
 
+  
 
   const handleZoom = useCallback((newZoom) => {
-    if(zoomRef.current.order !== newZoom.order && !layerLockRef.current) {
-      setLayer(layerOrderRef.current[newZoom.order])
-    } else if(zoomRef.current.order !== newZoom.order && layerLockRef.current && showFilter) {
-      if(filters[newZoom.order]) {
-        // console.log("LAYER", filters[newZoom.order])
-        // setLayer(filters[newZoom.order].layer)
-      }
-    }
-    setZoom(newZoom)
+    // if(zoomRef.current.order !== newZoom.order && !layerLockRef.current) {
+    //   setLayer(layerOrderRef.current[newZoom.order])
+    // } else if(zoomRef.current.order !== newZoom.order && layerLockRef.current && showFilter) {
+    //   if(filters[newZoom.order]) {
+    //     // console.log("LAYER", filters[newZoom.order])
+    //     // setLayer(filters[newZoom.order].layer)
+    //   }
+    // }
+    // setZoom(newZoom)
   }, [setZoom, setLayer, showFilter, filters])
 
 
@@ -263,15 +281,15 @@ function Home() {
   const [modalPosition, setModalPosition] = useState({x: 0, y: 0})
   useEffect(() => {
     const calculateModalPosition = () => {
-      if (!selected || !zoom || !zoom.transform || !scales) return { x: 0, y: 0 };
+      if (!selected || !transform || !scales) return { x: 0, y: 0 };
 
       let hit = selected
-      if(selected.order !== zoom.order) {
-        hit = fromPosition(selected.chromosome, selected.start, selected.end, zoom.order)
+      if(selected.order !== order) {
+        hit = fromPosition(selected.chromosome, selected.start, selected.end, order)
       } 
       // console.log("HIT", hit)
 
-      const { k, x, y } = zoom.transform;
+      const { k, x, y } = transform;
       const selectedX = scales.xScale(hit.x) * k + x;
       const selectedY = scales.yScale(hit.y) * k + y;
 
@@ -280,21 +298,21 @@ function Home() {
 
     setModalPosition(calculateModalPosition());
     // setModalPosition(showPosition(selected))
-  }, [selected, zoom, scales])
+  }, [selected, transform, order, scales])
 
   const [hover, setHover] = useState(null)
   const [hoveredPosition, setHoveredPosition] = useState({x: 0, y: 0, sw: 0})
   useEffect(() => {
     const calculateHoveredPosition = () => {
-      if (!hover || !zoom || !zoom.transform || !scales) return { x: 0, y: 0, sw: 0 };
+      if (!hover || transform || !scales) return { x: 0, y: 0, sw: 0 };
 
       let hit = hover
-      if(hover.order !== zoom.order) {
-        hit = fromPosition(hover.chromosome, hover.start, hover.end, zoom.order)
+      if(hover.order !== order) {
+        hit = fromPosition(hover.chromosome, hover.start, hover.end, order)
       } 
 
-      const { k, x, y } = zoom.transform;
-      const step = Math.pow(0.5, zoom.order)
+      const { k, x, y } = transform;
+      const step = Math.pow(0.5, order)
       const sw = scales.sizeScale(step) * k
       const hoveredX = scales.xScale(hit.x) * k + x + sw/2
       const hoveredY = scales.yScale(hit.y) * k + y// - sw/2
@@ -303,7 +321,7 @@ function Home() {
     };
 
     setHoveredPosition(calculateHoveredPosition());
-  }, [hover, zoom, scales])
+  }, [hover, transform, order, scales])
 
 
 
@@ -338,8 +356,6 @@ function Home() {
 
   // changing the region changes the zoom and will also highlight on the map
   const [region, setRegion] = useState(jsonify(initialSelectedRegion))
-  // number state for orderOffset
-  const [orderOffset, setOrderOffset] = useState(0)
 
   const [data, setData] = useState(null)
   const dataRef = useRef(data)
@@ -416,11 +432,11 @@ function Home() {
     setSearchByFactorInds(newSearchByFactorInds)
     if(newSearchByFactorInds.length > 0) {
       if(simSearchMethod != "Region") {
-        SimSearchByFactor(newSearchByFactorInds, zoom.order, layer).then((SBFResult) => {
+        SimSearchByFactor(newSearchByFactorInds, order, layer).then((SBFResult) => {
           setSelected(null)
           setSelectedNarration(null)
-          setSelectedOrder(zoom.order)
-          processSimSearchResults(zoom.order, SBFResult)
+          setSelectedOrder(order)
+          processSimSearchResults(order, SBFResult)
           setSimSearchMethod("SBF")
         })
       } else if(simSearchMethod == "Region") {
@@ -431,10 +447,10 @@ function Home() {
       }
     } else {
       // clear the sim search
-      processSimSearchResults(zoom.order, {simSearch: null, factors: null, method: null, layer: null})
+      processSimSearchResults(order, {simSearch: null, factors: null, method: null, layer: null})
       setSimSearchMethod(null)
     }
-  }, [selected, zoom, setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, setSelectedNarration, setSelectedOrder, layer])  // setGenesetEnrichment
+  }, [selected, order,  setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, setSelectedNarration, setSelectedOrder, layer])  // setGenesetEnrichment
 
   
   const [showHilbert, setShowHilbert] = useState(false)
@@ -524,7 +540,7 @@ function Home() {
   }, [setData])
 
 
-  const [powerOrder, setPowerOrder] = useState(zoom.order + 0.5)
+  const [powerOrder, setPowerOrder] = useState(order + 0.5)
 
 
   const orderSums = useMemo(() => {
@@ -615,28 +631,27 @@ function Home() {
     if(regions?.length) {
       const groupedAllRegions = group(
         regions, 
-        // d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: d.order, to: zoom.order}))
-        d => d.chromosome + ":" + (d.order > zoom.order ? hilbertPosToOrder(d.i, {from: d.order, to: zoom.order}) : d.i))
+        d => d.chromosome + ":" + (d.order > order ? hilbertPosToOrder(d.i, {from: d.order, to: order}) : d.i))
       setAllRegionsByCurrentOrder(groupedAllRegions)
 
     } else {
       // console.log("no regions!!")
       setAllRegionsByCurrentOrder(new Map())
     }
-  }, [zoom.order, activeSet])
+  }, [order, activeSet])
 
   useEffect(() => {
     if(activePaths?.length) {
       const groupedActiveRegions = group(
         activePaths.slice(0, numTopRegions),
-        d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: zoom.order}))
+        d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: order}))
       setActiveRegionsByCurrentOrder(groupedActiveRegions)
     } else {
       // console.log("no paths!!")
       setActiveRegionsByCurrentOrder(new Map())
     }
 
-  }, [zoom.order, activePaths, activeRegions, numTopRegions])
+  }, [order, activePaths, activeRegions, numTopRegions])
 
 
 
@@ -647,11 +662,11 @@ function Home() {
   }, [setFactorPreviewField, setFactorPreviewValues])
 
   const handleSelectedCSNSankey = useCallback((csn) => {
-    let hit = fromPosition(csn.chromosome, csn.start, csn.end, zoom.order)
+    let hit = fromPosition(csn.chromosome, csn.start, csn.end, order)
     console.log("SELECTED SANKEY CSN", csn, hit)
     setSelected(csn?.region)
     setRegion(hit)
-  }, [zoom.order])
+  }, [order])
 
 
   const handleHoveredCSN = useCallback((csn) => {
@@ -731,6 +746,20 @@ function Home() {
     showGenes, 
     highlightPath: true 
   })
+  const canvasRenderers = useMemo(() => [
+    drawActiveFilteredRegions,
+    drawAllFilteredRegions,
+    drawAnnotationRegionSelected,
+    drawAnnotationRegionHover,
+    drawAnnotationRegionCenter,
+  ], [
+    drawActiveFilteredRegions,
+    drawAllFilteredRegions,
+    drawAnnotationRegionSelected,
+    drawAnnotationRegionHover,
+    drawAnnotationRegionCenter,
+  ]);
+
 
   const clearSelectedState = useCallback(() => {
     console.log("CLEARING STATE")
@@ -933,14 +962,14 @@ function Home() {
               setSearchByFactorInds={setSearchByFactorInds}
               setLensHovering={setLensHovering}
               lensHovering={lensHovering}
-              order={zoom.order}
+              order={order}
             />
             
             <LayerDropdown 
               layers={layers} 
               activeLayer={layer} 
               onLayer={handleLayer}
-              order={zoom.order}
+              order={order}
               layerLock={layerLock}
               setLayerLock={setLayerLock}
               setLayerLockFromIcon={setLayerLockFromIcon}
@@ -1099,33 +1128,19 @@ function Home() {
                   zoomToRegion={region}
                   activeLayer={layer}
                   selected={selected}
-                  orderOffset={orderOffset}
                   zoomDuration={duration}
-                  onScales={setScales}
-                  CanvasRenderers={[
-                    drawActiveFilteredRegions,
-                    drawAllFilteredRegions,
-                    drawAnnotationRegionSelected,
-                    drawAnnotationRegionHover,
-                    drawAnnotationRegionCenter,
-                  ]}
+                  CanvasRenderers={canvasRenderers}
                   SVGRenderers={[
                     SVGChromosomeNames({ }),
                     showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
-                    // RegionMask({ regions: [selected, ...similarRegions ]}),
-                    SVGSelected({ hit: hover, dataOrder: zoom.order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
-                    // SVGSelected({ hit: selected, stroke: "gold", strokeWidthMultiplier: 0.35, showGenes: false }),
-                    // (
-                    //   (checkRanges(selected, similarRegionListHover)) ? 
-                    //   SVGSelected({ hit: selected, stroke: "darkgold", strokeWidthMultiplier: 0.05, showGenes: false })
-                    //   : SVGSelected({ hit: selected, stroke: "gold", strokeWidthMultiplier: 0.35, showGenes: false })
-                    // ),
+                    SVGSelected({ hit: hover, dataOrder: order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
                     showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
                   ]}
                   onZoom={handleZoom}
                   onHover={handleHover}
                   onClick={handleClick}
                   onData={onData}
+                  onScales={setScales}
                   onZooming={(d) => setIsZooming(d.zooming)}
                   onLoading={setMapLoading}
                   // onLayer={handleLayer}
@@ -1182,9 +1197,9 @@ function Home() {
             <div className="zoom-legend-container">
               {containerRef.current && (
                 <ZoomLegend 
-                  k={zoom.transform.k} 
+                  k={transform.k} 
                   height={height} 
-                  effectiveOrder={zoom.order}
+                  effectiveOrder={order}
                   zoomExtent={zoomExtent} 
                   orderDomain={orderDomain} 
                   layerOrder={layerOrder}
@@ -1213,7 +1228,7 @@ function Home() {
             <LinearGenome 
               center={data?.center} 
               data={data?.data} 
-              order={data?.dataOrder}
+              dataOrder={data?.dataOrder}
               layer={data?.layer}
               width={width} height={100} 
               hover={hover}

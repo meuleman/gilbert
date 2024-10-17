@@ -8,6 +8,7 @@ import Filter from './pages/Filter'
 
 import FiltersProvider from './components/ComboLock/FiltersProvider';
 import RegionsProvider from './components/Regions/RegionsProvider';
+import { ZoomProvider } from './contexts/zoomContext';
 
 import 'antd/dist/reset.css';
 
@@ -23,7 +24,9 @@ function App() {
         <Route path="/" element={
           <FiltersProvider>
             <RegionsProvider>
-              <Home />
+              <ZoomProvider>
+                <Home />
+              </ZoomProvider>
             </RegionsProvider>
           </FiltersProvider>
         } />
