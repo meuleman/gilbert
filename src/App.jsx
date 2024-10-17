@@ -33,7 +33,15 @@ function App() {
         <Route path="/regions" element={<RegionSets />} />
         <Route path="/regions/:regionset" element={<RegionSet />} />
         <Route path="/region" element={<RegionDetail />} />
-        <Route path="/umap" element={<YC240322 />} />
+        <Route path="/umap" element={
+          <FiltersProvider>
+            <RegionsProvider>
+              <ZoomProvider>
+                <YC240322 />
+              </ZoomProvider>
+            </RegionsProvider>
+          </FiltersProvider>
+          } />
         <Route path="/filter" element={<Filter />} />
       </Routes>
       </div>

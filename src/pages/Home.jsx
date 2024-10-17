@@ -316,6 +316,7 @@ function Home() {
       const sw = scales.sizeScale(step) * k
       const hoveredX = scales.xScale(hit.x) * k + x + sw/2
       const hoveredY = scales.yScale(hit.y) * k + y// - sw/2
+      console.log("HOVERED POSITION", hoveredX, hoveredY, sw, transform)
 
       return { x: hoveredX, y: hoveredY, sw, stepSize: scales.sizeScale(step) };
     };
