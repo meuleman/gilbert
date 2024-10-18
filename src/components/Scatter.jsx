@@ -25,7 +25,6 @@ ScatterPlot.propTypes = {
 };
 
 
-
 function ScatterPlot ({ 
   points, 
   width, 

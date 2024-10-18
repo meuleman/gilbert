@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import GilbertLogo from '../assets/gilbert-logo.svg?react';
 import axios from "axios";
 
-import { extent } from 'd3-array';
+import { extent, group } from 'd3-array';
 
 import './YC240322.css';
 
@@ -11,10 +11,17 @@ import Scatter from '../components/Scatter';
 import HilbertGenome from '../components/HilbertGenome'
 import ZoomLegend from '../components/ZoomLegend';
 import SVGChromosomeNames from '../components/SVGChromosomeNames'
-import SVGSelected from '../components/SVGSelected'
-import DisplayExampleRegions from '../components/ExampleRegions/DisplayExampleRegions'
-import RegionMask from '../components/RegionMask'
+// import SVGSelected from '../components/SVGSelected'
+// import DisplayExampleRegions from '../components/ExampleRegions/DisplayExampleRegions'
+// import RegionMask from '../components/RegionMask'
+import useCanvasFilteredRegions from '../components/Canvas/FilteredRegions';
+import useCanvasAnnotationRegions from '../components/Canvas/Annotation';
 
+
+
+import { useZoom } from '../contexts/zoomContext';
+
+import { hilbertPosToOrder } from '../lib/HilbertChromosome';
 import { showPosition } from '../lib/display';
 import { urlify, fromPosition } from '../lib/regions';
 
@@ -73,9 +80,11 @@ const YC240322 = () => {
   const [selected, setSelected] = useState([])
   const [hovered, setHovered] = useState(null)
 
-  const orderDomain = useMemo(() => [4, 14], [])
-  const zoomExtent = useMemo(() => [0.85, 4000], [])
-  const duration = useMemo(() => 1000, [])
+  const { order: zoomOrder, transform, orderOffset, setOrderOffset, zoomMin, zoomMax, orderMin, orderMax } = useZoom()
+  const zoomExtent = useMemo(() => [zoomMin, zoomMax], [zoomMin, zoomMax])
+  const orderDomain= useMemo(() => [orderMin, orderMax], [orderMin, orderMax])
+
+  // const duration = useMemo(() => 1000, [])
 
   const loadingRef = useRef(loading)
   const containerRef = useRef(null)
@@ -191,6 +200,8 @@ const YC240322 = () => {
   }, [umap, annotations, layerColumn])
 
   const [pointColor, setPointColor] = useState(null)
+  const [pointSize, setPointSize] = useState(2)
+  const [pointOpacity, setPointOpacity] = useState(0.5)
   useEffect(() => {
     if(layerColumn == "all") {
       setPointColor(["#222"].concat(dhs.fieldColor.range().concat(tf.fieldColor.range()).concat(chromatin_states.fieldColor.range())))
@@ -201,7 +212,7 @@ const YC240322 = () => {
 
   const [layer, setLayer] = useState(dhs)
   const [layerOrder, setLayerOrder] = useState(null)
-  const [zoom, setZoom] = useState({order: 4, points: [], bbox: {}, transform: {}})
+  // const [zoom, setZoom] = useState({order: 4, points: [], bbox: {}, transform: {}})
 
   useEffect(() => {
     const lo = {...lenses["Integrative"]}
@@ -210,8 +221,8 @@ const YC240322 = () => {
         lo[o] = layersAll.find((d) => d.name == lo[o])
       })
       setLayerOrder(lo)
-      if(zoom) {
-        let l = lo[zoom.order]
+      if(zoomOrder) {
+        let l = lo[zoomOrder]
         setLayer(l)
       }
     } else {
@@ -221,19 +232,19 @@ const YC240322 = () => {
       setLayerOrder(lo)
       setLayer(layers[layerColumn])
     }
-  }, [layerColumn, zoom])
+  }, [layerColumn, zoomOrder])
 
-  const handleZoom = useCallback((newZoom) => {
-    console.log("handleZoom", newZoom)
-    setZoom(newZoom)
-  }, [setZoom])
+  // const handleZoom = useCallback((newZoom) => {
+  //   console.log("handleZoom", newZoom)
+  //   setZoom(newZoom)
+  // }, [setZoom])
   
   useEffect(() => {
     console.log("layer change", layer)
   }, [layer])
-  useEffect(() => {
-    console.log("zoom", zoom)
-  }, [zoom])
+  // useEffect(() => {
+  //   console.log("zoom", zoom)
+  // }, [zoom])
 
 
   useEffect(() => {
@@ -280,9 +291,49 @@ const YC240322 = () => {
   useEffect(() => {
     // console.log("hovered", hovered)
     if(hovered && umap[hovered]){
-      setHover(fromPosition(umap[hovered].chromosome, umap[hovered].start, umap[hovered].end, zoom.order))
+      const h = fromPosition(umap[hovered].chromosome, umap[hovered].start, umap[hovered].end, zoomOrder)
+      // console.log("set hover", h)
+      setHover(h)
     }
-  }, [hovered])
+  }, [hovered, zoomOrder, umap, setHover])
+
+  const [selectedRegionSampleByCurrentOrder, setSelectedRegionSampleByCurrentOrder] = useState(new Map())
+  // group the top regions found through filtering by the current order
+  useEffect(() => {
+    let regions = selectedRegionSample
+    if(regions?.length) {
+      const groupedAllRegions = group(
+        regions, 
+        d => d.chromosome + ":" + (d.order > zoomOrder ? hilbertPosToOrder(d.i, {from: d.order, to: zoomOrder}) : d.i))
+      setSelectedRegionSampleByCurrentOrder(groupedAllRegions)
+
+    } else {
+      // console.log("no regions!!")
+      setSelectedRegionSampleByCurrentOrder(new Map())
+    }
+  }, [zoomOrder, selectedRegionSample])
+
+
+
+  const drawSelectedRegionSample = useCanvasFilteredRegions(selectedRegionSampleByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
+  const drawAnnotationRegionHover = useCanvasAnnotationRegions(hover, "hover", { 
+    // if there is an activeSet and no paths in the hover, lets make it lightgray to indicate you can't click on it
+    stroke: "black",//activeSet && !activeInHovered?.length ? "lightgray" : "black", 
+    radiusMultiplier: 1, 
+    strokeWidthMultiplier: 0.3, 
+    showGenes: false, 
+    highlightPath: true 
+  })
+
+  const canvasRenderers = useMemo(() => [
+    drawSelectedRegionSample,
+    drawAnnotationRegionHover,
+  ], [
+    drawSelectedRegionSample,
+    drawAnnotationRegionHover,
+  ]);
+
+
 
 
 
@@ -306,8 +357,8 @@ const YC240322 = () => {
             height={height}
             points={points}
             pointColor={pointColor}
-            pointSize={2}
-            opacity={0.5}
+            pointSize={pointSize}
+            opacity={pointOpacity}
             onSelect={setSelected}
             onHover={setHovered}
           />}
@@ -320,26 +371,22 @@ const YC240322 = () => {
             zoomMax={zoomExtent[1]}
             width={mapWidth} 
             height={height}
-            // zoomToRegion={region}
             activeLayer={layer}
-            // orderOffset={orderOffset}
-            zoomDuration={duration}
+            CanvasRenderers={canvasRenderers}
             SVGRenderers={[
               SVGChromosomeNames({ }),
-              SVGSelected({ hit: hover, dataOrder: zoom.order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes: false }),
-              // SVGSelected({ hit: selected, stroke: "gold", strokeWidthMultiplier: 0.35, showGenes: false }),
-              RegionMask({ regions: selectedRegionSample, overrideOrder: zoom.order}),
-              ...DisplayExampleRegions({
-                exampleRegions: selectedRegionSample,
-                order: zoom.order,
-                width: 0.1,
-                radiusMultiplier: 0.5,
-                color: "black",
-                numRegions: 100,
-              }),
-              // showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
+              // SVGSelected({ hit: hover, dataOrder: zoomOrder, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes: false }),
+              // RegionMask({ regions: selectedRegionSample, overrideOrder: zoomOrder}),
+              // ...DisplayExampleRegions({
+              //   exampleRegions: selectedRegionSample,
+              //   order: zoomOrder,
+              //   width: 0.1,
+              //   radiusMultiplier: 0.5,
+              //   color: "black",
+              //   numRegions: 100,
+              // }),
             ]}
-            onZoom={handleZoom}
+            // onZoom={handleZoom}
             // onHover={handleHover}
             // onClick={handleClick}
             // onData={onData}
@@ -349,9 +396,9 @@ const YC240322 = () => {
         </div>
         <div className="zoom-legend-container">
         <ZoomLegend 
-            k={zoom?.transform.k} 
+            k={transform.k} 
             height={height} 
-            effectiveOrder={zoom?.order}
+            effectiveOrder={zoomOrder}
             zoomExtent={zoomExtent} 
             orderDomain={orderDomain} 
             layerOrder={layerOrder}

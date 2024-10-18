@@ -367,18 +367,7 @@ const HilbertGenome = ({
     onZoom,
   ]);
 
-  useEffect(() => {
-    handleTransform(transform)
-  }, [transform, handleTransform]) 
 
-  // we rerender the canvas anytime the transform or points change
-  // but we only want to do it if they actually change
-  const prevTransformRef = useRef(transform);
-  const prevPointsRef = useRef(state.points);
-  function pointSummary(points) { 
-    return points[0]?.i + sum(points, p => p.i)
-  }
-  
 
 
   useEffect(() => {
@@ -391,6 +380,23 @@ const HilbertGenome = ({
     state.metaLayer, 
     fetchData
   ])
+
+
+
+  // we rerender the canvas anytime the transform or points change
+  // but we only want to do it if they actually change
+  const prevTransformRef = useRef({...transform, init: true});
+  const prevPointsRef = useRef(state.points);
+  function pointSummary(points) { 
+    return points[0]?.i + sum(points, p => p.i)
+  }
+  
+  useEffect(() => {
+    const hasTransformChanged = JSON.stringify(transform) !== JSON.stringify(prevTransformRef.current);
+    if(hasTransformChanged){
+      handleTransform(transform)
+    }
+  }, [transform, handleTransform]) 
 
   useEffect(() => {
     const hasTransformChanged = JSON.stringify(transform) !== JSON.stringify(prevTransformRef.current);
@@ -407,9 +413,10 @@ const HilbertGenome = ({
     // we want to make sure and render again once the data loads
     // if data's transform is not same as current transform dont render
     let sameTransform = JSON.stringify(state.dataTransform) === JSON.stringify(transform)
-    if(!sameTransform) return;
-    renderCanvas(transform, state.points)
-  }, [state.data, state.points, transform, renderCanvas ])
+    if(sameTransform) {
+      renderCanvas(transform, state.points)
+    }
+  }, [state.data, state.dataTransform, state.points, transform, renderCanvas ])
 
 
   // setup the event handlers for zoom and attach it to the DOM
@@ -425,6 +432,7 @@ const HilbertGenome = ({
   }, [zoomBehavior, selected, handleZoom])
 
   // run the zoom with the initial transform when the component mounts
+  // TODO: is this important?
   useEffect(() => {
     zoomBehavior.transform(select(svgRef.current), transform)
   }, [width, height]);
