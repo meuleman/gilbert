@@ -302,29 +302,26 @@ function Home() {
 
   const [hover, setHover] = useState(null)
   const [hoveredPosition, setHoveredPosition] = useState({x: 0, y: 0, sw: 0})
+
   useEffect(() => {
-    const calculateHoveredPosition = () => {
-      if (!hover || transform || !scales) return { x: 0, y: 0, sw: 0 };
+    if (!hover || !transform || !scales) {
+      setHoveredPosition({ x: 0, y: 0, sw: 0 })
+      return;
+    }
 
-      let hit = hover
-      if(hover.order !== order) {
-        hit = fromPosition(hover.chromosome, hover.start, hover.end, order)
-      } 
+    let hit = hover
+    if(hover.order !== order) {
+      hit = fromPosition(hover.chromosome, hover.start, hover.end, order)
+    } 
 
-      const { k, x, y } = transform;
-      const step = Math.pow(0.5, order)
-      const sw = scales.sizeScale(step) * k
-      const hoveredX = scales.xScale(hit.x) * k + x + sw/2
-      const hoveredY = scales.yScale(hit.y) * k + y// - sw/2
-      console.log("HOVERED POSITION", hoveredX, hoveredY, sw, transform)
+    const { k, x, y } = transform;
+    const step = Math.pow(0.5, order)
+    const sw = scales.sizeScale(step) * k
+    const hoveredX = scales.xScale(hit.x) * k + x + sw/2
+    const hoveredY = scales.yScale(hit.y) * k + y// - sw/2
 
-      return { x: hoveredX, y: hoveredY, sw, stepSize: scales.sizeScale(step) };
-    };
-
-    setHoveredPosition(calculateHoveredPosition());
+    setHoveredPosition({ x: hoveredX, y: hoveredY, sw, stepSize: scales.sizeScale(step) });
   }, [hover, transform, order, scales])
-
-
 
   const [simSearch, setSimSearch] = useState(null)
   const [similarRegions, setSimilarRegions] = useState([])
@@ -407,26 +404,21 @@ function Home() {
     }
   }, [filters, regionset, selected, updateUrlParams]);
 
-
-
   // cross scale narration
   const handleChangeCSNIndex = (e) => setCrossScaleNarrationIndex(e.target.value)
   // function to handle the change of the method in which CSN paths are scored
   const handleCsnMethodChange = (e) => setCsnMethod(e.target.value)
   // function to change the ENR threshold for CSN
   const handleCsnEnrThresholdChange = (e) => setCsnEnrThreshold(e.target.value)
-
   
   const handleHover = useCallback((hit, similarRegionList=false) => {
-    if(hit && !selectedRef.current) {}
+    // if(hit && !selectedRef.current) {}
     if(similarRegionList) {
       setSimilarRegionListHover(hit)
     }
     setHover(hit)
     if(hit) setLastHover(hit)
   }, [setSimilarRegionListHover, setHover])
-
-
  
   const handleFactorClick = useCallback((newSearchByFactorInds) => {
     console.log("HANDLE FACTOR CLICK", newSearchByFactorInds, simSearchMethod)
