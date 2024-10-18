@@ -100,7 +100,7 @@ const LinearGenome = ({
   const render = useCallback((region, targetSize, data, metas, layer, points) => {
     if(canvasRef.current){
       // console.log("rendering")
-      console.log("order zoom", order, transform.k, orderRaw)
+      // console.log("order zoom", order, transform.k, orderRaw)
 
 
       const ctx = canvasRef.current.getContext('2d');
@@ -341,7 +341,7 @@ const LinearGenome = ({
     // Calculate the data points we need for the track. We start with the data from the 2D map
     // Then we target up to 250 regions left and right of the center
     // we only request whats missing
-    console.log("data1D", data1D)
+    // console.log("data1D", data1D)
     if(!data1D || !data1D.data || !data1D.data.length) return
     const layer = data1D.layer
     const hilbert = new HilbertChromosome(data1D.order)
@@ -436,7 +436,7 @@ const LinearGenome = ({
   }, [width, dataOrder])
 
   useEffect(() => {
-    console.log("hover updated")
+    // console.log("hover updated")
     let hd = processHover(hover)
     setHoverData(hd)
   }, [hover, processHover])

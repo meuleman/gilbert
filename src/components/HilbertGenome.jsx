@@ -171,6 +171,8 @@ const HilbertGenome = ({
   // this debounced function fetches the data and updates the state
   const fetchData = useMemo(() => {
     return () => {
+      if(!state.points?.length) return
+      let order = state.points[0]?.order
       // we dont want to fetch data if the order is not within the layer order range
       if (order < layer.orders[0] || order > layer.orders[1]) return;
       if(state.metaLayer?.datasetName !== layer?.datasetName) return;
@@ -189,7 +191,6 @@ const HilbertGenome = ({
             layer, 
             points: state.points, 
             meta: state.metas.get(order),
-            transform: transform
           } });
         }
       }
@@ -221,7 +222,7 @@ const HilbertGenome = ({
         }, myCallback, 150)
       }
     }
-  }, [zooming, order, state.points, state.metas, state.metaLayer, transform, layer]);
+  }, [zooming, state.points, state.metas, state.metaLayer, layer]);
  
 
   useEffect(() => {
@@ -257,6 +258,9 @@ const HilbertGenome = ({
     }
   }, [layer])
 
+  useEffect(() => {
+    scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
+  }, [canvasRef, width, height])
 
   // setup the zoom behavior
   const zoomBehavior = useMemo(() => {
@@ -283,6 +287,8 @@ const HilbertGenome = ({
       if(!state.dataLayer) return;
       // all of the data we are rendering is associated with the currently loaded data in state 
       // (including layer, order and meta at time data was loaded)
+      // console.log("RENDER TRANSFORM", transform)
+      // console.log("RENDER STATE", state)
 
       CanvasRenderer("Base", { 
         scales, 
@@ -343,7 +349,7 @@ const HilbertGenome = ({
     },1)
   }, [setTransform])
 
-  const handleTransform = useCallback((transform) => {
+  const handleTransform = useCallback((transform, order) => {
     // update the svg transform (zooms the svg)
     select(sceneRef.current)
       .attr("transform", transform)
@@ -351,6 +357,7 @@ const HilbertGenome = ({
     let hilbert = HilbertChromosome(order, { padding: 2 })
     let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
     let points = hilbert.fromBbox(bbox)
+    console.log("HANDLE TRANSFORM", order, points, points[0].order)
     const payload = {
       bbox,
       points,
@@ -361,7 +368,6 @@ const HilbertGenome = ({
     onZoom(payload)
     // we want to update our canvas renderer immediately with new transform
   }, [
-    order,
     xScale, yScale, 
     width, height, 
     onZoom,
@@ -387,37 +393,38 @@ const HilbertGenome = ({
   // but we only want to do it if they actually change
   const prevTransformRef = useRef({...transform, init: true});
   const prevPointsRef = useRef(state.points);
+  const prevDataRef = useRef(state.data)
+  const prevOrder = useRef(order)
   function pointSummary(points) { 
     return points[0]?.i + sum(points, p => p.i)
   }
   
+  // We "handleTransform" which calculates new points when the transform or order updates
   useEffect(() => {
     const hasTransformChanged = JSON.stringify(transform) !== JSON.stringify(prevTransformRef.current);
-    if(hasTransformChanged){
-      handleTransform(transform)
+    const hasOrderChanged = order !== prevOrder.current
+    if(hasTransformChanged || hasOrderChanged){
+      handleTransform(transform, order)
+      prevOrder.current = order
     }
-  }, [transform, handleTransform]) 
+  }, [transform, order, handleTransform]) 
 
+  // we re-render our canvas (with whatever data is currently in state)
+  // this allows us to still show something while the data is loading
+  // so even if we change orders the points will render at the appropriate size
   useEffect(() => {
     const hasTransformChanged = JSON.stringify(transform) !== JSON.stringify(prevTransformRef.current);
     const havePointsChanged = pointSummary(state.points) !== pointSummary(prevPointsRef.current);
+    const hasDataChanged = pointSummary(state.data) !== pointSummary(prevDataRef.current);
 
-    if (hasTransformChanged || havePointsChanged) {
+    console.log("transform", hasTransformChanged, "points", havePointsChanged, "data", hasDataChanged)
+
+    if (hasTransformChanged || havePointsChanged || hasDataChanged) {
       renderCanvas(transform, state.points);
       prevTransformRef.current = transform;
       prevPointsRef.current = state.points;
     }
-  }, [transform, state.points, renderCanvas])
-
-  useEffect(() => {
-    // we want to make sure and render again once the data loads
-    // if data's transform is not same as current transform dont render
-    let sameTransform = JSON.stringify(state.dataTransform) === JSON.stringify(transform)
-    if(sameTransform) {
-      renderCanvas(transform, state.points)
-    }
-  }, [state.data, state.dataTransform, state.points, transform, renderCanvas ])
-
+  }, [transform, state.points, state.data, renderCanvas])
 
   // setup the event handlers for zoom and attach it to the DOM
   useEffect(() => {
@@ -437,9 +444,7 @@ const HilbertGenome = ({
     zoomBehavior.transform(select(svgRef.current), transform)
   }, [width, height]);
 
-  useEffect(() => {
-    scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
-  }, [canvasRef, width, height])
+
 
   const zoomToBox = useMemo(() => {
     return (x0,y0,x1,y1,pinnedOrder) => {
