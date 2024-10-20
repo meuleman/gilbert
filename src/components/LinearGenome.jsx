@@ -483,7 +483,7 @@ const LinearGenome = ({
   const handleZoomRef = useRef(null);
 
   const [isDragging, setIsDragging] = useState(false);
-  const lastMousePosition = useRef(null);
+  const dragAnchor = useRef(null);
 
 
 
@@ -495,49 +495,47 @@ const LinearGenome = ({
           const { transform: newTransform, sourceEvent } = event;
           
           // Check if this is a drag event (mouse move with button pressed)
+          // If we drag, we are updating the 2D map center based on the data point 
           if (sourceEvent && sourceEvent.type === 'mousemove' && sourceEvent.buttons === 1) {
             setIsDragging(true);
             
             const currentMousePosition = [sourceEvent.clientX, sourceEvent.clientY];
-            if (lastMousePosition.current) {
-              const dx = currentMousePosition[0] - lastMousePosition.current[0];
-              
-              const centerX = width / 2;
-              const oldPos = xScaleRef.current.invert(centerX);
-              const oldData = dataPoints.find(d => d.start <= oldPos && d.end >= oldPos);
-              const newCenterX = centerX - dx;
-              const newPos = xScaleRef.current.invert(newCenterX);
-              const newData = dataPoints.find(d => d.start <= newPos && d.end >= newPos);
-              console.log("centerx", centerX)
-              console.log("newcenter", newCenterX)
-              console.log("olddata", oldData)
-              console.log("newdata", newData)
-              if (newData?.i !== oldData?.i && newData?.chromosome == oldData?.chromosome) {
-                console.log("current transform", transform)
-                let newX = mapXScale(newData?.x)
-                let newY = mapYScale(newData?.y)
-
-                console.log("NEWX", newX, "NEWY", newY)
-                const mapCenterX = mapWidth/2
-                const mapCenterY = mapHeight/2
-
-                const newTransform = {
-                  ...transform,
-                  x: mapCenterX - newX * transform.k,
-                  y: mapCenterY - newY * transform.k,
-                  // x: transform.x + (mapWidth/2 - newX) * transform.k,
-                  // y: transform.y + (mapHeight/2 - newY) * transform.k,
-                };
-                console.log("newTransform", newTransform)
-
-                requestAnimationFrame(() => {
-                  setTransform(newTransform);
-                  setZooming(true);
-                });
-              }
+            if (!dragAnchor.current) {
+              dragAnchor.current = {
+                mouse: currentMousePosition,
+                data: dataPoints.find(d => d.start <= xScaleRef.current.invert(width / 2) && d.end >= xScaleRef.current.invert(width / 2))
+              };
             }
-            lastMousePosition.current = currentMousePosition;
+
+            const dx = currentMousePosition[0] - dragAnchor.current.mouse[0];
+          
+            const centerX = width / 2;
+            const oldPos = xScaleRef.current.invert(centerX);
+            const oldData = dataPoints.find(d => d.start <= oldPos && d.end >= oldPos);
+            const newCenterX = centerX - dx;
+            const newPos = xScaleRef.current.invert(newCenterX);
+            const newData = dataPoints.find(d => d.start <= newPos && d.end >= newPos);
+            if (newData?.i !== oldData?.i && newData?.chromosome == oldData?.chromosome) {
+              let newX = mapXScale(newData?.x)
+              let newY = mapYScale(newData?.y)
+
+              const mapCenterX = mapWidth/2
+              const mapCenterY = mapHeight/2
+
+              const newTransform = {
+                ...transform,
+                x: mapCenterX - newX * transform.k,
+                y: mapCenterY - newY * transform.k,
+              };
+
+              requestAnimationFrame(() => {
+                setTransform(newTransform);
+                setZooming(true);
+              });
+            }
           } else {
+            dragAnchor.current = null;
+
             const newK = newTransform.k
 
             // Calculate the center point of the 2D map
