@@ -357,7 +357,7 @@ const HilbertGenome = ({
     let hilbert = HilbertChromosome(order, { padding: 2 })
     let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
     let points = hilbert.fromBbox(bbox)
-    console.log("HANDLE TRANSFORM", order, points, points[0].order)
+    // console.log("HANDLE TRANSFORM", order, points, points[0].order)
     const payload = {
       bbox,
       points,
@@ -404,6 +404,7 @@ const HilbertGenome = ({
     const hasTransformChanged = JSON.stringify(transform) !== JSON.stringify(prevTransformRef.current);
     const hasOrderChanged = order !== prevOrder.current
     if(hasTransformChanged || hasOrderChanged){
+      // console.log("HG handleTransform", +new Date())
       handleTransform(transform, order)
       prevOrder.current = order
     }
@@ -417,7 +418,7 @@ const HilbertGenome = ({
     const havePointsChanged = pointSummary(state.points) !== pointSummary(prevPointsRef.current);
     const hasDataChanged = pointSummary(state.data) !== pointSummary(prevDataRef.current);
 
-    console.log("transform", hasTransformChanged, "points", havePointsChanged, "data", hasDataChanged)
+    // console.log("transform", hasTransformChanged, "points", havePointsChanged, "data", hasDataChanged)
 
     if (hasTransformChanged || havePointsChanged || hasDataChanged) {
       renderCanvas(transform, state.points);

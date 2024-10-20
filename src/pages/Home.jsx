@@ -508,7 +508,7 @@ function Home() {
 
   
   const onData = useCallback((payload) => {
-    console.log("data payload", payload)
+    // console.log("data payload", payload)
     setData(payload)
     // setHover(payload.center)
 
@@ -1224,6 +1224,8 @@ function Home() {
               dataOrder={data?.dataOrder}
               layer={data?.layer}
               width={width} height={100} 
+              mapWidth={width}
+              mapHeight={height}
               hover={hover}
               onHover={handleHover}
               />

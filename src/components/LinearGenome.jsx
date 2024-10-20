@@ -8,10 +8,13 @@ import { Tooltip } from 'react-tooltip'
 import Data from '../lib/data';
 import scaleCanvas from '../lib/canvas'
 import { HilbertChromosome } from '../lib/HilbertChromosome';
+import { debouncer } from '../lib/debounce'
 import { defaultContent } from './Tooltips/Content';
 import { getGencodesInView } from '../lib/Genes';
 
 import { useZoom } from '../contexts/ZoomContext';
+
+const zoomDebounce = debouncer()
 
 import "./LinearGenome.css"
 
@@ -23,6 +26,8 @@ const LinearGenome = ({
   layer = null,
   width = 640,
   height = 100,
+  mapWidth = 640,
+  mapHeight = 640,
   onHover = () => {}
 } = {}) => {
 
@@ -333,8 +338,7 @@ const LinearGenome = ({
     genes, 
     dataOrder, 
     order, 
-    orderRaw, 
-    transform 
+    orderRaw
   ])
 
   useEffect(() => {
@@ -447,8 +451,7 @@ const LinearGenome = ({
       const ex = event.clientX - rect.x; // x position within the element.
       let x = xScaleRef.current.invert(ex)
       let data = dataPoints.filter(d => d.start <= x && d.end >= x)
-      console.log("mouse move", ex, x, data[0])
-
+      // console.log("mouse move", ex, x, data[0])
       let hd = processHover(data[0])
       setHoverData(hd)
       onHover(hd)
@@ -468,38 +471,45 @@ const LinearGenome = ({
   }, [dataPoints, processHover])
 
   const svgRef = useRef(null);
+  const handleZoomRef = useRef(null);
 
-  
 
-  const handleZoom = useCallback((event) => {
-    if(dataPoints?.length && xScaleRef.current) {
-      const { transform: newTransform } = event;
-      
-      const newK = newTransform.k
-      
-      // Update transform.x only if dragged
-      let newX = transform.x;
-      // if (event.sourceEvent && event.sourceEvent.type === 'mousemove') {
-      //   const centerX = width / 2;
-      //   const invertedX = xScaleRef.current.invert(centerX - newTransform.x);
-      //   const centerPoint = dataPoints.find(d => d.start <= invertedX && d.end >= invertedX);
-      //   if (centerPoint) {
-      //     newX = centerX - xScaleRef.current(centerPoint.start);
-      //   }
-      // }
+  // const handleZoom = useCallback((event) => {
+  useEffect(() => {
+    handleZoomRef.current = (event) => {
+      zoomDebounce(() => new Promise((resolve, reject) => {resolve()}), () => {
+        if(dataPoints?.length && xScaleRef.current) {
+          const { transform: newTransform } = event;
+          console.log("LG handleZoom", +new Date())
+          
+          const newK = newTransform.k
 
-      const nt = { k: newK, x: newX, y: transform.y }
-      // console.log("old transform", transform)
-      // console.log("new transform", nt)
-      if(JSON.stringify(transform) !== JSON.stringify(nt)) {
-        // console.log("changed transform")
-        // console.log(JSON.stringify(transform))
-        // console.log(JSON.stringify(nt))
-        setTransform(nt);
-        setZooming(true);
-      }
+          // Calculate the center point of the 2D map
+          const centerX = mapWidth / 2;
+          const centerY = mapHeight / 2;
+          
+          // Calculate the new transform for both 1D and 2D views
+          const newX = centerX - (centerX - transform.x) * (newK / transform.k);
+          const newY = centerY - (centerY - transform.y) * (newK / transform.k);
+
+          const nt = { k: newK, x: newX, y: newY };
+          if(JSON.stringify(transform) !== JSON.stringify(nt)) {
+            requestAnimationFrame(() => {
+              setTransform(nt);
+              setZooming(true);
+            });
+          }
+        }
+      },1)
     }
-  }, [transform, dataPoints, width, orderZoomScale, setTransform, setZooming])
+  }, [
+    transform, 
+    dataPoints, 
+    mapWidth, 
+    mapHeight, 
+    setTransform, 
+    setZooming
+  ])
 
   const zoomBehavior = useMemo(() => {
     const extentMargin = Math.max(width/2, height/2)
@@ -513,18 +523,16 @@ const LinearGenome = ({
         [width + extentMargin, height + extentMargin]
       ])
     .scaleExtent(zoomExtent)
-      .on('zoom', handleZoom)
+      .on('zoom', (event) => handleZoomRef.current ? handleZoomRef.current(event) : null)
       .on('end', () => {
         setZooming(false);
       });
-  }, [width, height, zoomExtent, handleZoom, setZooming])
+  }, [width, height, zoomExtent, setZooming])
 
   useEffect(() => {
-    if (!svgRef.current || !xScaleRef.current) return;
+    if (!svgRef.current) return;
     const svg = select(svgRef.current);
     svg.call(zoomBehavior);
-    // zoomBehavior.transform(svg, zoomIdentity.translate(transform.x, 0).scale(transform.k));
-
     return () => {
       svg.on('.zoom', null);
     };
