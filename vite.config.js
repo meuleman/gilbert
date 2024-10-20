@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import topLevelAwait from "vite-plugin-top-level-await";
 import react from '@vitejs/plugin-react-swc'
 import svgr from "vite-plugin-svgr";
 import fixReactVirtualized from 'esbuild-plugin-react-virtualized'
@@ -17,7 +18,16 @@ export default defineConfig({
       }
     }
   },
-  plugins: [svgr(), react()],
+  plugins: [
+    topLevelAwait({
+      // The export name of top-level await promise for each chunk module
+      promiseExportName: "__tla",
+      // The function to generate import names of top-level await promise in each chunk module
+      promiseImportName: i => `__tla_${i}`
+    }),
+    svgr(), 
+    react()
+  ],
   assetsInclude: ['**/*.csv'],
   optimizeDeps: {
     esbuildOptions: {
