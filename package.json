@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "debug": "vite --debug",
     "build": "vite build",
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
@@ -40,7 +41,8 @@
     "react-tooltip": "^5.26.4",
     "react-window": "^1.8.10",
     "regl-scatterplot": "^1.8.5",
-    "vite-plugin-svgr": "^4.2.0"
+    "vite-plugin-svgr": "^4.2.0",
+    "vite-plugin-top-level-await": "^1.4.4"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",
