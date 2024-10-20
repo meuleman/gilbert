@@ -3,6 +3,8 @@ import { scaleLinear } from 'd3-scale';
 import { extent } from 'd3-array'
 import { select } from 'd3-selection';
 import { zoom, zoomIdentity } from 'd3-zoom';
+import { drag } from 'd3-drag';
+
 import { Tooltip } from 'react-tooltip'
 
 import Data from '../lib/data';
@@ -51,6 +53,14 @@ const LinearGenome = ({
 
   const canvasRef = useRef(null)
   const xScaleRef = useRef(null)
+
+  // map scales for zooming
+  let diff = useMemo(() => (mapWidth > mapHeight) ? mapWidth - mapHeight : mapHeight - mapWidth, [mapHeight, mapWidth]);
+  let mapXRange = useMemo(() => (mapWidth > mapHeight) ? [diff / 2, mapWidth - diff / 2] : [0, mapWidth], [mapHeight, mapWidth, diff])
+  let mapYRange = useMemo(() => (mapWidth > mapHeight) ? [0, mapHeight] : [diff / 2, mapHeight - diff / 2], [mapHeight, mapWidth, diff])
+  const mapXScale = useMemo(() => scaleLinear().domain([0, 5]).range(mapXRange), [mapXRange]); // TODO: HG xMin,xMax should be higher level constants
+  const mapYScale = useMemo(() => scaleLinear().domain([0, 5]).range(mapYRange), [mapYRange]);
+
 
   useEffect(() => {
     scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
@@ -104,14 +114,13 @@ const LinearGenome = ({
   // how am i going to scale things based on the actual order (orderRaw? or transform.k?)
   const render = useCallback((region, targetSize, data, metas, layer, points) => {
     if(canvasRef.current){
-      // console.log("rendering")
       // console.log("order zoom", order, transform.k, orderRaw)
-
 
       const ctx = canvasRef.current.getContext('2d');
       ctx.clearRect(0, 0, width, height)
 
-      if(region && points && points.length && Math.floor(orderRaw) == order && order == dataOrder) {
+      //  && Math.floor(orderRaw) == order && order == dataOrder
+      if(region && points && points.length) {
         // figure out scale factor
         const diff = orderRaw - order
         const scaleFactor = 1 + 3 * diff
@@ -473,34 +482,87 @@ const LinearGenome = ({
   const svgRef = useRef(null);
   const handleZoomRef = useRef(null);
 
+  const [isDragging, setIsDragging] = useState(false);
+  const lastMousePosition = useRef(null);
+
+
 
   // const handleZoom = useCallback((event) => {
   useEffect(() => {
     handleZoomRef.current = (event) => {
       zoomDebounce(() => new Promise((resolve, reject) => {resolve()}), () => {
         if(dataPoints?.length && xScaleRef.current) {
-          const { transform: newTransform } = event;
-          console.log("LG handleZoom", +new Date())
+          const { transform: newTransform, sourceEvent } = event;
           
-          const newK = newTransform.k
+          // Check if this is a drag event (mouse move with button pressed)
+          if (sourceEvent && sourceEvent.type === 'mousemove' && sourceEvent.buttons === 1) {
+            setIsDragging(true);
+            
+            const currentMousePosition = [sourceEvent.clientX, sourceEvent.clientY];
+            if (lastMousePosition.current) {
+              const dx = currentMousePosition[0] - lastMousePosition.current[0];
+              
+              const centerX = width / 2;
+              const oldPos = xScaleRef.current.invert(centerX);
+              const oldData = dataPoints.find(d => d.start <= oldPos && d.end >= oldPos);
+              const newCenterX = centerX - dx;
+              const newPos = xScaleRef.current.invert(newCenterX);
+              const newData = dataPoints.find(d => d.start <= newPos && d.end >= newPos);
+              console.log("centerx", centerX)
+              console.log("newcenter", newCenterX)
+              console.log("olddata", oldData)
+              console.log("newdata", newData)
+              if (newData?.i !== oldData?.i && newData?.chromosome == oldData?.chromosome) {
+                console.log("current transform", transform)
+                let newX = mapXScale(newData?.x)
+                let newY = mapYScale(newData?.y)
 
-          // Calculate the center point of the 2D map
-          const centerX = mapWidth / 2;
-          const centerY = mapHeight / 2;
-          
-          // Calculate the new transform for both 1D and 2D views
-          const newX = centerX - (centerX - transform.x) * (newK / transform.k);
-          const newY = centerY - (centerY - transform.y) * (newK / transform.k);
+                console.log("NEWX", newX, "NEWY", newY)
+                const mapCenterX = mapWidth/2
+                const mapCenterY = mapHeight/2
 
-          const nt = { k: newK, x: newX, y: newY };
-          if(JSON.stringify(transform) !== JSON.stringify(nt)) {
-            requestAnimationFrame(() => {
-              setTransform(nt);
-              setZooming(true);
-            });
+                const newTransform = {
+                  ...transform,
+                  x: mapCenterX - newX * transform.k,
+                  y: mapCenterY - newY * transform.k,
+                  // x: transform.x + (mapWidth/2 - newX) * transform.k,
+                  // y: transform.y + (mapHeight/2 - newY) * transform.k,
+                };
+                console.log("newTransform", newTransform)
+
+                requestAnimationFrame(() => {
+                  setTransform(newTransform);
+                  setZooming(true);
+                });
+              }
+            }
+            lastMousePosition.current = currentMousePosition;
+          } else {
+            const newK = newTransform.k
+
+            // Calculate the center point of the 2D map
+            const centerX = mapWidth / 2;
+            const centerY = mapHeight / 2;
+            
+            // Calculate the new transform for both 1D and 2D views
+            const newX = centerX - (centerX - transform.x) * (newK / transform.k);
+            const newY = centerY - (centerY - transform.y) * (newK / transform.k);
+
+            const nt = { k: newK, x: newX, y: newY };
+
+            let pos = xScaleRef.current.invert(centerX)
+            let data = dataPoints.filter(d => d.start <= pos && d.end >= pos)
+
+            if(data[0] && JSON.stringify(transform) !== JSON.stringify(nt)) {
+              requestAnimationFrame(() => {
+                setTransform(nt);
+                setZooming(true);
+              });
+            }
           }
+
         }
-      },1)
+      },10)
     }
   }, [
     transform, 
@@ -538,11 +600,10 @@ const LinearGenome = ({
     };
   }, [zoomBehavior]);
 
+  // update the SVG's transform when the transform changes
   useEffect(() => {
-    // zoomBehavior.transform(select(svgRef.current), transform)
     if(svgRef.current)
-    zoomBehavior.transform(select(svgRef.current), zoomIdentity.translate(transform.x, 0).scale(transform.k));
-
+      zoomBehavior.transform(select(svgRef.current), zoomIdentity.translate(transform.x, 0).scale(transform.k));
   }, [transform, zoomBehavior]);
 
 
@@ -552,6 +613,7 @@ const LinearGenome = ({
         ref={svgRef}
         onMouseMove={handleMouseMove}
         onClick={handleMouseClick}
+        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
         >
         {hoverData && <rect pointerEvents="none" width="2" height={height} x={hoverData.sx} fill="black" />}
       </svg>

@@ -343,16 +343,12 @@ const HilbertGenome = ({
 
   // Zoom event handler
   // This is responsible for setting up most of the rendering dependencies
-  const handleZoom = useCallback((event) => {
-    zoomDebounce(() => new Promise((resolve, reject) => {resolve()}), () => {
-      setTransform(event.transform)
-    },1)
-  }, [setTransform])
-
+  
   const handleTransform = useCallback((transform, order) => {
     // update the svg transform (zooms the svg)
+    const tr = zoomIdentity.translate(transform.x, transform.y).scale(transform.k)
     select(sceneRef.current)
-      .attr("transform", transform)
+      .attr("transform", tr)
     // calculate new state dependencies based on order and zoom 
     let hilbert = HilbertChromosome(order, { padding: 2 })
     let bbox = getBboxDomain(transform, xScale, yScale, width, height)    
@@ -374,8 +370,6 @@ const HilbertGenome = ({
   ]);
 
 
-
-
   useEffect(() => {
     // we want to fetch after every time the points recalculate
     // this will be often but the fetch is debounced
@@ -386,8 +380,6 @@ const HilbertGenome = ({
     state.metaLayer, 
     fetchData
   ])
-
-
 
   // we rerender the canvas anytime the transform or points change
   // but we only want to do it if they actually change
@@ -406,9 +398,11 @@ const HilbertGenome = ({
     if(hasTransformChanged || hasOrderChanged){
       // console.log("HG handleTransform", +new Date())
       handleTransform(transform, order)
+      // zoomBehavior.transform(select(svgRef.current), transform)
+      zoomBehavior.transform(select(svgRef.current), zoomIdentity.translate(transform.x, transform.y).scale(transform.k))
       prevOrder.current = order
     }
-  }, [transform, order, handleTransform]) 
+  }, [transform, order, handleTransform, zoomBehavior]) 
 
   // we re-render our canvas (with whatever data is currently in state)
   // this allows us to still show something while the data is loading
@@ -428,6 +422,12 @@ const HilbertGenome = ({
   }, [transform, state.points, state.data, renderCanvas])
 
   // setup the event handlers for zoom and attach it to the DOM
+  const handleZoom = useCallback((event) => {
+    zoomDebounce(() => new Promise((resolve, reject) => {resolve()}), () => {
+      setTransform(event.transform)
+    },1)
+  }, [setTransform])
+
   useEffect(() => {
     zoomBehavior
       .on("zoom", handleZoom)
@@ -440,10 +440,9 @@ const HilbertGenome = ({
   }, [zoomBehavior, selected, handleZoom])
 
   // run the zoom with the initial transform when the component mounts
-  // TODO: is this important?
-  useEffect(() => {
-    zoomBehavior.transform(select(svgRef.current), transform)
-  }, [width, height]);
+  // useEffect(() => {
+  //   zoomBehavior.transform(select(svgRef.current), transform)
+  // }, [width, height]);
 
 
 
