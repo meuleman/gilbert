@@ -5,14 +5,14 @@ const decoder = new TextDecoder('ascii');
 
 import nucleotides from "./nucleotides"
 import variants_apc from "./variants_apc"
-import variants_gwas from "./variants_gwas"
+import variants_ukbb_94 from "./variants_ukbb_94"
 import variants_categorical from "./variants_categorical"
 
 let layers = [
   nucleotides,
   variants_categorical,
   variants_apc,
-  variants_gwas,
+  variants_ukbb_94,
 ]
 
 function getProteinFunction(d) {
@@ -64,7 +64,7 @@ export default {
           retdata.clinvar_sig =  getClinVarSig(d.data)
         } else if(layer.datasetName == "variants_favor_apc"){
           retdata.conservation = getConservation(d.data)
-        } else if(layer.datasetName == "variants_gwas"){
+        } else if(layer.datasetName == "ukbb_94_traits"){
           retdata.gwas = getGWAS(d.data)
         }
         combined[i].data = retdata
