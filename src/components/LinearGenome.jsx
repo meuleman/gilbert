@@ -157,19 +157,16 @@ const LinearGenome = ({
         xScaleRef.current = xScale
 
         // Render the background points
-        ctx.strokeStyle = "gray"
-        ctx.lineWidth = 0.5
-        // ctx.fillStyle = "lightgray"
-        ctx.fillStyle = "white"
-        points.forEach(p => {
-          ctx.fillRect(xScale(p.start)+0.75, geneHeight, bw-1.5, trackHeight)
-          if(bw-1.5 > 1.5) {
-            ctx.strokeRect(xScale(p.start)+0.75, geneHeight, bw-1.5, trackHeight)
-          }
-        })
-        // console.log("POINTS bounds", points[0], region, points[points.length - 1] )
-        // console.log("POINTS", points)
-        // console.log("DATA", data)
+        // ctx.strokeStyle = "gray"
+        // ctx.lineWidth = 0.5
+        // ctx.fillStyle = "white"
+        // points.forEach(p => {
+        //   ctx.fillRect(xScale(p.start)+0.75, geneHeight, bw-1.5, trackHeight)
+        //   if(bw-1.5 > 1.5) {
+        //     ctx.strokeRect(xScale(p.start)+0.75, geneHeight, bw-1.5, trackHeight)
+        //   }
+        // })
+        
 
         // Render the "axis"
         // render the center point location
@@ -383,9 +380,9 @@ const LinearGenome = ({
       }
     })
     if(missing.length) {
-      // console.log("missing", missing)
+      console.log("missing", missing)
     }
-    // console.log("set data points")
+    console.log("set data points")
     setDataPoints(dataPoints)
   }, [data])
 
