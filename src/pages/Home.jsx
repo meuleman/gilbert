@@ -731,26 +731,26 @@ function Home() {
     showGenes, 
     highlightPath: true 
   })
-  const drawAnnotationRegionCenter = useCanvasAnnotationRegions(data?.center, "hover", { 
-    // if there is an activeSet and no paths in the hover, lets make it lightgray to indicate you can't click on it
-    stroke: "gray",
-    radiusMultiplier: 0.5, 
-    strokeWidthMultiplier: 0.05, 
-    showGenes, 
-    highlightPath: true 
-  })
+  // const drawAnnotationRegionCenter = useCanvasAnnotationRegions(data?.center, "hover", { 
+  //   // if there is an activeSet and no paths in the hover, lets make it lightgray to indicate you can't click on it
+  //   stroke: "gray",
+  //   radiusMultiplier: 0.5, 
+  //   strokeWidthMultiplier: 0.05, 
+  //   showGenes, 
+  //   highlightPath: true 
+  // })
   const canvasRenderers = useMemo(() => [
     drawActiveFilteredRegions,
     drawAllFilteredRegions,
     drawAnnotationRegionSelected,
     drawAnnotationRegionHover,
-    drawAnnotationRegionCenter,
+    // drawAnnotationRegionCenter,
   ], [
     drawActiveFilteredRegions,
     drawAllFilteredRegions,
     drawAnnotationRegionSelected,
     drawAnnotationRegionHover,
-    drawAnnotationRegionCenter,
+    // drawAnnotationRegionCenter,
   ]);
 
 
@@ -1219,7 +1219,7 @@ function Home() {
           <div className='linear-tracks'>
 
             <LinearGenome 
-              center={data?.center} 
+              // center={data?.center} 
               data={data?.data} 
               dataOrder={data?.dataOrder}
               layer={data?.layer}

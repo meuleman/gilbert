@@ -155,7 +155,18 @@ const HilbertGenome = ({
   const yScale = useMemo(() => scaleLinear().domain([yMin, yMax]).range(yRange), [yMin, yMax, yRange]);
   const sizeScale = useMemo(() => scaleLinear().domain([sizeMin, sizeMax]).range(sizeRange), [sizeMin, sizeMax, sizeRange]);
   // const orderZoomScale = useMemo(() =>  scaleLinear().domain(zoomExtent).range([1, Math.pow(2, orderDomain[1] - orderDomain[0] + 0.999)]), [orderDomain, zoomExtent])
-  const { transform, order, zooming, orderZoomScale, setTransform, setZooming } = useZoom();
+  const { 
+    transform, 
+    order, 
+    zooming, 
+    orderZoomScale, 
+    setTransform, 
+    setZooming, 
+    panning, 
+    setPanning,
+    center,
+    setCenter
+  } = useZoom();
 
 
   const scales = useMemo(() => ({ xScale, yScale, sizeScale, orderZoomScale, width, height }), [xScale, yScale, sizeScale, orderZoomScale, width, height])
@@ -340,10 +351,8 @@ const HilbertGenome = ({
     CanvasRenderers // TODO: memoize this
   ])
 
-
   // Zoom event handler
   // This is responsible for setting up most of the rendering dependencies
-  
   const handleTransform = useCallback((transform, order) => {
     // update the svg transform (zooms the svg)
     const tr = zoomIdentity.translate(transform.x, transform.y).scale(transform.k)
@@ -360,6 +369,7 @@ const HilbertGenome = ({
     }
     // update the state
     dispatch({ type: actions.ZOOM, payload })
+
     // update the parent component
     onZoom(payload)
     // we want to update our canvas renderer immediately with new transform
@@ -373,12 +383,16 @@ const HilbertGenome = ({
   useEffect(() => {
     // we want to fetch after every time the points recalculate
     // this will be often but the fetch is debounced
-    fetchData()
+    // console.log("fetchData", panning)
+    if(!panning) {
+      fetchData()
+    }
   }, [
     state.points, 
     state.metas, 
     state.metaLayer, 
-    fetchData
+    fetchData,
+    panning
   ])
 
   // we rerender the canvas anytime the transform or points change
@@ -424,17 +438,31 @@ const HilbertGenome = ({
   // setup the event handlers for zoom and attach it to the DOM
   const handleZoom = useCallback((event) => {
     zoomDebounce(() => new Promise((resolve, reject) => {resolve()}), () => {
+      const { sourceEvent } = event;
+      // Check if this is a drag event (mouse move with button pressed)
+      // If we drag, we are updating the 2D map center based on the data point 
+      if (sourceEvent && sourceEvent.type === 'mousemove' && sourceEvent.buttons === 1) {
+        setPanning(true)
+      }
+      setZooming(true)
       setTransform(event.transform)
     },1)
   }, [setTransform])
 
   useEffect(() => {
     zoomBehavior
-      .on("zoom", handleZoom)
+      .on("zoom", (event) => event?.sourceEvent ? handleZoom(event) : null)
       .filter((event) => {
         if(event.type === 'dblclick') return false
         if(selected && event.type === 'wheel') return false
         return true
+      })
+      .on("end", (event) => {
+        // console.log("zoom end", event)
+        if(event.sourceEvent) {
+          setPanning(false)
+          setZooming(false)
+        }
       })
     select(svgRef.current).call(zoomBehavior)
   }, [zoomBehavior, selected, handleZoom])
@@ -527,6 +555,13 @@ const HilbertGenome = ({
     }
   }, [state.data, order, transform, xScale, yScale, qt])
 
+  useEffect(() => {
+    if(!transform) return
+    let center = regionFromXY(width/2, height/2)
+    // console.log("center", center)
+    setCenter(center)
+  }, [transform, regionFromXY, width, height, setCenter])
+
   // when the data changes, let the parent component know
   useEffect(() => {
     if(!state.dataLayer) return
@@ -575,10 +610,6 @@ const HilbertGenome = ({
     if(clicked)
       onClick(clicked, order, false);
   }, [order, regionFromXY])
-
-  
-
-
 
   const handleDoubleClick = useCallback((event) => {
     if(!qt) return

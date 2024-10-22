@@ -21,7 +21,7 @@ const zoomDebounce = debouncer()
 import "./LinearGenome.css"
 
 const LinearGenome = ({
-  center = null, // center of the view, a region
+  // center = null, // center of the view, a region
   hover = null,
   data = [],
   dataOrder = null,
@@ -41,9 +41,13 @@ const LinearGenome = ({
     orderRaw, 
     zoomMin,
     zoomMax,
-    zooming, 
     setTransform, 
-    setZooming 
+    zooming, 
+    setZooming, 
+    panning,
+    setPanning,
+    center,
+    setCenter
   } = useZoom()
 
   let zoomExtent = useMemo(() => [zoomMin, zoomMax], [zoomMin, zoomMax])
@@ -76,38 +80,39 @@ const LinearGenome = ({
   const genes = useMemo(() => getGencodesInView(dataPoints, order, 100000000), [dataPoints, order])
 
   // grab the continuous data (and relevant metaddata) from the center of the map
-  const data1D = useMemo(() => {
-    if(!center) return []
-    let cdata = data.filter(d => d.chromosome === center.chromosome)
-    // console.log("cdata length", cdata.length)
-    let centerIndex = cdata.findIndex(d => d.i == center.i)
-    if (centerIndex === -1) return []
+  // const data1D = useMemo(() => {
+  //   console.log("recalc data1d", center, dataOrder)
+  //   if(!center) return []
+  //   let cdata = data.filter(d => d.chromosome === center.chromosome)
+  //   // console.log("cdata length", cdata.length)
+  //   let centerIndex = cdata.findIndex(d => d.i == center.i)
+  //   if (centerIndex === -1) return []
 
-    // get the continuous regions from the center
-    let left = centerIndex
-    let right = centerIndex
-    // Loop left
-    while (left > 0 && cdata[left - 1].i === cdata[left].i - 1) {
-      left--
-    }
-    // Loop right
-    while (right < cdata.length - 1 && cdata[right + 1].i === cdata[right].i + 1) {
-      right++
-    }
+  //   // get the continuous regions from the center
+  //   let left = centerIndex
+  //   let right = centerIndex
+  //   // Loop left
+  //   while (left > 0 && cdata[left - 1].i === cdata[left].i - 1) {
+  //     left--
+  //   }
+  //   // Loop right
+  //   while (right < cdata.length - 1 && cdata[right + 1].i === cdata[right].i + 1) {
+  //     right++
+  //   }
 
-    // console.log("left", centerIndex - left, "right", right - centerIndex, "length", right - left + 1)
-    return {
-      data: cdata.slice(left, right + 1),
-      metas: data.metas,
-      center,
-      cdata,
-      centerIndex,
-      left,
-      right,
-      order: dataOrder,
-      layer
-    }
-  }, [data, center, dataOrder, layer])
+  //   // console.log("left", centerIndex - left, "right", right - centerIndex, "length", right - left + 1)
+  //   return {
+  //     data: cdata.slice(left, right + 1),
+  //     metas: data.metas,
+  //     center,
+  //     cdata,
+  //     centerIndex,
+  //     left,
+  //     right,
+  //     order: dataOrder,
+  //     layer
+  //   }
+  // }, [data, center, dataOrder, layer])
 
 
   // depend on order or dataOrder? 
@@ -147,7 +152,6 @@ const LinearGenome = ({
           const normalizedX = (scaledX - centerX) / scaleFactor + centerX;
           return xs.invert(normalizedX);
         }
-        
 
         const bw = xScale(points[0].end) - xScale(points[0].start)
         xScaleRef.current = xScale
@@ -271,8 +275,6 @@ const LinearGenome = ({
             ctx.strokeStyle = "black";
             ctx.lineWidth = 2;
             ctx.stroke();
-
-            
           })
         })
 
@@ -325,7 +327,6 @@ const LinearGenome = ({
                 ctx.font = `${fs}px monospace`;
                 ctx.fillText(sample.value, x+bw/2 - .4*fs, y+trackHeight/2+.3*fs)
               }
-              
               // if(d.i == region.i){
               //   ctx.strokeRect(xScale(d.start)+1, 1, bw-2, height-2)
               // }
@@ -346,85 +347,124 @@ const LinearGenome = ({
     trackHeight, 
     axisHeight, 
     genes, 
-    dataOrder, 
     order, 
     orderRaw
   ])
 
+  const renderPointsRef = useRef(null)
   useEffect(() => {
-    // Calculate the data points we need for the track. We start with the data from the 2D map
-    // Then we target up to 250 regions left and right of the center
-    // we only request whats missing
-    // console.log("data1D", data1D)
-    if(!data1D || !data1D.data || !data1D.data.length) return
-    const layer = data1D.layer
-    const hilbert = new HilbertChromosome(data1D.order)
-    const dataClient = new Data()
+    if(!center) return
+    const hilbert = new HilbertChromosome(center.order)
+    let li = Math.max(center.i - targetRegions, 0)
+    let ri = Math.min(center.i + targetRegions, Math.pow(4, center.order))
+    let newLeftPoints = hilbert.fromRange(center.chromosome, li, center.i - 1)
+    let newRightPoints = hilbert.fromRange(center.chromosome, center.i + 1, ri)
+    // console.log("newLeftPoints", newLeftPoints)
+    // console.log("newRightPoints", newRightPoints)
+    let points = newLeftPoints.concat([center]).concat(newRightPoints)
+    // console.log("points", points)
+    setRenderPoints(points)
+    renderPointsRef.current = points
+  }, [center, targetRegions])
 
-    // find a target number of regions, based on the cdata length
-    let targetRegions = Math.floor(data1D.cdata.length/2)
-    if(targetRegions > 250) targetRegions = 250
-    setTargetRegions(targetRegions)
-    // console.log("target regions", targetRegions)
-    // we want to get more data if we dont have enough in either left or right
-    let leftDeficit = targetRegions - (data1D.centerIndex - data1D.left)
-    let rightDeficit = targetRegions - (data1D.right - data1D.centerIndex)
-    // console.log("leftDeficit", leftDeficit, "rightDeficit", rightDeficit)
-    let leftPoints = data1D.cdata.slice(data1D.left, data1D.centerIndex)
-    let rightPoints = data1D.cdata.slice(data1D.centerIndex, data1D.right + 1)
-      // console.log("right points before", rightPoints)
-    let newLeftPoints = []
-    let newRightPoints = []
-    if(leftDeficit > 0) {
-      // fetch data to fill in
-      let li = data1D.data[0].i
-      newLeftPoints = hilbert.fromRange(data1D.center.chromosome, li, Math.max(li - leftDeficit, 0))
-    } else if(leftDeficit < 0) {
-      leftPoints = leftPoints.slice(-leftDeficit)
-    }
-    if(rightDeficit > 0) {
-      // fetch data to fill in 
-      let ri = data1D.data[data1D.data.length - 1].i
-      // TODO: check max of chromosome
-      let orderMax = Math.pow(4, data1D.order)
-      newRightPoints = hilbert.fromRange(data1D.center.chromosome, ri, Math.min(ri + rightDeficit, orderMax))
-    } else if(rightDeficit < 0) {
-      rightPoints = data1D.cdata.slice(data1D.centerIndex, data1D.right + rightDeficit + 1)
-      // console.log("right points after", rightPoints)
-    }
-    let data = leftPoints.concat(rightPoints)
-    setDataPoints(data)
-    let newPoints = newLeftPoints.concat(newRightPoints)
-    let rps = newLeftPoints.concat(leftPoints).concat(rightPoints).concat(newRightPoints).sort((a,b) => a.i - b.i)
-    setRenderPoints(rps)
-    // render(data1D.center, targetRegions, data, data1D.metas, data1D.layer, renderPoints)
-
-    if(newPoints.length){
-      if(layer.layers) {
-        Promise.all(layer.layers.map(l => dataClient.fetchData(l, data1D.order, newPoints))).then((responses) => {
-          let data = layer.combiner(responses)
-            .concat(leftPoints).concat(rightPoints)
-            .sort((a,b) => a.i - b.i)
-          setDataPoints(data)
-          // render(data1D.center, targetRegions, data, data1D.metas, data1D.layer, renderPoints)
-          // console.log("data", data)
-        })
+  useEffect(() => {
+    if(!renderPointsRef.current || !data) return
+    // when data changes, we want to fetch any missing data for the render points we have
+    // console.log("renderPoints", renderPoints)
+    // console.log("data", data)
+    let missing = []
+    let dataPoints = []
+    renderPointsRef.current.forEach(p => {
+      let d = data.find(d => d.chromosome == p.chromosome && d.i == p.i)
+      if(d) {
+        dataPoints.push(d)
       } else {
-        dataClient.fetchData(layer, data1D.order, newPoints).then((response) => {
-          let data = response
-            .concat(leftPoints).concat(rightPoints)
-            .sort((a,b) => a.i - b.i)
-          setDataPoints(data)
-          // render(data1D.center, targetRegions, data, data1D.metas, data1D.layer, renderPoints)
-          // console.log("data", data)
-        })
+        missing.push(p)
       }
+    })
+    if(missing.length) {
+      // console.log("missing", missing)
     }
-  }, [data1D]) // only want this to change when data1D changes, so we pack everything in it
+    // console.log("set data points")
+    setDataPoints(dataPoints)
+  }, [data])
+
+  // useEffect(() => {
+  //   // Calculate the data points we need for the track. We start with the data from the 2D map
+  //   // Then we target up to 250 regions left and right of the center
+  //   // we only request whats missing
+  //   // console.log("data1D", data1D)
+  //   if(!data1D || !data1D.data || !data1D.data.length) return
+  //   const layer = data1D.layer
+  //   const hilbert = new HilbertChromosome(data1D.order)
+  //   const dataClient = new Data()
+
+  //   // find a target number of regions, based on the cdata length
+  //   let targetRegions = Math.floor(data1D.cdata.length/2)
+  //   if(targetRegions > 250) targetRegions = 250
+  //   setTargetRegions(targetRegions)
+  //   // console.log("target regions", targetRegions)
+  //   // we want to get more data if we dont have enough in either left or right
+  //   let leftDeficit = targetRegions - (data1D.centerIndex - data1D.left)
+  //   let rightDeficit = targetRegions - (data1D.right - data1D.centerIndex)
+  //   // console.log("leftDeficit", leftDeficit, "rightDeficit", rightDeficit)
+  //   let leftPoints = data1D.cdata.slice(data1D.left, data1D.centerIndex)
+  //   let rightPoints = data1D.cdata.slice(data1D.centerIndex, data1D.right + 1)
+  //     // console.log("right points before", rightPoints)
+  //   let newLeftPoints = []
+  //   let newRightPoints = []
+  //   if(leftDeficit > 0) {
+  //     // fetch data to fill in
+  //     let li = data1D.data[0].i
+  //     newLeftPoints = hilbert.fromRange(data1D.center.chromosome, li, Math.max(li - leftDeficit, 0))
+  //   } else if(leftDeficit < 0) {
+  //     leftPoints = leftPoints.slice(-leftDeficit)
+  //   }
+  //   if(rightDeficit > 0) {
+  //     // fetch data to fill in 
+  //     let ri = data1D.data[data1D.data.length - 1].i
+  //     // TODO: check max of chromosome
+  //     let orderMax = Math.pow(4, data1D.order)
+  //     newRightPoints = hilbert.fromRange(data1D.center.chromosome, ri, Math.min(ri + rightDeficit, orderMax))
+  //   } else if(rightDeficit < 0) {
+  //     rightPoints = data1D.cdata.slice(data1D.centerIndex, data1D.right + rightDeficit + 1)
+  //     // console.log("right points after", rightPoints)
+  //   }
+  //   let data = leftPoints.concat(rightPoints)
+  //   setDataPoints(data)
+  //   let newPoints = newLeftPoints.concat(newRightPoints)
+  //   let rps = newLeftPoints.concat(leftPoints).concat(rightPoints).concat(newRightPoints).sort((a,b) => a.i - b.i)
+  //   // setRenderPoints(rps)
+  //   // render(data1D.center, targetRegions, data, data1D.metas, data1D.layer, renderPoints)
+
+  //   if(newPoints.length){
+  //     if(layer.layers) {
+  //       Promise.all(layer.layers.map(l => dataClient.fetchData(l, data1D.order, newPoints))).then((responses) => {
+  //         let data = layer.combiner(responses)
+  //           .concat(leftPoints).concat(rightPoints)
+  //           .sort((a,b) => a.i - b.i)
+  //         setDataPoints(data)
+  //         // render(data1D.center, targetRegions, data, data1D.metas, data1D.layer, renderPoints)
+  //         // console.log("data", data)
+  //       })
+  //     } else {
+  //       dataClient.fetchData(layer, data1D.order, newPoints).then((response) => {
+  //         let data = response
+  //           .concat(leftPoints).concat(rightPoints)
+  //           .sort((a,b) => a.i - b.i)
+  //         setDataPoints(data)
+  //         // render(data1D.center, targetRegions, data, data1D.metas, data1D.layer, renderPoints)
+  //         // console.log("data", data)
+  //       })
+  //     }
+  //   }
+  // }, [data1D]) // only want this to change when data1D changes, so we pack everything in it
   
   useEffect(() => {
-    render(data1D.center, targetRegions, dataPoints, data1D.metas, data1D.layer, renderPoints) 
-  }, [targetRegions, renderPoints, dataPoints, data1D, render])
+    // console.log("render", data.metas, layer, renderPoints)
+    if(data && data.metas && layer)
+      render(center, targetRegions, dataPoints, data.metas, layer, renderPoints) 
+  }, [targetRegions, renderPoints, dataPoints, center, data, layer, render])
 
 
   const [hoverData, setHoverData] = useState(null)
@@ -452,8 +492,11 @@ const LinearGenome = ({
   useEffect(() => {
     // console.log("hover updated")
     let hd = processHover(hover)
+    if(center && panning) {
+      hd = processHover(center)
+    }
     setHoverData(hd)
-  }, [hover, processHover])
+  }, [center, hover, processHover, panning])
 
   const zoom2D = useCallback((hit) => {
     let newX = mapXScale(hit?.x)
@@ -471,6 +514,7 @@ const LinearGenome = ({
   }, [mapWidth, mapHeight, mapXScale, mapYScale, transform])
 
   const handleMouseMove = useCallback((event) => {
+    if(panning) return
     if(xScaleRef.current) {
       const rect = event.target.getBoundingClientRect();
       const ex = event.clientX - rect.x; // x position within the element.
@@ -481,10 +525,11 @@ const LinearGenome = ({
       setHoverData(hd)
       onHover(hd)
     }
-  }, [dataPoints, processHover, onHover])
+  }, [dataPoints, processHover, onHover, panning])
 
   const handleMouseClick = useCallback((event) => {
     console.log("clicked", event)
+    if(panning) return
     if(xScaleRef.current) {
       const rect = event.target.getBoundingClientRect();
       const ex = event.clientX - rect.x; // x position within the element.
@@ -498,12 +543,11 @@ const LinearGenome = ({
         setTransform(newTransform)
       }
     }
-  }, [dataPoints, processHover, zoom2D, setTransform])
+  }, [dataPoints, processHover, zoom2D, setTransform, panning])
 
   const svgRef = useRef(null);
   const handleZoomRef = useRef(null);
 
-  const [isDragging, setIsDragging] = useState(false);
   const dragAnchor = useRef(null);
 
   // const handleZoom = useCallback((event) => {
@@ -512,21 +556,22 @@ const LinearGenome = ({
       zoomDebounce(() => new Promise((resolve, reject) => {resolve()}), () => {
         if(dataPoints?.length && xScaleRef.current) {
           const { transform: newTransform, sourceEvent } = event;
+          // console.log("1D handleZoomRef")
           
           // Check if this is a drag event (mouse move with button pressed)
           // If we drag, we are updating the 2D map center based on the data point 
           if (sourceEvent && sourceEvent.type === 'mousemove' && sourceEvent.buttons === 1) {
-            setIsDragging(true);
+            setPanning(true);
+            setZooming(true);
             
             const currentMousePosition = [sourceEvent.clientX, sourceEvent.clientY];
             if (!dragAnchor.current) {
-              dragAnchor.current = {
-                mouse: currentMousePosition,
-                data: dataPoints.find(d => d.start <= xScaleRef.current.invert(width / 2) && d.end >= xScaleRef.current.invert(width / 2))
-              };
+              dragAnchor.current = currentMousePosition
             }
 
-            const dx = currentMousePosition[0] - dragAnchor.current.mouse[0];
+            // console.log("1d dragging", dragAnchor.current[0], currentMousePosition[0])
+
+            const dx = currentMousePosition[0] - dragAnchor.current[0];
           
             const centerX = width / 2;
             const oldPos = xScaleRef.current.invert(centerX);
@@ -535,16 +580,24 @@ const LinearGenome = ({
             const newPos = xScaleRef.current.invert(newCenterX);
             const newData = dataPoints.find(d => d.start <= newPos && d.end >= newPos);
             if (newData?.i !== oldData?.i && newData?.chromosome == oldData?.chromosome) {
+              // console.log("dragging", newData, oldData)
               const newTransform = zoom2D(newData)
+              dragAnchor.current[0] += dx
 
               requestAnimationFrame(() => {
                 setTransform(newTransform);
-                setZooming(true);
+                // let hd = processHover(newData)
+                // console.log("dragging hd", hd)
+                // setHoverData(hd)
+                // onHover(hd)
               });
             }
           } else {
             // handling the zoom via scroll
+            console.log("1d zooming")
             dragAnchor.current = null;
+            setPanning(false);
+            setZooming(true);
 
             const newK = newTransform.k
 
@@ -564,13 +617,12 @@ const LinearGenome = ({
             if(data[0] && JSON.stringify(transform) !== JSON.stringify(nt)) {
               requestAnimationFrame(() => {
                 setTransform(nt);
-                setZooming(true);
               });
             }
           }
 
         }
-      },10)
+      },1)
     }
   }, [
     transform, 
@@ -580,7 +632,10 @@ const LinearGenome = ({
     mapHeight,
     setTransform, 
     setZooming,
-    zoom2D
+    zoom2D,
+    setPanning,
+    onHover,
+    processHover,
   ])
 
   const zoomBehavior = useMemo(() => {
@@ -595,11 +650,16 @@ const LinearGenome = ({
         [width + extentMargin, height + extentMargin]
       ])
     .scaleExtent(zoomExtent)
-      .on('zoom', (event) => handleZoomRef.current ? handleZoomRef.current(event) : null)
-      .on('end', () => {
-        setZooming(false);
+      .on('zoom', (event) => handleZoomRef.current && event.sourceEvent ? handleZoomRef.current(event) : null)
+      .on('end', (event) => {
+        // console.log("1d zoom end", event)
+        if(event.sourceEvent) {
+          setZooming(false);
+          setPanning(false);
+          dragAnchor.current = null;
+        }
       });
-  }, [width, height, zoomExtent, setZooming])
+  }, [width, height, zoomExtent, setZooming, setPanning])
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -612,8 +672,9 @@ const LinearGenome = ({
 
   // update the SVG's transform when the transform changes
   useEffect(() => {
-    if(svgRef.current)
+    if(svgRef.current) {
       zoomBehavior.transform(select(svgRef.current), zoomIdentity.translate(transform.x, 0).scale(transform.k));
+    }
   }, [transform, zoomBehavior]);
 
 
@@ -623,7 +684,7 @@ const LinearGenome = ({
         ref={svgRef}
         onMouseMove={handleMouseMove}
         onClick={handleMouseClick}
-        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        style={{ cursor: panning ? 'grabbing' : 'grab' }}
         >
         {hoverData && <rect pointerEvents="none" width="2" height={height} x={hoverData.sx} fill="black" />}
       </svg>

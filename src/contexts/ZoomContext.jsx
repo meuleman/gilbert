@@ -11,10 +11,12 @@ export function ZoomProvider({ children}) {
   const zoomMax = 4000
 
   const [transform, setTransform] = useState(zoomIdentity);
+  const [panning, setPanning] = useState(false);
   const [order, setOrder] = useState(orderMin);
   const [orderOffset, setOrderOffset] = useState(0);
   const previousOrderRef = useRef(order);
   const [zooming, setZooming] = useState(false);
+  const [center, setCenter] = useState(null);
 
   const orderZoomScale = useMemo(() => 
     scaleLinear()
@@ -43,6 +45,8 @@ export function ZoomProvider({ children}) {
   const value = {
     transform,
     setTransform,
+    panning,
+    setPanning,
     order,
     orderRaw,
     setOrder,
@@ -50,6 +54,8 @@ export function ZoomProvider({ children}) {
     setOrderOffset,
     zooming,
     setZooming,
+    center,
+    setCenter,
     orderZoomScale,
     orderMin,
     orderMax,
