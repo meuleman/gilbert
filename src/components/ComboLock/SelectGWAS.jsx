@@ -109,10 +109,10 @@ const SelectGWAS = memo(({
     let gf = gwas.fields.map((f, i) => {
       // let field = makeField(variants_gwas_rank, f, 14);  // temporary fix until gwas layer with correct number of fields
       let field = {  // temporary fix until gwas layer with correct number of fields
-        id: "gwas_full_data_rank:" + i, 
+        id: "ukbb_94_traits:" + i, 
         // layer: l, 
-        datasetName: "gwas_full_data_rank",
-        label: f + " " + "gwas_full_data_rank",
+        datasetName: "ukbb_94_traits",
+        label: f + " " + "ukbb_94_traits",
         field: f,
         index: i, 
         color: "black",
@@ -120,7 +120,7 @@ const SelectGWAS = memo(({
       }
       field.i = i;
       // field.count = gwas.counts[i];
-      field.count = oc.counts["gwas_full_data_rank"][field.index]  // temporary fix until gwas layer with correct number of fields
+      field.count = oc.counts["ukbb_94_traits"][field.index]  // temporary fix until gwas layer with correct number of fields
       if(field.field.length > 50) {
         field.label = '⚫️ ' + field.field.slice(0,50) + "..."
       } else {
