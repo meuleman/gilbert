@@ -10,6 +10,7 @@ import Variants_aPC from './variants_apc'
 import Variants_aPC_rank from './variants_rank_apc'
 import Variants_GWAS from './variants_gwas'
 import Variants_GWAS_rank from './variants_rank_gwas'
+import variants_ukbb_94 from './variants_ukbb_94'
 import DHS_OE_Chi from './dhs_oe_chi'
 // import DHS_Components_Sfc from './dhs_components_sfc'  // removed from s3
 import DHS_Components_Sfc_max from './dhs_components_sfc_max'
@@ -45,8 +46,8 @@ import tf_motifs_1en6_occ from './tf_motifs_1en6_occ'
 import tf_motifs_1en6_rank_occ from './tf_motifs_1en6_rank_occ'
 // import DHS_mapped_TF_motifs_sfc from './dhs_mapped_tf_motifs_sfc'  // removed from s3
 // import DHS_mapped_TF_motifs_sfc_max from './dhs_mapped_tf_motifs_sfc_max'  // removed from s3
-import UKBB from './ukbb'
-import UKBB_Counts from './ukbb_counts'
+// import UKBB from './ukbb'
+// import UKBB_Counts from './ukbb_counts'
 // import Repeats_Sfc from './repeats_sfc'  // removed from s3
 // import Repeats_Sfc_max from './repeats_sfc_max'  // removed from s3
 import Repeats_enr from './repeats_enr'
@@ -78,6 +79,7 @@ const fullList = [
   Variants_aPC_rank,
   Variants_GWAS,
   Variants_GWAS_rank,
+  variants_ukbb_94,
   // DHS_OE_Chi,
   // DHS_Components_Sfc,
   // DHS_Components_Sfc_max,
@@ -123,8 +125,8 @@ const fullList = [
   Repeats_enr_counts,
   Repeats_occ,
   Repeats_rank_occ,
-  UKBB,
-  UKBB_Counts,
+  // UKBB,
+  // UKBB_Counts,
   // CpG_Island_Density,
   ENCSR000EOT,
   CD3,
