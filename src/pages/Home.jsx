@@ -1228,6 +1228,9 @@ function Home() {
               mapHeight={height}
               hover={hover}
               onHover={handleHover}
+              onClick={(hit) => {
+                setRegion(hit)
+              }}
               />
 
             {/* {selected  && <RegionStrip region={selected} segments={100} layer={layer} width={width} height={40} /> }

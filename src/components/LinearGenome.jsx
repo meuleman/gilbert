@@ -30,7 +30,8 @@ const LinearGenome = ({
   height = 100,
   mapWidth = 640,
   mapHeight = 640,
-  onHover = () => {}
+  onHover = () => {},
+  onClick = () => {}
 } = {}) => {
 
   const { 
@@ -454,6 +455,21 @@ const LinearGenome = ({
     setHoverData(hd)
   }, [hover, processHover])
 
+  const zoom2D = useCallback((hit) => {
+    let newX = mapXScale(hit?.x)
+    let newY = mapYScale(hit?.y)
+
+    const mapCenterX = mapWidth/2
+    const mapCenterY = mapHeight/2
+
+    const newTransform = {
+      ...transform,
+      x: mapCenterX - newX * transform.k,
+      y: mapCenterY - newY * transform.k,
+    };
+    return newTransform
+  }, [mapWidth, mapHeight, mapXScale, mapYScale, transform])
+
   const handleMouseMove = useCallback((event) => {
     if(xScaleRef.current) {
       const rect = event.target.getBoundingClientRect();
@@ -476,16 +492,19 @@ const LinearGenome = ({
       let data = dataPoints.filter(d => d.start <= x && d.end >= x)
       let hd = processHover(data[0])
       console.log("clicked", hd)
+      // onClick(hd, hd.order)
+      if(hd) {
+        const newTransform = zoom2D(hd)
+        setTransform(newTransform)
+      }
     }
-  }, [dataPoints, processHover])
+  }, [dataPoints, processHover, zoom2D, setTransform])
 
   const svgRef = useRef(null);
   const handleZoomRef = useRef(null);
 
   const [isDragging, setIsDragging] = useState(false);
   const dragAnchor = useRef(null);
-
-
 
   // const handleZoom = useCallback((event) => {
   useEffect(() => {
@@ -516,17 +535,7 @@ const LinearGenome = ({
             const newPos = xScaleRef.current.invert(newCenterX);
             const newData = dataPoints.find(d => d.start <= newPos && d.end >= newPos);
             if (newData?.i !== oldData?.i && newData?.chromosome == oldData?.chromosome) {
-              let newX = mapXScale(newData?.x)
-              let newY = mapYScale(newData?.y)
-
-              const mapCenterX = mapWidth/2
-              const mapCenterY = mapHeight/2
-
-              const newTransform = {
-                ...transform,
-                x: mapCenterX - newX * transform.k,
-                y: mapCenterY - newY * transform.k,
-              };
+              const newTransform = zoom2D(newData)
 
               requestAnimationFrame(() => {
                 setTransform(newTransform);
@@ -534,6 +543,7 @@ const LinearGenome = ({
               });
             }
           } else {
+            // handling the zoom via scroll
             dragAnchor.current = null;
 
             const newK = newTransform.k
@@ -565,10 +575,12 @@ const LinearGenome = ({
   }, [
     transform, 
     dataPoints, 
-    mapWidth, 
-    mapHeight, 
+    width,
+    mapWidth,
+    mapHeight,
     setTransform, 
-    setZooming
+    setZooming,
+    zoom2D
   ])
 
   const zoomBehavior = useMemo(() => {
