@@ -83,7 +83,7 @@ const ActiveRegionSetModal = ({
             <span>Active filters: </span>
             <span className="active-filters-list">
             {listFilters().map(f => <span key={f.label}>
-              <span style={{"display": "inline-block", "background-color": f.color, "width": "10px", "height": "10px", "margin-right":"4px"}}>
+              <span style={{"display": "inline-block", "backgroundColor": f.color, "width": "10px", "height": "10px", "marginRight":"4px"}}>
               </span>
               {f.label} ({showKbOrder(f.order)})</span>)}
             </span>
