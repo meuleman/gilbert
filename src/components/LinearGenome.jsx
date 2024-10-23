@@ -79,45 +79,6 @@ const LinearGenome = ({
 
   const genes = useMemo(() => getGencodesInView(dataPoints, order, 100000000), [dataPoints, order])
 
-  // grab the continuous data (and relevant metaddata) from the center of the map
-  // const data1D = useMemo(() => {
-  //   console.log("recalc data1d", center, dataOrder)
-  //   if(!center) return []
-  //   let cdata = data.filter(d => d.chromosome === center.chromosome)
-  //   // console.log("cdata length", cdata.length)
-  //   let centerIndex = cdata.findIndex(d => d.i == center.i)
-  //   if (centerIndex === -1) return []
-
-  //   // get the continuous regions from the center
-  //   let left = centerIndex
-  //   let right = centerIndex
-  //   // Loop left
-  //   while (left > 0 && cdata[left - 1].i === cdata[left].i - 1) {
-  //     left--
-  //   }
-  //   // Loop right
-  //   while (right < cdata.length - 1 && cdata[right + 1].i === cdata[right].i + 1) {
-  //     right++
-  //   }
-
-  //   // console.log("left", centerIndex - left, "right", right - centerIndex, "length", right - left + 1)
-  //   return {
-  //     data: cdata.slice(left, right + 1),
-  //     metas: data.metas,
-  //     center,
-  //     cdata,
-  //     centerIndex,
-  //     left,
-  //     right,
-  //     order: dataOrder,
-  //     layer
-  //   }
-  // }, [data, center, dataOrder, layer])
-
-
-  // depend on order or dataOrder? 
-  // allow the useeffect to update when render updates?
-  // how am i going to scale things based on the actual order (orderRaw? or transform.k?)
   const render = useCallback((region, targetSize, data, metas, layer, points) => {
     if(canvasRef.current){
       // console.log("order zoom", order, transform.k, orderRaw)
@@ -128,7 +89,7 @@ const LinearGenome = ({
       //  && Math.floor(orderRaw) == order && order == dataOrder
       if(region && points && points.length) {
         // figure out scale factor
-        const diff = orderRaw - order
+        const diff = orderRaw - region.order
         const scaleFactor = 1 + 3 * diff
         // Set up the x scale for the whole track
         const bpbw = points[0].end - points[0].start
@@ -157,15 +118,20 @@ const LinearGenome = ({
         xScaleRef.current = xScale
 
         // Render the background points
-        // ctx.strokeStyle = "gray"
-        // ctx.lineWidth = 0.5
+        ctx.strokeStyle = "gray"
+        ctx.lineWidth = 0.5
         // ctx.fillStyle = "white"
-        // points.forEach(p => {
+
+        points.forEach(p => {
+          ctx.beginPath();
+          ctx.moveTo(xScale(p.start)+0.75, trackHeight + geneHeight)
+          ctx.lineTo(xScale(p.end)+0.75, trackHeight + geneHeight)
+          ctx.stroke()
         //   ctx.fillRect(xScale(p.start)+0.75, geneHeight, bw-1.5, trackHeight)
         //   if(bw-1.5 > 1.5) {
         //     ctx.strokeRect(xScale(p.start)+0.75, geneHeight, bw-1.5, trackHeight)
         //   }
-        // })
+        })
         
 
         // Render the "axis"
@@ -348,27 +314,27 @@ const LinearGenome = ({
     orderRaw
   ])
 
+  // we update the renderpoints when the center changes
+  // we also track the centerRef that updates as long as we are in the same data order
+  const centerRef = useRef(null)
   const renderPointsRef = useRef(null)
   useEffect(() => {
-    if(!center) return
+    // don't update the points if the center has advanced past the data order
+    if(!center || center.order !== dataOrder) return
+    centerRef.current = center
     const hilbert = new HilbertChromosome(center.order)
     let li = Math.max(center.i - targetRegions, 0)
     let ri = Math.min(center.i + targetRegions, Math.pow(4, center.order))
     let newLeftPoints = hilbert.fromRange(center.chromosome, li, center.i - 1)
     let newRightPoints = hilbert.fromRange(center.chromosome, center.i + 1, ri)
-    // console.log("newLeftPoints", newLeftPoints)
-    // console.log("newRightPoints", newRightPoints)
     let points = newLeftPoints.concat([center]).concat(newRightPoints)
-    // console.log("points", points)
     setRenderPoints(points)
     renderPointsRef.current = points
-  }, [center, targetRegions])
+  }, [center, targetRegions, dataOrder])
 
+  // when data changes, we want to match them to the current 1D points
   useEffect(() => {
     if(!renderPointsRef.current || !data) return
-    // when data changes, we want to fetch any missing data for the render points we have
-    // console.log("renderPoints", renderPoints)
-    // console.log("data", data)
     let missing = []
     let dataPoints = []
     renderPointsRef.current.forEach(p => {
@@ -380,88 +346,18 @@ const LinearGenome = ({
       }
     })
     if(missing.length) {
-      console.log("missing", missing)
+      // console.log("missing", missing)
     }
-    console.log("set data points")
+    // console.log("set data points")
     setDataPoints(dataPoints)
   }, [data])
 
-  // useEffect(() => {
-  //   // Calculate the data points we need for the track. We start with the data from the 2D map
-  //   // Then we target up to 250 regions left and right of the center
-  //   // we only request whats missing
-  //   // console.log("data1D", data1D)
-  //   if(!data1D || !data1D.data || !data1D.data.length) return
-  //   const layer = data1D.layer
-  //   const hilbert = new HilbertChromosome(data1D.order)
-  //   const dataClient = new Data()
-
-  //   // find a target number of regions, based on the cdata length
-  //   let targetRegions = Math.floor(data1D.cdata.length/2)
-  //   if(targetRegions > 250) targetRegions = 250
-  //   setTargetRegions(targetRegions)
-  //   // console.log("target regions", targetRegions)
-  //   // we want to get more data if we dont have enough in either left or right
-  //   let leftDeficit = targetRegions - (data1D.centerIndex - data1D.left)
-  //   let rightDeficit = targetRegions - (data1D.right - data1D.centerIndex)
-  //   // console.log("leftDeficit", leftDeficit, "rightDeficit", rightDeficit)
-  //   let leftPoints = data1D.cdata.slice(data1D.left, data1D.centerIndex)
-  //   let rightPoints = data1D.cdata.slice(data1D.centerIndex, data1D.right + 1)
-  //     // console.log("right points before", rightPoints)
-  //   let newLeftPoints = []
-  //   let newRightPoints = []
-  //   if(leftDeficit > 0) {
-  //     // fetch data to fill in
-  //     let li = data1D.data[0].i
-  //     newLeftPoints = hilbert.fromRange(data1D.center.chromosome, li, Math.max(li - leftDeficit, 0))
-  //   } else if(leftDeficit < 0) {
-  //     leftPoints = leftPoints.slice(-leftDeficit)
-  //   }
-  //   if(rightDeficit > 0) {
-  //     // fetch data to fill in 
-  //     let ri = data1D.data[data1D.data.length - 1].i
-  //     // TODO: check max of chromosome
-  //     let orderMax = Math.pow(4, data1D.order)
-  //     newRightPoints = hilbert.fromRange(data1D.center.chromosome, ri, Math.min(ri + rightDeficit, orderMax))
-  //   } else if(rightDeficit < 0) {
-  //     rightPoints = data1D.cdata.slice(data1D.centerIndex, data1D.right + rightDeficit + 1)
-  //     // console.log("right points after", rightPoints)
-  //   }
-  //   let data = leftPoints.concat(rightPoints)
-  //   setDataPoints(data)
-  //   let newPoints = newLeftPoints.concat(newRightPoints)
-  //   let rps = newLeftPoints.concat(leftPoints).concat(rightPoints).concat(newRightPoints).sort((a,b) => a.i - b.i)
-  //   // setRenderPoints(rps)
-  //   // render(data1D.center, targetRegions, data, data1D.metas, data1D.layer, renderPoints)
-
-  //   if(newPoints.length){
-  //     if(layer.layers) {
-  //       Promise.all(layer.layers.map(l => dataClient.fetchData(l, data1D.order, newPoints))).then((responses) => {
-  //         let data = layer.combiner(responses)
-  //           .concat(leftPoints).concat(rightPoints)
-  //           .sort((a,b) => a.i - b.i)
-  //         setDataPoints(data)
-  //         // render(data1D.center, targetRegions, data, data1D.metas, data1D.layer, renderPoints)
-  //         // console.log("data", data)
-  //       })
-  //     } else {
-  //       dataClient.fetchData(layer, data1D.order, newPoints).then((response) => {
-  //         let data = response
-  //           .concat(leftPoints).concat(rightPoints)
-  //           .sort((a,b) => a.i - b.i)
-  //         setDataPoints(data)
-  //         // render(data1D.center, targetRegions, data, data1D.metas, data1D.layer, renderPoints)
-  //         // console.log("data", data)
-  //       })
-  //     }
-  //   }
-  // }, [data1D]) // only want this to change when data1D changes, so we pack everything in it
   
   useEffect(() => {
     // console.log("render", data.metas, layer, renderPoints)
-    if(data && data.metas && layer)
-      render(center, targetRegions, dataPoints, data.metas, layer, renderPoints) 
-  }, [targetRegions, renderPoints, dataPoints, center, data, layer, render])
+    if(centerRef.current && data && data.metas && layer)
+      render(centerRef.current, targetRegions, dataPoints, data.metas, layer, renderPoints) 
+  }, [targetRegions, renderPoints, dataPoints, data, layer, render])
 
 
   const [hoverData, setHoverData] = useState(null)
