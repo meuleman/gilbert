@@ -513,7 +513,7 @@ export {
 
 // logic to determine which variant is the most important from a list of variants
 export function variantChooser(variants) {
-  let gwas = variants.filter(d => d.layer.datasetName == "variants_gwas_rank")
+  let gwas = variants.filter(d => d.layer.datasetName == "ukbb_94_traits")
   if(gwas.length) return gwas.sort((a,b) => b.topField.value - a.topField.value)[0]
   let categories = variants.filter(d => d.layer.datasetName == "variants_favor_categorical_rank")
   if(categories.length) return categories.sort((a,b) => b.topField.value - a.topField.value)[0]

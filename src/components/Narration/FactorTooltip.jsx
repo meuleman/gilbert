@@ -57,6 +57,10 @@ function tooltipContent(region, layer, orientation) {
 
   // Full set of GWAS associations
   let GWAS = region.GWAS ? region.GWAS : []
+  // remove the preferred factor
+  GWAS = (fields && layer) ? GWAS.filter(
+    d => fields.find(f => !(f.field === d.trait && layer.name === "Variants (UKBB, 94 Traits)"))
+  ) : GWAS
 
   
   return (
@@ -116,7 +120,7 @@ function tooltipContent(region, layer, orientation) {
             {g.trait} 
           </span>
           <span>
-            {g.mlog_pvalue.toFixed(2)}
+            {g.score.toFixed(2)}
           </span>
         </div>
       ))}
