@@ -60,7 +60,7 @@ const RegionsProvider = ({ children }) => {
   const defaultTopRegions = 100
   const [numTopRegions, setNumTopRegions] = useState(defaultTopRegions)
   useEffect(() => {
-    setNumTopRegions(Math.min(activeRegions?.length, defaultTopRegions))
+    setNumTopRegions(Math.min(activeRegions?.length || 0, defaultTopRegions) || 0)
   }, [activeRegions])
 
   useEffect(() => {

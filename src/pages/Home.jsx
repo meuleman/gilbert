@@ -60,7 +60,7 @@ import { fullList as layers, csnLayers, variantLayers, countLayers } from '../la
 
 // import RegionFilesSelect from '../components/Regions/RegionFilesSelect'
 // autocomplete
-import Autocomplete from '../components/Autocomplete/Autocomplete'
+// import Autocomplete from '../components/Autocomplete/Autocomplete'
 import GeneSearch from '../components/GeneSearch'
 
 // region SimSearch
@@ -508,7 +508,7 @@ function Home() {
 
   
   const onData = useCallback((payload) => {
-    console.log("data payload", payload)
+    // console.log("data payload", payload)
     setData(payload)
     // setHover(payload.center)
 
@@ -731,26 +731,26 @@ function Home() {
     showGenes, 
     highlightPath: true 
   })
-  const drawAnnotationRegionCenter = useCanvasAnnotationRegions(data?.center, "hover", { 
-    // if there is an activeSet and no paths in the hover, lets make it lightgray to indicate you can't click on it
-    stroke: "gray",
-    radiusMultiplier: 0.5, 
-    strokeWidthMultiplier: 0.05, 
-    showGenes, 
-    highlightPath: true 
-  })
+  // const drawAnnotationRegionCenter = useCanvasAnnotationRegions(data?.center, "hover", { 
+  //   // if there is an activeSet and no paths in the hover, lets make it lightgray to indicate you can't click on it
+  //   stroke: "gray",
+  //   radiusMultiplier: 0.5, 
+  //   strokeWidthMultiplier: 0.05, 
+  //   showGenes, 
+  //   highlightPath: true 
+  // })
   const canvasRenderers = useMemo(() => [
     drawActiveFilteredRegions,
     drawAllFilteredRegions,
     drawAnnotationRegionSelected,
     drawAnnotationRegionHover,
-    drawAnnotationRegionCenter,
+    // drawAnnotationRegionCenter,
   ], [
     drawActiveFilteredRegions,
     drawAllFilteredRegions,
     drawAnnotationRegionSelected,
     drawAnnotationRegionHover,
-    drawAnnotationRegionCenter,
+    // drawAnnotationRegionCenter,
   ]);
 
 
@@ -1219,13 +1219,18 @@ function Home() {
           <div className='linear-tracks'>
 
             <LinearGenome 
-              center={data?.center} 
+              // center={data?.center} 
               data={data?.data} 
               dataOrder={data?.dataOrder}
               layer={data?.layer}
               width={width} height={100} 
+              mapWidth={width}
+              mapHeight={height}
               hover={hover}
               onHover={handleHover}
+              onClick={(hit) => {
+                setRegion(hit)
+              }}
               />
 
             {/* {selected  && <RegionStrip region={selected} segments={100} layer={layer} width={width} height={40} /> }

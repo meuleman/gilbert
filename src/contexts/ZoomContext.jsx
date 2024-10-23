@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, useMemo, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { scaleLinear } from 'd3-scale';
 import { zoomIdentity } from 'd3-zoom';
+import { interpolateObject } from 'd3-interpolate';
+import { easeCubicInOut } from 'd3-ease';
 
 const ZoomContext = createContext();
 
@@ -11,10 +13,12 @@ export function ZoomProvider({ children}) {
   const zoomMax = 4000
 
   const [transform, setTransform] = useState(zoomIdentity);
+  const [panning, setPanning] = useState(false);
   const [order, setOrder] = useState(orderMin);
   const [orderOffset, setOrderOffset] = useState(0);
   const previousOrderRef = useRef(order);
   const [zooming, setZooming] = useState(false);
+  const [center, setCenter] = useState(null);
 
   const orderZoomScale = useMemo(() => 
     scaleLinear()
@@ -40,9 +44,41 @@ export function ZoomProvider({ children}) {
     }
   }, [transform, orderZoomScale, orderMin, orderMax, orderOffset, orderRaw]);
 
+  const easeZoom = useCallback((oldTransform,newTransform, callback, duration = 750, ease = easeCubicInOut, rateLimit = 1) => {
+    const startTime = Date.now();
+    const interpolator = interpolateObject(oldTransform, newTransform);
+    // console.log("interpolator", interpolator(0.5))
+    let lastUpdateTime = 0;
+
+    const animate = () => {
+      const currentTime = Date.now();
+      const elapsed = Date.now() - startTime;
+      const t = Math.min(1, elapsed / duration);
+      const easedT = ease(t);
+      // console.log("t", t, easedT, elapsed/duration)
+      
+      if (currentTime - lastUpdateTime >= rateLimit) {
+        let newT = interpolator(easedT)
+        // console.log("newT", newT)
+        setTransform(newT);
+        lastUpdateTime = currentTime;
+      }
+
+      if (t < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        callback()
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [setTransform])
+
   const value = {
     transform,
     setTransform,
+    panning,
+    setPanning,
     order,
     orderRaw,
     setOrder,
@@ -50,11 +86,14 @@ export function ZoomProvider({ children}) {
     setOrderOffset,
     zooming,
     setZooming,
+    center,
+    setCenter,
     orderZoomScale,
     orderMin,
     orderMax,
     zoomMin,
     zoomMax,
+    easeZoom
   };
 
   return <ZoomContext.Provider value={value}>{children}</ZoomContext.Provider>;

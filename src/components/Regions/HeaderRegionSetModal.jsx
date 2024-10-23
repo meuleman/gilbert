@@ -60,7 +60,7 @@ const HeaderRegionSetModal = ({
         {activeRegions?.length ? 
         <div className="query-controls">
           <label>
-            <span className="header-active-count" data-tooltip-id="header-active-count">{numTopRegions}</span> / <span>{activeRegions?.length} (
+            <span className="header-active-count" data-tooltip-id="header-active-count">{numTopRegions || ""}</span> / <span>{activeRegions?.length} (
              {activeRegions?.[0] ? showKbOrder(activeRegions?.[0]?.order) : ""}) regions</span>
             <Tooltip id="header-active-count">
               {numTopRegions} top regions used in visualizations
@@ -68,9 +68,9 @@ const HeaderRegionSetModal = ({
             <input 
               type="range" 
               min="1" 
-              max={Math.min(activeRegions?.length, 100)}
+              max={Math.min(activeRegions?.length || 0, 100)}
               step={1}
-              value={numTopRegions|| 0} 
+              value={numTopRegions || 0} 
               onChange={handleNumTopRegions} 
             />
           </label>
