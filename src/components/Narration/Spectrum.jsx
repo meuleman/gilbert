@@ -82,8 +82,7 @@ const Spectrum = ({
   const Curve = ({ data, ctx, xScale, yScale, height, color }) => {
 
     // Function to draw the y-axis with ticks
-    const drawYAxis = (ctx, yScale, yAxisStart, yAxisStop, tickCount = 6) => {
-      const tickInterval = (yAxisStop - yAxisStart) / tickCount;
+    const drawYAxis = (ctx, yScale, yAxisStart, yAxisStop, estTickCount = 6) => {
       const tickLength = 5; // Length of the tick marks
 
       ctx.strokeStyle = '#000'; // Axis color
@@ -97,13 +96,12 @@ const Spectrum = ({
 
       const maxValue = Math.max(...data);
       const minValue = Math.min(...data);
-      const step = Math.ceil((maxValue - minValue) / (tickCount));
-      const yTicks = Array.from({ length: tickCount }, (v, i) => minValue + i * step);
+      const step = Math.ceil((maxValue - minValue) / (estTickCount));
+      const yTicks = Array.from({ length: estTickCount }, (v, i) => minValue + i * step).filter(d => d <= maxValue);
       
       // Draw the ticks and labels
-      yTicks.forEach((value, i) => {
+      yTicks.forEach((value) => {
         const y = yScale(value)
-        // console.log("value", value)
 
         ctx.beginPath();
         ctx.moveTo(xScale(0) - tickLength, y);
