@@ -73,7 +73,8 @@ const YC240322 = () => {
   const [points, setPoints] = useState(null)
 
   const [order, setOrder] = useState("all") // 4 to 12 or all
-  const orders = ["all", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+  // const orders = ["all", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+  const orders = ["all", "12"]
   const [layerColumn, setLayerColumn] = useState("all") // "DHS", "TF", "chromatin_states", "all"
   const layerColumns = ["all", "DHS", "TF", "chromatin_states"]
 
@@ -125,7 +126,8 @@ const YC240322 = () => {
     if(conn) {
       console.log("query umap")
       setLoading(true)
-      conn.query("SELECT * FROM 'https://storage.googleapis.com/fun-data/hilbert/YC240322/YC240322_umap_coords.parquet'").then((res) => {
+      // conn.query("SELECT * FROM 'https://storage.googleapis.com/fun-data/hilbert/YC240322/YC240322_umap_coords.parquet'").then((res) => {
+      conn.query("SELECT * FROM 'https://resources.altius.org/~ychoi/20241016_gilbert_umap/YC20241017-umap.parquet'").then((res) => {
         console.log("got rows")
         let rows = res.toArray().map(Object.fromEntries)
           .map(d => {
@@ -159,16 +161,17 @@ const YC240322 = () => {
     if(conn) {
       console.log("querying annotations", order)
       setLoading(true)
-      conn.query(`SELECT * FROM 'https://storage.googleapis.com/fun-data/hilbert/YC240322/YC240322_annot-${order}.parquet'`).then((res) => {
+      // conn.query(`SELECT * FROM 'https://storage.googleapis.com/fun-data/hilbert/YC240322/YC240322_annot-${order}.parquet'`).then((res) => {
+      conn.query(`SELECT * FROM 'https://resources.altius.org/~ychoi/20241016_gilbert_umap/YC20241017-annot-${order}.parquet'`).then((res) => {
         console.log("got rows", order)
         let rows = res.toArray().map(Object.fromEntries)
         .map(d => {
           const keys = Object.keys(d)
           return {
-            DHS: d[keys[0]],
-            TF: d[keys[1]],
+            DHS: d[keys[1]],
+            TF: d[keys[0]],
             all: d[keys[2]],
-            chromatin_states: d[keys[3]],
+            chromatin_states: d[keys[2]],
           }
         })
         console.log("annotations", rows)
@@ -258,7 +261,7 @@ const YC240322 = () => {
   }, [selected, umap])
 
   const [sharedFactor, setSharedFactor] = useState(null)
-  const [sharedFactorLoading, setSharedFactorLoading] = useState(false)
+  const [sharedFactorLoading, setSharedFactorLoading] = useState(null)
   useEffect(() => {
     if(selectedRegionSample.length > 0){
       let url = "https://explore.altius.org:5001/get_shared_factor"
@@ -286,6 +289,38 @@ const YC240322 = () => {
       });
     }
   }, [selectedRegionSample])
+
+  const [GroupNarration, setGroupNarration] = useState(null)
+  const [GroupNarrationLoading, setGroupNarrationLoading] = useState(null)
+  useEffect(() => {
+    if(selectedRegionSample.length > 0){
+      let url = "https://explore.altius.org:5001/narrate_regions"
+      const postBody = {
+        chr_strs: selectedRegionSample.map(d => d.chromosome + ":" + d.start + "-" + d.end),
+      };
+      console.log(postBody)
+      setGroupNarrationLoading(true)
+      const getGroupNarration = axios({
+        method: 'POST',
+        url: url,
+        data: postBody
+      }).then((response) => {
+          const GroupNarrationData = response.data
+          const GroupNarration = GroupNarrationData.ComponentNarration
+          const GroupNarrationSupport = GroupNarrationData.Support
+          console.log("Grouped Narration", GroupNarration, GroupNarrationSupport)
+          setGroupNarration(GroupNarration)
+          setGroupNarrationLoading(false)
+      })
+      .catch((err) => {
+        console.error(`error:     ${JSON.stringify(err)}`);
+        console.error(`post body: ${JSON.stringify(postBody)}`);
+      });
+    }
+  }, [selectedRegionSample])
+
+
+
 
   const [hover, setHover] = useState(null)
   useEffect(() => {
@@ -332,11 +367,6 @@ const YC240322 = () => {
     drawSelectedRegionSample,
     drawAnnotationRegionHover,
   ]);
-
-
-
-
-
 
   return (
     <div className="umap-grid">
@@ -448,10 +478,15 @@ const YC240322 = () => {
           <div className="selected-header">
             <button onClick={() => setSelected([])}>Clear</button>
             <span className="selected-count">Showing {selected.slice(0, 1000).length} of {selected.length}</span>
-            
-            <span>{sharedFactorLoading ? " Loading..." : sharedFactor}</span>
-
           </div>
+
+          {/* <div>{GroupNarrationLoading ? " Loading..." : GroupNarration}</div> */}
+
+          {GroupNarration && GroupNarration.map((narration, index) => (
+            <span key={index}>{narration}{index < GroupNarration.length - 1 ? ', ' : ''}</span>
+          ))}
+
+
           {selected.slice(0, 1000).map((d) => {
             let region = fromPosition(umap[d].chromosome, umap[d].start, umap[d].end)
             return <div className="selected-region" key={d}>

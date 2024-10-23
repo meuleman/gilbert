@@ -119,8 +119,8 @@ const InspectorGadget = ({
       console.log("IG: gwas response", gwasRepsonse)
       console.log("IG: full data response", fullDataResponse)
       const csnGWAS = gwasRepsonse[0]['trait_names'].map((trait, i) => {
-        return {trait: trait, mlog_pvalue: gwasRepsonse[0]['scores'][i], pvalue: 10 ** -(gwasRepsonse[0]['scores'][i])}
-      }).sort((a,b) => b.mlog_pvalue - a.mlog_pvalue)
+        return {trait: trait, score: gwasRepsonse[0]['scores'][i]}
+      }).sort((a,b) => b.score - a.score)
       // add GWAS associations to the full data response
       let csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14)
       csnOrder14Segment ? csnOrder14Segment["GWAS"] = csnGWAS : null
