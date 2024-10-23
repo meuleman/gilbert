@@ -309,8 +309,8 @@ const Spectrum = ({
 
   // console.log("Spectrum render")
   return (
-    <div className={"spectrum-component" + (show ? " show": " hide")} style={{ height: height + 'px', width: width + 'px' }}>
-      <div style={{ position: 'relative' }}>
+    <div className={"spectrum-component" + (show ? " show": " hide")} >
+      <div style={{ position: 'relative', width: width + 'px', height: height + 'px' }}>
         <canvas ref={canvasRef} width={width} height={height}/>
         <Tooltip geneset={tooltip.content} x={tooltip.x} y={tooltip.y} visible={tooltip.visible} />
 
