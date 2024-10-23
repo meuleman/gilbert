@@ -1,5 +1,5 @@
 import { showFloat, showInt, showPosition, showKb } from '../../lib/display';
-import { csnLayerList } from '../../layers'
+import { csnLayerList, fullDataLayers } from '../../layers'
 import './FactorTooltip.css'
 
 import { csnLayerList as layers } from '../../layers'
@@ -43,7 +43,7 @@ function tooltipContent(region, layer, orientation) {
   // console.log("FULL DATA", region, region.fullData)
   let fullData = region.fullData ? Object.keys(region.fullData).map(key => {
     let [layerIndex, fieldIndex] = key.split(",")
-    let layer = layers[+layerIndex]
+    let layer = fullDataLayers[+layerIndex]
     let field = layer.fieldColor.domain()[+fieldIndex]
     let count = (region.counts && (region.counts[layerIndex]?.length)) ? region.counts[layerIndex][fieldIndex] : null
     return { layer, field, value: region.fullData[key], count }

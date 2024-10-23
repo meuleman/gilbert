@@ -2,7 +2,7 @@ import axios from "axios";
 import Data from './data';
 import { count, range } from 'd3-array';
 
-import { fullList as layers, countLayers, csnLayerList, rehydrate } from '../layers'
+import { fullList as layers, countLayers, fullDataLayers, rehydrate } from '../layers'
 
 import calculateCrossScaleNarration from './calculateCSN'
 import { HilbertChromosome, hilbertPosToOrder } from "./HilbertChromosome";
@@ -162,7 +162,7 @@ function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
     let counts = {}
     let data = {}
 
-    let orderAcrossLayers = Promise.all(csnLayerList.map((layer, l) => {
+    let orderAcrossLayers = Promise.all(fullDataLayers.map((layer, l) => {
       // if the layer includes current order
       if((layer.orders[0] <= order) && (layer.orders[1] >= order)) {
         // get hilbert ranges
@@ -213,7 +213,7 @@ function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
       p['counts'] = counts
       if(p.field && !p.field.value) {
         // set the value from the fullData
-        let li = csnLayerList.indexOf(p.layer)
+        let li = fullDataLayers.indexOf(p.layer)
         p.field.value = fullData[`${li},${p.field.index}`]
       }
       // p['data'] = data
