@@ -1222,6 +1222,7 @@ function Home() {
               // center={data?.center} 
               data={data?.data} 
               dataOrder={data?.dataOrder}
+              activeRegions={activeRegionsByCurrentOrder}
               layer={data?.layer}
               width={width} height={100} 
               mapWidth={width}

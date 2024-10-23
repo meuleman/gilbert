@@ -9,7 +9,7 @@ import { Tooltip } from 'react-tooltip'
 
 import Data from '../lib/data';
 import scaleCanvas from '../lib/canvas'
-import { HilbertChromosome } from '../lib/HilbertChromosome';
+import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome';
 import { debouncer } from '../lib/debounce'
 import { defaultContent } from './Tooltips/Content';
 import { getGencodesInView } from '../lib/Genes';
@@ -25,6 +25,7 @@ const LinearGenome = ({
   hover = null,
   data = [],
   dataOrder = null,
+  activeRegions = new Map(),
   layer = null,
   width = 640,
   height = 100,
@@ -79,7 +80,7 @@ const LinearGenome = ({
 
   const genes = useMemo(() => getGencodesInView(dataPoints, order, 100000000), [dataPoints, order])
 
-  const render = useCallback((region, targetSize, data, metas, layer, points) => {
+  const render = useCallback((region, targetSize, data, metas, layer, points, activeRegions) => {
     if(canvasRef.current){
       // console.log("order zoom", order, transform.k, orderRaw)
 
@@ -299,6 +300,36 @@ const LinearGenome = ({
           ctx.lineWidth = 1;
           ctx.strokeRect(xScale(region.start), geneHeight, bw, trackHeight-1)
         }
+
+        // Render the active regions
+        if(activeRegions.size) {
+          let o = region.order
+          // for each region in view, lets see if it shows up in the rbos
+          const inTop = points.map(d => {
+            let di = d.i
+            if(d.order > o) {
+              di = hilbertPosToOrder(d.i, {from: d.order, to: o}) 
+            }
+            let t = activeRegions.get(d.chromosome + ":" + di)
+            if(t) {
+              return {...d, path: { 
+                i: d.i,
+                count: t.length
+              }}
+            } else {
+              return null
+            }
+          }).filter(d => d)
+          // console.log("inTop", inTop)
+
+          // render the active regions
+          inTop.map(d => {
+            ctx.fillStyle = "orange"
+            ctx.beginPath();
+            ctx.arc(Math.round(xScale(d.start) + bw/2), geneHeight + trackHeight + 4, bw/4, 0, 2 * Math.PI);
+            ctx.fill();
+          })
+        }
       } else {
         xScaleRef.current = null
       }
@@ -355,9 +386,10 @@ const LinearGenome = ({
   
   useEffect(() => {
     // console.log("render", data.metas, layer, renderPoints)
-    if(centerRef.current && data && data.metas && layer)
-      render(centerRef.current, targetRegions, dataPoints, data.metas, layer, renderPoints) 
-  }, [targetRegions, renderPoints, dataPoints, data, layer, render])
+    if(centerRef.current && data && data.metas && layer) {
+      render(centerRef.current, targetRegions, dataPoints, data.metas, layer, renderPoints, activeRegions) 
+    }
+  }, [targetRegions, renderPoints, dataPoints, data, layer, render, activeRegions])
 
 
   const [hoverData, setHoverData] = useState(null)
