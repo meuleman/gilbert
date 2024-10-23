@@ -165,7 +165,8 @@ const HilbertGenome = ({
     panning, 
     setPanning,
     center,
-    setCenter
+    setCenter,
+    easeZoom
   } = useZoom();
 
 
@@ -474,8 +475,7 @@ const HilbertGenome = ({
 
 
 
-  const zoomToBox = useMemo(() => {
-    return (x0,y0,x1,y1,pinnedOrder) => {
+  const zoomToBox = useCallback((x0,y0,x1,y1,pinnedOrder) => {
       // TODO the multipliers should be based on aspect ratio
       const xOffset =  (width/height)*2
       const yOffset = -(width/height)*2
@@ -485,27 +485,42 @@ const HilbertGenome = ({
       let xw = xScale(xScale.domain()[1] - xScale.domain()[0])
       // we zoom to 1/4 the scale of the hit
       let scale = xw/tw/4
-      let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
+      let newTransform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
       if(pinnedOrder) {
         scale = orderZoomScale.invert(Math.pow(2,(pinnedOrder - orderDomain[0] + 0.99)))
-        transform = zoomIdentity.translate(-tx * scale + xw/2, -ty * scale + xw/2).scale(scale)
+        newTransform = zoomIdentity.translate(-tx * scale + xw/2, -ty * scale + xw/2).scale(scale)
       }
 
+      setZooming(true)
+      // TODO: using prevTransformRef becuase it should be the most recent transform at this point
+      easeZoom(prevTransformRef.current, newTransform, () => setZooming(false), zoomDuration)
       // we may want to control what happens while programming the zoom
-      dispatch({ type: actions.ZOOMING, payload: { zooming: true } })
+      // dispatch({ type: actions.ZOOMING, payload: { zooming: true } })
       // transitionStarted()
-      select(svgRef.current)
-        .transition()
-        .ease(easePolyOut)
-        .duration(zoomDuration)
-        .call(zoomBehavior.transform, transform)
-        .on("end", () => {
-            // console.log("zoom finished")
-            dispatch({ type: actions.ZOOMING, payload: { zooming: false} })
-        })
-      // transitionFinished()
-    }
-  }, [width, height, xScale, yScale, sizeScale, svgRef, zoomDuration, zoomBehavior, orderZoomScale, orderDomain])
+      // select(svgRef.current)
+      //   .transition()
+      //   .ease(easePolyOut)
+      //   .duration(zoomDuration)
+      //   .call(zoomBehavior.transform, transform)
+      //   .on("end", () => {
+      //       // console.log("zoom finished")
+      //       setZooming(false)
+      //       // dispatch({ type: actions.ZOOMING, payload: { zooming: false} })
+      //   })
+      // // transitionFinished()
+  }, [
+    width, 
+    height, 
+    xScale, 
+    yScale, 
+    sizeScale, 
+    zoomDuration,
+    // zoomBehavior, 
+    orderZoomScale, 
+    orderDomain,
+    setZooming,
+    easeZoom
+  ])
 
   useEffect(() => {
     if(zoomToRegion) {

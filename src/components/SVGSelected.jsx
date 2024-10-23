@@ -26,7 +26,7 @@ export default function SVGBBox({
     let { dataOrder, order } = state
     const { xScale, yScale, sizeScale } = scales
 
-    let stateOrder = order
+    let stateOrder = dataOrder
 
     order = hit.order
     if(type == "hover") order = stateOrder
@@ -105,7 +105,7 @@ export default function SVGBBox({
             d={path(range)} 
             key={i}
             stroke={stroke} 
-            strokeWidth={sw} 
+            strokeWidth={sw || 0} 
             strokeLinejoin="round"
             strokeLinecap="round"
             fill="none"

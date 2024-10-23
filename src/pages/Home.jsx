@@ -60,7 +60,7 @@ import { fullList as layers, csnLayers, variantLayers, countLayers } from '../la
 
 // import RegionFilesSelect from '../components/Regions/RegionFilesSelect'
 // autocomplete
-import Autocomplete from '../components/Autocomplete/Autocomplete'
+// import Autocomplete from '../components/Autocomplete/Autocomplete'
 import GeneSearch from '../components/GeneSearch'
 
 // region SimSearch
