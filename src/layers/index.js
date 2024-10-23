@@ -290,6 +290,7 @@ const countLayers = [
 const csnLayerList = csnLayers.concat(variantLayers).concat(countLayers)
 // we have a separate function to retrieve full GWAS data
 const fullDataLayers = csnLayerList.filter(d => d.datasetName != "ukbb_94_traits")
+const GWASLayer = fullList.find(d => d.datasetName == "ukbb_94_traits")
 
 function rehydrate(index, list) {
   if(index < 0) return null
@@ -380,6 +381,7 @@ export {
   countLayers,
   csnLayerList,
   fullDataLayers,
+  GWASLayer,
   fieldMapping,
   rehydrate,
   fields,

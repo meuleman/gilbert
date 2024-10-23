@@ -1,4 +1,5 @@
 import axios from "axios";
+import { GWASLayer } from '../layers'
 
 // * ================================================================
 // * Server side API calls
@@ -21,6 +22,7 @@ function fetchGWASforPositions(positions) {
     url: url,
     data: postBody
   }).then(response => {
+    response.data.forEach(d => { d["layer"] = GWASLayer })
     // console.log("DATA", response.data)
     return response.data
   }).catch(error => {

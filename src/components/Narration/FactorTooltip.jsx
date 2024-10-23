@@ -59,8 +59,13 @@ function tooltipContent(region, layer, orientation) {
   let GWAS = region.GWAS ? region.GWAS : []
   // remove the preferred factor
   GWAS = (fields && layer) ? GWAS.filter(
-    d => fields.find(f => !(f.field === d.trait && layer.name === "Variants (UKBB, 94 Traits)"))
+    d => fields.find(f => !(f.field === d.trait && layer.name === d.layer.name))
   ) : GWAS
+
+  // combine GWAS and fullData into the same list
+  let otherFactors = fullData.concat(GWAS.slice(0, 10)).map(d => {
+    return { field: d.field || d.trait, value: d.value || d.score, count: d.count, layer: d.layer }
+  }).sort((a,b) => b.value - a.value)
 
   
   return (
@@ -94,12 +99,12 @@ function tooltipContent(region, layer, orientation) {
           <span>-</span>
         </div>
       )}
-      {fullData.length > 0 && (
+      {otherFactors.length > 0 && (
         <span style={{ borderBottom: "1px solid gray", padding: "4px", margin: "4px 0", fontStyle: 'italic', fontSize: '11pt' }}>
           Other factors
         </span>
       )}
-      {fullData.map((f, i) => (
+      {otherFactors.map((f, i) => (
         <div key={i} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <span className="tooltip-factor-name" style={{ display: 'flex', alignItems: 'center' }}>
             <span style={{ color: f.layer.fieldColor(f.field), marginRight: '4px' }}>⏺</span>
@@ -109,18 +114,6 @@ function tooltipContent(region, layer, orientation) {
           <span>
             {typeof f.value == "number" ? showFloat(f.value) : f.value}
             {typeof f.count == "number" && ` (${showInt(f.count)})`}
-          </span>
-        </div>
-      ))}
-      {GWAS.length ? <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>GWAS</span> : null}
-      {GWAS.slice(0, 10).map((g,i) => (
-        <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-          <span className="tooltip-factor-name"  >
-            <span style={{color: "#000000", marginRight: '4px'}}>⏺</span>
-            {g.trait} 
-          </span>
-          <span>
-            {g.score.toFixed(2)}
           </span>
         </div>
       ))}
