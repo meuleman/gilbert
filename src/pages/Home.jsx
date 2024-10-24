@@ -217,9 +217,17 @@ function Home() {
   // if we have filters in the url, show the filter modal on loading
   const anyFilters = Object.keys(parseFilters(initialFilters || "[]")).length > 0
   const [showFilter, setShowFilter] = useState(anyFilters)
+  const [showFactorPreview, setShowFactorPreview] = useState(false)
   const handleChangeShowFilter = useCallback((e) => {
     setShowFilter(!showFilter)
   }, [showFilter])
+
+  useEffect(() => {
+    // turn on showfilter if showfactorpreview is on
+    if(showFactorPreview) {
+      setShowFilter(showFactorPreview)
+    }
+  }, [showFactorPreview])
   
     
 
@@ -926,16 +934,16 @@ function Home() {
           </div> */}
           <div className="header--search">
             <div className="filter-button">
-              <button className={`filter-button ${showFilter ? 'active' : null}`}
+              <button className={`filter-button ${showFactorPreview ? 'active' : null}`}
                 data-tooltip-id="filter-button-tooltip"
                 data-tooltip-content="Filter regions by factor"
-                onClick={() => setShowFilter(!showFilter)}
+                onClick={() => setShowFactorPreview(!showFactorPreview)}
               >
                 <FilterOutlined />
               </button>
               <Tooltip id="filter-button-tooltip"></Tooltip>
             </div>
-            {showFilter ? 
+            {showFactorPreview? 
               <SelectFactorPreview 
                 activeWidth={400}
                 restingWidth={400}
