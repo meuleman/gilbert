@@ -399,6 +399,7 @@ const LinearGenome = ({
     let hd = null
     if(hover && xScaleRef.current) {
       let bw = xScaleRef.current(hover?.end) - xScaleRef.current(hover?.start)
+      if(bw < 0) bw = 0;
       let sx = xScaleRef.current(hover?.start) + bw/2
       // we allow for hover thats out of range to indicate at the edges
       if(sx < 0) sx = 0

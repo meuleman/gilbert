@@ -8,6 +8,6 @@
   position: absolute;
   top: 0;
   left: 0;
-  border: 1px solid orange;
+  border: 1px solid lightgray;
   pointer-events: none;
 }
