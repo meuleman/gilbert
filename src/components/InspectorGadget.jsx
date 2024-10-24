@@ -11,6 +11,7 @@ import Loading from './Loading'
 import { scaleLinear } from 'd3-scale'
 import { retrieveFullDataForCSN, variantChooser } from '../lib/csn'
 import { fetchGWASforPositions } from '../lib/gwas'
+import { fetchGenesetEnrichment } from '../lib/genesetEnrichment'
 import { makeField } from '../layers'
 
 import './InspectorGadget.css'
@@ -113,17 +114,24 @@ const InspectorGadget = ({
 
     Promise.all([
       retrieveFullDataForCSN(narration),
-      fetchGWASforPositions([{chromosome: narration.chromosome, index: narration.i}])
-    ]).then(([fullDataResponse, gwasRepsonse]) => {
+      fetchGWASforPositions([{chromosome: narration.chromosome, index: narration.i}]),
+      fetchGenesetEnrichment(narration.genes.map(g => g.name), true)
+    ]).then(([fullDataResponse, gwasRepsonse, genesetResponse]) => {
       // refactor GWAS response
       // console.log("IG: gwas response", gwasRepsonse)
       // console.log("IG: full data response", fullDataResponse)
+      // console.log("IG: geneset response", genesetResponse)
+      // parse GWAS response
       const csnGWAS = gwasRepsonse[0]['trait_names'].map((trait, i) => {
         return {trait: trait, score: gwasRepsonse[0]['scores'][i], layer: gwasRepsonse[0]['layer']}
       }).sort((a,b) => b.score - a.score)
       // add GWAS associations to the full data response
       let csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14)
       csnOrder14Segment ? csnOrder14Segment["GWAS"] = csnGWAS : null
+      // add geneset memberships to the full data response
+      const csnGenesets = genesetResponse.map((g) => g.geneset)
+      fullDataResponse['genesets'] = csnGenesets
+
       console.log("IG: full narration", fullDataResponse)
       setFullNarration(fullDataResponse)
       setLoadingFullNarration(false)

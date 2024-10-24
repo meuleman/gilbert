@@ -292,7 +292,7 @@ const RegionsProvider = ({ children }) => {
   // calculate geneset enrichment for genes in paths
   useEffect(() => {
     if(genesInPaths.length) {
-      fetchGenesetEnrichment(genesInPaths)
+      fetchGenesetEnrichment(genesInPaths, false)
       .then((response) => {
         setActiveGenesetEnrichment(response)
       }).catch((e) => {
