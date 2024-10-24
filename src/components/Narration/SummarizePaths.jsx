@@ -1,10 +1,38 @@
 // A component to display narration when clicking over hilbert cells
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { groups } from 'd3-array'
 import {Tooltip} from 'react-tooltip';
 import { showKbOrder } from '../../lib/display'
 import './SummarizePaths.css'
+
+
+const FactorBar = (factor, index) => {
+  return (
+
+    <div key={"factor-" + index}
+    className='path-summary-factor'
+    >
+      <div
+        data-tooltip-id={`factor-tooltip-${index}`}
+        data-tooltip-html={`${factor.field}<br>${factor.layerName}<br>Count: ${factor.count}<br>Orders: ${factor.topOrders?.map(o => `${showKbOrder(o[0])}: ${o[1].length}`).join(', ')}`}
+      >
+      <div className="path-summary-factor-percent"
+        style={{
+          width: `${factor.count / factor.total * 100}%`,
+          backgroundColor: factor.color,
+        }}>
+      </div>
+      <div className="path-summary-factor-name">
+        <span>{factor.field} ({showKbOrder(factor.order)})</span>
+        <span>{Math.round(factor.count / factor.total * 100)}%</span>
+      </div>
+
+      </div>
+      <Tooltip key={`tooltip-factor-${index}`} id={`factor-tooltip-${index}`} />
+    </div>
+  )
+}
 
 const SummarizePaths = ({
   topFullCSNS,
@@ -34,7 +62,7 @@ const SummarizePaths = ({
         return { field, layerName, count, color, topOrders, order: topOrders[0][0], total: topFullCSNS.length }
       })
       .sort((a, b) => b.count - a.count)
-      .slice(0, N)
+      // .slice(0, N)
 
     // add top N factors to the summary
     if (topFactors.length) {
@@ -45,31 +73,24 @@ const SummarizePaths = ({
 
   }, [topFullCSNS, N])
 
+  const groupedFactors = useMemo(() => {
+    let filtered = topFactors.filter(f => f.count / f.total > 0.10)
+    return groups(filtered, d => d.layerName).sort((a, b) => b[1][0].count - a[1][0].count)
+  }, [topFactors])
+
   return (
     <div className={'path-summary' + (show ? ' show' : ' hide')}>
       {!topFactors?.length && <div>No factors found</div>}
-      {topFactors?.map((factor, index) => (
-        <div key={"factor-" + index}
-          className='path-summary-factor'
-          data-tooltip-id={`factor-tooltip-${index}`}
-          data-tooltip-html={`${factor.field}<br>${factor.layerName}<br>Count: ${factor.count}<br>Orders: ${factor.topOrders?.map(o => `${showKbOrder(o[0])}: ${o[1].length}`).join(', ')}`}
-        >
-          <div className="path-summary-factor-percent"
-          style={{
-            width: `${factor.count / factor.total * 100}%`,
-            backgroundColor: factor.color,
-          }}>
+      {groupedFactors.map((g, j) => {
+        return (
+          <div key={"group-" + j}>
+            <h3>{g[0]}</h3>
+            {g[1].slice(0, N).map(FactorBar)}
           </div>
-          <div className="path-summary-factor-name">
-            <span>{factor.field} ({showKbOrder(factor.order)})</span>
-            <span>{Math.round(factor.count / factor.total * 100)}%</span>
-          </div>
-        </div>
-      ))}
+        )
+      })}
+      {/* {topFactors?.map(FactorBar)} */}
 
-      {topFactors.map((factor, index) => (
-        <Tooltip key={`tooltip-factor-${index}`} id={`factor-tooltip-${index}`} />
-      ))}
     </div>
   )
 }
