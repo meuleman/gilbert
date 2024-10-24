@@ -477,43 +477,36 @@ const HilbertGenome = ({
 
   const zoomToBox = useCallback((x0,y0,x1,y1,pinnedOrder) => {
       // TODO the multipliers should be based on aspect ratio
-      const xOffset =  (width/height)*2
-      const yOffset = -(width/height)*2
-      let tx = xScale(x0) - sizeScale(x1 - x0) * xOffset
-      let ty = yScale(y0) - sizeScale(y1 - y0) * yOffset
+      // const xOffset =  (width/height)*2
+      // const yOffset = -(width/height)*2
+      // let tx = xScale(x0) - sizeScale(x1 - x0) * xOffset
+      // let ty = yScale(y0) - sizeScale(y1 - y0) * yOffset
       let tw = xScale(x1 - x0) - xScale(0) // the width of the box
       let xw = xScale(xScale.domain()[1] - xScale.domain()[0])
+
+      let centerX = width/2
+      let centerY = height/2
       // we zoom to 1/4 the scale of the hit
-      let scale = xw/tw/4
-      let newTransform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
+      let newK = xw/tw/4
+      let newX = centerX - xScale(x0) * newK
+      let newY = centerY - yScale(y0) * newK
+      let newTransform = zoomIdentity.translate(newX, newY).scale(newK)
       if(pinnedOrder) {
-        scale = orderZoomScale.invert(Math.pow(2,(pinnedOrder - orderDomain[0] + 0.99)))
-        newTransform = zoomIdentity.translate(-tx * scale + xw/2, -ty * scale + xw/2).scale(scale)
+        newK = orderZoomScale.invert(Math.pow(2,(pinnedOrder - orderDomain[0] + 0.99)))
+        newX = centerX - xScale(x0) * newK
+        newY = centerY - yScale(y0) * newK
+        newTransform = zoomIdentity.translate(newX, newY).scale(newK)
       }
 
       setZooming(true)
-      // TODO: using prevTransformRef becuase it should be the most recent transform at this point
+      // using prevTransformRef becuase it should be the most recent transform at this point
       easeZoom(prevTransformRef.current, newTransform, () => setZooming(false), zoomDuration)
-      // we may want to control what happens while programming the zoom
-      // dispatch({ type: actions.ZOOMING, payload: { zooming: true } })
-      // transitionStarted()
-      // select(svgRef.current)
-      //   .transition()
-      //   .ease(easePolyOut)
-      //   .duration(zoomDuration)
-      //   .call(zoomBehavior.transform, transform)
-      //   .on("end", () => {
-      //       // console.log("zoom finished")
-      //       setZooming(false)
-      //       // dispatch({ type: actions.ZOOMING, payload: { zooming: false} })
-      //   })
-      // // transitionFinished()
   }, [
     width, 
     height, 
     xScale, 
     yScale, 
-    sizeScale, 
+    // sizeScale, 
     zoomDuration,
     // zoomBehavior, 
     orderZoomScale, 
