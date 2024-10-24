@@ -49,12 +49,13 @@ const SummarizePaths = ({
       .map(s => 
         ({field: s.field?.field, value: s.field?.value, layerName: s.layer?.name, order: s.order, color: s.field?.color})
       )
-      .filter(d => d.layerName.toLowerCase().indexOf("occ") > -1 ? d.value > 0.5 : d.value > 1)
+      // TODO: do we want to filter these "low signal" or not?
+      // .filter(d => d.layerName.toLowerCase().indexOf("occ") > -1 ? d.value > 0.5 : d.value > 1)
     )
     // count the occurrence of each factor, sort by count, and take the top N
-    let topFactors = groups(preferentialFactors, d => d.field + "|" + d.layerName)
+    let topFactors = groups(preferentialFactors, d => d.field + "|" + d.layerName + "|" + d.order)
       .map(([key, values]) => {
-        let [field, layerName] = key.split("|")
+        let [field, layerName, order] = key.split("|")
         let count = values.length
         let color = values[0].color
         let topOrders = groups(values, d => d.order)
