@@ -108,16 +108,16 @@ const InspectorGadget = ({
   const handlePowerData = useCallback((data) => {
     // when the power data is done loading (when Narration changes)
     // then we load full
-    console.log("IG: power data", data)
-    console.log("IG: narration", narration)
+    // console.log("IG: power data", data)
+    // console.log("IG: narration", narration)
 
     Promise.all([
       retrieveFullDataForCSN(narration),
       fetchGWASforPositions([{chromosome: narration.chromosome, index: narration.i}])
     ]).then(([fullDataResponse, gwasRepsonse]) => {
       // refactor GWAS response
-      console.log("IG: gwas response", gwasRepsonse)
-      console.log("IG: full data response", fullDataResponse)
+      // console.log("IG: gwas response", gwasRepsonse)
+      // console.log("IG: full data response", fullDataResponse)
       const csnGWAS = gwasRepsonse[0]['trait_names'].map((trait, i) => {
         return {trait: trait, score: gwasRepsonse[0]['scores'][i], layer: gwasRepsonse[0]['layer']}
       }).sort((a,b) => b.score - a.score)

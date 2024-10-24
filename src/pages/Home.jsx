@@ -643,7 +643,7 @@ function Home() {
       // console.log("no regions!!")
       setAllRegionsByCurrentOrder(new Map())
     }
-  }, [order, activeSet])
+  }, [activeRegions, order])
 
   useEffect(() => {
     if(activePaths?.length) {
