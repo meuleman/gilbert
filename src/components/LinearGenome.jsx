@@ -115,7 +115,8 @@ const LinearGenome = ({
           return xs.invert(normalizedX);
         }
 
-        const bw = xScale(points[0].end) - xScale(points[0].start)
+        let bw = xScale(points[0].end) - xScale(points[0].start)
+        if(bw < 0) bw = 0
         xScaleRef.current = xScale
 
         // Render the background points
@@ -398,6 +399,8 @@ const LinearGenome = ({
   const processHover = useCallback((hover) =>{
     let hd = null
     if(hover && xScaleRef.current) {
+      let chrmatch = hover.chromosome !== renderPointsRef.current?.[0]?.chromosome
+      if(chrmatch) return null
       let bw = xScaleRef.current(hover?.end) - xScaleRef.current(hover?.start)
       if(bw < 0) bw = 0;
       let sx = xScaleRef.current(hover?.start) + bw/2
