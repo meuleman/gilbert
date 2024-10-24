@@ -478,21 +478,21 @@ function Home() {
     let range = []
     // console.log("gencode", gencode)
     if(selected.gene) {
-      range = fromRange(selected.gene.chromosome, selected.gene.start, selected.gene.end, 100)
+      range = fromRange(selected.gene.chromosome, selected.gene.start, selected.gene.end, 200)
     } else {
-      range = fromRange(selected.chromosome, selected.start, selected.end, 100)
+      range = fromRange(selected.chromosome, selected.start, selected.end, 200)
     }
 
-    const mid = range[Math.floor(range.length / 2)]
+    // const mid = range[Math.floor(range.length / 2)]
 
     // Find the region closest to the midpoint of the x,y coordinates in the range
-    // const midX = (range[0].x + range[range.length - 1].x) / 2;
-    // const midY = (range[0].y + range[range.length - 1].y) / 2;
-    // const mid = range.reduce((closest, current) => {
-    //   const closestDist = Math.sqrt(Math.pow(closest.x - midX, 2) + Math.pow(closest.y - midY, 2));
-    //   const currentDist = Math.sqrt(Math.pow(current.x - midX, 2) + Math.pow(current.y - midY, 2));
-    //   return currentDist < closestDist ? current : closest;
-    // }, range[0]);
+    const midX = (range[0].x + range[range.length - 1].x) / 2;
+    const midY = (range[0].y + range[range.length - 1].y) / 2;
+    const mid = range.reduce((closest, current) => {
+      const closestDist = Math.sqrt(Math.pow(closest.x - midX, 2) + Math.pow(closest.y - midY, 2));
+      const currentDist = Math.sqrt(Math.pow(current.x - midX, 2) + Math.pow(current.y - midY, 2));
+      return currentDist < closestDist ? current : closest;
+    }, range[0]);
     // console.log("MID", mid)
 
     setRegion(mid)
