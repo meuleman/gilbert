@@ -19,7 +19,7 @@ const Sentence = ({
     let genes = narration.genes//.filter(d => d.in_gene)
     
     // sort genesets by p value (from full region set enrichment results) and clean up terms
-    let genesets = narration.genesets?.sort((a,b) => a.p - b.p).slice(0, 3).map(d => {
+    let genesets = narration.genesets?.filter(d => d.p < 1).sort((a,b) => a.p - b.p).slice(0, 3).map(d => {
       return d.geneset.split('_').slice(1).join(' ')
     })
 
