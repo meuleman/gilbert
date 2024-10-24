@@ -17,11 +17,18 @@ const Sentence = ({
       }
     }).sort((a,b) => b.field?.value - a.field?.value)
     let genes = narration.genes//.filter(d => d.in_gene)
-    let query = fields.map(d => d.field?.field).join(" ") + " " + genes.map(d => d.name).join(" ")
+    
+    // sort genesets by p value (from full region set enrichment results) and clean up terms
+    let genesets = narration.genesets?.sort((a,b) => a.p - b.p).slice(0, 3).map(d => {
+      return d.geneset.split('_').slice(1).join(' ')
+    })
+
+    // add genes and genesets to query
+    let query = fields.map(d => d.field?.field).join(" ") + " " + genes.map(d => d.name).join(" ") + (genesets ? " " + genesets.join(" ") : "")
     //let query = [...new Set(fields.map(d => d.field?.field))].join(" ") + " " + genes.map(d => d.name).join(" ") // remove duplicates if needed
     setQuery(query)
     
-  }, [narration])
+  }, [narration, narration?.genesets])
 
   return (
     <div className='google-search-link'>

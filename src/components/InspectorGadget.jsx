@@ -13,6 +13,7 @@ import { retrieveFullDataForCSN, variantChooser } from '../lib/csn'
 import { fetchGWASforPositions } from '../lib/gwas'
 import { fetchGenesetEnrichment } from '../lib/genesetEnrichment'
 import { makeField } from '../layers'
+import RegionsContext from './Regions/RegionsContext';
 
 import './InspectorGadget.css'
 
@@ -38,6 +39,16 @@ const InspectorGadget = ({
   const powerHeight = 300 //Math.round(powerWidth / mapWidth * mapHeight);
 
   const { filters, handleFilter } = useContext(FiltersContext);
+  const { activeGenesetEnrichment } = useContext(RegionsContext);
+
+  // create a mapping between geneset and score for easy lookup
+  const genesetScoreMapping = useMemo(() => {
+    let mapping = {}
+    activeGenesetEnrichment && activeGenesetEnrichment.forEach(g => {
+      mapping[g.geneset] = g.p
+    })
+    return mapping
+  }, [activeGenesetEnrichment])
 
   const [minimized, setMinimized] = useState(false)
   const onMinimize = useCallback(() => {
@@ -129,7 +140,9 @@ const InspectorGadget = ({
       let csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14)
       csnOrder14Segment ? csnOrder14Segment["GWAS"] = csnGWAS : null
       // add geneset memberships to the full data response
-      const csnGenesets = genesetResponse.map((g) => g.geneset)
+      const csnGenesets = genesetResponse.map((g) => {
+        return {geneset: g.geneset, p: g.geneset in genesetScoreMapping ? genesetScoreMapping[g.geneset] : 1}
+      })
       fullDataResponse['genesets'] = csnGenesets
 
       console.log("IG: full narration", fullDataResponse)
