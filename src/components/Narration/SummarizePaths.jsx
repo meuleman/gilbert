@@ -85,7 +85,9 @@ const SummarizePaths = ({
       {groupedFactors.map((g, j) => {
         return (
           <div key={"group-" + j}>
-            <h3>{g[0]}</h3>
+            <div className='path-summary-datatype'>
+              {g[0]}
+            </div>
             {g[1].slice(0, N).map(FactorBar)}
           </div>
         )
