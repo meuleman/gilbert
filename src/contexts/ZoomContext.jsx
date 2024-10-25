@@ -75,9 +75,9 @@ export function ZoomProvider({ children}) {
     requestAnimationFrame(animate);
   }, [setTransform])
 
-  useEffect(() => {
-    console.log("transform has updated", transform)
-  }, [transform])
+  // useEffect(() => {
+  //   console.log("transform has updated", transform)
+  // }, [transform])
 
   const value = {
     transform,
