@@ -659,6 +659,7 @@ function Home() {
 
   useEffect(() => {
     if(activePaths?.length) {
+      console.log("updating active regions by current order")
       const groupedActiveRegions = group(
         activePaths.slice(0, numTopRegions),
         d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: order}))

@@ -180,6 +180,7 @@ const HilbertGenome = ({
     return activeLayer
   }, [activeLayer])
 
+  const lastRequestIdRef = useRef(null);
   // this debounced function fetches the data and updates the state
   const fetchData = useMemo(() => {
     return () => {
@@ -192,8 +193,9 @@ const HilbertGenome = ({
       const dataClient = Data({ 
         // debug
       })
+      let requestId = +new Date();
       let myCallback = (data) => {
-        if(data) {
+        if(data && requestId === lastRequestIdRef.current) {
           if(layer.layers) {
             data = layer.combiner(data)
           }
@@ -210,6 +212,8 @@ const HilbertGenome = ({
       // this would require some more tracking of requests and plumbing in dataClient to be able to abort them
       if(zooming) {
         dataDebounceTimed(() => {
+          console.log("HG fetching data zooming", order, state.points[0], state.points.length)
+          lastRequestIdRef.current = requestId
           dispatch({ type: actions.SET_LOADING, payload: { loading: true } });
           if(layer.layers) {
             let promises = layer.layers.map(l => {
@@ -222,6 +226,8 @@ const HilbertGenome = ({
         }, myCallback, 150)
       } else {
         dataDebounce(() => {
+          lastRequestIdRef.current = requestId
+          console.log("HG fetching data no zoom", order, state.points[0], state.points.length)
           dispatch({ type: actions.SET_LOADING, payload: { loading: true } });
           if(layer.layers) {
             let promises = layer.layers.map(l => {
@@ -393,7 +399,8 @@ const HilbertGenome = ({
     state.metas, 
     state.metaLayer, 
     fetchData,
-    panning
+    panning,
+    zooming
   ])
 
   // we rerender the canvas anytime the transform or points change
@@ -429,12 +436,16 @@ const HilbertGenome = ({
     const havePointsChanged = pointSummary(state.points) !== pointSummary(prevPointsRef.current);
     const hasDataChanged = pointSummary(state.data) !== pointSummary(prevDataRef.current);
 
-    // console.log("transform", hasTransformChanged, "points", havePointsChanged, "data", hasDataChanged)
+    // console.log("HG render transform", hasTransformChanged, "points", havePointsChanged, "data", hasDataChanged)
+    if(hasDataChanged) {
+      console.log("HG data changed", state.data)
+    }
 
     if (hasTransformChanged || havePointsChanged || hasDataChanged) {
       renderCanvas(transform, state.points);
       prevTransformRefRender.current = transform;
       prevPointsRef.current = state.points;
+      prevDataRef.current = state.data
     }
   }, [transform, state.points, state.data, renderCanvas])
 

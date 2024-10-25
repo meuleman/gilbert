@@ -49,6 +49,7 @@ export function ZoomProvider({ children}) {
     const interpolator = interpolateObject(oldTransform, newTransform);
     // console.log("interpolator", interpolator(0.5))
     let lastUpdateTime = 0;
+    setZooming(true)
 
     const animate = () => {
       const currentTime = Date.now();
@@ -68,6 +69,7 @@ export function ZoomProvider({ children}) {
       if (t < 1) {
         requestAnimationFrame(animate);
       } else {
+        setZooming(false)
         callback()
       }
     };
