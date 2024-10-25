@@ -297,16 +297,20 @@ function Home() {
       } 
       // console.log("HIT", hit)
 
-      const { k, x, y } = transform;
-      const selectedX = scales.xScale(hit.x) * k + x;
-      const selectedY = scales.yScale(hit.y) * k + y;
+      // const { k, x, y } = transform;
+      // const selectedX = scales.xScale(hit.x) * k + x;
+      // const selectedY = scales.yScale(hit.y) * k + y;
+
+      // always center it
+      const selectedX = width/2
+      const selectedY = height/2
 
       return { x: selectedX, y: selectedY };
     };
 
     setModalPosition(calculateModalPosition());
     // setModalPosition(showPosition(selected))
-  }, [selected, transform, order, scales])
+  }, [selected, transform, order, scales, width, height])
 
   const [hover, setHover] = useState(null)
   const [hoveredPosition, setHoveredPosition] = useState({x: 0, y: 0, sw: 0})
@@ -818,12 +822,14 @@ function Home() {
           // setSelectedTopCSN(paths[0])
           setSelectedOrder(order)
           setSelected(hit)
+          setRegion(hit)
         }
       } else {
         // setSelectedTopCSN(null)
         // setRegionCSNS([])
         setSelectedOrder(order)
         setSelected(hit)
+        setRegion(hit)
       }
     }
   }, [])
