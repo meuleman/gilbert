@@ -59,9 +59,10 @@ export function ZoomProvider({ children}) {
       
       if (currentTime - lastUpdateTime >= rateLimit) {
         let newT = interpolator(easedT)
-        // console.log("newT", newT)
-        setTransform(newT);
-        lastUpdateTime = currentTime;
+        requestAnimationFrame(() => {
+          setTransform({...newT});
+          lastUpdateTime = currentTime;
+        })
       }
 
       if (t < 1) {
@@ -73,6 +74,10 @@ export function ZoomProvider({ children}) {
 
     requestAnimationFrame(animate);
   }, [setTransform])
+
+  useEffect(() => {
+    console.log("transform has updated", transform)
+  }, [transform])
 
   const value = {
     transform,

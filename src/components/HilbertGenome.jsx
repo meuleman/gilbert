@@ -398,7 +398,8 @@ const HilbertGenome = ({
 
   // we rerender the canvas anytime the transform or points change
   // but we only want to do it if they actually change
-  const prevTransformRef = useRef({...transform, init: true});
+  const prevTransformRefRender = useRef({...transform, init: true});
+  const prevTransformRefSVG = useRef({...transform, init: true});
   const prevPointsRef = useRef(state.points);
   const prevDataRef = useRef(state.data)
   const prevOrder = useRef(order)
@@ -408,7 +409,7 @@ const HilbertGenome = ({
   
   // We "handleTransform" which calculates new points when the transform or order updates
   useEffect(() => {
-    const hasTransformChanged = JSON.stringify(transform) !== JSON.stringify(prevTransformRef.current);
+    const hasTransformChanged = JSON.stringify(transform) !== JSON.stringify(prevTransformRefSVG.current);
     const hasOrderChanged = order !== prevOrder.current
     if(hasTransformChanged || hasOrderChanged){
       // console.log("HG handleTransform", +new Date())
@@ -416,6 +417,7 @@ const HilbertGenome = ({
       // zoomBehavior.transform(select(svgRef.current), transform)
       zoomBehavior.transform(select(svgRef.current), zoomIdentity.translate(transform.x, transform.y).scale(transform.k))
       prevOrder.current = order
+      prevTransformRefSVG.current = transform
     }
   }, [transform, order, handleTransform, zoomBehavior]) 
 
@@ -423,7 +425,7 @@ const HilbertGenome = ({
   // this allows us to still show something while the data is loading
   // so even if we change orders the points will render at the appropriate size
   useEffect(() => {
-    const hasTransformChanged = JSON.stringify(transform) !== JSON.stringify(prevTransformRef.current);
+    const hasTransformChanged = JSON.stringify(transform) !== JSON.stringify(prevTransformRefRender.current);
     const havePointsChanged = pointSummary(state.points) !== pointSummary(prevPointsRef.current);
     const hasDataChanged = pointSummary(state.data) !== pointSummary(prevDataRef.current);
 
@@ -431,7 +433,7 @@ const HilbertGenome = ({
 
     if (hasTransformChanged || havePointsChanged || hasDataChanged) {
       renderCanvas(transform, state.points);
-      prevTransformRef.current = transform;
+      prevTransformRefRender.current = transform;
       prevPointsRef.current = state.points;
     }
   }, [transform, state.points, state.data, renderCanvas])
@@ -448,7 +450,7 @@ const HilbertGenome = ({
       setZooming(true)
       setTransform(event.transform)
     },1)
-  }, [setTransform])
+  }, [setTransform, setPanning, setZooming])
 
   useEffect(() => {
     zoomBehavior
@@ -466,7 +468,7 @@ const HilbertGenome = ({
         }
       })
     select(svgRef.current).call(zoomBehavior)
-  }, [zoomBehavior, selected, handleZoom])
+  }, [zoomBehavior, selected, handleZoom, setPanning, setZooming])
 
   // run the zoom with the initial transform when the component mounts
   // useEffect(() => {
@@ -500,7 +502,7 @@ const HilbertGenome = ({
 
       setZooming(true)
       // using prevTransformRef becuase it should be the most recent transform at this point
-      easeZoom(prevTransformRef.current, newTransform, () => setZooming(false), zoomDuration)
+      easeZoom(prevTransformRefSVG.current, newTransform, () => setZooming(false), zoomDuration)
   }, [
     width, 
     height, 
