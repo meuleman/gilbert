@@ -198,7 +198,7 @@ const RegionsProvider = ({ children }) => {
         setActiveSet(set)
         setsRef.current.filter(s => s.type === "derived").forEach(s => deleteSet(s.name))
       } else {
-        console.log("ARF:whats this logic", activeSetRef.current)
+        // console.log("ARF:whats this logic", activeSetRef.current)
       }
     } else {
       console.log("ARF: no existing activeSet or its a filter type")
@@ -317,7 +317,8 @@ const RegionsProvider = ({ children }) => {
       setNumTopRegions,
       saveSet, 
       deleteSet,
-      setActiveSet 
+      setActiveSet,
+      clearActive
     }}>
       {children}
     </RegionsContext.Provider>

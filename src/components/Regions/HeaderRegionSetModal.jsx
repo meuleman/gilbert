@@ -11,7 +11,7 @@ import './HeaderRegionSetModal.css'
 
 const HeaderRegionSetModal = ({
 } = {}) => {
-  const { activeRegions, activeState, numTopRegions, setNumTopRegions, setActiveSet } = useContext(RegionsContext)
+  const { activeRegions, activeState, numTopRegions, setNumTopRegions, clearActive } = useContext(RegionsContext)
   const { setFilters } = useContext(FiltersContext)
 
   function calculateCount(num, order) {
@@ -35,9 +35,9 @@ const HeaderRegionSetModal = ({
   }, [setNumTopRegions])
 
   const handleDeselect = useCallback(() => {
-    setActiveSet(null)
+    clearActive()
     setFilters({})
-  }, [setActiveSet, setFilters])
+  }, [clearActive, setFilters])
 
   return (
     <div className={`header-regionset-modal`}>

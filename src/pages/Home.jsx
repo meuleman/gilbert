@@ -251,24 +251,29 @@ function Home() {
     activeState, 
     numTopRegions, 
     setActiveSet, 
+    clearActive,
     saveSet,
     activeGenesetEnrichment,
-    activeRegions
+    activeRegions,
   } = useContext(RegionsContext)
 
   useEffect(() => {
-    if(showFilter) {
+    if(showFilter && activeRegions?.length) {
       let path_density = layers.find(d => d.datasetName == "precomputed_csn_path_density_above_90th_percentile")
       const lo = {}
       range(4, 15).map(o => {
         lo[o] = filters[o]?.layer || path_density
       })
+      // console.log("setting layer order for density", lo)
       setLayerOrder(lo)
-    } else {
+      setLayer(lo[orderRef.current])
+    } else if(layerOrderNatural) {
+      // console.log("setting layer order back to natural", layerOrderNatural)
       // setLayerLock(false)
       setLayerOrder(layerOrderNatural)
+      setLayer(layerOrderNatural[orderRef.current])
     }
-  }, [filters, showFilter, layerOrderNatural])
+  }, [filters, showFilter, layerOrderNatural, activeRegions])
 
   
 
@@ -587,7 +592,7 @@ function Home() {
     if(activePaths?.length) {
       let sorted = activePaths.slice(0, numTopRegions)
         // .sort((a,b) => b.score - a.score)
-      console.log("sorted", sorted)
+      // console.log("sorted", sorted)
       setTopFullCSNS(sorted)
       setCSNLoading("")
     } else {
@@ -659,13 +664,13 @@ function Home() {
 
   useEffect(() => {
     if(activePaths?.length) {
-      console.log("updating active regions by current order")
+      console.log("updating active regions by current order", order)
       const groupedActiveRegions = group(
         activePaths.slice(0, numTopRegions),
         d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: order}))
       setActiveRegionsByCurrentOrder(groupedActiveRegions)
     } else {
-      // console.log("no paths!!")
+      console.log("no active regions", order)
       setActiveRegionsByCurrentOrder(new Map())
     }
 
@@ -805,11 +810,13 @@ function Home() {
   }, [clearSelectedState])
 
   const handleClear = useCallback(() => {
+    console.log("handle clear!")
     clearSelectedState()
     clearFilters()
-    setActiveSet(null)
+    clearActive()
+    // setActiveSet(null)
     setShowFilter(false)
-  }, [clearSelectedState, clearFilters, setShowFilter, setActiveSet])
+  }, [clearSelectedState, clearFilters, setShowFilter, clearActive])
 
   const handleClick = useCallback((hit, order, double) => {
     // console.log("app click handler", hit, order, double)
@@ -833,7 +840,7 @@ function Home() {
         setRegion(hit)
       }
     }
-  }, [])
+  }, [setSelectedOrder, setSelected, setRegion, clearSelectedState])
 
   const autocompleteRef = useRef(null)
   // keybinding that closes the modal on escape

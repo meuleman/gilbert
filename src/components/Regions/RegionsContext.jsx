@@ -6,9 +6,13 @@ const RegionsContext = React.createContext({
   activeState: null,
   activeRegions: [],
   activePaths: [],
+  activeGenesetEnrichment: [],
+  numTopRegions: 10,
+  setNumTopRegions: () => {},
   saveSet: () => {},
   deleteSet: () => {},
   setActiveSet: () => {},
+  clearActive: () => {}
 });
 
 export default RegionsContext;
