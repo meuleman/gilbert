@@ -53,9 +53,9 @@ const SummarizePaths = ({
       // .filter(d => d.layerName.toLowerCase().indexOf("occ") > -1 ? d.value > 0.5 : d.value > 1)
     )
     // count the occurrence of each factor, sort by count, and take the top N
-    let topFactors = groups(preferentialFactors, d => d.field + "|" + d.layerName + "|" + d.order)
+    let topFactors = groups(preferentialFactors, d => d.field + "|" + d.layerName)
       .map(([key, values]) => {
-        let [field, layerName, order] = key.split("|")
+        let [field, layerName] = key.split("|")
         let count = values.length
         let color = values[0].color
         let topOrders = groups(values, d => d.order)
