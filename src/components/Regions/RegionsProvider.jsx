@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useContext, useRef } from 'react';
 import RegionsContext from './RegionsContext';
 import FiltersContext from '../ComboLock/FiltersContext';
 import { fromPosition, toPosition } from '../../lib/regions';
-import { fetchFilterSegments } from '../../lib/dataFiltering';
+import { fetchFilterSegments, fetchFilteringWithoutOrder } from '../../lib/dataFiltering';
 import { fetchTopPathsForRegions, rehydrateCSN } from '../../lib/csn'
 import { fetchGenesetEnrichment } from '../../lib/genesetEnrichment';
 import { csnLayers, variantLayers } from '../../layers'
@@ -163,6 +163,13 @@ const RegionsProvider = ({ children }) => {
       setActiveRegions(null)
       callback(null)
     })
+    let fwo = filters[Object.keys(filters).filter(d => d !== "userTriggered")[0]]
+    fetchFilteringWithoutOrder({index: fwo.index, dataset: fwo.layer.datasetName})
+      .then((response) => {
+        console.log("FILTERING WITHOUT ORDER", response)
+      }).catch((e) => {
+        console.log("error fetching filtering without order", e)
+      })
   }, [])
 
   // when the filters change, we manage the query set logic
