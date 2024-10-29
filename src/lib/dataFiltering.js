@@ -169,7 +169,8 @@ function fetchFilteringWithoutOrder(factor) {
     url: url,
     data: postBody
   }).then(response => {
-    console.log("FILTER WITHOUT ORDER", response.data)
+    response.data.regions = response.data.regions.sort((a, b) => b.max_score - a.max_score)
+    // console.log("FILTER WITHOUT ORDER", response.data)
     return response.data
   }).catch(error => {
     console.error(`error:     ${JSON.stringify(error)}`);
