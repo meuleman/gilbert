@@ -164,12 +164,16 @@ const RegionsProvider = ({ children }) => {
       callback(null)
     })
     let fwo = filters[Object.keys(filters).filter(d => d !== "userTriggered")[0]]
-    fetchFilteringWithoutOrder({index: fwo.index, dataset: fwo.layer.datasetName})
-      .then((response) => {
-        console.log("FILTERING WITHOUT ORDER", response)
-      }).catch((e) => {
-        console.log("error fetching filtering without order", e)
-      })
+    let index = fwo?.index
+    let dataset = fwo?.layer?.datasetName
+    if (index && dataset) {
+      fetchFilteringWithoutOrder({index: index, dataset: dataset})
+        .then((response) => {
+          console.log("FILTERING WITHOUT ORDER", response)
+        }).catch((e) => {
+          console.log("error fetching filtering without order", e)
+        })
+    }
   }, [])
 
   // when the filters change, we manage the query set logic
