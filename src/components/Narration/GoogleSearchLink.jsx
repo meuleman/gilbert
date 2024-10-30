@@ -1,11 +1,36 @@
 // A component to display narration when clicking over hilbert cells
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { Tooltip } from 'react-tooltip'
+
+import styles from './GoogleSearchLink.module.css'
 
 const Sentence = ({
   narration = null,
 } = {}) => {
   const [query, setQuery] = useState("")
+
+  const [loading, setLoading] = useState(false)
+  const [generated, setGenerated] = useState("")
+  const [articles, setArticles] = useState([])
+  const url = "https://enjalot--pubmed-query-transformermodel-rag-generate.modal.run"
+
+  const generate = useCallback(() => {
+    setLoading(true)
+    fetch(`${url}?query=${encodeURIComponent(query)}`)
+      .then(res => res.json())
+      .then(data => {
+        console.log("generate", data)
+        setGenerated(data.summary)
+        setArticles(data.results)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error(err)
+        setLoading(false)
+      })
+  }, [query])
+
   useEffect(() => {
     let fields = narration.path.filter(d => {
       if(d.layer?.datasetName?.indexOf("occ") > -1) {
@@ -13,7 +38,8 @@ const Sentence = ({
       } else if(d.layer?.datasetName?.indexOf("gwas") > -1 || d.layer?.datasetName?.indexOf("ukbb_94") > -1) {
         return true
       } else {
-        return d.field?.value > 2
+        // return d.field?.value > 2
+        return d.field?.value > 0.25
       }
     }).sort((a,b) => b.field?.value - a.field?.value)
     let genes = narration.genes//.filter(d => d.in_gene)
@@ -31,9 +57,19 @@ const Sentence = ({
   }, [narration, narration?.genesets])
 
   return (
-    <div className='google-search-link'>
-      <a href={`https://www.google.com/search?q=${query}`} target="_blank" rel="noreferrer">Search relevant literature ↗</a>
-      { <p style={{ fontSize: '10px' }}>search debug: {query}</p> }
+    <div className={styles.googleSearchLink}>
+      <a href={`https://www.google.com/search?q=${query}`} target="_blank" rel="noreferrer" data-tooltip-id="search-debug">Search relevant literature ↗</a>
+      <Tooltip id="search-debug">
+        <p style={{ fontSize: '10px' }}>search debug: {query}</p>
+      </Tooltip>
+
+      <p>{loading ? "loading..." : generated}</p>
+      {generated ? <p> {articles.length} open access PubMed articles found: <br></br>
+        {articles.map((a,i) => {
+          return (<span key={a.pmc}> {i+1}) <a href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} target="_blank" rel="noreferrer">{a.full_title}</a><br></br></span>)
+        })}
+      </p> : null }
+      <button onClick={generate}>Generate summary</button>
     </div>
   )
 }
