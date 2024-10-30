@@ -39,7 +39,7 @@ const InspectorGadget = ({
   const powerHeight = 300 //Math.round(powerWidth / mapWidth * mapHeight);
 
   const { filters, handleFilter } = useContext(FiltersContext);
-  const { activeGenesetEnrichment } = useContext(RegionsContext);
+  const { activeGenesetEnrichment, setSelectedGenesetMembership } = useContext(RegionsContext);
 
   // create a mapping between geneset and score for easy lookup
   const genesetScoreMapping = useMemo(() => {
@@ -122,6 +122,7 @@ const InspectorGadget = ({
     // then we load full
     // console.log("IG: power data", data)
     // console.log("IG: narration", narration)
+    setSelectedGenesetMembership([])
 
     Promise.all([
       retrieveFullDataForCSN(narration),
@@ -144,6 +145,7 @@ const InspectorGadget = ({
         return {geneset: g.geneset, p: g.geneset in genesetScoreMapping ? genesetScoreMapping[g.geneset] : 1}
       })
       fullDataResponse['genesets'] = csnGenesets
+      setSelectedGenesetMembership(csnGenesets)
 
       console.log("IG: full narration", fullDataResponse)
       setFullNarration(fullDataResponse)

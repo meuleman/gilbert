@@ -128,6 +128,21 @@ const Spectrum = ({
     });
   };
 
+  const Membership = ({membership, genesetOrder, data, ctx, xScale, yScale, height, barWidth, color}) => {
+    console.log("geneset membership length", membership.length)
+    membership.forEach((d) => {
+      if (d.geneset) {
+        let i = genesetOrder.indexOf(d.geneset);
+        if(i >= 0) {
+          let value = data[i];
+          ctx.fillStyle = color;
+          ctx.globalAlpha = 1;
+          ctx.fillRect(xScale(i), yScale(value), xScale(barWidth) - xScale(0), height - yScale(value));
+        }
+      }
+    });
+  }
+
   const Labels = ({ labels, ctx, xScale }) => {
     ctx.font = '9px Arial';
     ctx.fillStyle = '#000';
@@ -140,7 +155,7 @@ const Spectrum = ({
 
   }
 
-  const { activeGenesetEnrichment } = useContext(RegionsContext)
+  const { activeGenesetEnrichment, selectedGenesetMembership } = useContext(RegionsContext)
   // console.log("activeGenesetEnrichment", activeGenesetEnrichment)
 
   const [enrichments, setEnrichments] = useState(new Array(genesetOrder.length).fill(0));
@@ -189,7 +204,7 @@ const Spectrum = ({
       setSmoothData(new Array(genesetOrder.length).fill(0))
     }
 
-  }, [activeGenesetEnrichment, genesetOrder, windowSize]);
+  }, [activeGenesetEnrichment, selectedGenesetMembership, genesetOrder, windowSize]);
 
   // const handleMouseClick = () => {
   //   // setQueryGeneset(tooltipData.genesetName);
@@ -230,6 +245,7 @@ const Spectrum = ({
     // add items to canvas
     SpectrumBar({ data: smoothData, ctx, xScale, y: plotYStop, height: spectrumBarHeight, colorbarX });
     Curve({ data: smoothData, ctx, xScale, yScale, height: plotYStop, color: "#000" });
+    Membership({ membership: selectedGenesetMembership, genesetOrder, data: smoothData, ctx, xScale, yScale, height: plotYStop, barWidth: 5, color: "#000" });
     Labels({ labels, ctx, xScale });
 
     const handleMouseMove = (e) => {

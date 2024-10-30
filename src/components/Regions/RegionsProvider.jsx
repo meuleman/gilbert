@@ -310,7 +310,7 @@ const RegionsProvider = ({ children }) => {
     }
   }, [genesInPaths])
 
- 
+  const [selectedGenesetMembership, setSelectedGenesetMembership] = useState([])
 
   return (
     <RegionsContext.Provider value={{ 
@@ -320,12 +320,14 @@ const RegionsProvider = ({ children }) => {
       activeRegions,
       activePaths,
       activeGenesetEnrichment,
+      selectedGenesetMembership,
       numTopRegions,
       setNumTopRegions,
       saveSet, 
       deleteSet,
       setActiveSet,
-      clearActive
+      clearActive,
+      setSelectedGenesetMembership
     }}>
       {children}
     </RegionsContext.Provider>

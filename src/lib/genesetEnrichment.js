@@ -6,11 +6,13 @@ import axios from "axios";
 
 
 /*
-Get the geneset enrichments for set of genes calculated by the api
+Get the geneset enrichments for set of genes calculated by the api. If membership=true,
+then the genesets in which the genes are members are returned.
 genes: [gene1, gene2, ...]
 threshold: float (optional, default=0.05)
 
-Returns: [{geneset, p-value}, ...]
+Returns: [{geneset, p-value}, ...] if membership=false
+Returns: [{geneset}, ...] if membership=true
 */
 function fetchGenesetEnrichment(genes, membership=false) {
 
