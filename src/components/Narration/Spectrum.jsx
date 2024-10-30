@@ -245,7 +245,7 @@ const Spectrum = ({
     // add items to canvas
     SpectrumBar({ data: smoothData, ctx, xScale, y: plotYStop, height: spectrumBarHeight, colorbarX });
     Curve({ data: smoothData, ctx, xScale, yScale, height: plotYStop, color: "#000" });
-    Membership({ membership: selectedGenesetMembership, genesetOrder, data: smoothData, ctx, xScale, yScale, height: plotYStop, barWidth: 5, color: "#000" });
+    Membership({ membership: selectedGenesetMembership, genesetOrder, data: smoothData, ctx, xScale, yScale, height: plotYStop, barWidth: 10, color: "#F00" });
     Labels({ labels, ctx, xScale });
 
     const handleMouseMove = (e) => {
