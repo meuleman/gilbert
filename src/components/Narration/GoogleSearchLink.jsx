@@ -11,27 +11,57 @@ const Sentence = ({
   const [query, setQuery] = useState("")
 
   const [loading, setLoading] = useState(false)
+  const [request_id, setRequest_id] = useState(null)
   const [generated, setGenerated] = useState("")
   const [articles, setArticles] = useState([])
   const url = "https://enjalot--pubmed-query-transformermodel-rag-generate.modal.run"
+  const url_feedback = "https://enjalot--pubmed-query-transformermodel-feedback.modal.run"
+  // const url = "https://enjalot--pubmed-query-transformermodel-rag-generate-dev.modal.run"
+  // const url_feedback = "https://enjalot--pubmed-query-transformermodel-feedback-dev.modal.run"
+
+
 
   const generate = useCallback(() => {
     setLoading(true)
-    fetch(`${url}?query=${encodeURIComponent(query)}`)
-      .then(res => res.json())
+    setGenerated("")
+    setArticles([])
+    fetch(`${url}?query=${encodeURIComponent(query)}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        query: query,
+        narration: narration
+      })
+    }).then(res => res.json())
       .then(data => {
         console.log("generate", data)
         setGenerated(data.summary)
         setArticles(data.results)
+        setRequest_id(data.request_id)
         setLoading(false)
       })
       .catch(err => {
         console.error(err)
         setLoading(false)
       })
-  }, [query])
+  }, [query, narration])
+
+  const feedback = useCallback((feedback) => {
+    fetch(`${url_feedback}?request_id=${request_id}&feedback=${feedback}`)
+      .then(res => res.json())
+      .then(data => {
+        console.log("feedback", data)
+      })
+      .catch(err => {
+        console.error(err)
+      })
+  }, [request_id])
+
 
   useEffect(() => {
+    console.log("NARRATION", narration)
     let fields = narration.path.filter(d => {
       if(d.layer?.datasetName?.indexOf("occ") > -1) {
         return d.field?.value > 0.75
@@ -64,12 +94,23 @@ const Sentence = ({
       </Tooltip>
 
       <p>{loading ? "loading..." : generated}</p>
+      {generated ? <div className={styles.feedbackButtons}>
+        Summary:
+        <button onClick={() => feedback("👍")}>👍</button>
+        <button onClick={() => feedback("👎")}>👎</button>
+      </div>: null}
       {generated ? <p> {articles.length} open access PubMed articles found: <br></br>
         {articles.map((a,i) => {
           return (<span key={a.pmc}> {i+1}) <a href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} target="_blank" rel="noreferrer">{a.full_title}</a><br></br></span>)
         })}
       </p> : null }
-      <button onClick={generate}>Generate summary</button>
+      {/* {generated ? <div className={styles.feedbackButtons}>
+        Articles:
+        <button onClick={() => feedback("👍")}>👍</button>
+        <button onClick={() => feedback("👎")}>👎</button>
+      </div>: null} */}
+
+      <button onClick={generate} disabled={loading}>Generate summary</button>
     </div>
   )
 }
