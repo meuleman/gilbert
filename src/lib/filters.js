@@ -5,7 +5,7 @@ import { createSegments, joinSegments } from "./segments.js"
 import { HilbertChromosome, hilbertPosToOrder } from './HilbertChromosome';
 import { makeField } from '../layers';
 
-import counts_native from "../data/counts.segments.native_order_resolution.json"
+import counts_native from "../data/counts.native_resolution.json"
 import counts_order14 from "../data/counts.order_14_resolution.json"
 
 function urlifyFilters(filtersMap) {
