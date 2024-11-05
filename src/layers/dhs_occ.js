@@ -8,7 +8,7 @@ export default {
   name: "DHS Components (OCC)",
   datasetName: "dhs_occ",
   baseURL: `${constants.baseS3URLPrefix}/20241104`,
-  orders: [4,13],
+  orders: [4,14],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()
