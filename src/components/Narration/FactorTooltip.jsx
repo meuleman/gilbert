@@ -1,5 +1,5 @@
 import { showFloat, showInt, showPosition, showKb } from '../../lib/display';
-import { csnLayerList } from '../../layers'
+import { csnLayerList, fullDataLayers } from '../../layers'
 import './FactorTooltip.css'
 
 import { csnLayerList as layers } from '../../layers'
@@ -43,7 +43,7 @@ function tooltipContent(region, layer, orientation) {
   // console.log("FULL DATA", region, region.fullData)
   let fullData = region.fullData ? Object.keys(region.fullData).map(key => {
     let [layerIndex, fieldIndex] = key.split(",")
-    let layer = layers[+layerIndex]
+    let layer = fullDataLayers[+layerIndex]
     let field = layer.fieldColor.domain()[+fieldIndex]
     let count = (region.counts && (region.counts[layerIndex]?.length)) ? region.counts[layerIndex][fieldIndex] : null
     return { layer, field, value: region.fullData[key], count }
@@ -57,6 +57,15 @@ function tooltipContent(region, layer, orientation) {
 
   // Full set of GWAS associations
   let GWAS = region.GWAS ? region.GWAS : []
+  // remove the preferred factor
+  GWAS = (fields && layer) ? GWAS.filter(
+    d => fields.find(f => !(f.field === d.trait && layer.name === d.layer.name))
+  ) : GWAS
+
+  // combine GWAS and fullData into the same list
+  let otherFactors = fullData.concat(GWAS.slice(0, 10)).map(d => {
+    return { field: d.field || d.trait, value: d.value || d.score, count: d.count, layer: d.layer }
+  }).sort((a,b) => b.value - a.value)
 
   
   return (
@@ -90,12 +99,12 @@ function tooltipContent(region, layer, orientation) {
           <span>-</span>
         </div>
       )}
-      {fullData.length > 0 && (
+      {otherFactors.length > 0 && (
         <span style={{ borderBottom: "1px solid gray", padding: "4px", margin: "4px 0", fontStyle: 'italic', fontSize: '11pt' }}>
           Other factors
         </span>
       )}
-      {fullData.map((f, i) => (
+      {otherFactors.map((f, i) => (
         <div key={i} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <span className="tooltip-factor-name" style={{ display: 'flex', alignItems: 'center' }}>
             <span style={{ color: f.layer.fieldColor(f.field), marginRight: '4px' }}>⏺</span>
@@ -105,18 +114,6 @@ function tooltipContent(region, layer, orientation) {
           <span>
             {typeof f.value == "number" ? showFloat(f.value) : f.value}
             {typeof f.count == "number" && ` (${showInt(f.count)})`}
-          </span>
-        </div>
-      ))}
-      {GWAS.length ? <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>GWAS</span> : null}
-      {GWAS.slice(0, 10).map((g,i) => (
-        <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-          <span className="tooltip-factor-name"  >
-            <span style={{color: "#000000", marginRight: '4px'}}>⏺</span>
-            {g.trait} 
-          </span>
-          <span>
-            {g.mlog_pvalue.toFixed(2)}
           </span>
         </div>
       ))}

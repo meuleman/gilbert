@@ -82,8 +82,7 @@ const Spectrum = ({
   const Curve = ({ data, ctx, xScale, yScale, height, color }) => {
 
     // Function to draw the y-axis with ticks
-    const drawYAxis = (ctx, yScale, yAxisStart, yAxisStop, tickCount = 6) => {
-      const tickInterval = (yAxisStop - yAxisStart) / tickCount;
+    const drawYAxis = (ctx, yScale, yAxisStart, yAxisStop, estTickCount = 6) => {
       const tickLength = 5; // Length of the tick marks
 
       ctx.strokeStyle = '#000'; // Axis color
@@ -97,13 +96,12 @@ const Spectrum = ({
 
       const maxValue = Math.max(...data);
       const minValue = Math.min(...data);
-      const step = Math.ceil((maxValue - minValue) / (tickCount));
-      const yTicks = Array.from({ length: tickCount }, (v, i) => minValue + i * step);
+      const step = Math.ceil((maxValue - minValue) / (estTickCount));
+      const yTicks = Array.from({ length: estTickCount }, (v, i) => minValue + i * step).filter(d => d <= maxValue);
       
       // Draw the ticks and labels
-      yTicks.forEach((value, i) => {
+      yTicks.forEach((value) => {
         const y = yScale(value)
-        // console.log("value", value)
 
         ctx.beginPath();
         ctx.moveTo(xScale(0) - tickLength, y);
@@ -130,6 +128,21 @@ const Spectrum = ({
     });
   };
 
+  const Membership = ({membership, genesetOrder, data, ctx, xScale, yScale, height, barWidth, color}) => {
+    console.log("geneset membership length", membership.length)
+    membership.forEach((d) => {
+      if (d.geneset) {
+        let i = genesetOrder.indexOf(d.geneset);
+        if(i >= 0) {
+          let value = data[i];
+          ctx.fillStyle = color;
+          ctx.globalAlpha = 1;
+          ctx.fillRect(xScale(i), yScale(value), xScale(barWidth) - xScale(0), height - yScale(value));
+        }
+      }
+    });
+  }
+
   const Labels = ({ labels, ctx, xScale }) => {
     ctx.font = '9px Arial';
     ctx.fillStyle = '#000';
@@ -142,7 +155,7 @@ const Spectrum = ({
 
   }
 
-  const { activeGenesetEnrichment } = useContext(RegionsContext)
+  const { activeGenesetEnrichment, selectedGenesetMembership } = useContext(RegionsContext)
   // console.log("activeGenesetEnrichment", activeGenesetEnrichment)
 
   const [enrichments, setEnrichments] = useState(new Array(genesetOrder.length).fill(0));
@@ -191,7 +204,7 @@ const Spectrum = ({
       setSmoothData(new Array(genesetOrder.length).fill(0))
     }
 
-  }, [activeGenesetEnrichment, genesetOrder, windowSize]);
+  }, [activeGenesetEnrichment, selectedGenesetMembership, genesetOrder, windowSize]);
 
   // const handleMouseClick = () => {
   //   // setQueryGeneset(tooltipData.genesetName);
@@ -232,6 +245,7 @@ const Spectrum = ({
     // add items to canvas
     SpectrumBar({ data: smoothData, ctx, xScale, y: plotYStop, height: spectrumBarHeight, colorbarX });
     Curve({ data: smoothData, ctx, xScale, yScale, height: plotYStop, color: "#000" });
+    Membership({ membership: selectedGenesetMembership, genesetOrder, data: smoothData, ctx, xScale, yScale, height: plotYStop, barWidth: 10, color: "#F00" });
     Labels({ labels, ctx, xScale });
 
     const handleMouseMove = (e) => {
@@ -309,8 +323,8 @@ const Spectrum = ({
 
   // console.log("Spectrum render")
   return (
-    <div className={"spectrum-component" + (show ? " show": " hide")} style={{ height: height + 'px', width: width + 'px' }}>
-      <div style={{ position: 'relative' }}>
+    <div className={"spectrum-component" + (show ? " show": " hide")} >
+      <div style={{ position: 'relative', width: width + 'px', height: height + 'px' }}>
         <canvas ref={canvasRef} width={width} height={height}/>
         <Tooltip geneset={tooltip.content} x={tooltip.x} y={tooltip.y} visible={tooltip.visible} />
 

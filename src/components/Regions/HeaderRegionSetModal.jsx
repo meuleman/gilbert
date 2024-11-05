@@ -11,7 +11,7 @@ import './HeaderRegionSetModal.css'
 
 const HeaderRegionSetModal = ({
 } = {}) => {
-  const { activeRegions, activeState, numTopRegions, setNumTopRegions, setActiveSet } = useContext(RegionsContext)
+  const { activeRegions, activeState, numTopRegions, setNumTopRegions, clearActive } = useContext(RegionsContext)
   const { setFilters } = useContext(FiltersContext)
 
   function calculateCount(num, order) {
@@ -35,9 +35,9 @@ const HeaderRegionSetModal = ({
   }, [setNumTopRegions])
 
   const handleDeselect = useCallback(() => {
-    setActiveSet(null)
+    clearActive()
     setFilters({})
-  }, [setActiveSet, setFilters])
+  }, [clearActive, setFilters])
 
   return (
     <div className={`header-regionset-modal`}>
@@ -60,7 +60,7 @@ const HeaderRegionSetModal = ({
         {activeRegions?.length ? 
         <div className="query-controls">
           <label>
-            <span className="header-active-count" data-tooltip-id="header-active-count">{numTopRegions}</span> / <span>{activeRegions?.length} (
+            <span className="header-active-count" data-tooltip-id="header-active-count">{numTopRegions || ""}</span> / <span>{activeRegions?.length} (
              {activeRegions?.[0] ? showKbOrder(activeRegions?.[0]?.order) : ""}) regions</span>
             <Tooltip id="header-active-count">
               {numTopRegions} top regions used in visualizations
@@ -68,9 +68,9 @@ const HeaderRegionSetModal = ({
             <input 
               type="range" 
               min="1" 
-              max={Math.min(activeRegions?.length, 100)}
+              max={Math.min(activeRegions?.length || 0, 100)}
               step={1}
-              value={numTopRegions|| 0} 
+              value={numTopRegions || 0} 
               onChange={handleNumTopRegions} 
             />
           </label>

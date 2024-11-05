@@ -5,7 +5,7 @@ import { createSegments, joinSegments } from "./segments.js"
 import { HilbertChromosome, hilbertPosToOrder } from './HilbertChromosome';
 import { makeField } from '../layers';
 
-import counts_native from "../data/counts.segments.native_order_resolution.json"
+import counts_native from "../data/counts.native_resolution.json"
 import counts_order14 from "../data/counts.order_14_resolution.json"
 
 function urlifyFilters(filtersMap) {
@@ -25,11 +25,11 @@ function parseFilters(filters) {
   let parsed = JSON.parse(decodeURIComponent(filters))
   let fs = {}
   parsed.forEach(f => {
-    if(f.dataset_name == "gwas_full_data_rank") {  // temporary fix until gwas layer with correct number of fields
+    if(f.dataset_name == "ukbb_94_traits") {  // temporary fix until gwas layer with correct number of fields
       fs[f.order] = { 
-        id: "gwas_full_data_rank:" + f.index, 
-        datasetName: "gwas_full_data_rank",
-        label: f.field + " " + "gwas_full_data_rank",
+        id: "ukbb_94_traits:" + f.index, 
+        datasetName: "ukbb_94_traits",
+        label: f.field + " " + "ukbb_94_traits",
         field: f.field,
         index: f.index, 
         order: 14,

@@ -60,7 +60,7 @@ import { fullList as layers, csnLayers, variantLayers, countLayers } from '../la
 
 // import RegionFilesSelect from '../components/Regions/RegionFilesSelect'
 // autocomplete
-import Autocomplete from '../components/Autocomplete/Autocomplete'
+// import Autocomplete from '../components/Autocomplete/Autocomplete'
 import GeneSearch from '../components/GeneSearch'
 
 // region SimSearch
@@ -217,9 +217,17 @@ function Home() {
   // if we have filters in the url, show the filter modal on loading
   const anyFilters = Object.keys(parseFilters(initialFilters || "[]")).length > 0
   const [showFilter, setShowFilter] = useState(anyFilters)
+  const [showFactorPreview, setShowFactorPreview] = useState(false)
   const handleChangeShowFilter = useCallback((e) => {
     setShowFilter(!showFilter)
   }, [showFilter])
+
+  useEffect(() => {
+    // turn on showfilter if showfactorpreview is on
+    if(showFactorPreview) {
+      setShowFilter(showFactorPreview)
+    }
+  }, [showFactorPreview])
   
     
 
@@ -243,24 +251,29 @@ function Home() {
     activeState, 
     numTopRegions, 
     setActiveSet, 
+    clearActive,
     saveSet,
     activeGenesetEnrichment,
-    activeRegions
+    activeRegions,
   } = useContext(RegionsContext)
 
   useEffect(() => {
-    if(showFilter) {
+    if(showFilter && activeRegions?.length) {
       let path_density = layers.find(d => d.datasetName == "precomputed_csn_path_density_above_90th_percentile")
       const lo = {}
       range(4, 15).map(o => {
         lo[o] = filters[o]?.layer || path_density
       })
+      // console.log("setting layer order for density", lo)
       setLayerOrder(lo)
-    } else {
+      setLayer(lo[orderRef.current])
+    } else if(layerOrderNatural) {
+      // console.log("setting layer order back to natural", layerOrderNatural)
       // setLayerLock(false)
       setLayerOrder(layerOrderNatural)
+      setLayer(layerOrderNatural[orderRef.current])
     }
-  }, [filters, showFilter, layerOrderNatural])
+  }, [filters, showFilter, layerOrderNatural, activeRegions])
 
   
 
@@ -289,16 +302,20 @@ function Home() {
       } 
       // console.log("HIT", hit)
 
-      const { k, x, y } = transform;
-      const selectedX = scales.xScale(hit.x) * k + x;
-      const selectedY = scales.yScale(hit.y) * k + y;
+      // const { k, x, y } = transform;
+      // const selectedX = scales.xScale(hit.x) * k + x;
+      // const selectedY = scales.yScale(hit.y) * k + y;
+
+      // always center it
+      const selectedX = width/2
+      const selectedY = height/2
 
       return { x: selectedX, y: selectedY };
     };
 
     setModalPosition(calculateModalPosition());
     // setModalPosition(showPosition(selected))
-  }, [selected, transform, order, scales])
+  }, [selected, transform, order, scales, width, height])
 
   const [hover, setHover] = useState(null)
   const [hoveredPosition, setHoveredPosition] = useState({x: 0, y: 0, sw: 0})
@@ -478,11 +495,23 @@ function Home() {
     let range = []
     // console.log("gencode", gencode)
     if(selected.gene) {
-      range = fromRange(selected.gene.chromosome, selected.gene.start, selected.gene.end, 100)
+      range = fromRange(selected.gene.chromosome, selected.gene.start, selected.gene.end, 200)
     } else {
-      range = fromRange(selected.chromosome, selected.start, selected.end, 100)
+      range = fromRange(selected.chromosome, selected.start, selected.end, 200)
     }
-    const mid = range[Math.floor(range.length / 2)]
+
+    // const mid = range[Math.floor(range.length / 2)]
+
+    // Find the region closest to the midpoint of the x,y coordinates in the range
+    const midX = (range[0].x + range[range.length - 1].x) / 2;
+    const midY = (range[0].y + range[range.length - 1].y) / 2;
+    const mid = range.reduce((closest, current) => {
+      const closestDist = Math.sqrt(Math.pow(closest.x - midX, 2) + Math.pow(closest.y - midY, 2));
+      const currentDist = Math.sqrt(Math.pow(current.x - midX, 2) + Math.pow(current.y - midY, 2));
+      return currentDist < closestDist ? current : closest;
+    }, range[0]);
+    // console.log("MID", mid)
+
     setRegion(mid)
     // console.log("autocomplete range", range)
     saveSet(selected.value, range, { activate: true, type: "search"})
@@ -508,7 +537,7 @@ function Home() {
 
   
   const onData = useCallback((payload) => {
-    console.log("data payload", payload)
+    // console.log("data payload", payload)
     setData(payload)
     // setHover(payload.center)
 
@@ -563,7 +592,7 @@ function Home() {
     if(activePaths?.length) {
       let sorted = activePaths.slice(0, numTopRegions)
         // .sort((a,b) => b.score - a.score)
-      console.log("sorted", sorted)
+      // console.log("sorted", sorted)
       setTopFullCSNS(sorted)
       setCSNLoading("")
     } else {
@@ -631,16 +660,17 @@ function Home() {
       // console.log("no regions!!")
       setAllRegionsByCurrentOrder(new Map())
     }
-  }, [order, activeSet])
+  }, [activeRegions, order])
 
   useEffect(() => {
     if(activePaths?.length) {
+      console.log("updating active regions by current order", order)
       const groupedActiveRegions = group(
         activePaths.slice(0, numTopRegions),
         d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: order}))
       setActiveRegionsByCurrentOrder(groupedActiveRegions)
     } else {
-      // console.log("no paths!!")
+      console.log("no active regions", order)
       setActiveRegionsByCurrentOrder(new Map())
     }
 
@@ -731,26 +761,26 @@ function Home() {
     showGenes, 
     highlightPath: true 
   })
-  const drawAnnotationRegionCenter = useCanvasAnnotationRegions(data?.center, "hover", { 
-    // if there is an activeSet and no paths in the hover, lets make it lightgray to indicate you can't click on it
-    stroke: "gray",
-    radiusMultiplier: 0.5, 
-    strokeWidthMultiplier: 0.05, 
-    showGenes, 
-    highlightPath: true 
-  })
+  // const drawAnnotationRegionCenter = useCanvasAnnotationRegions(data?.center, "hover", { 
+  //   // if there is an activeSet and no paths in the hover, lets make it lightgray to indicate you can't click on it
+  //   stroke: "gray",
+  //   radiusMultiplier: 0.5, 
+  //   strokeWidthMultiplier: 0.05, 
+  //   showGenes, 
+  //   highlightPath: true 
+  // })
   const canvasRenderers = useMemo(() => [
     drawActiveFilteredRegions,
     drawAllFilteredRegions,
     drawAnnotationRegionSelected,
     drawAnnotationRegionHover,
-    drawAnnotationRegionCenter,
+    // drawAnnotationRegionCenter,
   ], [
     drawActiveFilteredRegions,
     drawAllFilteredRegions,
     drawAnnotationRegionSelected,
     drawAnnotationRegionHover,
-    drawAnnotationRegionCenter,
+    // drawAnnotationRegionCenter,
   ]);
 
 
@@ -780,11 +810,13 @@ function Home() {
   }, [clearSelectedState])
 
   const handleClear = useCallback(() => {
+    console.log("handle clear!")
     clearSelectedState()
     clearFilters()
-    setActiveSet(null)
+    clearActive()
+    // setActiveSet(null)
     setShowFilter(false)
-  }, [clearSelectedState, clearFilters, setShowFilter, setActiveSet])
+  }, [clearSelectedState, clearFilters, setShowFilter, clearActive])
 
   const handleClick = useCallback((hit, order, double) => {
     // console.log("app click handler", hit, order, double)
@@ -798,15 +830,17 @@ function Home() {
           // setSelectedTopCSN(paths[0])
           setSelectedOrder(order)
           setSelected(hit)
+          setRegion(hit)
         }
       } else {
         // setSelectedTopCSN(null)
         // setRegionCSNS([])
         setSelectedOrder(order)
         setSelected(hit)
+        setRegion(hit)
       }
     }
-  }, [])
+  }, [setSelectedOrder, setSelected, setRegion, clearSelectedState])
 
   const autocompleteRef = useRef(null)
   // keybinding that closes the modal on escape
@@ -914,16 +948,16 @@ function Home() {
           </div> */}
           <div className="header--search">
             <div className="filter-button">
-              <button className={`filter-button ${showFilter ? 'active' : null}`}
+              <button className={`filter-button ${showFactorPreview ? 'active' : null}`}
                 data-tooltip-id="filter-button-tooltip"
                 data-tooltip-content="Filter regions by factor"
-                onClick={() => setShowFilter(!showFilter)}
+                onClick={() => setShowFactorPreview(!showFactorPreview)}
               >
                 <FilterOutlined />
               </button>
               <Tooltip id="filter-button-tooltip"></Tooltip>
             </div>
-            {showFilter ? 
+            {showFactorPreview? 
               <SelectFactorPreview 
                 activeWidth={400}
                 restingWidth={400}
@@ -1219,13 +1253,19 @@ function Home() {
           <div className='linear-tracks'>
 
             <LinearGenome 
-              center={data?.center} 
+              // center={data?.center} 
               data={data?.data} 
               dataOrder={data?.dataOrder}
+              activeRegions={activeRegionsByCurrentOrder}
               layer={data?.layer}
               width={width} height={100} 
+              mapWidth={width}
+              mapHeight={height}
               hover={hover}
               onHover={handleHover}
+              onClick={(hit) => {
+                setRegion(hit)
+              }}
               />
 
             {/* {selected  && <RegionStrip region={selected} segments={100} layer={layer} width={width} height={40} /> }

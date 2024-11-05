@@ -4,6 +4,7 @@ import { AutoComplete, Button } from 'antd';
 import { CloseCircleOutlined } from '@ant-design/icons';
 
 const genomicPositionRegex = /^chr(\d{1,2}|X|Y):(\d+)-(\d+)$/;
+const genomicPositionRegex2 = /^chr(\d{1,2}|X|Y)(\s+)(\d+)(\s+)(\d+)$/;
 
 import { gencode } from '../lib/Genes';
 
@@ -40,6 +41,15 @@ const GeneSearch = memo(({
         },
         ...geneOptions
       ];
+    } else if (genomicPositionRegex2.test(searchValue)) {
+      return [
+        {
+          value: searchValue,
+          label: `Genomic Position: ${searchValue}`,
+          isGenomicPosition: true
+        },
+        ...geneOptions
+      ];
     }
 
     return geneOptions;
@@ -51,13 +61,22 @@ const GeneSearch = memo(({
   };
 
   const handleSelect = (value) => {
-    console.log("SELECT", value)
     if(genomicPositionRegex.test(value)) {
       onSelect({
         value: value,
         chromosome: value.split(':')[0], 
         start: +value.split(':')[1].split('-')[0], 
         end: +value.split(':')[1].split('-')[1]
+      });
+      setInputValue(value);
+      return;
+    } else if (genomicPositionRegex2.test(value)) {
+      let matches = genomicPositionRegex2.exec(value)
+      onSelect({
+        value: value,
+        chromosome: "chr" + matches[1],
+        start: +matches[3],
+        end: +matches[5]
       });
       setInputValue(value);
       return;
@@ -82,7 +101,7 @@ const GeneSearch = memo(({
         onSearch={handleSearch}
         onSelect={handleSelect}
         placeholder="Search for a gene or coordinate"
-        style={{ width: '300px' }}
+        style={{ width: '400px' }}
       />
     </div>
   )

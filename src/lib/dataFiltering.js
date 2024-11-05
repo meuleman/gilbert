@@ -153,8 +153,38 @@ function fetchOrderPreview(regions, newFiltersList, orders) {
 }
 
 
+/*
+Get the order agnostic filtering for a factor. 
+factor: {factor, dataset}
+regions: [{chromosome, i, order}, ...] (optional)
+
+Returns:
+[{chromosome, i, order, max_score_order, csn, csn_scores}, ...]
+*/
+function fetchFilteringWithoutOrder(factor, regions) {
+  const url = "https://explore.altius.org:5001/api/filteringWithoutOrder/filtering_without_order"
+  const postBody = {factorInd: factor.index, dataset: factor.dataset}
+  regions && (postBody.regions = regions)
+  console.log("FILTER WITHOUT ORDER POST BODY", postBody)
+  return axios({
+    method: 'POST',
+    url: url,
+    data: postBody
+  }).then(response => {
+    response.data.regions = response.data.regions.sort((a, b) => b.max_score - a.max_score)
+    // console.log("FILTER WITHOUT ORDER", response.data)
+    return response.data
+  }).catch(error => {
+    console.error(`error:     ${JSON.stringify(error)}`);
+    console.error(`post body: ${JSON.stringify(postBody)}`);
+    return null
+  })
+}
+
+
 export {
   fetchFilterSegments,
+  fetchFilteringWithoutOrder,
   fetchFilterPreview,
   fetchOrderPreview,
 }

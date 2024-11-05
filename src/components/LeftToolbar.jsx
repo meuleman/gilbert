@@ -35,6 +35,9 @@ const LeftToolbar = ({
             if(!showActiveRegionSet) onManageRegionSets(false)
             onActiveRegionSet(!showActiveRegionSet)
           }}
+          style={{
+            'filter': !activeSet ? 'grayscale(100%)' : 'none',
+          }}
         >📘</button>
         <Tooltip id="active-region-set">Active Region Set</Tooltip>
 
@@ -42,7 +45,7 @@ const LeftToolbar = ({
           onClick={() => activePaths?.length && onTopFactors(!showTopFactors)}
           disabled={!activePaths?.length}
           style={{
-            'filter': showTopFactors ? 'grayscale(100%)' : 'none',
+            'filter': showTopFactors || !activePaths?.length ? 'grayscale(100%)' : 'none',
             'transform': 'rotate(90deg) scaleX(-1)'
           }}
         >📊</button>

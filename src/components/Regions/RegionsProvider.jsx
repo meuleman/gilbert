@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useContext, useRef } from 'react';
 import RegionsContext from './RegionsContext';
 import FiltersContext from '../ComboLock/FiltersContext';
 import { fromPosition, toPosition } from '../../lib/regions';
-import { fetchFilterSegments } from '../../lib/dataFiltering';
+import { fetchFilterSegments, fetchFilteringWithoutOrder } from '../../lib/dataFiltering';
 import { fetchTopPathsForRegions, rehydrateCSN } from '../../lib/csn'
 import { fetchGenesetEnrichment } from '../../lib/genesetEnrichment';
 import { csnLayers, variantLayers } from '../../layers'
@@ -60,7 +60,7 @@ const RegionsProvider = ({ children }) => {
   const defaultTopRegions = 100
   const [numTopRegions, setNumTopRegions] = useState(defaultTopRegions)
   useEffect(() => {
-    setNumTopRegions(Math.min(activeRegions?.length, defaultTopRegions))
+    setNumTopRegions(Math.min(activeRegions?.length || 0, defaultTopRegions) || 0)
   }, [activeRegions])
 
   useEffect(() => {
@@ -163,6 +163,17 @@ const RegionsProvider = ({ children }) => {
       setActiveRegions(null)
       callback(null)
     })
+    let fwo = filters[Object.keys(filters).filter(d => d !== "userTriggered")[0]]
+    let index = fwo?.index
+    let dataset = fwo?.layer?.datasetName
+    if (index && dataset) {
+      fetchFilteringWithoutOrder({index: index, dataset: dataset})
+        .then((response) => {
+          console.log("FILTERING WITHOUT ORDER", response)
+        }).catch((e) => {
+          console.log("error fetching filtering without order", e)
+        })
+    }
   }, [])
 
   // when the filters change, we manage the query set logic
@@ -198,7 +209,7 @@ const RegionsProvider = ({ children }) => {
         setActiveSet(set)
         setsRef.current.filter(s => s.type === "derived").forEach(s => deleteSet(s.name))
       } else {
-        console.log("ARF:whats this logic", activeSetRef.current)
+        // console.log("ARF:whats this logic", activeSetRef.current)
       }
     } else {
       console.log("ARF: no existing activeSet or its a filter type")
@@ -292,7 +303,7 @@ const RegionsProvider = ({ children }) => {
   // calculate geneset enrichment for genes in paths
   useEffect(() => {
     if(genesInPaths.length) {
-      fetchGenesetEnrichment(genesInPaths)
+      fetchGenesetEnrichment(genesInPaths, false)
       .then((response) => {
         setActiveGenesetEnrichment(response)
       }).catch((e) => {
@@ -303,7 +314,7 @@ const RegionsProvider = ({ children }) => {
     }
   }, [genesInPaths])
 
- 
+  const [selectedGenesetMembership, setSelectedGenesetMembership] = useState([])
 
   return (
     <RegionsContext.Provider value={{ 
@@ -313,11 +324,14 @@ const RegionsProvider = ({ children }) => {
       activeRegions,
       activePaths,
       activeGenesetEnrichment,
+      selectedGenesetMembership,
       numTopRegions,
       setNumTopRegions,
       saveSet, 
       deleteSet,
-      setActiveSet 
+      setActiveSet,
+      clearActive,
+      setSelectedGenesetMembership
     }}>
       {children}
     </RegionsContext.Provider>

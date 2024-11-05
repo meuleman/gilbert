@@ -11,7 +11,9 @@ import Loading from './Loading'
 import { scaleLinear } from 'd3-scale'
 import { retrieveFullDataForCSN, variantChooser } from '../lib/csn'
 import { fetchGWASforPositions } from '../lib/gwas'
+import { fetchGenesetEnrichment } from '../lib/genesetEnrichment'
 import { makeField } from '../layers'
+import RegionsContext from './Regions/RegionsContext';
 
 import './InspectorGadget.css'
 
@@ -37,6 +39,16 @@ const InspectorGadget = ({
   const powerHeight = 300 //Math.round(powerWidth / mapWidth * mapHeight);
 
   const { filters, handleFilter } = useContext(FiltersContext);
+  const { activeGenesetEnrichment, setSelectedGenesetMembership } = useContext(RegionsContext);
+
+  // create a mapping between geneset and score for easy lookup
+  const genesetScoreMapping = useMemo(() => {
+    let mapping = {}
+    activeGenesetEnrichment && activeGenesetEnrichment.forEach(g => {
+      mapping[g.geneset] = g.p
+    })
+    return mapping
+  }, [activeGenesetEnrichment])
 
   const [minimized, setMinimized] = useState(false)
   const onMinimize = useCallback(() => {
@@ -108,22 +120,33 @@ const InspectorGadget = ({
   const handlePowerData = useCallback((data) => {
     // when the power data is done loading (when Narration changes)
     // then we load full
-    console.log("IG: power data", data)
-    console.log("IG: narration", narration)
+    // console.log("IG: power data", data)
+    // console.log("IG: narration", narration)
+    setSelectedGenesetMembership([])
 
     Promise.all([
       retrieveFullDataForCSN(narration),
-      fetchGWASforPositions([{chromosome: narration.chromosome, index: narration.i}])
-    ]).then(([fullDataResponse, gwasRepsonse]) => {
+      fetchGWASforPositions([{chromosome: narration.chromosome, index: narration.i}]),
+      fetchGenesetEnrichment(narration.genes.map(g => g.name), true)
+    ]).then(([fullDataResponse, gwasRepsonse, genesetResponse]) => {
       // refactor GWAS response
-      console.log("IG: gwas response", gwasRepsonse)
-      console.log("IG: full data response", fullDataResponse)
+      // console.log("IG: gwas response", gwasRepsonse)
+      // console.log("IG: full data response", fullDataResponse)
+      // console.log("IG: geneset response", genesetResponse)
+      // parse GWAS response
       const csnGWAS = gwasRepsonse[0]['trait_names'].map((trait, i) => {
-        return {trait: trait, mlog_pvalue: gwasRepsonse[0]['scores'][i], pvalue: 10 ** -(gwasRepsonse[0]['scores'][i])}
-      }).sort((a,b) => b.mlog_pvalue - a.mlog_pvalue)
+        return {trait: trait, score: gwasRepsonse[0]['scores'][i], layer: gwasRepsonse[0]['layer']}
+      }).sort((a,b) => b.score - a.score)
       // add GWAS associations to the full data response
       let csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14)
       csnOrder14Segment ? csnOrder14Segment["GWAS"] = csnGWAS : null
+      // add geneset memberships to the full data response
+      const csnGenesets = genesetResponse.map((g) => {
+        return {geneset: g.geneset, p: g.geneset in genesetScoreMapping ? genesetScoreMapping[g.geneset] : 1}
+      })
+      fullDataResponse['genesets'] = csnGenesets
+      setSelectedGenesetMembership(csnGenesets)
+
       console.log("IG: full narration", fullDataResponse)
       setFullNarration(fullDataResponse)
       setLoadingFullNarration(false)

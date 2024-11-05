@@ -87,7 +87,8 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
             shrinkScale.domain(domain)
           }
           // let a = alphaScale(sample.value)
-          let srw = f(rw * (shrinkScale(sample.value) || 0.1)) * 0.95
+          // if sample.value > domain max, set to domain max for size scaling
+          let srw = f(rw * (shrinkScale(Math.min(sample.value, shrinkScale.domain()[1])) || 0.1)) * 0.95
 
           // Debugging oversized rendering of fields. showing that the max isn't matching the values seen
           // if(srw > 50) {

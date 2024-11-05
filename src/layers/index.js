@@ -277,7 +277,7 @@ const filterLayers = [
 const variantLayers = [
   fullList.find(d => d.datasetName == "variants_favor_categorical_rank"),
   fullList.find(d => d.datasetName == "variants_favor_apc_rank"),
-  fullList.find(d => d.datasetName == "variants_gwas_rank"),
+  fullList.find(d => d.datasetName == "ukbb_94_traits"),
   // fullList.find(d => d.datasetName == "grc"),
 ]
 const countLayers = [
@@ -288,6 +288,9 @@ const countLayers = [
 ]
 
 const csnLayerList = csnLayers.concat(variantLayers).concat(countLayers)
+// we have a separate function to retrieve full GWAS data
+const fullDataLayers = csnLayerList.filter(d => d.datasetName != "ukbb_94_traits")
+const GWASLayer = fullList.find(d => d.datasetName == "ukbb_94_traits")
 
 function rehydrate(index, list) {
   if(index < 0) return null
@@ -310,7 +313,7 @@ function rehydrate(index, list) {
   } else if(layerName == "variants_apc"){
     layerName = "variants_favor_apc_rank"
   } else if(layerName == "variants_gwas"){
-    layerName = "variants_gwas_rank"
+    layerName = "ukbb_94_traits"
   }
   let layer = list.find(l => l.datasetName.indexOf(layerName) == 0)
   if(!layer) {
@@ -377,6 +380,8 @@ export {
   variantLayers,
   countLayers,
   csnLayerList,
+  fullDataLayers,
+  GWASLayer,
   fieldMapping,
   rehydrate,
   fields,
