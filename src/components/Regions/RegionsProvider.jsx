@@ -167,12 +167,12 @@ const RegionsProvider = ({ children }) => {
     let index = fwo?.index
     let dataset = fwo?.layer?.datasetName
     if (index && dataset) {
-      fetchFilteringWithoutOrder({index: index, dataset: dataset})
-        .then((response) => {
-          console.log("FILTERING WITHOUT ORDER", response)
-        }).catch((e) => {
-          console.log("error fetching filtering without order", e)
-        })
+      // fetchFilteringWithoutOrder({index: index, dataset: dataset})
+      //   .then((response) => {
+      //     console.log("FILTERING WITHOUT ORDER", response)
+      //   }).catch((e) => {
+      //     console.log("error fetching filtering without order", e)
+      //   })
     }
   }, [])
 
