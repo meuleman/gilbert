@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Tooltip } from 'react-tooltip'
+import { showKbOrder } from '../../lib/display'
 
 import styles from './GoogleSearchLink.module.css'
 
@@ -72,16 +73,40 @@ const Sentence = ({
         return d.field?.value > 0.25
       }
     }).sort((a,b) => b.field?.value - a.field?.value)
-    let genes = narration.genes//.filter(d => d.in_gene)
-    
-    // sort genesets by p value (from full region set enrichment results) and clean up terms
-    let genesets = narration.genesets?.filter(d => d.p < 1).sort((a,b) => a.p - b.p).slice(0, 3).map(d => {
-      return d.geneset.split('_').slice(1).join(' ')
+    .map(d => {
+      // Determine the data type based on layer name
+      let prefix = ""
+      console.log("d", d)
+      if (d.layer?.datasetName?.toLowerCase().includes("tf_")) {
+        prefix = "MOTIF"
+      } else if (d.layer?.datasetName?.toLowerCase().includes("dhs_")) {
+        prefix = "DHS"
+      } else if (d.layer?.datasetName?.toLowerCase().includes("cs_")) {
+        prefix = "CS"
+      } else if (d.layer?.datasetName?.toLowerCase().includes("repeat")) {
+        prefix = "REPEAT"
+      } else if (d.layer?.datasetName?.toLowerCase().includes("gwas")) {
+        prefix = "GWAS"
+      }
+      
+      // Format with resolution if available
+      const resolution = ` @ ${showKbOrder(d.order)}`
+      return `${prefix} ${d.field?.field}${resolution}`
     })
-
-    // add genes and genesets to query
-    let query = fields.map(d => d.field?.field).join(" ") + " " + genes.map(d => d.name).join(" ") + (genesets ? " " + genesets.join(" ") : "")
-    //let query = [...new Set(fields.map(d => d.field?.field))].join(" ") + " " + genes.map(d => d.name).join(" ") // remove duplicates if needed
+  
+    let genes = narration.genes.map(d => `GENE ${d.name}`)
+    
+    let genesets = narration.genesets
+      ?.filter(d => d.p < 1)
+      .sort((a,b) => a.p - b.p)
+      .slice(0, 3)
+      .map(d => {
+        const term = d.geneset.split('_').slice(1).join(' ')
+        return `GO ${term.toUpperCase()}`
+      })
+  
+    // Combine all parts with semicolons
+    let query = [...fields, ...genes, ...(genesets || [])].join("; ")
     setQuery(query)
     
   }, [narration, narration?.genesets])
