@@ -88,10 +88,16 @@ const Sentence = ({
       } else if (d.layer?.datasetName?.toLowerCase().includes("gwas")) {
         prefix = "GWAS"
       }
+      let enrocc = ""
+      if(d.layer?.datasetName?.toLowerCase().includes("enr")) {
+        enrocc = "enrichment"
+      } else if(d.layer?.datasetName?.toLowerCase().includes("occ")) {
+        enrocc = "occurrence"
+      }
       
       // Format with resolution if available
-      const resolution = ` @ ${showKbOrder(d.order)}`
-      return `${prefix} ${d.field?.field}${resolution}`
+      const resolution = `@ ${showKbOrder(d.order)}`
+      return `${d.field?.field} ${prefix} ${enrocc} ${resolution}`
     })
   
     let genes = narration.genes.map(d => `GENE ${d.name}`)
