@@ -228,6 +228,8 @@ function Home() {
       setShowFilter(showFactorPreview)
     }
   }, [showFactorPreview])
+
+  const [showSankey, setShowSankey] = useState(false)
   
     
 
@@ -651,6 +653,7 @@ function Home() {
   useEffect(() => {
     let regions = activeRegions
     if(regions?.length) {
+      console.log("REGIONS HOME", regions)
       const groupedAllRegions = group(
         regions, 
         d => d.chromosome + ":" + (d.order > order ? hilbertPosToOrder(d.i, {from: d.order, to: order}) : d.i))
@@ -1016,6 +1019,8 @@ function Home() {
             showActiveRegionSet={showActiveRegionSet}
             onManageRegionSets={setShowManageRegionSets}
             onActiveRegionSet={setShowActiveRegionSet}
+            showSankey={showSankey}
+            onSankey={setShowSankey}
           />
           
         </div>
@@ -1079,19 +1084,7 @@ function Home() {
                     onHover={setHover}
                   /> */}
 
-            {selected && (selectedTopCSN || loadingSelectedCSN) ? 
-              <InspectorGadget 
-                selected={selected} 
-                zoomOrder={powerOrder}
-                narration={selectedTopCSN}
-                layers={csnLayers}
-                loadingCSN={loadingSelectedCSN}
-                mapWidth={width}
-                mapHeight={height}
-                modalPosition={modalPosition}
-                onClose={handleModalClose}
-                >
-            </InspectorGadget> : null}
+            
             
             <div>
               <ManageRegionSetsModal 
@@ -1120,7 +1113,7 @@ function Home() {
               />
 
               <SankeyModal 
-                show={activeSet}
+                show={showSankey}
                 width={400} 
                 height={height-10} 
                 numPaths={numPaths}
@@ -1142,6 +1135,19 @@ function Home() {
               />
             </div>
 
+            {selected && (selectedTopCSN || loadingSelectedCSN) ? 
+              <InspectorGadget 
+                selected={selected} 
+                zoomOrder={powerOrder}
+                narration={selectedTopCSN}
+                layers={csnLayers}
+                loadingCSN={loadingSelectedCSN}
+                mapWidth={width}
+                mapHeight={height}
+                modalPosition={modalPosition}
+                onClose={handleModalClose}
+                >
+            </InspectorGadget> : null}
 
             <div ref={containerRef} className="hilbert-container">
               {containerRef.current && ( 
@@ -1191,11 +1197,16 @@ function Home() {
             delayHide={0}
             delayUpdate={0}
             place="right"
+            border="1px solid gray"
             style={{
               position: 'absolute',
+              pointerEvents: 'none',
+              backgroundColor: "white",
+              color: "black",
+              fontSize: "12px",
+              padding: "6px",
               left: hoveredPosition.x,
               top: hoveredPosition.y,
-              pointerEvents: 'none',
             }}
             >
               <b>{activeInHovered?.length} {activeInHovered?.length > 1 ? "paths" : "path"}</b><br/>

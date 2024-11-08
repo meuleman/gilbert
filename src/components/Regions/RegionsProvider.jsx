@@ -275,7 +275,13 @@ const RegionsProvider = ({ children }) => {
             // combine the regions with the paths so we can sort them by the path score
             let combined = activeRegions.map((r,i) => {
               // return { i, r, p: hydrated[i], score: r.score ? r.score : hydrated[i]?.score }
-              return { i, r, p: hydrated[i], rscore: r.score, pscore: hydrated[i]?.score }
+              return { 
+                i, 
+                r, 
+                p: hydrated[i], 
+                rscore: r.score, 
+                pscore: hydrated[i]?.score 
+              }
             }).sort((a,b) => (a.rscore && b.rscore && a.rscore.toFixed(3) != b.rscore.toFixed(3)) ? b.rscore - a.rscore : b.pscore - a.pscore)
 
             let reorderedRegions = combined.map(d => d.r)

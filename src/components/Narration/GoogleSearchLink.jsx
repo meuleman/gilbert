@@ -8,6 +8,7 @@ import styles from './GoogleSearchLink.module.css'
 
 const Sentence = ({
   narration = null,
+  height = 320,
 } = {}) => {
   const [query, setQuery] = useState("")
 
@@ -118,7 +119,7 @@ const Sentence = ({
   }, [narration, narration?.genesets])
 
   return (
-    <div className={styles.googleSearchLink}>
+    <div className={styles.googleSearchLink} style={{height: height}}>
       <a href={`https://www.google.com/search?q=${query}`} target="_blank" rel="noreferrer" data-tooltip-id="search-debug">Search relevant literature ↗</a>
       <Tooltip id="search-debug">
         <p style={{ fontSize: '10px' }}>search debug: {query}</p>

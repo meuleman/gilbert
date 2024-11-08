@@ -16,6 +16,8 @@ const LeftToolbar = ({
   onManageRegionSets = () => {},
   showActiveRegionSet,
   onActiveRegionSet = () => {},
+  showSankey,
+  onSankey = () => {},
 } = {}) => {
   const { activeSet, activeGenesetEnrichment, activePaths } = useContext(RegionsContext)
 
@@ -42,7 +44,10 @@ const LeftToolbar = ({
         <Tooltip id="active-region-set">Active Region Set</Tooltip>
 
         <button className={`toolbar-button ${showTopFactors ? 'active' : ''}`} data-tooltip-id="show-topfactors"
-          onClick={() => activePaths?.length && onTopFactors(!showTopFactors)}
+          onClick={() => {
+            activePaths?.length && onTopFactors(!showTopFactors)
+            if(!showTopFactors) onSankey(false)
+          }}
           disabled={!activePaths?.length}
           style={{
             'filter': showTopFactors || !activePaths?.length ? 'grayscale(100%)' : 'none',
@@ -50,6 +55,18 @@ const LeftToolbar = ({
           }}
         >📊</button>
         <Tooltip id="show-topfactors">{showTopFactors ? "Hide Top Factors" : "Show Top Factors"}</Tooltip>
+
+        <button className={`toolbar-button ${showSankey ? 'active' : ''}`} data-tooltip-id="show-sankey"
+          onClick={() => {
+            activePaths?.length && onSankey(!showSankey)
+            if(!showSankey) onTopFactors(false)
+          }}
+          disabled={!activePaths?.length}
+          style={{
+            'filter': showSankey || !activePaths?.length ? 'grayscale(100%)' : 'none',
+          }}
+        >🌊</button>
+        <Tooltip id="show-sankey">{showSankey ? "Hide Sankey" : "Show Sankey"}</Tooltip>
 
       </div>
 

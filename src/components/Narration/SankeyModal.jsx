@@ -34,7 +34,7 @@ const SankeyModal = ({
 
   const [loadingCSN, setLoadingCSN] = useState(false)
 
-  const [showPanel, setShowPanel] = useState(false)
+  // const [showPanel, setShowPanel] = useState(false)
   const [showControls, setShowControls] = useState(false)
 
   const { filters, hasFilters } = useContext(FiltersContext)
@@ -90,22 +90,21 @@ const SankeyModal = ({
   return (
     <div className={`sankey-modal ${show ? "show" : "hide"}`}>
         <div className={`control-buttons`}>
-          <button 
+          {/* <button 
             onClick={useCallback(() => setShowPanel(!showPanel), [showPanel])}
             data-tooltip-id="sankey-show-visualization"
             disabled={!csns.length}
             >
               <span style={{
-                // transform: "rotate(90deg)", 
                 display:"block",
                 filter: csns.length ? 'none' : 'grayscale(100%)' // Apply grayscale if csns is empty
               }}>{showPanel ? "➡️" : "⬅️"}</span>
           </button>
           <Tooltip id="sankey-show-visualization">
             {showPanel ? "Hide Path Narration Panel" : "Show Path Narration Panel"}
-          </Tooltip>
+          </Tooltip> */}
   
-          {showPanel ? <button 
+          {show ? <button 
             onClick={handleShowControl}
             disabled={!csns.length}
             data-tooltip-id="sankey-show-control"
@@ -114,7 +113,7 @@ const SankeyModal = ({
               Show Controls
             </Tooltip>
   
-          {showPanel ? <button 
+          {show ? <button 
             onClick={handleSwitchView}
             data-tooltip-id="sankey-switch-visualization"
             disabled={!csns.length}
@@ -129,7 +128,7 @@ const SankeyModal = ({
             Switch Visualization to {view == "heatmap" ? "Sankey" : "Heatmap"}
           </Tooltip>
 
-          {showPanel && selectedRegion ? <button 
+          {show && selectedRegion ? <button 
             // onClick={handleSwitchView}
             onClick={onClearRegion}
             data-tooltip-id="sankey-clear-region"
@@ -192,7 +191,7 @@ const SankeyModal = ({
               </div>
           </div>
         </div>
-      <div className={`content ${showPanel ? "show" : "hide"}`}
+      <div className={`content ${show ? "show" : "hide"}`}
         style={{
           width: csns.length || loading ? "400px" : "0px",
         }}

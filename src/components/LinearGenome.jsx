@@ -342,7 +342,6 @@ const LinearGenome = ({
     trackHeight, 
     axisHeight, 
     genes, 
-    order, 
     orderRaw
   ])
 
@@ -401,15 +400,19 @@ const LinearGenome = ({
     if(hover && xScaleRef.current) {
       let chrmatch = hover.chromosome !== renderPointsRef.current?.[0]?.chromosome
       if(chrmatch) return null
-      let bw = xScaleRef.current(hover?.end) - xScaleRef.current(hover?.start)
+      let bw = xScaleRef.current(hover.end) - xScaleRef.current(hover?.start)
       if(bw < 0) bw = 0;
-      let sx = xScaleRef.current(hover?.start) + bw/2
+      let sx = xScaleRef.current(hover.start) + bw/2
       // we allow for hover thats out of range to indicate at the edges
       if(sx < 0) sx = 0
       if(sx > width) sx = width
       let gs = getGencodesInView([hover], dataOrder, 100000000)
+      // console.log("HOVER", hover)
+      let actives = activeRegions.get(hover.chromosome + ":" + hover.i)
+      // console.log("ACTIVES", actives)
       hd = {
         ...hover,
+        actives,
         sx,
         bw,
         genes: gs
@@ -638,11 +641,16 @@ const LinearGenome = ({
         delayHide={0}
         delayUpdate={0}
         place="top"
+        border="1px solid gray"
         style={{
           position: 'absolute',
           left: hoverData.sx + "px",
           top: "5px",
           pointerEvents: 'none',
+          backgroundColor: "white",
+          color: "black",
+          fontSize: "12px",
+          padding: "6px",
         }}
         >
           {defaultContent(hoverData, layer, "")}

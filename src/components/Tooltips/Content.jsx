@@ -18,44 +18,55 @@ export function defaultContent(region, layer, orientation) {
   if(orientation == "bottom") {
     fields = fields.reverse()
   }
-  
+
   return (
     <div style={{display: 'flex', flexDirection: 'column'}}>
-      {orientation == "bottom" ? <div>
-        {showPosition(region)}
-        <br/>
+      <div style={{border: "1px solid lightgray", borderRadius: "4px", padding: "4px", marginBottom: "4px"}}>
+        {orientation == "bottom" ? <div>
+          {showPosition(region)}
+          <br/>
 
-        {region.genes?.length ? <div>
-          {region.genes.map(g => (
-            <div key={g.hgnc}>{g.hgnc} ({g.posneg})</div>
-          ))}
+          {region.genes?.length ? <div>
+            {region.genes.map(g => (
+              <div key={g.hgnc}>{g.hgnc} ({g.posneg})</div>
+            ))}
+          </div> : null}
+
+          <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
         </div> : null}
 
-        <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
+        {fields.map((f,i) => (
+          <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+            <span>
+              <span style={{color: layer.fieldColor(f.field), marginRight: '4px'}}>⏺</span>
+              {f.field} 
+            </span>
+            <span>
+              {typeof f.value == "number" ? showFloat(f.value) : f.value}
+            </span>
+          </div>
+        ))}
+        {!fields?.length ? <span>N/A</span> : null}
+
+        {orientation !== "bottom" ? <div>
+          <span style={{borderTop: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
+          <br/>
+          {region.genes?.length ? <div>
+            {region.genes.map(g => (
+              <div key={g.hgnc}>{g.hgnc} ({g.posneg})</div>
+            ))}
+          </div> : null}
+        </div> : null}
+      </div>
+
+      {region.actives ? <div style={{border: "1px solid lightgray", borderRadius: "4px", padding: "4px"}}>
+        <span>{region.actives.length} active regions</span>
+        {region.actives.map(a => (
+          <div key={a.chromosome + ":" + a.start}>{showPosition(a)} - {showFloat(a.region.score)}</div>
+        ))}
       </div> : null}
 
-      {fields.map((f,i) => (
-        <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-          <span>
-            <span style={{color: layer.fieldColor(f.field), marginRight: '4px'}}>⏺</span>
-            {f.field} 
-          </span>
-          <span>
-            {typeof f.value == "number" ? showFloat(f.value) : f.value}
-          </span>
-        </div>
-      ))}
-      {!fields?.length ? <span>N/A</span> : null}
-
-      
       {orientation !== "bottom" ? <div>
-        <span style={{borderTop: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
-        <br/>
-        {region.genes?.length ? <div>
-          {region.genes.map(g => (
-            <div key={g.hgnc}>{g.hgnc} ({g.posneg})</div>
-          ))}
-        </div> : null}
         {showPosition(region)}
       </div> : null}
     </div>
