@@ -6,6 +6,7 @@ import { fetchFilterSegments, fetchFilteringWithoutOrder } from '../../lib/dataF
 import { fetchTopPathsForRegions, rehydrateCSN } from '../../lib/csn'
 import { fetchGenesetEnrichment } from '../../lib/genesetEnrichment';
 import { csnLayers, variantLayers } from '../../layers'
+import { fetchRegionSetEnrichments } from '../../lib/regionSetEnrichments';
 
 // import { v4 as uuidv4 } from 'uuid';
 
@@ -326,6 +327,17 @@ const RegionsProvider = ({ children }) => {
   }, [genesInPaths])
 
   const [selectedGenesetMembership, setSelectedGenesetMembership] = useState([])
+
+  // region set enrichment
+  useEffect(() => {
+    if(activeSet && activeSet.regions && activeSet.regions[0].order > 6) {
+      fetchRegionSetEnrichments(activeSet.regions.slice(0, 100))
+      .then((response) => {
+        console.log("REGION SET ENRICHMENTS", response)
+      })
+    }
+  }, [activeSet])
+
 
   return (
     <RegionsContext.Provider value={{ 
