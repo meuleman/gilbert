@@ -501,7 +501,7 @@ function Home() {
     if(selected.factor) {
       // query for the paths for the factor
       let f = selected.factor
-      fetchFilteringWithoutOrder({index: f.index, dataset: f.layer.datasetName})
+      fetchFilteringWithoutOrder([{factor: f.index, dataset: f.layer.datasetName}])
         .then((response) => {
           console.log("FILTERING WITHOUT ORDER", response)
           let regions = response.regions.slice(0,100).map(r => {
