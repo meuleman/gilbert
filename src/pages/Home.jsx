@@ -259,10 +259,22 @@ function Home() {
     saveSet,
     activeGenesetEnrichment,
     activeRegions,
+    filteredRegions,
+    effectiveMap,
   } = useContext(RegionsContext)
 
+  const regions = useMemo(() => {
+    if(filteredRegions?.length) {
+      return filteredRegions
+    } else if(activeRegions?.length) {
+      return activeRegions
+    } else {
+      return []
+    }
+  }, [activeRegions, filteredRegions])
+
   useEffect(() => {
-    if(showFilter && activeRegions?.length) {
+    if(showFilter && regions?.length) {
       let path_density = layers.find(d => d.datasetName == "precomputed_csn_path_density_above_90th_percentile")
       const lo = {}
       range(4, 15).map(o => {
@@ -277,7 +289,7 @@ function Home() {
       setLayerOrder(layerOrderNatural)
       setLayer(layerOrderNatural[orderRef.current])
     }
-  }, [filters, showFilter, layerOrderNatural, activeRegions])
+  }, [filters, showFilter, layerOrderNatural, regions])
 
   
 
@@ -501,7 +513,7 @@ function Home() {
     if(selected.factor) {
       // query for the paths for the factor
       let f = selected.factor
-      fetchFilteringWithoutOrder([{factor: f.index, dataset: f.layer.datasetName}])
+      fetchFilteringWithoutOrder([{factor: f.index, dataset: f.layer.datasetName}], null)
         .then((response) => {
           console.log("FILTERING WITHOUT ORDER", response)
           let regions = response.regions.slice(0,100).map(r => {
@@ -629,8 +641,8 @@ function Home() {
       // if an activeSet we grab the first region (since they are ordered) that falls witin the selected region
       // if the region is smaller than the activeSet regions, the first one where the selected region is within the activeset region
       let region = selected
-      if(activeRegions?.length) {
-        region = overlaps(selected, activeRegions)[0] || selected
+      if(regions?.length) {
+        region = overlaps(selected, regions)[0] || selected
       } 
       setLoadingSelectedCSN(true)
       setLoadingRegionCSNS(true)
@@ -659,7 +671,7 @@ function Home() {
           setLoadingRegionCSNS(false)
         })
     }
-  }, [selected, activeRegions])
+  }, [selected, regions])
 
   const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
 
@@ -667,7 +679,7 @@ function Home() {
   const [allRegionsByCurrentOrder, setAllRegionsByCurrentOrder] = useState(new Map())
   // group the top regions found through filtering by the current order
   useEffect(() => {
-    let regions = activeRegions
+    // let regions = activeRegions
     if(regions?.length) {
       console.log("REGIONS HOME", regions)
       const groupedAllRegions = group(
@@ -679,7 +691,7 @@ function Home() {
       // console.log("no regions!!")
       setAllRegionsByCurrentOrder(new Map())
     }
-  }, [activeRegions, order])
+  }, [regions, order])
 
   useEffect(() => {
     if(activePaths?.length) {
@@ -693,7 +705,7 @@ function Home() {
       setActiveRegionsByCurrentOrder(new Map())
     }
 
-  }, [order, activePaths, activeRegions, numTopRegions])
+  }, [order, activePaths, regions, numTopRegions])
 
 
 
@@ -722,7 +734,7 @@ function Home() {
   const [intersectedGenes, setIntersectedGenes] = useState([])
   const [associatedGenes, setAssociatedGenes] = useState([])
   useEffect(() => {
-    if(hover && activeSet && activeRegions?.length && activePaths?.length) {
+    if(hover && activeSet && regions?.length && activePaths?.length) {
       // find the regions within the hover
       // let regions = overlaps(hover, activeSet.regions)
       // console.log("activepaths", activePaths, "activeregions", activeSet.regions)
@@ -740,7 +752,7 @@ function Home() {
       setActiveInHovered(null)
     }
 
-  }, [hover, activeSet, activePaths, activeRegions])
+  }, [hover, activeSet, activePaths, regions])
 
   useEffect(() => {
     if(mapLoading || activeState) {
@@ -892,12 +904,12 @@ function Home() {
   const [loadingSpectrum, setLoadingSpectrum] = useState(false);
   
   useEffect(() => {
-    if(activeRegions?.length && activeGenesetEnrichment === null) {
+    if(regions?.length && activeGenesetEnrichment === null) {
       setLoadingSpectrum(true)
     } else {
       setLoadingSpectrum(false)
     }
-  }, [activeGenesetEnrichment, activeRegions])
+  }, [activeGenesetEnrichment, regions])
 
   useEffect(() => {
     if(activeSet) {
@@ -966,7 +978,7 @@ function Home() {
               />
           </div> */}
           <div className="header--search">
-            <div className="filter-button">
+            {/* <div className="filter-button">
               <button className={`filter-button ${showFactorPreview ? 'active' : null}`}
                 data-tooltip-id="filter-button-tooltip"
                 data-tooltip-content="Filter regions by factor"
@@ -975,7 +987,7 @@ function Home() {
                 <FilterOutlined />
               </button>
               <Tooltip id="filter-button-tooltip"></Tooltip>
-            </div>
+            </div> */}
             {showFactorPreview? 
               <SelectFactorPreview 
                 activeWidth={400}
@@ -1116,7 +1128,7 @@ function Home() {
                 // queryLoading={filterLoading}
               /> 
 
-              <FilterSelects
+              {/* <FilterSelects
                 show={showFilter}
                 orderSums={orderSums} 
                 previewField={factorPreviewField}
@@ -1126,7 +1138,7 @@ function Home() {
                 activeWidth={585}
                 restingWidth={65}
                 orderMargin={orderMargin}
-              />
+              /> */}
 
               <SankeyModal 
                 show={showSankey}

@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback, useContext, useRef } from 'react';
+import { useState, useEffect, useCallback, useContext, useRef, useMemo } from 'react';
 import RegionsContext from './RegionsContext';
 import FiltersContext from '../ComboLock/FiltersContext';
 import { fromPosition, toPosition } from '../../lib/regions';
 import { fetchFilterSegments, fetchFilteringWithoutOrder } from '../../lib/dataFiltering';
 import { fetchTopPathsForRegions, rehydrateCSN } from '../../lib/csn'
 import { fetchGenesetEnrichment } from '../../lib/genesetEnrichment';
-import { csnLayers, variantLayers } from '../../layers'
+import { csnLayers, variantLayers, makeField } from '../../layers'
 import { fetchRegionSetEnrichments } from '../../lib/regionSetEnrichments';
 
 // import { v4 as uuidv4 } from 'uuid';
@@ -53,10 +53,15 @@ const RegionsProvider = ({ children }) => {
     activeSetRef.current = activeSet
   }, [activeSet])
 
+  // Filters on the active set
+  const [activeFilters, setActiveFilters] = useState([])
+
   const [activeState, setActiveState] = useState(null) // for loading and state updates
   const [activeRegions, setActiveRegions] = useState(null) // for the active regions in the active set
+  const [effectiveRegions, setEffectiveRegions] = useState(null) // results of filtering the active regions
   const [activePaths, setActivePaths] = useState(null) // for the paths associated with active regions
   const { filters, setFilters, clearFilters, hasFilters } = useContext(FiltersContext);
+
 
   const defaultTopRegions = 100
   const [numTopRegions, setNumTopRegions] = useState(defaultTopRegions)
@@ -135,8 +140,63 @@ const RegionsProvider = ({ children }) => {
     // }
   }, []);
 
+
+  // Filtering to effective regions
+  useEffect(() => {
+    if(activeFilters.length && activeRegions?.length) {
+      const filters = activeFilters.map(f => ({factor: f.index, dataset: f.layer.datasetName}))
+      fetchFilteringWithoutOrder(filters, activeRegions)
+      .then((response) => {
+        console.log("EFFECTIVE REGIONS", response)
+        setEffectiveRegions(response?.regions)
+      })
+    } else {
+      setEffectiveRegions(null)
+    }
+  }, [activeFilters, activeRegions])
+
+  const effectiveMap = useMemo(() => {
+    if (!activeRegions || !effectiveRegions) return null;
+
+    const map = new Map();
+    // const orders = new Set()
+
+    // Create map entries for all active regions
+    activeRegions.forEach(region => {
+      const key = `${region.order}:${region.chromosome}:${region.i}`;
+      map.set(key, []);
+      // orders.add(region.order)
+    });
+
+    // For each effective region, find matching active regions at different orders
+    effectiveRegions.forEach(effectiveRegion => {
+      // Convert effective region i to corresponding i values at lower orders
+      for (let order = effectiveRegion.order; order >= 4; order--) {
+        const scaleFactor = Math.pow(4, effectiveRegion.order - order);
+        const i = Math.floor(effectiveRegion.i / scaleFactor);
+        
+        const key = `${order}:${effectiveRegion.chromosome}:${i}`;
+        if (map.has(key)) {
+          map.get(key).push(effectiveRegion);
+          break; // Stop once we find a match
+        }
+      }
+    });
+    console.log("EFFECTIVE MAP", map)
+
+    return map;
+    
+  }, [activeRegions, effectiveRegions])
+
+  const filteredBaseRegions = useMemo(() => {
+    if(!effectiveMap) return null
+    return activeRegions.filter(r => effectiveMap.get(`${r.order}:${r.chromosome}:${r.i}`)?.length > 0)
+  }, [effectiveMap, activeRegions])
+
   // fetch filtered regions given filters and potentially "background" regions
   // this function assumes there are filters active
+  // THIS IS THE OLD FILTERING METHOD
+  /*
   const filterRequestRef = useRef(0)
   const requestFilteredRegions = useCallback((filters, regions, callback = () => {}) => {
     filterRequestRef.current += 1
@@ -166,21 +226,6 @@ const RegionsProvider = ({ children }) => {
     })
     
   }, [])
-
-  // const requestFilteredFromFactor = useCallback((factor) => {
-  //   if(!factor) return;
-  //   let index = factor.index
-  //   let dataset = factor.layer?.datasetName
-  //   if (index && dataset) {
-  //     fetchFilteringWithoutOrder({index: index, dataset: dataset})
-  //       .then((response) => {
-  //         console.log("FILTERING WITHOUT ORDER", response)
-  //       }).catch((e) => {
-  //         console.log("error fetching filtering without order", e)
-  //       })
-  //   }
-  // })
-
 
   // when the filters change, we manage the query set logic
   useEffect(() => {
@@ -235,6 +280,7 @@ const RegionsProvider = ({ children }) => {
       }
     }
   }, [hasFilters, filters, saveSet, deleteSet, requestFilteredRegions])
+  */
 
 
   // ACTIVE PATH logic
@@ -329,14 +375,16 @@ const RegionsProvider = ({ children }) => {
   const [selectedGenesetMembership, setSelectedGenesetMembership] = useState([])
 
   // region set enrichment
+  const [regionSetEnrichments, setRegionSetEnrichments] = useState([])
   useEffect(() => {
-    if(activeSet && activeSet.regions && activeSet.regions[0].order > 6) {
-      fetchRegionSetEnrichments(activeSet.regions.slice(0, 100))
+    if(effectiveRegions && effectiveRegions[0].order > 6) {
+      fetchRegionSetEnrichments(effectiveRegions.slice(0, 100))
       .then((response) => {
         console.log("REGION SET ENRICHMENTS", response)
+        setRegionSetEnrichments(response.map(d => makeField(d.dataset, d.factor)))
       })
     }
-  }, [activeSet])
+  }, [effectiveRegions])
 
 
   return (
@@ -346,6 +394,11 @@ const RegionsProvider = ({ children }) => {
       activeState,
       activeRegions,
       activePaths,
+      activeFilters,
+      effectiveRegions,
+      filteredBaseRegions,
+      effectiveMap,
+      regionSetEnrichments,
       activeGenesetEnrichment,
       selectedGenesetMembership,
       numTopRegions,
@@ -354,6 +407,7 @@ const RegionsProvider = ({ children }) => {
       deleteSet,
       setActiveSet,
       clearActive,
+      setActiveFilters,
       setSelectedGenesetMembership
     }}>
       {children}

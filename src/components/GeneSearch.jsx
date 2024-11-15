@@ -143,7 +143,7 @@ const GeneSearch = memo(({
         value={inputValue}
         onSearch={handleSearch}
         onSelect={handleSelect}
-        placeholder="Search for a gene or coordinate"
+        placeholder="Search for a gene, genomic coordinate, or factor"
         style={{ width: '400px' }}
       />
     </div>
