@@ -377,7 +377,7 @@ const RegionsProvider = ({ children }) => {
   // region set enrichment
   const [regionSetEnrichments, setRegionSetEnrichments] = useState([])
   useEffect(() => {
-    if(effectiveRegions && effectiveRegions[0].order > 6) {
+    if(effectiveRegions) {
       fetchRegionSetEnrichments(effectiveRegions.slice(0, 100))
       .then((response) => {
         console.log("REGION SET ENRICHMENTS", response)
