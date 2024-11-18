@@ -519,7 +519,7 @@ function Home() {
           let regions = response.regions.slice(0,100).map(r => {
             return {...fromIndex(r.chromosome, r.i, r.order), score: r.score}
           })
-          saveSet(selected.factor.label, regions, { activate: true, type: "search"})
+          saveSet(selected.factor.label, regions, { activate: true, type: "search", factor: selected.factor })
         })
 
     } else {

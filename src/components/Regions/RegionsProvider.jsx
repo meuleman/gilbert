@@ -83,6 +83,7 @@ const RegionsProvider = ({ children }) => {
   const saveSet = useCallback((name, regions, options = {
     type = "file",
     activate = false, 
+    factor = null,
     derived = null
   } = {}) => {
     setSets(oldSets => {
@@ -97,6 +98,7 @@ const RegionsProvider = ({ children }) => {
           regions,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+          factor: options.factor,
           derived: options.derived
         };
         newSets = [...oldSets, newSet]
@@ -110,6 +112,7 @@ const RegionsProvider = ({ children }) => {
         updateSet.regions = regions
         updateSet.updatedAt = new Date().toISOString()
         updateSet.derived = options.derived
+        updateSet.factor = options.factor
         if(options.activate) {
           setActiveSet(updateSet)
         }
@@ -383,7 +386,10 @@ const RegionsProvider = ({ children }) => {
     if(effectiveRegions) {
       fetchRegionSetEnrichments({
         regions: effectiveRegions.slice(0, 100), 
-        factorExclusion: activeFilters.map(d => `${d.layer.datasetName}.${d.index}`)
+        factorExclusion: [
+          ...(activeSet?.factor ? [{dataset: activeSet?.factor?.layer?.datasetName, index: activeSet?.factor?.index}] : []), 
+          ...activeFilters.map(d => ({dataset: d.layer.datasetName, index: d.index}))
+        ]
       })
       .then((response) => {
         console.log("REGION SET ENRICHMENTS", response)
