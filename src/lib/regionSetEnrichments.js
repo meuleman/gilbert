@@ -13,7 +13,7 @@ factorExclusion: list of factors to exclude from the results [{dataset, index}, 
 Returns:
 [{factor, enrichment}, ...]
 */
-function fetchRegionSetEnrichments(regions, N=10, factorExclusion=[]) {
+function fetchRegionSetEnrichments({regions, N = 10, factorExclusion = []}) {
   const url = "https://explore.altius.org:5001/api/regionSetEnrichment/region_set_enrichment"
   const postBody = {regions, N, factorExclusion}
   console.log("REGION SET ENRICHMENT POST BODY", postBody)

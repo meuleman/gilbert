@@ -381,7 +381,10 @@ const RegionsProvider = ({ children }) => {
   const [regionSetEnrichments, setRegionSetEnrichments] = useState([])
   useEffect(() => {
     if(effectiveRegions) {
-      fetchRegionSetEnrichments(effectiveRegions.slice(0, 100))
+      fetchRegionSetEnrichments({
+        regions: effectiveRegions.slice(0, 100), 
+        factorExclusion: activeFilters.map(d => `${d.layer.datasetName}.${d.index}`)
+      })
       .then((response) => {
         console.log("REGION SET ENRICHMENTS", response)
         setRegionSetEnrichments(response.map(d => makeField(d.dataset, d.factor)))
