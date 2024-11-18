@@ -150,6 +150,9 @@ const RegionsProvider = ({ children }) => {
         console.log("EFFECTIVE REGIONS", response)
         setEffectiveRegions(response?.regions)
       })
+    } else if(activeRegions?.length) {
+      // set effective regions to active regions if no filters
+      setEffectiveRegions(activeRegions)
     } else {
       setEffectiveRegions(null)
     }
