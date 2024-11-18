@@ -8,7 +8,7 @@ import axios from "axios";
 Fetches factor bp coverage log2(obs/exp) enrichments within region set.
 regions: [{chromosome, i, order}, ...]
 N: number of factors to return (defulat 10)
-factorExclusion: list of factors to exclude from the results [{dataset, index}, ...]
+factorExclusion: list of factors to exclude from the results [{dataset, factor}, ...]
 
 Returns:
 [{factor, enrichment}, ...]

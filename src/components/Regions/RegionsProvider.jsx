@@ -387,8 +387,8 @@ const RegionsProvider = ({ children }) => {
       fetchRegionSetEnrichments({
         regions: effectiveRegions.slice(0, 100), 
         factorExclusion: [
-          ...(activeSet?.factor ? [{dataset: activeSet?.factor?.layer?.datasetName, index: activeSet?.factor?.index}] : []), 
-          ...activeFilters.map(d => ({dataset: d.layer.datasetName, index: d.index}))
+          ...(activeSet?.factor ? [{dataset: activeSet?.factor?.layer?.datasetName, factor: activeSet?.factor?.index}] : []), 
+          ...activeFilters.map(d => ({dataset: d.layer.datasetName, factor: d.index}))
         ]
       })
       .then((response) => {
