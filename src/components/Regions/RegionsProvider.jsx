@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useContext, useRef, useMemo } from 'react';
 import RegionsContext from './RegionsContext';
 import FiltersContext from '../ComboLock/FiltersContext';
-import { fromPosition, toPosition } from '../../lib/regions';
+import { fromPosition, toPosition, fromIndex } from '../../lib/regions';
 import { fetchFilterSegments, fetchFilteringWithoutOrder } from '../../lib/dataFiltering';
 import { fetchTopPathsForRegions, rehydrateCSN } from '../../lib/csn'
 import { fetchGenesetEnrichment } from '../../lib/genesetEnrichment';
@@ -59,8 +59,14 @@ const RegionsProvider = ({ children }) => {
   const [activeState, setActiveState] = useState(null) // for loading and state updates
   const [activeRegions, setActiveRegions] = useState(null) // for the active regions in the active set
   const [effectiveRegions, setEffectiveRegions] = useState(null) // results of filtering the active regions
-  const [activePaths, setActivePaths] = useState(null) // for the paths associated with active regions
-  const { filters, setFilters, clearFilters, hasFilters } = useContext(FiltersContext);
+  const [effectiveRegionsLoading, setEffectiveRegionsLoading] = useState(false)
+  // const [activePaths, setActivePaths] = useState(null) // for the paths associated with active regions
+  // const { filters, setFilters, clearFilters, hasFilters } = useContext(FiltersContext);
+
+  const activeFiltersRef = useRef(activeFilters)
+  useEffect(() => {
+    activeFiltersRef.current = activeFilters
+  }, [activeFilters])
 
 
   const defaultTopRegions = 100
@@ -126,14 +132,14 @@ const RegionsProvider = ({ children }) => {
     setActiveSetter(set)
     setActiveState(null)
     setActiveRegions(set?.regions)
-    setActivePaths(null)
+    // setActivePaths(null)
     setActiveGenesetEnrichment(null)
   }
   const clearActive = () => {
     setActiveSet(null)
     setActiveState(null)
     setActiveRegions(null)
-    setActivePaths(null)
+    // setActivePaths(null)
     setActiveGenesetEnrichment(null)
   }
   const deleteSet = useCallback((name) => {
@@ -147,17 +153,22 @@ const RegionsProvider = ({ children }) => {
   // Filtering to effective regions
   useEffect(() => {
     if(activeFilters.length && activeRegions?.length) {
+      setEffectiveRegionsLoading(true)
       const filters = activeFilters.map(f => ({factor: f.index, dataset: f.layer.datasetName}))
       fetchFilteringWithoutOrder(filters, activeRegions)
       .then((response) => {
-        console.log("EFFECTIVE REGIONS", response)
-        setEffectiveRegions(response?.regions)
+        let rs = response?.regions.map(r => fromIndex(r.chromosome, r.i, r.order))
+        console.log("EFFECTIVE REGIONS", response, rs)
+        setEffectiveRegions(rs)
+        setEffectiveRegionsLoading(false)
       })
     } else if(activeRegions?.length) {
       // set effective regions to active regions if no filters
       setEffectiveRegions(activeRegions)
+      setEffectiveRegionsLoading(false)
     } else {
       setEffectiveRegions(null)
+      setEffectiveRegionsLoading(false)
     }
   }, [activeFilters, activeRegions])
 
@@ -309,57 +320,58 @@ const RegionsProvider = ({ children }) => {
     }))
   }
 
-  useEffect(() => {
-    // if(activeSet && activeSet.name !== "Query Set" && activeSet.regions?.length) {
-    if(activeSet && activeRegions?.length) {
-      // TODO: eventually we will slice the activeRegions by an interval
-      // currently we always get the top 100 (defaultTopRegions) and allow numTopRegions to be betwen 0 and 100
-      const regions = activeRegions.slice(0, defaultTopRegions).map(toPosition)
-      if(regions.toString() == pathsRequestRef.current) {
-        console.log("cancelling redundant request")
-        return
-      } else {
-        pathsRequestRef.current = regions.toString()
-      }
-      // console.log("FETCHING TOP PATHS FOR QUERY SET", regions)
-      setActiveState("fetching top paths")
-      fetchTopPathsForRegions(regions, 1)
-        .then((response) => {
-          if(!response) { setActivePaths(null)
-          } else { 
-            // convert the response into "dehydrated" csn paths with the region added
-            let tpr = getDehydrated(activeRegions, response.regions)
-            let hydrated = tpr.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
-            // combine the regions with the paths so we can sort them by the path score
-            let combined = activeRegions.map((r,i) => {
-              // return { i, r, p: hydrated[i], score: r.score ? r.score : hydrated[i]?.score }
-              return { 
-                i, 
-                r, 
-                p: hydrated[i], 
-                rscore: r.score, 
-                pscore: hydrated[i]?.score 
-              }
-            }).sort((a,b) => (a.rscore && b.rscore && a.rscore.toFixed(3) != b.rscore.toFixed(3)) ? b.rscore - a.rscore : b.pscore - a.pscore)
+  // TODO: we are no longer using activePaths in general
+  // useEffect(() => {
+  //   // if(activeSet && activeSet.name !== "Query Set" && activeSet.regions?.length) {
+  //   if(activeSet && activeRegions?.length) {
+  //     // TODO: eventually we will slice the activeRegions by an interval
+  //     // currently we always get the top 100 (defaultTopRegions) and allow numTopRegions to be betwen 0 and 100
+  //     const regions = activeRegions.slice(0, defaultTopRegions).map(toPosition)
+  //     if(regions.toString() == pathsRequestRef.current) {
+  //       console.log("cancelling redundant request")
+  //       return
+  //     } else {
+  //       pathsRequestRef.current = regions.toString()
+  //     }
+  //     // console.log("FETCHING TOP PATHS FOR QUERY SET", regions)
+  //     setActiveState("fetching top paths")
+  //     fetchTopPathsForRegions(regions, 1)
+  //       .then((response) => {
+  //         if(!response) { setActivePaths(null)
+  //         } else { 
+  //           // convert the response into "dehydrated" csn paths with the region added
+  //           let tpr = getDehydrated(activeRegions, response.regions)
+  //           let hydrated = tpr.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
+  //           // combine the regions with the paths so we can sort them by the path score
+  //           let combined = activeRegions.map((r,i) => {
+  //             // return { i, r, p: hydrated[i], score: r.score ? r.score : hydrated[i]?.score }
+  //             return { 
+  //               i, 
+  //               r, 
+  //               p: hydrated[i], 
+  //               rscore: r.score, 
+  //               pscore: hydrated[i]?.score 
+  //             }
+  //           }).sort((a,b) => (a.rscore && b.rscore && a.rscore.toFixed(3) != b.rscore.toFixed(3)) ? b.rscore - a.rscore : b.pscore - a.pscore)
 
-            let reorderedRegions = combined.map(d => d.r)
-            let reorderedPaths = combined.map(d => d.p).filter(d => !!d)
-            setActivePaths(reorderedPaths) 
-            setActiveRegions(reorderedRegions)
+  //           let reorderedRegions = combined.map(d => d.r)
+  //           let reorderedPaths = combined.map(d => d.p).filter(d => !!d)
+  //           setActivePaths(reorderedPaths) 
+  //           setActiveRegions(reorderedRegions)
 
-            setActiveState(null)
-            // for geneset enrichment calculation
-            let gip = response.regions.flatMap(d => d.genes[0]?.genes).map(d => d.name)
-            setGenesInPaths(gip)
-          }
-        }).catch((e) => {
-          console.log("error fetching top paths for regions", e)
-          setActivePaths(null)
-        })
-    } else {
-      pathsRequestRef.current = ""
-    }
-  }, [activeRegions, activeSet])
+  //           setActiveState(null)
+  //           // for geneset enrichment calculation
+  //           let gip = response.regions.flatMap(d => d.genes[0]?.genes).map(d => d.name)
+  //           setGenesInPaths(gip)
+  //         }
+  //       }).catch((e) => {
+  //         console.log("error fetching top paths for regions", e)
+  //         setActivePaths(null)
+  //       })
+  //   } else {
+  //     pathsRequestRef.current = ""
+  //   }
+  // }, [activeRegions, activeSet])
 
 
   const [activeGenesetEnrichment, setActiveGenesetEnrichment] = useState(null)
@@ -382,13 +394,17 @@ const RegionsProvider = ({ children }) => {
 
   // region set enrichment
   const [regionSetEnrichments, setRegionSetEnrichments] = useState([])
+  const [regionSetEnrichmentsLoading, setRegionSetEnrichmentsLoading] = useState(false)
   useEffect(() => {
     if(effectiveRegions) {
+      let factor = activeSetRef.current?.factor
+      let filters = activeFiltersRef.current
+      setRegionSetEnrichmentsLoading(true)
       fetchRegionSetEnrichments({
         regions: effectiveRegions.slice(0, 100), 
         factorExclusion: [
-          ...(activeSet?.factor ? [{dataset: activeSet?.factor?.layer?.datasetName, factor: activeSet?.factor?.index}] : []), 
-          ...activeFilters.map(d => ({dataset: d.layer.datasetName, factor: d.index}))
+          ...(factor ? [{dataset: factor?.layer?.datasetName, factor: factor?.index}] : []), 
+          ...filters.map(d => ({dataset: d.layer.datasetName, factor: d.index}))
         ]
       })
       .then((response) => {
@@ -400,6 +416,7 @@ const RegionsProvider = ({ children }) => {
           field.count = d.count
           return field
         }))
+        setRegionSetEnrichmentsLoading(false)
       })
     }
   }, [effectiveRegions])
@@ -411,12 +428,14 @@ const RegionsProvider = ({ children }) => {
       activeSet, 
       activeState,
       activeRegions,
-      activePaths,
+      // activePaths,
       activeFilters,
       effectiveRegions,
+      effectiveRegionsLoading,
       filteredBaseRegions,
       effectiveMap,
       regionSetEnrichments,
+      regionSetEnrichmentsLoading,
       activeGenesetEnrichment,
       selectedGenesetMembership,
       numTopRegions,

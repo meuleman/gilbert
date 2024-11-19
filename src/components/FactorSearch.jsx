@@ -39,7 +39,7 @@ const FactorSearch = memo(({
       label: factorLabel(f),
       factor: f,
     }))
-    console.log("factorOptions", factorOptions)
+    // console.log("factorOptions", factorOptions)
     return factorOptions
   }, [searchValue]);
 

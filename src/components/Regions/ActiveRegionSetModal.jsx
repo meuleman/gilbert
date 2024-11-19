@@ -5,6 +5,7 @@ import {Tooltip} from 'react-tooltip';
 import { download } from '../../lib/regionsets'
 import RegionsContext from './RegionsContext'
 import FactorSearch from '../FactorSearch';
+import Loading from '../Loading';
 
 import styles from './ActiveRegionSetModal.module.css'
 
@@ -28,9 +29,11 @@ const ActiveRegionSetModal = ({
     activeRegions, 
     activeFilters,
     effectiveRegions,
+    effectiveRegionsLoading,
     effectiveMap,
     filteredBaseRegions,
     regionSetEnrichments,
+    regionSetEnrichmentsLoading,
     numTopRegions, 
     setNumTopRegions, 
     activePaths, 
@@ -106,7 +109,7 @@ const ActiveRegionSetModal = ({
           <h3>Filter</h3>
           <FactorSearch onSelect={(f) => handleFactorSelect(f.factor)}/>
           
-          {activeFilters?.length ? <div className={`${styles.section} ${styles['active-filters']}`}>
+          {activeFilters?.length ? <div className={`${styles['active-filters']}`}>
               <span>Active filters: </span>
               <span className={styles['active-filters-list']}>
               {activeFilters.map((f,i) => 
@@ -120,8 +123,10 @@ const ActiveRegionSetModal = ({
             </div>
           : null}
 
-
-          {regionSetEnrichments?.length ? <div className={`${styles.section} ${styles['region-set-enrichments']}`}>
+          {regionSetEnrichmentsLoading ? <div className={`${styles['region-set-enrichments']}`}>
+            <Loading text="Loading suggested filters..."/>
+          </div> : null}
+          {!regionSetEnrichmentsLoading && regionSetEnrichments?.length ? <div className={`${styles['region-set-enrichments']}`}>
               <span>Suggested filters: </span>
               <span className={styles['region-set-enrichments-list']}>
               {regionSetEnrichments.filter(f => !inFilters(activeFilters, f)).map((f,i) => 
@@ -140,10 +145,12 @@ const ActiveRegionSetModal = ({
         
         <div className={`${styles.section} ${styles['region-sets']}`}>
           <div className={styles['region-sets-header']}>
-            <h3>{filteredBaseRegions?.length} / {activeRegions?.length} base regions</h3>
+            {effectiveRegionsLoading ? <h3><Loading text="Loading filtered regions..."/> </h3> :
+              <h3> {filteredBaseRegions?.length} / {activeRegions?.length} base regions</h3>
+            }
 
           </div>
-          <h4>Top {numTopRegions} regions used in visualizations</h4>
+          {/* <h4>Top {numTopRegions} regions used in visualizations</h4> */}
 
           {/* <div className="top-paths-selector">
             <label>
@@ -168,9 +175,14 @@ const ActiveRegionSetModal = ({
                 </tr>
               </thead>
               <tbody>
-                {regions.slice(0, numTopRegions).map((region, index) => (
+                {regions.map((region, index) => (
                   <tr key={index}>
-                    <td style={{ width: '80%' }}>{showPosition(region)} ({effectiveMap?.get(region.order+":"+region.chromosome+":"+region.i)?.length} effective regions)</td>
+                    <td style={{ width: '80%' }}>
+                      {showPosition(region)} 
+                      {!!activeFilters.length && 
+                        <span> ({effectiveMap?.get(region.order+":"+region.chromosome+":"+region.i)?.length} effective regions)</span>
+                      }
+                    </td>
                     {regions?.[0]?.score && <td style={{ width: '10%' }}>{region.score?.toFixed(3)}</td>}
                     <td style={{ width: '10%' }}>{activePaths?.[index]?.score?.toFixed(3)}</td>
                   </tr>

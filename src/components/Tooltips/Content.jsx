@@ -18,6 +18,7 @@ export function defaultContent(region, layer, orientation) {
   if(orientation == "bottom") {
     fields = fields.reverse()
   }
+  console.log("TOOLTIP ACTIVES", region?.actives)
 
   return (
     <div style={{display: 'flex', flexDirection: 'column'}}>
@@ -62,7 +63,7 @@ export function defaultContent(region, layer, orientation) {
       {region.actives ? <div style={{border: "1px solid lightgray", borderRadius: "4px", padding: "4px"}}>
         <span>{region.actives.length} active regions</span>
         {region.actives.map(a => (
-          <div key={a.chromosome + ":" + a.start}>{showPosition(a)} - {showFloat(a.region.score)}</div>
+          <div key={a.chromosome + ":" + a.start}>{showPosition(a)} - {showFloat(a.score)}</div>
         ))}
       </div> : null}
 

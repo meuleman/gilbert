@@ -251,7 +251,7 @@ function Home() {
 
   const { 
     activeSet, 
-    activePaths, 
+    // activePaths, 
     activeState, 
     numTopRegions, 
     setActiveSet, 
@@ -259,19 +259,22 @@ function Home() {
     saveSet,
     activeGenesetEnrichment,
     activeRegions,
-    filteredRegions,
+    filteredBaseRegions,
     effectiveMap,
+    effectiveRegions
   } = useContext(RegionsContext)
 
   const regions = useMemo(() => {
-    if(filteredRegions?.length) {
-      return filteredRegions
-    } else if(activeRegions?.length) {
+    // console.log("REGIONS MEMO", filteredBaseRegions, activeRegions)
+    // if(filteredBaseRegions?.length) {
+    //   return filteredBaseRegions
+    // } else if(activeRegions?.length) {
+    if(activeRegions?.length) {
       return activeRegions
     } else {
       return []
     }
-  }, [activeRegions, filteredRegions])
+  }, [activeRegions])//, filteredBaseRegions])
 
   useEffect(() => {
     if(showFilter && regions?.length) {
@@ -617,18 +620,18 @@ function Home() {
   const [regionCSNS, setRegionCSNS] = useState([])
 
 
-  useEffect(() => {
-    // console.log("all full csns", allFullCSNS)
-    if(activePaths?.length) {
-      let sorted = activePaths.slice(0, numTopRegions)
-        // .sort((a,b) => b.score - a.score)
-      // console.log("sorted", sorted)
-      setTopFullCSNS(sorted)
-      setCSNLoading("")
-    } else {
-      setTopFullCSNS([])
-    }
-  }, [activePaths, numTopRegions])
+  // useEffect(() => {
+  //   // console.log("all full csns", allFullCSNS)
+  //   if(activePaths?.length) {
+  //     let sorted = activePaths.slice(0, numTopRegions)
+  //       // .sort((a,b) => b.score - a.score)
+  //     // console.log("sorted", sorted)
+  //     setTopFullCSNS(sorted)
+  //     setCSNLoading("")
+  //   } else {
+  //     setTopFullCSNS([])
+  //   }
+  // }, [activePaths, numTopRegions])
 
 
   // const [pathDiversity, setPathDiversity] = useState(true)
@@ -675,7 +678,7 @@ function Home() {
 
   const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
 
-  const [activeRegionsByCurrentOrder, setActiveRegionsByCurrentOrder] = useState(new Map())
+  const [effectiveRegionsByCurrentOrder, setEffectiveRegionsByCurrentOrder] = useState(new Map())
   const [allRegionsByCurrentOrder, setAllRegionsByCurrentOrder] = useState(new Map())
   // group the top regions found through filtering by the current order
   useEffect(() => {
@@ -685,8 +688,8 @@ function Home() {
       const groupedAllRegions = group(
         regions, 
         d => d.chromosome + ":" + (d.order > order ? hilbertPosToOrder(d.i, {from: d.order, to: order}) : d.i))
+      console.log("GROUPED ALL REGIONS", groupedAllRegions)
       setAllRegionsByCurrentOrder(groupedAllRegions)
-
     } else {
       // console.log("no regions!!")
       setAllRegionsByCurrentOrder(new Map())
@@ -694,18 +697,32 @@ function Home() {
   }, [regions, order])
 
   useEffect(() => {
-    if(activePaths?.length) {
-      console.log("updating active regions by current order", order)
-      const groupedActiveRegions = group(
-        activePaths.slice(0, numTopRegions),
-        d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: order}))
-      setActiveRegionsByCurrentOrder(groupedActiveRegions)
+    // let regions = activeRegions
+    if(effectiveRegions?.length) {
+      console.log("EFFECTIVE REGIONS HOME", effectiveRegions)
+      const groupedEffectiveRegions = group(
+        effectiveRegions, 
+        d => d.chromosome + ":" + (d.order > order ? hilbertPosToOrder(d.i, {from: d.order, to: order}) : d.i))
+      console.log("GROUPED EFFECTIVE REGIONS", groupedEffectiveRegions)
+      setEffectiveRegionsByCurrentOrder(groupedEffectiveRegions)
     } else {
-      console.log("no active regions", order)
-      setActiveRegionsByCurrentOrder(new Map())
+      // console.log("no regions!!")
+      setEffectiveRegionsByCurrentOrder(new Map())
     }
+  }, [effectiveRegions, order])
 
-  }, [order, activePaths, regions, numTopRegions])
+  // useEffect(() => {
+  //   if(activePaths?.length) {
+  //     console.log("updating active regions by current order", order)
+  //     const groupedActiveRegions = group(
+  //       activePaths.slice(0, numTopRegions),
+  //       d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: order}))
+  //     setActiveRegionsByCurrentOrder(groupedActiveRegions)
+  //   } else {
+  //     console.log("no active regions", order)
+  //     setActiveRegionsByCurrentOrder(new Map())
+  //   }
+  // }, [order, activePaths, regions, numTopRegions])
 
 
 
@@ -733,26 +750,24 @@ function Home() {
   const [activeInHovered, setActiveInHovered] = useState(null)
   const [intersectedGenes, setIntersectedGenes] = useState([])
   const [associatedGenes, setAssociatedGenes] = useState([])
+  // TODO: we probably want logic here for effective regions
   useEffect(() => {
-    if(hover && activeSet && regions?.length && activePaths?.length) {
+    if(hover && activeSet && regions?.length && effectiveRegions?.length) {
       // find the regions within the hover
-      // let regions = overlaps(hover, activeSet.regions)
-      // console.log("activepaths", activePaths, "activeregions", activeSet.regions)
-      let paths = overlaps(hover, activePaths, r => r.region)
-      // console.log("OVERLAPS", hover, topPathsForRegions, paths)
-      let intersected = [...new Set(paths.flatMap(p => p.genes.filter(g => g.in_gene).map(g => g.name)))]
-      let associated = [...new Set(paths.flatMap(p => p.genes.filter(g => !g.in_gene).map(g => g.name)))]
-      // make sure the 'associated' genes do not contain any 'intersected'/overlapping genes
-      associated = associated.filter(g => !intersected.includes(g))
+      let activeInHover = overlaps(hover, effectiveRegions, r => r)
+      console.log("ACTIVE IN HOVER", hover, effectiveRegions, activeInHover)
+      // let intersected = [...new Set(paths.flatMap(p => p.genes.filter(g => g.in_gene).map(g => g.name)))]
+      // let associated = [...new Set(paths.flatMap(p => p.genes.filter(g => !g.in_gene).map(g => g.name)))]
+      // // make sure the 'associated' genes do not contain any 'intersected'/overlapping genes
+      // associated = associated.filter(g => !intersected.includes(g))
       // get the paths
-      setActiveInHovered(paths)
-      setIntersectedGenes(intersected)
-      setAssociatedGenes(associated)
+      setActiveInHovered(activeInHover)
+      // setIntersectedGenes(intersected)
+      // setAssociatedGenes(associated)
     } else {
       setActiveInHovered(null)
     }
-
-  }, [hover, activeSet, activePaths, regions])
+  }, [hover, activeSet, effectiveRegions, regions])
 
   useEffect(() => {
     if(mapLoading || activeState) {
@@ -775,7 +790,8 @@ function Home() {
   }, [hover, activeInHovered, activeSet, activeState, mapLoading])
 
   // const drawFilteredRegions = useCanvasFilteredRegions(filterSegmentsByCurrentOrder)
-  const drawActiveFilteredRegions = useCanvasFilteredRegions(activeRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
+  // const drawActiveFilteredRegions = useCanvasFilteredRegions(activeRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
+  const drawEffectiveFilteredRegions = useCanvasFilteredRegions(effectiveRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
   const drawAllFilteredRegions = useCanvasFilteredRegions(allRegionsByCurrentOrder, { color: "gray", opacity: 0.5, strokeScale: 0.5, mask: false })
   const drawAnnotationRegionSelected = useCanvasAnnotationRegions(selected, "selected", { 
     stroke: "orange", 
@@ -801,13 +817,15 @@ function Home() {
   //   highlightPath: true 
   // })
   const canvasRenderers = useMemo(() => [
-    drawActiveFilteredRegions,
+    // drawActiveFilteredRegions,
+    drawEffectiveFilteredRegions,
     drawAllFilteredRegions,
     drawAnnotationRegionSelected,
     drawAnnotationRegionHover,
     // drawAnnotationRegionCenter,
   ], [
-    drawActiveFilteredRegions,
+    // drawActiveFilteredRegions,
+    drawEffectiveFilteredRegions,
     drawAllFilteredRegions,
     drawAnnotationRegionSelected,
     drawAnnotationRegionHover,
@@ -855,21 +873,21 @@ function Home() {
     if(hit && selectedRef.current) {
       clearSelectedState()
     } else if(hit) {
-      if(activePathsRef.current?.length) {
-        let paths = overlaps(hit, activePathsRef.current, r => r.region)
-        if(paths.length) {
-          // setSelectedTopCSN(paths[0])
-          setSelectedOrder(order)
-          setSelected(hit)
-          setRegion(hit)
-        }
-      } else {
+      // if(activePathsRef.current?.length) {
+      //   let paths = overlaps(hit, activePathsRef.current, r => r.region)
+      //   if(paths.length) {
+      //     // setSelectedTopCSN(paths[0])
+      //     setSelectedOrder(order)
+      //     setSelected(hit)
+      //     setRegion(hit)
+      //   }
+      // } else {
         // setSelectedTopCSN(null)
         // setRegionCSNS([])
         setSelectedOrder(order)
         setSelected(hit)
         setRegion(hit)
-      }
+      // }
     }
   }, [setSelectedOrder, setSelected, setRegion, clearSelectedState])
 
@@ -892,10 +910,6 @@ function Home() {
     }
   }, [handleModalClose])
 
-  const orderMargin = useMemo(() => {
-    return (height - 11*38)/11
-  }, [height])
-
   const [showLayerLegend, setShowLayerLegend] = useState(true)
   const [showSpectrum, setShowSpectrum] = useState(false)
   const [showTopFactors, setShowTopFactors] = useState(false)
@@ -903,20 +917,20 @@ function Home() {
   const [showActiveRegionSet, setShowActiveRegionSet] = useState(false)
   const [loadingSpectrum, setLoadingSpectrum] = useState(false);
   
-  useEffect(() => {
-    if(regions?.length && activeGenesetEnrichment === null) {
-      setLoadingSpectrum(true)
-    } else {
-      setLoadingSpectrum(false)
-    }
-  }, [activeGenesetEnrichment, regions])
+  // useEffect(() => {
+  //   if(regions?.length && activeGenesetEnrichment === null) {
+  //     setLoadingSpectrum(true)
+  //   } else {
+  //     setLoadingSpectrum(false)
+  //   }
+  // }, [activeGenesetEnrichment, regions])
 
   useEffect(() => {
     if(activeSet) {
       setShowManageRegionSets(false)
       setShowLayerLegend(false)
-      setShowFilter(true)
-      // setShowActiveRegionSet(true)
+      // setShowFilter(true)
+      setShowActiveRegionSet(true)
       // setShowTopFactors(true)
     } else {
       setShowActiveRegionSet(false)
@@ -937,15 +951,15 @@ function Home() {
 
   }, [activeSet, activeGenesetEnrichment])
 
-  const activePathsRef = useRef(activePaths)
-  useEffect(() => {
-    activePathsRef.current = activePaths
-    if(activePaths?.length) {
-      setShowTopFactors(true)
-    } else {
-      setShowTopFactors(false)
-    }
-  }, [activePaths])
+  // const activePathsRef = useRef(activePaths)
+  // useEffect(() => {
+  //   activePathsRef.current = activePaths
+  //   if(activePaths?.length) {
+  //     setShowTopFactors(true)
+  //   } else {
+  //     setShowTopFactors(false)
+  //   }
+  // }, [activePaths])
 
   // useEffect(() => {
   //   if(showManageRegionSets) {
@@ -965,9 +979,9 @@ function Home() {
             <LogoNav/>
           </div>
           <div className="header--region-list">
-            <HeaderRegionSetModal 
+            {/* <HeaderRegionSetModal 
               selectedRegion={selected}
-            />
+            /> */}
             {/* <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
               if(set) { setRegionSet(name) } else { setRegionSet('') }
             }} /> */}
@@ -1068,10 +1082,10 @@ function Home() {
             />
           </div>
           <div className="topfactors-container">
-            <SummarizePaths
+            {/* <SummarizePaths
               show={showTopFactors}
               topFullCSNS={activePaths?.slice(0, numTopRegions)}
-            /> 
+            />  */}
           </div>
 
           
@@ -1237,9 +1251,9 @@ function Home() {
               top: hoveredPosition.y,
             }}
             >
-              <b>{activeInHovered?.length} {activeInHovered?.length > 1 ? "paths" : "path"}</b><br/>
-              {intersectedGenes.length ? <span>Overlapping genes: {intersectedGenes.join(", ")}<br/></span> : null}
-              {associatedGenes.length ? <span>Nearby genes: {associatedGenes.join(", ")}<br/></span> : null}
+              <b>{activeInHovered?.length} {activeInHovered?.length > 1 ? "filtered regions" : "filtered region"}</b><br/>
+              {/* {intersectedGenes.length ? <span>Overlapping genes: {intersectedGenes.join(", ")}<br/></span> : null} */}
+              {/* {associatedGenes.length ? <span>Nearby genes: {associatedGenes.join(", ")}<br/></span> : null} */}
               {/* {activeInHovered.map(p => {
                 return <div key={p.chromosome + ":" + p.i}>
                   {showPosition(p.region)}: {p.genes.map(g => 
@@ -1295,7 +1309,7 @@ function Home() {
               // center={data?.center} 
               data={data?.data} 
               dataOrder={data?.dataOrder}
-              activeRegions={activeRegionsByCurrentOrder}
+              activeRegions={effectiveRegionsByCurrentOrder}
               layer={data?.layer}
               width={width} height={100} 
               mapWidth={width}
