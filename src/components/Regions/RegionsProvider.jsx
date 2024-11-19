@@ -393,7 +393,13 @@ const RegionsProvider = ({ children }) => {
       })
       .then((response) => {
         console.log("REGION SET ENRICHMENTS", response)
-        setRegionSetEnrichments(response.map(d => makeField(d.dataset, d.factor)))
+        // attach enrichment and count
+        setRegionSetEnrichments(response.map(d => {
+          let field = makeField(d.dataset, d.factor)
+          field.score = d.enrichment
+          field.count = d.count
+          return field
+        }))
       })
     }
   }, [effectiveRegions])

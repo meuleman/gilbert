@@ -128,7 +128,7 @@ const ActiveRegionSetModal = ({
                 <span onClick={() => handleFactorSelect(f)} key={"enrichment-" + f.label} className={styles['region-set-enrichment']} style={{border: `1px solid ${f.color}`}}>
                   <span className={styles['active-filter-color']} style={{backgroundColor: f.color}}>
                   </span>
-                  {f.label}
+                  {f.label}: {f.score.toFixed(3)}, {f.count}
                 <button>➕</button>
               </span>)}
               </span>
