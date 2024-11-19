@@ -516,7 +516,7 @@ function Home() {
       fetchFilteringWithoutOrder([{factor: f.index, dataset: f.layer.datasetName}], null)
         .then((response) => {
           console.log("FILTERING WITHOUT ORDER", response)
-          let regions = response.regions.slice(0,100).map(r => {
+          let regions = response.regions.map(r => {
             return {...fromIndex(r.chromosome, r.i, r.order), score: r.score}
           })
           saveSet(selected.factor.label, regions, { activate: true, type: "search", factor: selected.factor })
