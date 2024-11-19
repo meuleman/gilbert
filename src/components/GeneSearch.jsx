@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useContext, memo, useMemo } from 'rea
 import { AutoComplete, Button } from 'antd';
 import { CloseCircleOutlined } from '@ant-design/icons';
 
-import { filterFields } from '../layers'
+import { allFactorFilterFields } from '../layers'
 
 const genomicPositionRegex = /^chr(\d{1,2}|X|Y):(\d+)-(\d+)$/;
 const genomicPositionRegex2 = /^chr(\d{1,2}|X|Y)(\s+)(\d+)(\s+)(\d+)$/;
@@ -62,7 +62,7 @@ const GeneSearch = memo(({
       gene: g,
     }))
 
-    const factorOptions = filterFields.filter(f => {
+    const factorOptions = allFactorFilterFields.filter(f => {
       return f.field.toLowerCase().includes(searchValue.toLowerCase())
     }).map(f => ({
       value: f.label,

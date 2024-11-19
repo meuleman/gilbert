@@ -274,6 +274,21 @@ const filterLayers = [
   fullList.find(d => d.datasetName == "variants_favor_apc_rank"),
 ]
 
+// includes GWAS
+const allFactorFilterLayers = [
+  fullList.find(d => d.name == "DHS Components (ENR, Full)"),
+  fullList.find(d => d.name == "Chromatin States (ENR, Full)"),
+  fullList.find(d => d.datasetName == "tf_1en6_enr"),
+  fullList.find(d => d.name == "Repeats (ENR, Full)"),
+  fullList.find(d => d.name == "DHS Components (OCC, Ranked)"),
+  fullList.find(d => d.name == "Chromatin States (OCC, Ranked)"),
+  fullList.find(d => d.datasetName == "tf_1en6_rank_occ"),
+  fullList.find(d => d.name == "Repeats (OCC, Ranked)"),
+  fullList.find(d => d.datasetName == "variants_favor_categorical_rank"),
+  fullList.find(d => d.datasetName == "variants_favor_apc_rank"),
+  fullList.find(d => d.datasetName == "ukbb_94_traits"),
+]
+
 const variantLayers = [
   fullList.find(d => d.datasetName == "variants_favor_categorical_rank"),
   fullList.find(d => d.datasetName == "variants_favor_apc_rank"),
@@ -372,6 +387,13 @@ const filterFields = filterLayers.flatMap(layer => {
   })
   return fs 
 })
+// includes GWAS
+const allFactorFilterFields = allFactorFilterLayers.flatMap(layer => {
+  let fs = layer.fieldColor.domain().map((f, i) => {
+    return makeField(layer, f)
+  })
+  return fs 
+})
 
 
 export {
@@ -386,6 +408,7 @@ export {
   rehydrate,
   fields,
   filterFields,
+  allFactorFilterFields,
   makeField,
 }
 
