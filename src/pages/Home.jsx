@@ -1133,6 +1133,10 @@ function Home() {
 
               <ActiveRegionSetModal
                 show={showActiveRegionSet}
+                onSelect={(effective,base) => {
+                  setSelected(effective)
+                  setRegion(base)
+                }}
                 // selectedRegion={selected}
                 // queryRegions={filteredSegments} 
                 // queryRegionsCount={filteredSegmentsCount}

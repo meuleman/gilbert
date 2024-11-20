@@ -22,6 +22,7 @@ const ActiveRegionSetModal = ({
   show = false,
   selectedRegion = null,
   hoveredRegion = null,
+  onSelect = () => {},
 } = {}) => {
 
   const { 
@@ -79,6 +80,22 @@ const ActiveRegionSetModal = ({
       setActiveFilters([...activeFilters, f])
     }
   }, [setActiveFilters, activeFilters])
+
+  // Add new state for tracking expanded rows
+  const [expandedRows, setExpandedRows] = useState(new Set())
+
+  // Add toggle handler
+  const toggleExpand = useCallback((regionKey) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev)
+      if (next.has(regionKey)) {
+        next.delete(regionKey)
+      } else {
+        next.add(regionKey)
+      }
+      return next
+    })
+  }, [])
 
   return (
     <div className={`${styles['active-regionsets-modal']} ${show ? styles.show : ''}`}>
@@ -147,7 +164,10 @@ const ActiveRegionSetModal = ({
         <div className={`${styles.section} ${styles['region-sets']}`}>
           <div className={styles['region-sets-header']}>
             {effectiveRegionsLoading ? <h3><Loading text="Loading filtered regions..."/> </h3> :
+            <div>
               <h3> {filteredBaseRegions?.length} / {activeRegions?.length} base regions</h3>
+              {effectiveRegions?.length ? <h4> {effectiveRegions?.length} effective regions</h4> : null}
+            </div>
             }
 
           </div>
@@ -172,22 +192,53 @@ const ActiveRegionSetModal = ({
                 <tr>
                   <th style={{ width: '80%' }}>Position</th>
                   {regions?.[0]?.score && <th style={{ width: '10%' }}>Score</th>}
+                  <th style={{ width: '10%' }}>Select</th>
                   {/* <th style={{ width: '10%' }}>Path Score</th> */}
                 </tr>
               </thead>
               <tbody>
-                {regions.map((region, index) => (
-                  <tr key={index}>
-                    <td style={{ width: '80%' }}>
-                      {showPosition(region)} 
-                      {!!activeFilters.length && 
-                        <span> ({effectiveMap?.get(region.order+":"+region.chromosome+":"+region.i)?.length} effective regions)</span>
-                      }
-                    </td>
-                    {regions?.[0]?.score && <td style={{ width: '10%' }}>{region.score?.toFixed(3)}</td>}
-                    {/* <td style={{ width: '10%' }}>{activePaths?.[index]?.score?.toFixed(3)}</td> */}
-                  </tr>
-                ))}
+              {regions.map((region, index) => {
+                const regionKey = `${region.order}:${region.chromosome}:${region.i}`
+                const effectiveRegions = effectiveMap?.get(regionKey) || []
+    
+                return (
+                  <>
+                    <tr key={index}>
+                      <td style={{ width: '80%' }}>
+                        {showPosition(region)} 
+                        {!!activeFilters.length && effectiveRegions.length > 0 && 
+                          <span 
+                            className={styles['effective-count']}
+                            onClick={() => toggleExpand(regionKey)}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            ({effectiveRegions.length} effective)
+                            {expandedRows.has(regionKey) ? ' 🔽' : ' ▶️'}
+                          </span>
+                        }
+                      </td>
+                      {regions?.[0]?.score && <td style={{ width: '10%' }}>{region.score?.toFixed(3)}</td>}
+                      <td style={{ width: '10%' }}>
+                        <button onClick={() => onSelect(region, region)}>🔍</button>
+                      </td>
+                    </tr>
+                    {expandedRows.has(regionKey) && effectiveRegions.map((effectiveRegion, effectiveIndex) => (
+                      <tr 
+                        key={`${regionKey}-effective-${effectiveIndex}`}
+                        className={styles['effective-row']}
+                      >
+                        <td style={{ width: '80%', paddingLeft: '2em' }}>
+                          {showPosition(effectiveRegion)}
+                        </td>
+                        {<td style={{ width: '10%' }}>{effectiveRegion.score?.toFixed(3)}</td>}
+                        <td style={{ width: '10%' }}>
+                          <button onClick={() => onSelect(effectiveRegion, region)}>🔍</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </>
+                )
+              })}
               </tbody>
             </table>
           </div>
