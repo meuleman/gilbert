@@ -56,6 +56,7 @@ const ActiveRegionSetModal = ({
 
   const handleDeselect = useCallback(() => {
     setActiveSet(null)
+    setActiveFilters([])
     // setFilters({})
   }, [setActiveSet])
 
