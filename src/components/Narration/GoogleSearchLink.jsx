@@ -63,7 +63,7 @@ const Sentence = ({
 
 
   useEffect(() => {
-    console.log("NARRATION", narration)
+    // console.log("NARRATION", narration)
     let fields = narration.path.filter(d => {
       if(d.layer?.datasetName?.indexOf("occ") > -1) {
         return d.field?.value > 0.75
@@ -77,7 +77,6 @@ const Sentence = ({
     .map(d => {
       // Determine the data type based on layer name
       let prefix = ""
-      console.log("d", d)
       if (d.layer?.datasetName?.toLowerCase().includes("tf_")) {
         prefix = "MOTIF"
       } else if (d.layer?.datasetName?.toLowerCase().includes("dhs_")) {

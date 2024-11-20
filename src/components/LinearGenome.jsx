@@ -409,7 +409,6 @@ const LinearGenome = ({
       let gs = getGencodesInView([hover], dataOrder, 100000000)
       // console.log("HOVER", hover)
       let actives = activeRegions.get(hover.chromosome + ":" + hover.i)
-      // console.log("ACTIVES", actives)
       hd = {
         ...hover,
         actives,
@@ -419,7 +418,7 @@ const LinearGenome = ({
       }
     }
     return hd
-  }, [width, dataOrder])
+  }, [width, dataOrder, activeRegions])
 
   useEffect(() => {
     // console.log("hover updated")

@@ -464,7 +464,6 @@ function Home() {
         SimSearchByFactor(newSearchByFactorInds, order, layer).then((SBFResult) => {
           setSelected(null)
           setSelectedNarration(null)
-          setSelectedOrder(order)
           processSimSearchResults(order, SBFResult)
           setSimSearchMethod("SBF")
         })
@@ -479,7 +478,7 @@ function Home() {
       processSimSearchResults(order, {simSearch: null, factors: null, method: null, layer: null})
       setSimSearchMethod(null)
     }
-  }, [selected, order,  setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, setSelectedNarration, setSelectedOrder, layer])  // setGenesetEnrichment
+  }, [selected, order,  setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, setSelectedNarration, layer])  // setGenesetEnrichment
 
   
   const [showHilbert, setShowHilbert] = useState(false)
@@ -644,17 +643,17 @@ function Home() {
       // if an activeSet we grab the first region (since they are ordered) that falls witin the selected region
       // if the region is smaller than the activeSet regions, the first one where the selected region is within the activeset region
       let region = selected
-      if(regions?.length) {
-        region = overlaps(selected, regions)[0] || selected
+      if(effectiveRegions?.length) {
+        region = overlaps(selected, effectiveRegions)[0] || selected
       } 
       setLoadingSelectedCSN(true)
-      setLoadingRegionCSNS(true)
+      // setLoadingRegionCSNS(true)
       setSelectedTopCSN(null)
-      setRegionCSNS([])
+      // setRegionCSNS([])
       fetchTopPathsForRegions([toPosition(region)], 1)
         .then((response) => {
           if(!response) { 
-            setRegionCSNS([])
+            // setRegionCSNS([])
             setSelectedTopCSN(null)
             setLoadingSelectedCSN(false)
             setLoadingRegionCSNS(false)
@@ -662,19 +661,20 @@ function Home() {
           } else { 
             let dehydrated = getDehydrated([region], response.regions)
             let hydrated = dehydrated.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
-            setRegionCSNS(hydrated)
+            hydrated[0].path = hydrated[0].path.filter(d => d.order <= region.order)
+            // setRegionCSNS(hydrated)
             setSelectedTopCSN(hydrated[0])
             setLoadingRegionCSNS(false)
             setLoadingSelectedCSN(false)
           }
         }).catch((e) => {
           console.log("error fetching top paths for selected region", e)
-          setRegionCSNS([])
+          // setRegionCSNS([])
           setSelectedTopCSN(null),
           setLoadingRegionCSNS(false)
         })
     }
-  }, [selected, regions])
+  }, [selected, effectiveRegions])
 
   const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
 
@@ -755,7 +755,7 @@ function Home() {
     if(hover && activeSet && regions?.length && effectiveRegions?.length) {
       // find the regions within the hover
       let activeInHover = overlaps(hover, effectiveRegions, r => r)
-      console.log("ACTIVE IN HOVER", hover, effectiveRegions, activeInHover)
+      // console.log("ACTIVE IN HOVER", hover, effectiveRegions, activeInHover)
       // let intersected = [...new Set(paths.flatMap(p => p.genes.filter(g => g.in_gene).map(g => g.name)))]
       // let associated = [...new Set(paths.flatMap(p => p.genes.filter(g => !g.in_gene).map(g => g.name)))]
       // // make sure the 'associated' genes do not contain any 'intersected'/overlapping genes
@@ -873,23 +873,21 @@ function Home() {
     if(hit && selectedRef.current) {
       clearSelectedState()
     } else if(hit) {
-      // if(activePathsRef.current?.length) {
-      //   let paths = overlaps(hit, activePathsRef.current, r => r.region)
-      //   if(paths.length) {
-      //     // setSelectedTopCSN(paths[0])
-      //     setSelectedOrder(order)
+      // if(effectiveRegions?.length) {
+      //   let overs = overlaps(hit, effectiveRegions, r => r)
+      //   console.log("OVERS", overs, hit.order)
+      //   if(overs.length && overs[0].order > hit.order) {
+      //     setSelected(overs[0])
+      //   } else {
       //     setSelected(hit)
-      //     setRegion(hit)
       //   }
       // } else {
-        // setSelectedTopCSN(null)
-        // setRegionCSNS([])
-        setSelectedOrder(order)
-        setSelected(hit)
-        setRegion(hit)
+      //   setSelected(hit)
       // }
+      setSelected(hit)
+      setRegion(hit)
     }
-  }, [setSelectedOrder, setSelected, setRegion, clearSelectedState])
+  }, [setSelected, setRegion, clearSelectedState, effectiveRegions])
 
   const autocompleteRef = useRef(null)
   // keybinding that closes the modal on escape

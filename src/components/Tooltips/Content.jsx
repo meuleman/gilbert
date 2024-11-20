@@ -18,7 +18,6 @@ export function defaultContent(region, layer, orientation) {
   if(orientation == "bottom") {
     fields = fields.reverse()
   }
-  console.log("TOOLTIP ACTIVES", region?.actives)
 
   return (
     <div style={{display: 'flex', flexDirection: 'column'}}>

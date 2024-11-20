@@ -34,7 +34,7 @@ const InspectorGadget = ({
   children=null
 } = {}) => {
 
-  const tipOrientation = "right"
+  const tipOrientation = "left"
   const powerWidth = 300
   const powerHeight = 300 //Math.round(powerWidth / mapWidth * mapHeight);
 
@@ -163,7 +163,7 @@ const InspectorGadget = ({
       // top: modalTop, 
       // left: modalLeft,
       top:5,
-      right: 100,
+      right: 10,
       height: `${mapHeight - 20}px`,
       // backgroundColor: `rgba(255, 255, 255, ${opacity})`
       }}>
@@ -198,7 +198,7 @@ const InspectorGadget = ({
                 selected={true}
                 text={true}
                 width={34} 
-                offsetX={34}
+                offsetX={-300}
                 height={powerHeight} 
                 tipOrientation={tipOrientation}
                 onHover={handleZoom}
@@ -214,7 +214,7 @@ const InspectorGadget = ({
                 highlight={true}
                 selected={true}
                 text={true}
-                width={34} 
+                width={-300} 
                 height={powerHeight} 
                 tipOrientation={tipOrientation}
                 onHover={handleZoom}
