@@ -2,7 +2,7 @@ import { useState, memo, useMemo } from 'react';
 
 import { AutoComplete } from 'antd';
 
-import { filterFields } from '../layers'
+import { allFactorFilterFields } from '../layers'
 
 const factorLabel = (f) => {
   return (
@@ -32,7 +32,7 @@ const FactorSearch = memo(({
 
   const filteredOptions = useMemo(() => {
 
-    const factorOptions = filterFields.filter(f => {
+    const factorOptions = allFactorFilterFields.filter(f => {
       return f.field.toLowerCase().includes(searchValue.toLowerCase())
     }).map(f => ({
       value: f.label,
