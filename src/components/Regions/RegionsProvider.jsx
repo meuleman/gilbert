@@ -7,6 +7,7 @@ import { fetchTopPathsForRegions, rehydrateCSN } from '../../lib/csn'
 import { fetchGenesetEnrichment } from '../../lib/genesetEnrichment';
 import { csnLayers, variantLayers, makeField } from '../../layers'
 import { fetchRegionSetEnrichments } from '../../lib/regionSetEnrichments';
+import { fetchGenes } from '../../lib/genesForRegions';
 
 // import { v4 as uuidv4 } from 'uuid';
 
@@ -305,7 +306,7 @@ const RegionsProvider = ({ children }) => {
 
 
   // ACTIVE PATH logic
-  const [genesInPaths, setGenesInPaths] = useState([])
+  const [genesInRegions, setGenesInRegions] = useState([])
   const pathsRequestRef = useRef("")
 
 
@@ -366,7 +367,7 @@ const RegionsProvider = ({ children }) => {
   //           setActiveState(null)
   //           // for geneset enrichment calculation
   //           let gip = response.regions.flatMap(d => d.genes[0]?.genes).map(d => d.name)
-  //           setGenesInPaths(gip)
+  //           setGenesInRegions(gip)
   //         }
   //       }).catch((e) => {
   //         console.log("error fetching top paths for regions", e)
@@ -377,13 +378,24 @@ const RegionsProvider = ({ children }) => {
   //   }
   // }, [activeRegions, activeSet])
 
+  // collect genes for top base regions
+  useEffect(() => {
+    if (filteredBaseRegions?.length) {
+      fetchGenes(filteredBaseRegions.slice(0, 100))
+      .then((response) => {
+        setGenesInRegions(response.flatMap(d => d).map(d => d.name))
+      }).catch((e) => {
+        console.log("error fetching genes", e)
+      })
+    }
+  }, [filteredBaseRegions])
 
   const [activeGenesetEnrichment, setActiveGenesetEnrichment] = useState(null)
 
   // calculate geneset enrichment for genes in paths
   useEffect(() => {
-    if(genesInPaths.length) {
-      fetchGenesetEnrichment(genesInPaths, false)
+    if(genesInRegions.length) {
+      fetchGenesetEnrichment(genesInRegions, false)
       .then((response) => {
         setActiveGenesetEnrichment(response)
       }).catch((e) => {
@@ -392,7 +404,7 @@ const RegionsProvider = ({ children }) => {
     } else {
       setActiveGenesetEnrichment([])
     }
-  }, [genesInPaths])
+  }, [genesInRegions])
 
   const [selectedGenesetMembership, setSelectedGenesetMembership] = useState([])
 
