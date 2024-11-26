@@ -75,7 +75,7 @@ const YC240322 = () => {
   const [order, setOrder] = useState("all") // 4 to 12 or all
   // const orders = ["all", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
   const orders = ["all"]
-  const [umapOrder, setUmapOrder] = useState(4) // 4 to 12
+  const [umapOrder, setUmapOrder] = useState(5) // 4 to 12
   const [layerColumn, setLayerColumn] = useState("all") // "DHS", "TF", "chromatin_states", "all"
   const layerColumns = ["all", "DHS", "TF", "chromatin_states"]
 
@@ -128,8 +128,9 @@ const YC240322 = () => {
       console.log("query umap")
       setLoading(true)
       // conn.query("SELECT * FROM 'https://storage.googleapis.com/fun-data/hilbert/YC240322/YC240322_umap_coords.parquet'").then((res) => {
-      conn.query("SELECT * FROM 'https://resources.altius.org/~ychoi/20241101_gilbert_umap/Order-5/YC20241104-umap.parquet'").then((res) => {
-        console.log("got rows")
+      conn.query(`SELECT * FROM 'https://resources.altius.org/~ychoi/20241101_gilbert_umap/Order-${umapOrder}/YC20241104-umap.parquet'`).then((res) => {
+        console.log("got umap rows", res)
+        console.log("got umap rows", res.toArray())
         let rows = res.toArray().map(Object.fromEntries)
           .map(d => {
             return {
@@ -165,7 +166,7 @@ const YC240322 = () => {
       setLoading(true)
       // conn.query(`SELECT * FROM 'https://storage.googleapis.com/fun-data/hilbert/YC240322/YC240322_annot-${order}.parquet'`).then((res) => {
       // conn.query(`SELECT * FROM 'https://resources.altius.org/~ychoi/20241016_gilbert_umap/YC20241017-annot-${order}.parquet'`).then((res) => {
-      conn.query(`SELECT * FROM 'https://resources.altius.org/~ychoi/20241101_gilbert_umap/Order-5/YC20241104-annot-${order}-factor.parquet'`).then((res) => {
+      conn.query(`SELECT * FROM 'https://resources.altius.org/~ychoi/20241101_gilbert_umap/Order-${umapOrder}/YC20241104-annot-${order}-factor.parquet'`).then((res) => {
         console.log("got rows", order)
         let rows = res.toArray().map(Object.fromEntries)
         .map(d => {
@@ -263,37 +264,37 @@ const YC240322 = () => {
     setSelectedRegionSample(selected.slice(0, 1000).map((d) => fromPosition(umap[d].chromosome, umap[d].start, umap[d].end)))
   }, [selected, umap])
 
-  const [sharedFactor, setSharedFactor] = useState(null)
-  const [sharedFactorLoading, setSharedFactorLoading] = useState(null)
-  useEffect(() => {
-    if(selectedRegionSample.length > 0){
-      let url = "https://explore.altius.org:5001/get_shared_factor"
-      const postBody = {
-        chr_strs: selectedRegionSample.map(d => d.chromosome + ":" + d.start + "-" + d.end),
-      };
-      console.log(postBody)
-      setSharedFactorLoading(true)
-      const getSharedFactor = axios({
-        method: 'POST',
-        url: url,
-        data: postBody
-      }).then((response) => {
-          const sharedFactorData = response.data
-          setSharedFactor(sharedFactorData)
-          const sharedFactorPercentage = sharedFactorData.SharedFactorPercentage
-          const meanSharedFactorPercentage = sharedFactorData.MeanSharedFactorPercentage
-          console.log("Shared factors for Selected Region Sample", sharedFactor, sharedFactorPercentage, meanSharedFactorPercentage)
-          setSharedFactor(sharedFactor)
-          setSharedFactorLoading(false)
-      })
-      .catch((err) => {
-        console.error(`error:     ${JSON.stringify(err)}`);
-        console.error(`post body: ${JSON.stringify(postBody)}`);
-      });
-    }
-  }, [selectedRegionSample])
+  // const [sharedFactor, setSharedFactor] = useState(null)
+  // const [sharedFactorLoading, setSharedFactorLoading] = useState(null)
+  // useEffect(() => {
+  //   if(selectedRegionSample.length > 0){
+  //     let url = "https://explore.altius.org:5001/get_shared_factor"
+  //     const postBody = {
+  //       chr_strs: selectedRegionSample.map(d => d.chromosome + ":" + d.start + "-" + d.end),
+  //     };
+  //     console.log(postBody)
+  //     setSharedFactorLoading(true)
+  //     const getSharedFactor = axios({
+  //       method: 'POST',
+  //       url: url,
+  //       data: postBody
+  //     }).then((response) => {
+  //         const sharedFactorData = response.data
+  //         setSharedFactor(sharedFactorData)
+  //         const sharedFactorPercentage = sharedFactorData.SharedFactorPercentage
+  //         const meanSharedFactorPercentage = sharedFactorData.MeanSharedFactorPercentage
+  //         console.log("Shared factors for Selected Region Sample", sharedFactor, sharedFactorPercentage, meanSharedFactorPercentage)
+  //         setSharedFactor(sharedFactor)
+  //         setSharedFactorLoading(false)
+  //     })
+  //     .catch((err) => {
+  //       console.error(`error:     ${JSON.stringify(err)}`);
+  //       console.error(`post body: ${JSON.stringify(postBody)}`);
+  //     });
+  //   }
+  // }, [selectedRegionSample])
 
-  
+
   const [GroupNarration, setGroupNarration] = useState(null)
   const [GroupNarrationLoading, setGroupNarrationLoading] = useState(null)
   useEffect(() => {
@@ -325,26 +326,53 @@ const YC240322 = () => {
 
 
   const [UpdatedUMAP, setUpdatedUMAP] = useState(null)
+  const [UpdatedAnnot, setUpdatedAnnot] = useState(null)
   const [UpdatedUMAPLoading, setUpdatedUMAPLoading] = useState(null)
   useEffect(() => {
-    if(selectedRegionSample.length > 0){
+    if(selectedRegionSample.length > 10){
+      console.log('Starting UMAP')
+      console.log('umapOrder',umapOrder)
       let url = "https://explore.altius.org:5001/get_filtered_umap"
       const postBody = {
         chr_strs: selectedRegionSample.map(d => d.chromosome + ":" + d.start + "-" + d.end),
         current_order: umapOrder,
         target_order: umapOrder + 1,
       };
-      console.log(postBody)
+      console.log('Send to UMAP',postBody)
       setUpdatedUMAPLoading(true)
       const getUpdatedUMAP = axios({
         method: 'POST',
         url: url,
         data: postBody
       }).then((response) => {
-          setUpdatedUMAPLoading(response.umap)
-          console.log("Grouped Narration", UpdatedUMAP, UpdatedUMAPSupport)
-          setUpdatedUMAP(UpdatedUMAP)
-          setUpdatedUMAPLoading(false)
+          console.log('UMAP response',response.data)
+          // Convert to dictionary of arrays to array of objects
+          const updatedRows = Object.keys(response.data).reduce((result, key) => {
+            response.data[key].forEach((value, index) => {
+              if (!result[index]) {
+                result[index] = {}; // Create a new object if it doesn't exist yet
+              }
+              result[index][key] = value; // Add the key-value pair to the object
+            });
+            return result;
+          }, []);
+          const x_ext = extent(updatedRows, d => d.x);
+          const y_ext = extent(updatedRows, d => d.y);
+          updatedRows.forEach((d) => {
+            d.x = (d.x - x_ext[0]) / (x_ext[1] - x_ext[0]) * 2 - 1;
+            d.y = (d.y - y_ext[0]) / (y_ext[1] - y_ext[0]) * 2 - 1;
+          });
+          console.log('reformmated UMAP',updatedRows)
+          setUpdatedUMAP(updatedRows);
+          setUpdatedUMAPLoading(false);
+          // setUmapOrder(umapOrder + 1);
+          // setUmap(updatedRows);
+          // setAnnotations(updatedRows)
+          console.log('test annotation',updatedRows[0])
+          console.log('test annotation',umap)
+          console.log('test annotation',umap[0].chromosome)
+          // setUpdatedUMAP(UpdatedUMAP)
+          // setUpdatedUMAPLoading(false)
       })
       .catch((err) => {
         console.error(`error:     ${JSON.stringify(err)}`);
@@ -515,8 +543,6 @@ const YC240322 = () => {
           </div>
 
           {/* <div>{GroupNarrationLoading ? " Loading..." : GroupNarration}</div> */}
-
-          console.log("UMAP", umap)
 
           {GroupNarration && GroupNarration.map((narration, index) => (
             <span key={index}>{narration}{index < GroupNarration.length - 1 ? ', ' : ''}</span>
