@@ -11,6 +11,8 @@ import { useZoom } from '../contexts/zoomContext';
 import { urlify, jsonify, fromPosition, fromRange, fromCoordinates, toPosition, fromIndex, overlaps } from '../lib/regions'
 import { hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { debouncerTimed } from '../lib/debounce'
+
+import { fetchFilteringWithoutOrder } from '../lib/dataFiltering';
 import { fetchTopPathsForRegions, rehydrateCSN } from '../lib/csn'
 import { calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
 import { gencode, getRangesOverCell } from '../lib/Genes'
@@ -228,6 +230,8 @@ function Home() {
       setShowFilter(showFactorPreview)
     }
   }, [showFactorPreview])
+
+  const [showSankey, setShowSankey] = useState(false)
   
     
 
@@ -247,7 +251,7 @@ function Home() {
 
   const { 
     activeSet, 
-    activePaths, 
+    // activePaths, 
     activeState, 
     numTopRegions, 
     setActiveSet, 
@@ -255,10 +259,25 @@ function Home() {
     saveSet,
     activeGenesetEnrichment,
     activeRegions,
+    filteredBaseRegions,
+    effectiveMap,
+    effectiveRegions
   } = useContext(RegionsContext)
 
+  const regions = useMemo(() => {
+    // console.log("REGIONS MEMO", filteredBaseRegions, activeRegions)
+    // if(filteredBaseRegions?.length) {
+    //   return filteredBaseRegions
+    // } else if(activeRegions?.length) {
+    if(activeRegions?.length) {
+      return activeRegions
+    } else {
+      return []
+    }
+  }, [activeRegions])//, filteredBaseRegions])
+
   useEffect(() => {
-    if(showFilter && activeRegions?.length) {
+    if(showFilter && regions?.length) {
       let path_density = layers.find(d => d.datasetName == "precomputed_csn_path_density_above_90th_percentile")
       const lo = {}
       range(4, 15).map(o => {
@@ -273,7 +292,7 @@ function Home() {
       setLayerOrder(layerOrderNatural)
       setLayer(layerOrderNatural[orderRef.current])
     }
-  }, [filters, showFilter, layerOrderNatural, activeRegions])
+  }, [filters, showFilter, layerOrderNatural, regions])
 
   
 
@@ -445,7 +464,6 @@ function Home() {
         SimSearchByFactor(newSearchByFactorInds, order, layer).then((SBFResult) => {
           setSelected(null)
           setSelectedNarration(null)
-          setSelectedOrder(order)
           processSimSearchResults(order, SBFResult)
           setSimSearchMethod("SBF")
         })
@@ -460,7 +478,7 @@ function Home() {
       processSimSearchResults(order, {simSearch: null, factors: null, method: null, layer: null})
       setSimSearchMethod(null)
     }
-  }, [selected, order,  setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, setSelectedNarration, setSelectedOrder, layer])  // setGenesetEnrichment
+  }, [selected, order,  setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, setSelectedNarration, layer])  // setGenesetEnrichment
 
   
   const [showHilbert, setShowHilbert] = useState(false)
@@ -494,27 +512,41 @@ function Home() {
     console.log("selected", selected)
     let range = []
     // console.log("gencode", gencode)
-    if(selected.gene) {
-      range = fromRange(selected.gene.chromosome, selected.gene.start, selected.gene.end, 200)
+    if(selected.factor) {
+      // query for the paths for the factor
+      let f = selected.factor
+      fetchFilteringWithoutOrder([{factor: f.index, dataset: f.layer.datasetName}], null)
+        .then((response) => {
+          console.log("FILTERING WITHOUT ORDER", response)
+          let regions = response.regions.map(r => {
+            return {...fromIndex(r.chromosome, r.i, r.order), score: r.score}
+          })
+          saveSet(selected.factor.label, regions, { activate: true, type: "search", factor: selected.factor })
+        })
+
     } else {
-      range = fromRange(selected.chromosome, selected.start, selected.end, 200)
+      if(selected.gene) {
+        range = fromRange(selected.gene.chromosome, selected.gene.start, selected.gene.end, 200)
+      } else {
+        range = fromRange(selected.chromosome, selected.start, selected.end, 200)
+      }
+
+      // const mid = range[Math.floor(range.length / 2)]
+
+      // Find the region closest to the midpoint of the x,y coordinates in the range
+      const midX = (range[0].x + range[range.length - 1].x) / 2;
+      const midY = (range[0].y + range[range.length - 1].y) / 2;
+      const mid = range.reduce((closest, current) => {
+        const closestDist = Math.sqrt(Math.pow(closest.x - midX, 2) + Math.pow(closest.y - midY, 2));
+        const currentDist = Math.sqrt(Math.pow(current.x - midX, 2) + Math.pow(current.y - midY, 2));
+        return currentDist < closestDist ? current : closest;
+      }, range[0]);
+      // console.log("MID", mid)
+
+      setRegion(mid)
+      // console.log("autocomplete range", range)
+      saveSet(selected.value, range, { activate: true, type: "search"})
     }
-
-    // const mid = range[Math.floor(range.length / 2)]
-
-    // Find the region closest to the midpoint of the x,y coordinates in the range
-    const midX = (range[0].x + range[range.length - 1].x) / 2;
-    const midY = (range[0].y + range[range.length - 1].y) / 2;
-    const mid = range.reduce((closest, current) => {
-      const closestDist = Math.sqrt(Math.pow(closest.x - midX, 2) + Math.pow(closest.y - midY, 2));
-      const currentDist = Math.sqrt(Math.pow(current.x - midX, 2) + Math.pow(current.y - midY, 2));
-      return currentDist < closestDist ? current : closest;
-    }, range[0]);
-    // console.log("MID", mid)
-
-    setRegion(mid)
-    // console.log("autocomplete range", range)
-    saveSet(selected.value, range, { activate: true, type: "search"})
   }, [setRegion, saveSet])
 
   // const handleChangeLocationViaAutocomplete = useCallback((autocompleteRegion) => {
@@ -587,18 +619,18 @@ function Home() {
   const [regionCSNS, setRegionCSNS] = useState([])
 
 
-  useEffect(() => {
-    // console.log("all full csns", allFullCSNS)
-    if(activePaths?.length) {
-      let sorted = activePaths.slice(0, numTopRegions)
-        // .sort((a,b) => b.score - a.score)
-      // console.log("sorted", sorted)
-      setTopFullCSNS(sorted)
-      setCSNLoading("")
-    } else {
-      setTopFullCSNS([])
-    }
-  }, [activePaths, numTopRegions])
+  // useEffect(() => {
+  //   // console.log("all full csns", allFullCSNS)
+  //   if(activePaths?.length) {
+  //     let sorted = activePaths.slice(0, numTopRegions)
+  //       // .sort((a,b) => b.score - a.score)
+  //     // console.log("sorted", sorted)
+  //     setTopFullCSNS(sorted)
+  //     setCSNLoading("")
+  //   } else {
+  //     setTopFullCSNS([])
+  //   }
+  // }, [activePaths, numTopRegions])
 
 
   // const [pathDiversity, setPathDiversity] = useState(true)
@@ -611,17 +643,17 @@ function Home() {
       // if an activeSet we grab the first region (since they are ordered) that falls witin the selected region
       // if the region is smaller than the activeSet regions, the first one where the selected region is within the activeset region
       let region = selected
-      if(activeRegions?.length) {
-        region = overlaps(selected, activeRegions)[0] || selected
+      if(effectiveRegions?.length) {
+        region = overlaps(selected, effectiveRegions)[0] || selected
       } 
       setLoadingSelectedCSN(true)
-      setLoadingRegionCSNS(true)
+      // setLoadingRegionCSNS(true)
       setSelectedTopCSN(null)
-      setRegionCSNS([])
+      // setRegionCSNS([])
       fetchTopPathsForRegions([toPosition(region)], 1)
         .then((response) => {
           if(!response) { 
-            setRegionCSNS([])
+            // setRegionCSNS([])
             setSelectedTopCSN(null)
             setLoadingSelectedCSN(false)
             setLoadingRegionCSNS(false)
@@ -629,52 +661,68 @@ function Home() {
           } else { 
             let dehydrated = getDehydrated([region], response.regions)
             let hydrated = dehydrated.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
-            setRegionCSNS(hydrated)
+            hydrated[0].path = hydrated[0].path.filter(d => d.order <= region.order)
+            // setRegionCSNS(hydrated)
             setSelectedTopCSN(hydrated[0])
             setLoadingRegionCSNS(false)
             setLoadingSelectedCSN(false)
           }
         }).catch((e) => {
           console.log("error fetching top paths for selected region", e)
-          setRegionCSNS([])
+          // setRegionCSNS([])
           setSelectedTopCSN(null),
           setLoadingRegionCSNS(false)
         })
     }
-  }, [selected, activeRegions])
+  }, [selected, effectiveRegions])
 
   const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
 
-  const [activeRegionsByCurrentOrder, setActiveRegionsByCurrentOrder] = useState(new Map())
+  const [effectiveRegionsByCurrentOrder, setEffectiveRegionsByCurrentOrder] = useState(new Map())
   const [allRegionsByCurrentOrder, setAllRegionsByCurrentOrder] = useState(new Map())
   // group the top regions found through filtering by the current order
   useEffect(() => {
-    let regions = activeRegions
+    // let regions = activeRegions
     if(regions?.length) {
+      console.log("REGIONS HOME", regions)
       const groupedAllRegions = group(
         regions, 
         d => d.chromosome + ":" + (d.order > order ? hilbertPosToOrder(d.i, {from: d.order, to: order}) : d.i))
+      console.log("GROUPED ALL REGIONS", groupedAllRegions)
       setAllRegionsByCurrentOrder(groupedAllRegions)
-
     } else {
       // console.log("no regions!!")
       setAllRegionsByCurrentOrder(new Map())
     }
-  }, [activeRegions, order])
+  }, [regions, order])
 
   useEffect(() => {
-    if(activePaths?.length) {
-      console.log("updating active regions by current order", order)
-      const groupedActiveRegions = group(
-        activePaths.slice(0, numTopRegions),
-        d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: order}))
-      setActiveRegionsByCurrentOrder(groupedActiveRegions)
+    // let regions = activeRegions
+    if(effectiveRegions?.length) {
+      console.log("EFFECTIVE REGIONS HOME", effectiveRegions)
+      const groupedEffectiveRegions = group(
+        effectiveRegions, 
+        d => d.chromosome + ":" + (d.order > order ? hilbertPosToOrder(d.i, {from: d.order, to: order}) : d.i))
+      console.log("GROUPED EFFECTIVE REGIONS", groupedEffectiveRegions)
+      setEffectiveRegionsByCurrentOrder(groupedEffectiveRegions)
     } else {
-      console.log("no active regions", order)
-      setActiveRegionsByCurrentOrder(new Map())
+      // console.log("no regions!!")
+      setEffectiveRegionsByCurrentOrder(new Map())
     }
+  }, [effectiveRegions, order])
 
-  }, [order, activePaths, activeRegions, numTopRegions])
+  // useEffect(() => {
+  //   if(activePaths?.length) {
+  //     console.log("updating active regions by current order", order)
+  //     const groupedActiveRegions = group(
+  //       activePaths.slice(0, numTopRegions),
+  //       d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: order}))
+  //     setActiveRegionsByCurrentOrder(groupedActiveRegions)
+  //   } else {
+  //     console.log("no active regions", order)
+  //     setActiveRegionsByCurrentOrder(new Map())
+  //   }
+  // }, [order, activePaths, regions, numTopRegions])
 
 
 
@@ -702,26 +750,24 @@ function Home() {
   const [activeInHovered, setActiveInHovered] = useState(null)
   const [intersectedGenes, setIntersectedGenes] = useState([])
   const [associatedGenes, setAssociatedGenes] = useState([])
+  // TODO: we probably want logic here for effective regions
   useEffect(() => {
-    if(hover && activeSet && activeRegions?.length && activePaths?.length) {
+    if(hover && activeSet && regions?.length && effectiveRegions?.length) {
       // find the regions within the hover
-      // let regions = overlaps(hover, activeSet.regions)
-      // console.log("activepaths", activePaths, "activeregions", activeSet.regions)
-      let paths = overlaps(hover, activePaths, r => r.region)
-      // console.log("OVERLAPS", hover, topPathsForRegions, paths)
-      let intersected = [...new Set(paths.flatMap(p => p.genes.filter(g => g.in_gene).map(g => g.name)))]
-      let associated = [...new Set(paths.flatMap(p => p.genes.filter(g => !g.in_gene).map(g => g.name)))]
-      // make sure the 'associated' genes do not contain any 'intersected'/overlapping genes
-      associated = associated.filter(g => !intersected.includes(g))
+      let activeInHover = overlaps(hover, effectiveRegions, r => r)
+      // console.log("ACTIVE IN HOVER", hover, effectiveRegions, activeInHover)
+      // let intersected = [...new Set(paths.flatMap(p => p.genes.filter(g => g.in_gene).map(g => g.name)))]
+      // let associated = [...new Set(paths.flatMap(p => p.genes.filter(g => !g.in_gene).map(g => g.name)))]
+      // // make sure the 'associated' genes do not contain any 'intersected'/overlapping genes
+      // associated = associated.filter(g => !intersected.includes(g))
       // get the paths
-      setActiveInHovered(paths)
-      setIntersectedGenes(intersected)
-      setAssociatedGenes(associated)
+      setActiveInHovered(activeInHover)
+      // setIntersectedGenes(intersected)
+      // setAssociatedGenes(associated)
     } else {
       setActiveInHovered(null)
     }
-
-  }, [hover, activeSet, activePaths, activeRegions])
+  }, [hover, activeSet, effectiveRegions, regions])
 
   useEffect(() => {
     if(mapLoading || activeState) {
@@ -744,7 +790,8 @@ function Home() {
   }, [hover, activeInHovered, activeSet, activeState, mapLoading])
 
   // const drawFilteredRegions = useCanvasFilteredRegions(filterSegmentsByCurrentOrder)
-  const drawActiveFilteredRegions = useCanvasFilteredRegions(activeRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
+  // const drawActiveFilteredRegions = useCanvasFilteredRegions(activeRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
+  const drawEffectiveFilteredRegions = useCanvasFilteredRegions(effectiveRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
   const drawAllFilteredRegions = useCanvasFilteredRegions(allRegionsByCurrentOrder, { color: "gray", opacity: 0.5, strokeScale: 0.5, mask: false })
   const drawAnnotationRegionSelected = useCanvasAnnotationRegions(selected, "selected", { 
     stroke: "orange", 
@@ -770,13 +817,15 @@ function Home() {
   //   highlightPath: true 
   // })
   const canvasRenderers = useMemo(() => [
-    drawActiveFilteredRegions,
+    // drawActiveFilteredRegions,
+    drawEffectiveFilteredRegions,
     drawAllFilteredRegions,
     drawAnnotationRegionSelected,
     drawAnnotationRegionHover,
     // drawAnnotationRegionCenter,
   ], [
-    drawActiveFilteredRegions,
+    // drawActiveFilteredRegions,
+    drawEffectiveFilteredRegions,
     drawAllFilteredRegions,
     drawAnnotationRegionSelected,
     drawAnnotationRegionHover,
@@ -824,23 +873,21 @@ function Home() {
     if(hit && selectedRef.current) {
       clearSelectedState()
     } else if(hit) {
-      if(activePathsRef.current?.length) {
-        let paths = overlaps(hit, activePathsRef.current, r => r.region)
-        if(paths.length) {
-          // setSelectedTopCSN(paths[0])
-          setSelectedOrder(order)
-          setSelected(hit)
-          setRegion(hit)
-        }
-      } else {
-        // setSelectedTopCSN(null)
-        // setRegionCSNS([])
-        setSelectedOrder(order)
-        setSelected(hit)
-        setRegion(hit)
-      }
+      // if(effectiveRegions?.length) {
+      //   let overs = overlaps(hit, effectiveRegions, r => r)
+      //   console.log("OVERS", overs, hit.order)
+      //   if(overs.length && overs[0].order > hit.order) {
+      //     setSelected(overs[0])
+      //   } else {
+      //     setSelected(hit)
+      //   }
+      // } else {
+      //   setSelected(hit)
+      // }
+      setSelected(hit)
+      setRegion(hit)
     }
-  }, [setSelectedOrder, setSelected, setRegion, clearSelectedState])
+  }, [setSelected, setRegion, clearSelectedState, effectiveRegions])
 
   const autocompleteRef = useRef(null)
   // keybinding that closes the modal on escape
@@ -861,10 +908,6 @@ function Home() {
     }
   }, [handleModalClose])
 
-  const orderMargin = useMemo(() => {
-    return (height - 11*38)/11
-  }, [height])
-
   const [showLayerLegend, setShowLayerLegend] = useState(true)
   const [showSpectrum, setShowSpectrum] = useState(false)
   const [showTopFactors, setShowTopFactors] = useState(false)
@@ -872,20 +915,20 @@ function Home() {
   const [showActiveRegionSet, setShowActiveRegionSet] = useState(false)
   const [loadingSpectrum, setLoadingSpectrum] = useState(false);
   
-  useEffect(() => {
-    if(activeRegions?.length && activeGenesetEnrichment === null) {
-      setLoadingSpectrum(true)
-    } else {
-      setLoadingSpectrum(false)
-    }
-  }, [activeGenesetEnrichment, activeRegions])
+  // useEffect(() => {
+  //   if(regions?.length && activeGenesetEnrichment === null) {
+  //     setLoadingSpectrum(true)
+  //   } else {
+  //     setLoadingSpectrum(false)
+  //   }
+  // }, [activeGenesetEnrichment, regions])
 
   useEffect(() => {
     if(activeSet) {
       setShowManageRegionSets(false)
       setShowLayerLegend(false)
-      setShowFilter(true)
-      // setShowActiveRegionSet(true)
+      // setShowFilter(true)
+      setShowActiveRegionSet(true)
       // setShowTopFactors(true)
     } else {
       setShowActiveRegionSet(false)
@@ -906,15 +949,15 @@ function Home() {
 
   }, [activeSet, activeGenesetEnrichment])
 
-  const activePathsRef = useRef(activePaths)
-  useEffect(() => {
-    activePathsRef.current = activePaths
-    if(activePaths?.length) {
-      setShowTopFactors(true)
-    } else {
-      setShowTopFactors(false)
-    }
-  }, [activePaths])
+  // const activePathsRef = useRef(activePaths)
+  // useEffect(() => {
+  //   activePathsRef.current = activePaths
+  //   if(activePaths?.length) {
+  //     setShowTopFactors(true)
+  //   } else {
+  //     setShowTopFactors(false)
+  //   }
+  // }, [activePaths])
 
   // useEffect(() => {
   //   if(showManageRegionSets) {
@@ -934,9 +977,9 @@ function Home() {
             <LogoNav/>
           </div>
           <div className="header--region-list">
-            <HeaderRegionSetModal 
+            {/* <HeaderRegionSetModal 
               selectedRegion={selected}
-            />
+            /> */}
             {/* <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
               if(set) { setRegionSet(name) } else { setRegionSet('') }
             }} /> */}
@@ -947,7 +990,7 @@ function Home() {
               />
           </div> */}
           <div className="header--search">
-            <div className="filter-button">
+            {/* <div className="filter-button">
               <button className={`filter-button ${showFactorPreview ? 'active' : null}`}
                 data-tooltip-id="filter-button-tooltip"
                 data-tooltip-content="Filter regions by factor"
@@ -956,7 +999,7 @@ function Home() {
                 <FilterOutlined />
               </button>
               <Tooltip id="filter-button-tooltip"></Tooltip>
-            </div>
+            </div> */}
             {showFactorPreview? 
               <SelectFactorPreview 
                 activeWidth={400}
@@ -1016,6 +1059,8 @@ function Home() {
             showActiveRegionSet={showActiveRegionSet}
             onManageRegionSets={setShowManageRegionSets}
             onActiveRegionSet={setShowActiveRegionSet}
+            showSankey={showSankey}
+            onSankey={setShowSankey}
           />
           
         </div>
@@ -1035,10 +1080,10 @@ function Home() {
             />
           </div>
           <div className="topfactors-container">
-            <SummarizePaths
+            {/* <SummarizePaths
               show={showTopFactors}
               topFullCSNS={activePaths?.slice(0, numTopRegions)}
-            /> 
+            />  */}
           </div>
 
           
@@ -1079,19 +1124,7 @@ function Home() {
                     onHover={setHover}
                   /> */}
 
-            {selected && (selectedTopCSN || loadingSelectedCSN) ? 
-              <InspectorGadget 
-                selected={selected} 
-                zoomOrder={powerOrder}
-                narration={selectedTopCSN}
-                layers={csnLayers}
-                loadingCSN={loadingSelectedCSN}
-                mapWidth={width}
-                mapHeight={height}
-                modalPosition={modalPosition}
-                onClose={handleModalClose}
-                >
-            </InspectorGadget> : null}
+            
             
             <div>
               <ManageRegionSetsModal 
@@ -1100,6 +1133,10 @@ function Home() {
 
               <ActiveRegionSetModal
                 show={showActiveRegionSet}
+                onSelect={(effective,base) => {
+                  setSelected(effective)
+                  setRegion(base)
+                }}
                 // selectedRegion={selected}
                 // queryRegions={filteredSegments} 
                 // queryRegionsCount={filteredSegmentsCount}
@@ -1107,7 +1144,7 @@ function Home() {
                 // queryLoading={filterLoading}
               /> 
 
-              <FilterSelects
+              {/* <FilterSelects
                 show={showFilter}
                 orderSums={orderSums} 
                 previewField={factorPreviewField}
@@ -1117,10 +1154,10 @@ function Home() {
                 activeWidth={585}
                 restingWidth={65}
                 orderMargin={orderMargin}
-              />
+              /> */}
 
               <SankeyModal 
-                show={activeSet}
+                show={showSankey}
                 width={400} 
                 height={height-10} 
                 numPaths={numPaths}
@@ -1142,6 +1179,19 @@ function Home() {
               />
             </div>
 
+            {selected && (selectedTopCSN || loadingSelectedCSN) ? 
+              <InspectorGadget 
+                selected={selected} 
+                zoomOrder={powerOrder}
+                narration={selectedTopCSN}
+                layers={csnLayers}
+                loadingCSN={loadingSelectedCSN}
+                mapWidth={width}
+                mapHeight={height}
+                modalPosition={modalPosition}
+                onClose={handleModalClose}
+                >
+            </InspectorGadget> : null}
 
             <div ref={containerRef} className="hilbert-container">
               {containerRef.current && ( 
@@ -1191,16 +1241,21 @@ function Home() {
             delayHide={0}
             delayUpdate={0}
             place="right"
+            border="1px solid gray"
             style={{
               position: 'absolute',
+              pointerEvents: 'none',
+              backgroundColor: "white",
+              color: "black",
+              fontSize: "12px",
+              padding: "6px",
               left: hoveredPosition.x,
               top: hoveredPosition.y,
-              pointerEvents: 'none',
             }}
             >
-              <b>{activeInHovered?.length} {activeInHovered?.length > 1 ? "paths" : "path"}</b><br/>
-              {intersectedGenes.length ? <span>Overlapping genes: {intersectedGenes.join(", ")}<br/></span> : null}
-              {associatedGenes.length ? <span>Nearby genes: {associatedGenes.join(", ")}<br/></span> : null}
+              <b>{activeInHovered?.length} {activeInHovered?.length > 1 ? "filtered regions" : "filtered region"}</b><br/>
+              {/* {intersectedGenes.length ? <span>Overlapping genes: {intersectedGenes.join(", ")}<br/></span> : null} */}
+              {/* {associatedGenes.length ? <span>Nearby genes: {associatedGenes.join(", ")}<br/></span> : null} */}
               {/* {activeInHovered.map(p => {
                 return <div key={p.chromosome + ":" + p.i}>
                   {showPosition(p.region)}: {p.genes.map(g => 
@@ -1256,7 +1311,7 @@ function Home() {
               // center={data?.center} 
               data={data?.data} 
               dataOrder={data?.dataOrder}
-              activeRegions={activeRegionsByCurrentOrder}
+              activeRegions={effectiveRegionsByCurrentOrder}
               layer={data?.layer}
               width={width} height={100} 
               mapWidth={width}

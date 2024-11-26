@@ -212,7 +212,7 @@ const HilbertGenome = ({
       // this would require some more tracking of requests and plumbing in dataClient to be able to abort them
       if(zooming) {
         dataDebounceTimed(() => {
-          console.log("HG fetching data zooming", order, layer.datasetName, state.points[0], state.points.length)
+          // console.log("HG fetching data zooming", order, layer.datasetName, state.points[0], state.points.length)
           lastRequestIdRef.current = requestId
           dispatch({ type: actions.SET_LOADING, payload: { loading: true } });
           if(layer.layers) {
@@ -227,7 +227,7 @@ const HilbertGenome = ({
       } else {
         dataDebounce(() => {
           lastRequestIdRef.current = requestId
-          console.log("HG fetching data no zoom", order, layer.datasetName, state.points[0], state.points.length)
+          // console.log("HG fetching data no zoom", order, layer.datasetName, state.points[0], state.points.length)
           dispatch({ type: actions.SET_LOADING, payload: { loading: true } });
           if(layer.layers) {
             let promises = layer.layers.map(l => {

@@ -34,7 +34,7 @@ const InspectorGadget = ({
   children=null
 } = {}) => {
 
-  const tipOrientation = "right"
+  const tipOrientation = "left"
   const powerWidth = 300
   const powerHeight = 300 //Math.round(powerWidth / mapWidth * mapHeight);
 
@@ -98,16 +98,16 @@ const InspectorGadget = ({
     }
   }, [narration, zOrder])
 
-  const modalTop = useMemo(() => {
-    let top = modalPosition?.y - powerHeight/2 - 62
-    if(top < 0) top = 0
-    return top
-  }, [modalPosition, powerHeight])
-  const modalLeft = useMemo(() => {
-    let left = modalPosition?.x - powerWidth/2 - 12
-    if(left < 0) left = 0
-    return left
-  }, [modalPosition, powerWidth])
+  // const modalTop = useMemo(() => {
+  //   let top = modalPosition?.y - powerHeight/2 - 62
+  //   if(top < 0) top = 0
+  //   return top
+  // }, [modalPosition, powerHeight])
+  // const modalLeft = useMemo(() => {
+  //   let left = modalPosition?.x - powerWidth/2 - 12
+  //   if(left < 0) left = 0
+  //   return left
+  // }, [modalPosition, powerWidth])
 
   const [fullNarration, setFullNarration] = useState(null)
   const [loadingFullNarration, setLoadingFullNarration] = useState(false)
@@ -160,8 +160,11 @@ const InspectorGadget = ({
     {selected && (
     <div className="power-overlay" style={{
       position: "absolute", 
-      top: modalTop, 
-      left: modalLeft,
+      // top: modalTop, 
+      // left: modalLeft,
+      top:5,
+      right: 10,
+      height: `${mapHeight - 20}px`,
       // backgroundColor: `rgba(255, 255, 255, ${opacity})`
       }}>
       <div className="header">
@@ -195,7 +198,7 @@ const InspectorGadget = ({
                 selected={true}
                 text={true}
                 width={34} 
-                offsetX={34}
+                offsetX={-300}
                 height={powerHeight} 
                 tipOrientation={tipOrientation}
                 onHover={handleZoom}
@@ -211,7 +214,7 @@ const InspectorGadget = ({
                 highlight={true}
                 selected={true}
                 text={true}
-                width={34} 
+                width={-300} 
                 height={powerHeight} 
                 tipOrientation={tipOrientation}
                 onHover={handleZoom}
@@ -226,7 +229,7 @@ const InspectorGadget = ({
           </div>
           */ }
           {/* { loadingFullNarration ? <Loading text={"📊 Preparing literature search..."} /> : <GoogleSearchLink narration={fullNarration} /> } */}
-          <GoogleSearchLink narration={narration} />
+          <GoogleSearchLink height= {mapHeight - 500} narration={narration} />
         </div> : null }
         <div className="power-modal-children">
           {children}

@@ -19,9 +19,9 @@ function showKb(diff) {
   const log2Diff = Math.log2(diff);
   const scaleAsStr = 
               (log2Diff < 10) ? `${Math.ceil(diff)}bp` :
-              (log2Diff < 20) ? `${Math.floor(diff/2**10)}kb` :
-              (log2Diff < 30) ? `${Math.floor(diff/2**20)}Mb` :
-                                `${Math.floor(diff/2**30)}Gb`;
+              (log2Diff < 20) ? `${Math.floor(diff/2**10)}kbp` :
+              (log2Diff < 30) ? `${Math.floor(diff/2**20)}Mbp` :
+                                `${Math.floor(diff/2**30)}Gbp`;
   return scaleAsStr
 }
 
