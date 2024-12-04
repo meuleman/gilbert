@@ -6,9 +6,9 @@ import * as constants from "../lib/constants";
 
 export default {
   name: "Chromatin States (OCC, Ranked)",
-  datasetName: "cs_rank_occ",
+  datasetName: "cs_rank_occ_a",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseS3URLPrefix}/20240521`,
+  baseURL: `${constants.baseS3URLPrefix}/20241127`,
   orders: [4,14],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,

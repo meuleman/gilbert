@@ -26,7 +26,6 @@ import DHS_Density from './dhs_density'
 import Chromatin_States_Sfc_max from './chromatin_states_sfc_max'
 import chromatin_states_occ from './chromatin_states_occ'
 import chromatin_states_rank_occ from './chromatin_states_rank_occ'
-import chromatin_states_rank_occ_50 from './chromatin_states_rank_occ_50'
 import chromatin_states_enr from './chromatin_states_enr'
 import chromatin_states_enr_max from './chromatin_states_enr_max'
 import chromatin_states_enr_counts from './chromatin_states_enr_counts'
@@ -99,7 +98,6 @@ const fullList = [
   // Chromatin_States_Sfc_max,
   chromatin_states_occ,
   chromatin_states_rank_occ,
-  chromatin_states_rank_occ_50,
   chromatin_states_enr,
   chromatin_states_enr_max,
   chromatin_states_enr_counts,
