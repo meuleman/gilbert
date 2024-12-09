@@ -162,9 +162,11 @@ const RegionsProvider = ({ children }) => {
       const filters = activeFilters.map(f => ({factor: f.index, dataset: f.layer.datasetName}))
       fetchFilteringWithoutOrder(filters, activeRegions)
       .then((response) => {
-        let rs = response?.regions.map(r => ({...fromIndex(r.chromosome, r.i, r.order), score: r.score}))
-        console.log("EFFECTIVE REGIONS", response, rs)
-        setEffectiveRegions(rs)
+        if (response) {
+          let rs = response?.regions.map(r => ({...fromIndex(r.chromosome, r.i, r.order), score: r.score}))
+          console.log("EFFECTIVE REGIONS", response, rs)
+          setEffectiveRegions(rs)
+        }
         setEffectiveRegionsLoading(false)
       })
     } else if(activeRegions?.length) {

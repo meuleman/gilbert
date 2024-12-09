@@ -175,9 +175,15 @@ function fetchFilteringWithoutOrder(filters, regions) {
     // console.log("FILTER WITHOUT ORDER", response.data)
     return response.data
   }).catch(error => {
-    console.error(`error:     ${JSON.stringify(error)}`);
-    console.error(`post body: ${JSON.stringify(postBody)}`);
-    return null
+    if(error.status == 400) {
+      console.error(`Too many regions to return`);
+      alert('Too many regions to return. Please select a different filter factor.')
+      return null
+    } else {
+      console.error(`error:     ${JSON.stringify(error.status)}`);
+      console.error(`post body: ${JSON.stringify(postBody)}`);
+      return null
+    }
   })
 }
 
