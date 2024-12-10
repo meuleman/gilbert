@@ -418,8 +418,9 @@ const RegionsProvider = ({ children }) => {
       let factor = activeSetRef.current?.factor
       let filters = activeFiltersRef.current
       setRegionSetEnrichmentsLoading(true)
+      let effectiveRegionsToUse = effectiveRegions.slice(0, 100)
       fetchRegionSetEnrichments({
-        regions: effectiveRegions.slice(0, 100), 
+        regions: effectiveRegionsToUse, 
         factorExclusion: [
           ...(factor ? [{dataset: factor?.layer?.datasetName, factor: factor?.index}] : []), 
           ...filters.map(d => ({dataset: d.layer.datasetName, factor: d.index}))
@@ -432,6 +433,7 @@ const RegionsProvider = ({ children }) => {
           let field = makeField(d.dataset, d.factor)
           field.score = d.enrichment
           field.count = d.count
+          field.percent = (d.count / effectiveRegionsToUse.length) * 100
           return field
         }))
         setRegionSetEnrichmentsLoading(false)
