@@ -14,6 +14,7 @@ import { fetchGWASforPositions } from '../lib/gwas'
 import { fetchGenesetEnrichment } from '../lib/genesetEnrichment'
 import { makeField } from '../layers'
 import RegionsContext from './Regions/RegionsContext';
+import { csnLayerList } from '../layers'
 
 import './InspectorGadget.css'
 
@@ -117,6 +118,36 @@ const InspectorGadget = ({
     setLoadingFullNarration(true)
   }, [narration])
 
+  // updates preferential factors in path with full data
+  const resetNarration = useCallback((fullData) => {
+    if (fullData?.path) {
+      // pull out full data
+      let full = fullData.path.flatMap(d => 
+        Object.keys(d.fullData).map(k => {
+          let [layerIndex, index] = k.split(",")
+          let layer = csnLayerList[+layerIndex]
+          let field = layer.fieldColor.domain()[+index]
+          let color = layer.fieldColor(field)
+          let value = d.fullData[k]
+          let count = (d.counts && (d.counts[layerIndex]?.length)) ? d.counts[layerIndex][index] : null
+          return { order: d.order, factor: k, value, layer: layer, field: {field, count, color, index: parseInt(index), value} }
+        })
+      ).sort((a,b) => b.value - a.value)
+
+      // update path preferential factors with full data
+      while (full.length > 0) {
+        let factor = full[0]
+        let p = fullData.path.find(d => d.order === factor.order)
+        // update segment preferential factor
+        p.field = factor.field
+        p.region.field = factor.field
+        p.layer = factor.layer
+        // filter out used factors and orders
+        full = full.filter(f => f.factor !== factor.factor && f.order !== factor.order)
+      }
+    }
+  }, [])
+
   const handlePowerData = useCallback((data) => {
     // when the power data is done loading (when Narration changes)
     // then we load full
@@ -147,6 +178,7 @@ const InspectorGadget = ({
       fullDataResponse['genesets'] = csnGenesets
       setSelectedGenesetMembership(csnGenesets)
 
+      resetNarration(fullDataResponse)
       console.log("IG: full narration", fullDataResponse)
       setFullNarration(fullDataResponse)
       setLoadingFullNarration(false)
@@ -182,7 +214,7 @@ const InspectorGadget = ({
          selected && narration ? <div className="csn">
           <div className="power-container">
             <Power 
-              csn={narration} 
+              csn={loadingFullNarration ? narration : fullNarration} 
               width={powerWidth} 
               height={powerHeight} 
               userOrder={zOrder}
@@ -191,7 +223,7 @@ const InspectorGadget = ({
               />
             <div className="zoom-scores">
               <ZoomLine 
-                csn={fullNarration} 
+                csn={loadingFullNarration ? narration : fullNarration} 
                 order={zOrder} 
                 maxPathScore={maxPathScore}
                 highlight={true}
