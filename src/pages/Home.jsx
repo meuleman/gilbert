@@ -78,6 +78,7 @@ import { getSet } from '../components/Regions/localstorage'
 import SelectedModal from '../components/SelectedModal'
 import InspectorGadget from '../components/InspectorGadget'
 import SimSearchResultList from '../components/SimSearch/ResultList'
+import { fetchRegionSetEnrichments } from '../lib/regionSetEnrichments';
 
 import RegionStrip from '../components/RegionStrip'
 
@@ -261,7 +262,8 @@ function Home() {
     activeRegions,
     filteredBaseRegions,
     effectiveMap,
-    effectiveRegions
+    effectiveRegions,
+    activeFilters
   } = useContext(RegionsContext)
 
   const regions = useMemo(() => {
@@ -966,6 +968,29 @@ function Home() {
   //     setShowManageRegionSets(false)
   //   }
   // }, [showManageRegionSets, showActiveRegionSet])
+
+
+  // factor enrichments for selected region
+  useEffect(() => {
+    if(selected) {
+      let region = selected
+      if(effectiveRegions?.length) {
+        region = overlaps(selected, effectiveRegions)[0] || selected
+      } 
+      console.log(region)
+      let originalFactor = activeSet?.factor
+      fetchRegionSetEnrichments({
+        regions: [region],
+        factorExclusion: [
+          ...(originalFactor ? [{dataset: originalFactor?.layer?.datasetName, factor: originalFactor?.index}] : []), 
+          ...activeFilters.map(d => ({dataset: d.layer.datasetName, factor: d.index}))
+        ]
+      })
+      .then((response) => {
+        console.log("FACTOR ENRICHMENTS FOR SINGLE REGION", response)
+      })
+    }
+  }, [selected])
 
   return (
     <>
