@@ -987,7 +987,10 @@ function Home() {
         ]
       })
       .then((response) => {
-        console.log("FACTOR ENRICHMENTS FOR SINGLE REGION", response)
+        let enrichedFactors = response.map(f => {
+          return {...f, factorName: layers.find(d => d.datasetName == f.dataset).fieldColor.domain()[f.factor]}
+        })
+        console.log("FACTOR ENRICHMENTS FOR SINGLE REGION", enrichedFactors)
       })
     }
   }, [selected])
