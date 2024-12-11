@@ -178,7 +178,10 @@ const InspectorGadget = ({
       fullDataResponse['genesets'] = csnGenesets
       setSelectedGenesetMembership(csnGenesets)
 
-      resetNarration(fullDataResponse)
+      // only reset narration if not showing all orders 4-14 (assumes we never remove/slice lower orders)
+      if (!fullDataResponse?.path.find(d => d.order === 14)) {
+        resetNarration(fullDataResponse)
+      }
       console.log("IG: full narration", fullDataResponse)
       setFullNarration(fullDataResponse)
       setLoadingFullNarration(false)
