@@ -58,7 +58,7 @@ import Spectrum from '../components/Narration/Spectrum';
 
 
 // layer configurations
-import { fullList as layers, csnLayers, variantLayers, countLayers } from '../layers'
+import { fullList as layers, dropdownList, csnLayers, variantLayers, countLayers } from '../layers'
 
 // import RegionFilesSelect from '../components/Regions/RegionFilesSelect'
 // autocomplete
@@ -178,7 +178,7 @@ function Home() {
 
   const [layerLock, setLayerLock] = useState(false)
   const [layerLockFromIcon, setLayerLockFromIcon] = useState(null)
-  const [layer, setLayer] = useState(layers[0])
+  const [layer, setLayer] = useState(dropdownList[0])
   function handleLayer(l) {
     setLayer(l)
     setLayerLock(true)
@@ -984,7 +984,10 @@ function Home() {
         ]
       })
       .then((response) => {
-        console.log("FACTOR ENRICHMENTS FOR SINGLE REGION", response)
+        let enrichedFactors = response.map(f => {
+          return {...f, factorName: layers.find(d => d.datasetName == f.dataset).fieldColor.domain()[f.factor]}
+        })
+        console.log("FACTOR ENRICHMENTS FOR SINGLE REGION", enrichedFactors)
       })
     }
   }, [selected])
@@ -1058,7 +1061,7 @@ function Home() {
             />
             
             <LayerDropdown 
-              layers={layers} 
+              layers={dropdownList} 
               activeLayer={layer} 
               onLayer={handleLayer}
               order={order}

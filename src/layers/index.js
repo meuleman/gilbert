@@ -137,6 +137,33 @@ const fullList = [
   CSN_path_density_90,
 ]
 
+// list for dropdown menu
+const dropdownList = [
+  Bands,
+  GeneCounts,
+  GCContent,
+  NucleotideBadges,
+  Nucleotides,
+  Variants_cat,
+  Variants_aPC,
+  variants_ukbb_94,
+  DHS_OCC,
+  DHS_enr_max,
+  DHS_Mean_Signal,
+  DHS_Density,
+  chromatin_states_occ,
+  chromatin_states_enr_max,
+  tf_motifs_1en6_enr_max,
+  tf_motifs_1en6_occ,
+  Repeats_enr_max,
+  Repeats_occ,
+  ENCSR000EOT,
+  CD3,
+  CD3Fiberseq,
+  LADs_occ,
+  CSN_path_density_90,
+]
+
 const datasetMapping = {
   'DHS': {
     'ENR': {
@@ -398,6 +425,7 @@ const allFactorFilterFields = allFactorFilterLayers.flatMap(layer => {
 
 export {
   fullList,
+  dropdownList,
   csnLayers,
   variantLayers,
   countLayers,
