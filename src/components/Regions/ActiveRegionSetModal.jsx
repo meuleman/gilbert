@@ -100,7 +100,7 @@ const ActiveRegionSetModal = ({
   return (
     <div className={`${styles['active-regionsets-modal']} ${show ? styles.show : ''}`}>
       <div className={styles.content}>
-        <div className={styles.manage}>
+        {/* <div className={styles.manage}>
           <span className={styles['set-name']}>{activeSet?.name}</span>
           {filteredBaseRegions ? 
             <span className={styles['set-count']}>{filteredBaseRegions?.length} / {activeRegions?.length} total regions</span> :
@@ -121,7 +121,7 @@ const ActiveRegionSetModal = ({
             </Tooltip>
 
           </div>
-        </div>
+        </div> */}
 
         <div className={styles.section}>
           <h3>Filter</h3>

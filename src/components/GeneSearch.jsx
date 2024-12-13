@@ -1,9 +1,6 @@
-import { useState, useEffect, useCallback, useContext, memo, useMemo } from 'react';
+import { useState, useEffect, memo, useMemo, useRef } from 'react';
 
-import { AutoComplete, Button } from 'antd';
-import { CloseCircleOutlined } from '@ant-design/icons';
-
-import { allFactorFilterFields } from '../layers'
+import { AutoComplete } from 'antd';
 
 const genomicPositionRegex = /^chr(\d{1,2}|X|Y):(\d+)-(\d+)$/;
 const genomicPositionRegex2 = /^chr(\d{1,2}|X|Y)(\s+)(\d+)(\s+)(\d+)$/;
@@ -26,24 +23,6 @@ const geneLabel = (g) => {
   )
 }
 
-const factorLabel = (f) => {
-  return (
-    <div key={f.label}>
-      <div style={{ 
-        display: 'inline-block',
-        backgroundColor: f.color,
-        borderRadius: 2,
-        marginRight: 8,
-        height: 10,
-        width: 10,
-        }} />
-      <span>{f.field}</span> 
-      <div style={{ fontSize: '0.8em', color: '#888' }}>
-        {f.layer.name}
-      </div>
-    </div>
-  )
-}
 
 const GeneSearch = memo(({
   onSelect = () => {},
@@ -62,14 +41,14 @@ const GeneSearch = memo(({
       gene: g,
     }))
 
-    const factorOptions = allFactorFilterFields.filter(f => {
-      return f.field.toLowerCase().includes(searchValue.toLowerCase())
-    }).map(f => ({
-      value: f.label,
-      label: factorLabel(f),
-      factor: f,
-    }))
-    console.log("factorOptions", factorOptions)
+    // const factorOptions = allFactorFilterFields.filter(f => {
+    //   return f.field.toLowerCase().includes(searchValue.toLowerCase())
+    // }).map(f => ({
+    //   value: f.label,
+    //   label: factorLabel(f),
+    //   factor: f,
+    // }))
+    // console.log("factorOptions", factorOptions)
 
     // Add genomic position option if the input matches the regex
     // and any genes if they also match
@@ -81,7 +60,7 @@ const GeneSearch = memo(({
           isGenomicPosition: true
         },
         ...geneOptions,
-        ...factorOptions
+        // ...factorOptions
       ];
     } else if (genomicPositionRegex2.test(searchValue)) {
       return [
@@ -91,11 +70,14 @@ const GeneSearch = memo(({
           isGenomicPosition: true
         },
         ...geneOptions,
-        ...factorOptions
+        // ...factorOptions
       ];
     }
 
-    return [...geneOptions, ...factorOptions];
+    return [
+      ...geneOptions,
+      // ...factorOptions
+    ];
   }, [searchValue]);
 
   const handleSearch = (value) => {
@@ -135,6 +117,22 @@ const GeneSearch = memo(({
     setInputValue('');
   };
 
+  const autocompleteRef = useRef(null)
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if(e.key == "/") {
+        if(autocompleteRef.current) {
+          autocompleteRef.current.focus()
+          e.preventDefault()
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [])
+
 
   return (
     <div>
@@ -143,8 +141,9 @@ const GeneSearch = memo(({
         value={inputValue}
         onSearch={handleSearch}
         onSelect={handleSelect}
-        placeholder="Search for a gene, genomic coordinate, or factor"
+        placeholder="Search for a gene or genomic coordinate"
         style={{ width: '400px' }}
+        ref={autocompleteRef}
       />
     </div>
   )

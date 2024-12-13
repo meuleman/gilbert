@@ -476,7 +476,7 @@ const HilbertGenome = ({
       .on("zoom", (event) => event?.sourceEvent ? handleZoom(event) : null)
       .filter((event) => {
         if(event.type === 'dblclick') return false
-        if(selected && event.type === 'wheel') return false
+        // if(selected && event.type === 'wheel') return false
         return true
       })
       .on("end", (event) => {
@@ -487,7 +487,7 @@ const HilbertGenome = ({
         }
       })
     select(svgRef.current).call(zoomBehavior)
-  }, [zoomBehavior, selected, handleZoom, setPanning, setZooming])
+  }, [zoomBehavior, handleZoom, setPanning, setZooming])
 
 
   const zoomToBox = useCallback((x0,y0,x1,y1,pinnedOrder) => {
@@ -547,6 +547,7 @@ const HilbertGenome = ({
       let pos = hilbertPosToOrder(zoomToRegion.start + (zoomToRegion.end - zoomToRegion.start)/2, { from: orderDomain[1], to: order })
       let hilbert = HilbertChromosome(order, { padding: 2 })
       let hit = hilbert.get2DPoint(pos, zoomToRegion.chromosome)
+      // console.log("ZOOM TO REGION", zoomToRegion, order, pos, hit)
       zoomToBox(hit.x, hit.y, hit.x + hilbert.step, hit.y + hilbert.step, order)
     }
   }, [zoomToRegion, orderDomain, zoomToBox])

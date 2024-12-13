@@ -514,27 +514,25 @@ function Home() {
     console.log("selected", selected)
     let range = []
     // console.log("gencode", gencode)
-    if(selected.factor) {
-      // query for the paths for the factor
-      let f = selected.factor
-      fetchFilteringWithoutOrder([{factor: f.index, dataset: f.layer.datasetName}], null)
-        .then((response) => {
-          console.log("FILTERING WITHOUT ORDER", response)
-          let regions = response.regions.map(r => {
-            return {...fromIndex(r.chromosome, r.i, r.order), score: r.score}
-          })
-          saveSet(selected.factor.label, regions, { activate: true, type: "search", factor: selected.factor })
-        })
+    // if(selected.factor) {
+    //   // query for the paths for the factor
+    //   let f = selected.factor
+    //   fetchFilteringWithoutOrder([{factor: f.index, dataset: f.layer.datasetName}], null)
+    //     .then((response) => {
+    //       console.log("FILTERING WITHOUT ORDER", response)
+    //       let regions = response.regions.map(r => {
+    //         return {...fromIndex(r.chromosome, r.i, r.order), score: r.score}
+    //       })
+    //       saveSet(selected.factor.label, regions, { activate: true, type: "search", factor: selected.factor })
+    //     })
 
-    } else {
+    // } else {
       if(selected.gene) {
         range = fromRange(selected.gene.chromosome, selected.gene.start, selected.gene.end, 200)
       } else {
         range = fromRange(selected.chromosome, selected.start, selected.end, 200)
       }
-
       // const mid = range[Math.floor(range.length / 2)]
-
       // Find the region closest to the midpoint of the x,y coordinates in the range
       const midX = (range[0].x + range[range.length - 1].x) / 2;
       const midY = (range[0].y + range[range.length - 1].y) / 2;
@@ -544,11 +542,10 @@ function Home() {
         return currentDist < closestDist ? current : closest;
       }, range[0]);
       // console.log("MID", mid)
-
       setRegion(mid)
       // console.log("autocomplete range", range)
-      saveSet(selected.value, range, { activate: true, type: "search"})
-    }
+      // saveSet(selected.value, range, { activate: true, type: "search"})
+    // }
   }, [setRegion, saveSet])
 
   // const handleChangeLocationViaAutocomplete = useCallback((autocompleteRegion) => {
@@ -699,7 +696,7 @@ function Home() {
   }, [regions, order])
 
   useEffect(() => {
-    // let regions = activeRegions
+    // let regions = activeRegions 
     if(effectiveRegions?.length) {
       console.log("EFFECTIVE REGIONS HOME", effectiveRegions)
       const groupedEffectiveRegions = group(
@@ -1002,9 +999,9 @@ function Home() {
             <LogoNav/>
           </div>
           <div className="header--region-list">
-            {/* <HeaderRegionSetModal 
+            <HeaderRegionSetModal 
               selectedRegion={selected}
-            /> */}
+            />
             {/* <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
               if(set) { setRegionSet(name) } else { setRegionSet('') }
             }} /> */}
@@ -1159,6 +1156,7 @@ function Home() {
               <ActiveRegionSetModal
                 show={showActiveRegionSet}
                 onSelect={(effective,base) => {
+                  console.log("SELECTED", effective, base)
                   setSelected(effective)
                   setRegion(base)
                 }}

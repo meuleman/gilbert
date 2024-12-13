@@ -31,7 +31,7 @@ const FactorSearch = memo(({
   const [inputValue, setInputValue] = useState('');
 
   const filteredOptions = useMemo(() => {
-
+    // find the genes that match the input
     const factorOptions = allFactorFilterFields.filter(f => {
       return f.field.toLowerCase().includes(searchValue.toLowerCase())
     }).map(f => ({
@@ -39,7 +39,6 @@ const FactorSearch = memo(({
       label: factorLabel(f),
       factor: f,
     }))
-    // console.log("factorOptions", factorOptions)
     return factorOptions
   }, [searchValue]);
 
@@ -52,14 +51,13 @@ const FactorSearch = memo(({
     const selectedOption = filteredOptions.find(option => option.value === value);
     console.log("option", selectedOption)
     onSelect(selectedOption);
-    setInputValue("")
+    setInputValue(selectedOption.label);
   };
 
   const handleClear = () => {
     onSelect(null);
     setInputValue('');
   };
-
 
   return (
     <div>
@@ -68,7 +66,7 @@ const FactorSearch = memo(({
         value={inputValue}
         onSearch={handleSearch}
         onSelect={handleSelect}
-        placeholder="Search for a factor"
+        placeholder="Search for a dataset factor"
         style={{ width: '400px' }}
       />
     </div>

@@ -72,6 +72,10 @@
   z-index: 20;
 }
 
+.header--region-list {
+  flex: 1 1 auto;
+}
+
 .lensmode {
   grid-column: lens-col; /* Place in the lens column */
   grid-row: header; /* Place in the header row */

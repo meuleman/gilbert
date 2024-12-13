@@ -1,17 +1,21 @@
 import { useState, useCallback, useEffect, useRef, useMemo, useContext } from 'react'
 
+import { fetchFilteringWithoutOrder } from '../../lib/dataFiltering';
+import FactorSearch from '../FactorSearch'
 import Loading from '../Loading'
 import RegionsContext from './RegionsContext'
 import FiltersContext from '../ComboLock/FiltersContext'
+
 import { download } from '../../lib/regionsets'
 import { showKbOrder } from '../../lib/display'
+import { fromIndex } from '../../lib/regions'
 import {Tooltip} from 'react-tooltip';
 
 import './HeaderRegionSetModal.css'
 
 const HeaderRegionSetModal = ({
 } = {}) => {
-  const { activeRegions, activeState, numTopRegions, setNumTopRegions, clearActive } = useContext(RegionsContext)
+  const { activeSet, activeRegions, activeState, numTopRegions, setNumTopRegions, clearActive, saveSet } = useContext(RegionsContext)
   const { setFilters } = useContext(FiltersContext)
 
   function calculateCount(num, order) {
@@ -39,6 +43,26 @@ const HeaderRegionSetModal = ({
     setFilters({})
   }, [clearActive, setFilters])
 
+  const handleSelectFactor = useCallback((selected) => {
+    if (!selected) return
+    console.log("selected", selected)
+    let range = []
+    // console.log("gencode", gencode)
+    if(selected.factor) {
+      // query for the paths for the factor
+      let f = selected.factor
+      fetchFilteringWithoutOrder([{factor: f.index, dataset: f.layer.datasetName}], null)
+        .then((response) => {
+          console.log("FILTERING WITHOUT ORDER", response)
+          let regions = response.regions.map(r => {
+            return {...fromIndex(r.chromosome, r.i, r.order), score: r.score}
+          })
+          saveSet(selected.factor.label, regions, { activate: true, type: "search", factor: selected.factor })
+        })
+    } 
+  }, [saveSet])
+
+
   return (
     <div className={`header-regionset-modal`}>
       <div className={`content`}
@@ -55,11 +79,16 @@ const HeaderRegionSetModal = ({
             {totalCounts.num ? <span> Total {totalCounts.num} regions, representing {showInt(totalCounts.tbp)} basepairs, or {totalCounts.percent.toFixed(2)}% of the genome</span> : null}
           </Tooltip>
         </div>: null } */}
+        {!activeSet ? <FactorSearch onSelect={handleSelectFactor} /> : 
+          <div>
+            {activeSet.name}
+          </div>
+        }
       </div>
       <div className={`controls`}>
         {activeRegions?.length ? 
         <div className="query-controls">
-          <label>
+          {/* <label>
             <span className="header-active-count" data-tooltip-id="header-active-count">{numTopRegions || ""}</span> / <span>{activeRegions?.length} (
              {activeRegions?.[0] ? showKbOrder(activeRegions?.[0]?.order) : ""}) regions</span>
             <Tooltip id="header-active-count">
@@ -73,7 +102,7 @@ const HeaderRegionSetModal = ({
               value={numTopRegions || 0} 
               onChange={handleNumTopRegions} 
             />
-          </label>
+          </label> */}
 
           <button data-tooltip-id="header-download-regions"
             onClick={handleDownload}

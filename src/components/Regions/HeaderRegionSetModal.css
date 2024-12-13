@@ -1,6 +1,10 @@
 .header-regionset-modal {
+  margin-left: 20px;
   position: relative;
   z-index: 20;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .header-regionset-modal .header-active-count{
