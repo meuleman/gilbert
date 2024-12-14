@@ -70,7 +70,6 @@ const useCanvasAnnotatedRegion = (hit, type, options = {}) => {
     
     ctx.beginPath();
     ctx.arc(t.x + xScale(hit.x) * t.k, t.y + yScale(hit.y) * t.k, radius * t.k, 0, 2 * Math.PI, false);
-    console.log("ANNOTATE", t.x + xScale(hit.x) * t.k, t.y + yScale(hit.y) * t.k, radius * t.k)
     if(fill) {
       ctx.fillStyle = fill;
       ctx.fill();
