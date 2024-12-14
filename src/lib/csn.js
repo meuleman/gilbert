@@ -2,10 +2,11 @@ import axios from "axios";
 import Data from './data';
 import { count, range } from 'd3-array';
 
-import { fullList as layers, countLayers, fullDataLayers, rehydrate } from '../layers'
+import { fullList as layers, countLayers, fullDataLayers, rehydrate, csnLayerList } from '../layers'
 
 import calculateCrossScaleNarration from './calculateCSN'
 import { HilbertChromosome, hilbertPosToOrder } from "./HilbertChromosome";
+import { fetchGenes } from './genesForRegions'
 
 
 
@@ -148,9 +149,75 @@ const getRange = (region, order) => {
 }
 
 
+// sets preferential factors in path with full data
+function fillNarration(csn) {
+  if (csn?.path) {
+    // pull out full data
+    let full = csn.path.flatMap(d => 
+      Object.keys(d.fullData).map(k => {
+        let [layerIndex, index] = k.split(",")
+        let layer = csnLayerList[+layerIndex]
+        let field = layer.fieldColor.domain()[+index]
+        let color = layer.fieldColor(field)
+        let value = d.fullData[k]
+        let count = (d.counts && (d.counts[layerIndex]?.length)) ? d.counts[layerIndex][index] : null
+        return { order: d.order, factor: k, value, layer: layer, field: {field, count, color, index: parseInt(index), value} }
+      })
+    ).sort((a,b) => b.value - a.value)
+
+    // update path preferential factors with full data
+    while (full.length > 0) {
+      let factor = full[0]
+      let p = csn.path.find(d => d.order === factor.order)
+      // update segment preferential factor
+      p['field'] = factor.field
+      p.region['field'] = factor.field
+      p['layer'] = factor.layer
+      // filter out used factors and orders
+      full = full.filter(f => f.factor !== factor.factor && f.order !== factor.order)
+    }
+  }
+}
+
+
+function createTopPathsForRegions(regions) {
+  console.log("Creating CSN paths for regions", regions)
+  return Promise.all(regions.map(r => {
+    let pathOrders = Array.from({ length: r.order - 4 + 1 }, (_, i) => i + 4);
+    let path = pathOrders.map((o) => {
+      const hilbert = new HilbertChromosome(o)
+      const pos = hilbertPosToOrder(r.i, {from: r.order, to: o})
+      const region = hilbert.fromRange(r.chromosome, pos, pos+1)[0]
+      return { order: o, region: region }
+    })
+    let csn = {'region': r, 'path': path}
+    
+    // retrieve full data and genes
+    let promises = [retrieveFullDataForCSN(csn), fetchGenes([r])]
+
+    return Promise.all(promises)
+    .then((responses) => {
+      let fullDataResponse = responses[0]
+      let genesResponse = responses[1]
+
+      fillNarration(fullDataResponse)
+      fullDataResponse['genes'] = genesResponse[0]
+      return fullDataResponse
+    })
+    .catch((error) => {
+      console.error(`Error creating CSN path: ${error}`);
+      return
+    })
+  }))
+}
+
+
 function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
   // if the fullData is already present, return the csn
-  if(csn.path[0].fullData) return Promise.resolve(csn)
+  if(csn.path[0].fullData) {
+    console.log("CSN already has full data")
+    return Promise.resolve(csn)
+  }
   const fetchData = Data({debug: false}).fetchData
   let countLayerNames = countLayers.map(d => d.datasetName)  // so we can track counts vs full data
 
@@ -223,7 +290,7 @@ function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
   }))
 
   return csnWithFull.then(() => {
-    console.log("TIMINGS", timings)
+    // console.log("TIMINGS", timings)
     return csn
   })
 }
@@ -287,7 +354,7 @@ async function calculateCrossScaleNarrationInWorker(selected, csnMethod, enrThre
     };
 
     worker.onerror = function(e) {
-      console.log("worker error:", e)
+      // console.log("worker error:", e)
       worker.terminate()
       reject(e);
     };
@@ -438,7 +505,7 @@ export default async function layerSuggestion(data, layers) {
     }))
     return await layerUp.then((response) => {
       const topUpLayer = response.sort((a,b) => {return b.value - a.value})[0]
-      console.log("TOP UP LAYER", topUpLayer.layer)
+      // console.log("TOP UP LAYER", topUpLayer.layer)
       return topUpLayer
     })
   }
@@ -507,6 +574,7 @@ export {
   rehydrateCSN,
   fetchTopCSNs,
   fetchTopPathsForRegions,
+  createTopPathsForRegions,
   fetchFilterPreview,
   retrieveFullDataForCSN
 }

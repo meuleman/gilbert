@@ -155,19 +155,27 @@ const InspectorGadget = ({
     // console.log("IG: narration", narration)
     setSelectedGenesetMembership([])
 
-    Promise.all([
+    let promises = [
       retrieveFullDataForCSN(narration),
-      fetchGWASforPositions([{chromosome: narration.chromosome, index: narration.i}]),
       fetchGenesetEnrichment(narration.genes.map(g => g.name), true)
-    ]).then(([fullDataResponse, gwasRepsonse, genesetResponse]) => {
+    ]
+    if(narration.region.order === 14) {
+      promises.push(
+        fetchGWASforPositions([{chromosome: narration.region.chromosome, index: narration.region.i}])
+      )
+    }
+    Promise.all(promises).then((responses) => {
+      let fullDataResponse = responses[0]
+      let genesetResponse = responses[1]
+      let gwasResponse = narration.region.order === 14 ? responses[2] : null
       // refactor GWAS response
-      // console.log("IG: gwas response", gwasRepsonse)
+      // console.log("IG: gwas response", gwasResponse)
       // console.log("IG: full data response", fullDataResponse)
       // console.log("IG: geneset response", genesetResponse)
       // parse GWAS response
-      const csnGWAS = gwasRepsonse[0]['trait_names'].map((trait, i) => {
-        return {trait: trait, score: gwasRepsonse[0]['scores'][i], layer: gwasRepsonse[0]['layer']}
-      }).sort((a,b) => b.score - a.score)
+      const csnGWAS = gwasResponse ? gwasResponse[0]['trait_names'].map((trait, i) => {
+        return {trait: trait, score: gwasResponse[0]['scores'][i], layer: gwasResponse[0]['layer']}
+      }).sort((a,b) => b.score - a.score) : null
       // add GWAS associations to the full data response
       let csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14)
       csnOrder14Segment ? csnOrder14Segment["GWAS"] = csnGWAS : null
@@ -205,7 +213,7 @@ const InspectorGadget = ({
       <div className="header">
         <div className="power-modal-selected">
         {/* {showPosition(selected)} */}
-          { narration && showPosition(narration.region) }
+          { narration?.region && showPosition(narration.region) }
           { /* <button onClick={() => setZoomOrder(selected.order + 0.5)}>reset zoom</button> */ }
         </div>
         <div className="header-buttons">

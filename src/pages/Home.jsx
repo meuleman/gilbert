@@ -13,7 +13,7 @@ import { hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { debouncerTimed } from '../lib/debounce'
 
 import { fetchFilteringWithoutOrder } from '../lib/dataFiltering';
-import { fetchTopPathsForRegions, rehydrateCSN } from '../lib/csn'
+import { fetchTopPathsForRegions, rehydrateCSN, createTopPathsForRegions } from '../lib/csn'
 import { calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
 import { gencode, getRangesOverCell } from '../lib/Genes'
 import { range, group } from 'd3-array'
@@ -649,7 +649,28 @@ function Home() {
       // setLoadingRegionCSNS(true)
       setSelectedTopCSN(null)
       // setRegionCSNS([])
-      fetchTopPathsForRegions([toPosition(region)], 1)
+      if(region.order < 14) {
+        createTopPathsForRegions([region])
+          .then((response) => {
+            if(!response) { 
+              // setRegionCSNS([])
+              setSelectedTopCSN(null)
+              setLoadingSelectedCSN(false)
+              setLoadingRegionCSNS(false)
+              return
+            } else { 
+              setSelectedTopCSN(response[0])
+              setLoadingRegionCSNS(false)
+              setLoadingSelectedCSN(false)
+            }
+          }).catch((e) => {
+            console.log("error creating top paths for selected region", e)
+            // setRegionCSNS([])
+            setSelectedTopCSN(null),
+            setLoadingRegionCSNS(false)
+          })
+      } else {
+        fetchTopPathsForRegions([toPosition(region)], 1)
         .then((response) => {
           if(!response) { 
             // setRegionCSNS([])
@@ -672,6 +693,7 @@ function Home() {
           setSelectedTopCSN(null),
           setLoadingRegionCSNS(false)
         })
+      }
     }
   }, [selected, effectiveRegions])
 
@@ -974,7 +996,7 @@ function Home() {
       if(effectiveRegions?.length) {
         region = overlaps(selected, effectiveRegions)[0] || selected
       } 
-      console.log(region)
+      // console.log(region)
       let originalFactor = activeSet?.factor
       fetchRegionSetEnrichments({
         regions: [region],
@@ -987,7 +1009,7 @@ function Home() {
         let enrichedFactors = response.map(f => {
           return {...f, factorName: layers.find(d => d.datasetName == f.dataset).fieldColor.domain()[f.factor]}
         })
-        console.log("FACTOR ENRICHMENTS FOR SINGLE REGION", enrichedFactors)
+        // console.log("FACTOR ENRICHMENTS FOR SINGLE REGION", enrichedFactors)
       })
     }
   }, [selected])
