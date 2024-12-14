@@ -128,6 +128,7 @@ const HilbertGenome = ({
     selected = null,
     SVGRenderers = [],
     CanvasRenderers = [],
+    HoverRenderers = [],
     onZoom = () => {},
     onScales = () => {},
     onHover = () => {},
@@ -140,6 +141,7 @@ const HilbertGenome = ({
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const canvasRef = useRef();
+  const hoverCanvasRef = useRef();
   const svgRef = useRef();
   const sceneRef = useRef();
   
@@ -297,6 +299,11 @@ const HilbertGenome = ({
     scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
   }, [canvasRef, width, height])
 
+  useEffect(() => {
+    scaleCanvas(hoverCanvasRef.current, hoverCanvasRef.current.getContext("2d"), width, height)
+  }, [hoverCanvasRef, width, height])
+
+
   // setup the zoom behavior
   const zoomBehavior = useMemo(() => {
     const extentMargin = Math.max(width/2, height/2)
@@ -370,7 +377,31 @@ const HilbertGenome = ({
     state.dataMeta, 
     scales, 
     state.dataLayer, 
-    CanvasRenderers // TODO: memoize this
+    CanvasRenderers 
+  ])
+
+  const renderHovers = useMemo(() => { 
+    return function(transform, points) {
+      // clear the hover canvas
+      let hoverCtx = hoverCanvasRef.current.getContext("2d")
+      hoverCtx.clearRect(0, 0, width, height)
+      HoverRenderers.forEach(cr => {
+        cr(hoverCanvasRef, scales, { 
+          data: state.data, 
+          loading: state.loading,
+          points, 
+          order: order, 
+          transform
+        })
+      })
+    }
+  }, [
+    width, height,
+    state.data, 
+    state.loading, 
+    order, 
+    scales, 
+    HoverRenderers
   ])
 
   // Zoom event handler
@@ -413,7 +444,8 @@ const HilbertGenome = ({
   const prevLayerRef = useRef(state.dataLayer)
   const prevOrder = useRef(order)
   function pointSummary(points) { 
-    return points[0]?.i + sum(points, p => p.i)
+    // return points[0]?.i + sum(points, p => p.i)
+    return points[0]?.i + points[points.length - 1]?.i
   }
   
   // We "handleTransform" which calculates new points when the transform or order updates
@@ -456,6 +488,12 @@ const HilbertGenome = ({
   useEffect(() => {
     renderCanvas(prevTransformRefRender.current, prevPointsRef.current);
   }, [CanvasRenderers])
+
+  useEffect(() => {
+    renderHovers(prevTransformRefRender.current, prevPointsRef.current);
+  }, [HoverRenderers])
+
+
 
   // setup the event handlers for zoom and attach it to the DOM
   const handleZoom = useCallback((event) => {
@@ -725,6 +763,13 @@ const HilbertGenome = ({
         </g>
         
       </svg>
+      <canvas 
+        className="hilbert-genome-hover-canvas"
+        width={width + "px"}
+        height={height + "px"}
+        ref={hoverCanvasRef}
+      />
+
       { debug && <div className="debug"
           onClick={(evt) => {
             evt.stopPropagation()

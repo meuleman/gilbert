@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useContext } from 'react'
+import { useState, useCallback, useEffect, useContext, memo } from 'react'
 
 import { showPosition, showKbOrder } from '../../lib/display'
 import {Tooltip} from 'react-tooltip';
@@ -20,8 +20,6 @@ function inFilters(filters, f) {
 
 const ActiveRegionSetModal = ({
   show = false,
-  selectedRegion = null,
-  hoveredRegion = null,
   onSelect = () => {},
 } = {}) => {
 
@@ -35,14 +33,9 @@ const ActiveRegionSetModal = ({
     filteredBaseRegions,
     regionSetEnrichments,
     regionSetEnrichmentsLoading,
-    numTopRegions, 
-    setNumTopRegions, 
-    activePaths, 
     setActiveSet,
     setActiveFilters,
   } = useContext(RegionsContext)
-
-  // const { hasFilters, setFilters, listFilters } = useContext(FiltersContext)
 
   const [regions, setRegions] = useState([])
   useEffect(() => {
@@ -58,20 +51,13 @@ const ActiveRegionSetModal = ({
   const handleDeselect = useCallback(() => {
     setActiveSet(null)
     setActiveFilters([])
-    // setFilters({})
-  }, [setActiveSet])
+  }, [setActiveSet, setActiveFilters])
 
   const handleDownload = useCallback((set) => {
     download(activeRegions, set.name)
   }, [activeRegions])
 
-  const handleNumRegions = useCallback((e) => {
-    setNumTopRegions(+e.target.value)
-  }, [setNumTopRegions])
-
   const handleFactorSelect = useCallback((f) => {
-    // Check if factor with same index and dataset already exists
-    console.log("add factor", f)
     const exists = activeFilters.some(filter => 
       filter.index === f.index && 
       filter.layer.datasetName === f.layer.datasetName
@@ -81,10 +67,8 @@ const ActiveRegionSetModal = ({
     }
   }, [setActiveFilters, activeFilters])
 
-  // Add new state for tracking expanded rows
   const [expandedRows, setExpandedRows] = useState(new Set())
 
-  // Add toggle handler
   const toggleExpand = useCallback((regionKey) => {
     setExpandedRows(prev => {
       const next = new Set(prev)
@@ -247,4 +231,4 @@ const ActiveRegionSetModal = ({
     </div>
   )
 }
-export default ActiveRegionSetModal
+export default memo(ActiveRegionSetModal)

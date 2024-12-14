@@ -1,9 +1,9 @@
-
 import { all } from 'axios'
 import './LensModal.css'
 import lenses from './Lenses/lenses.json'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import LayerLegend from './LayerLegend'
+import { memo } from 'react'
 
 const LensModal = ({
   layers,
@@ -18,77 +18,67 @@ const LensModal = ({
   setLensHovering,
   lensHovering,
   order,
-  orders=[4,5,6,7,8,9,10,11,12,13,14]
-} = {}) => {
+  orders = [4,5,6,7,8,9,10,11,12,13,14]
+}) => {
+  // Move DOM queries outside component or use refs
+  const zoomLegendRef = useRef(null);
+  
+  // Memoize static values
+  const lensNames = useMemo(() => Object.keys(lenses), []);
 
-  // "Integrative" : {
-  //   "4": "DHS Components", 
-  //   "5": "DHS Components", 
-  //   "6": "DHS Components", 
-  //   "7": "DHS Components", 
-  //   "8": "Chromatin States", 
-  //   "9": "Chromatin States", 
-  //   "10": "TF Motifs", 
-  //   "11": "GC Content", 
-  //   "12": "GC Content", 
-  //   "13": "GC Content", 
-  //   "14": "Nucleotides"
-  // },
+  const [permanentLens, setPermanentLens] = useState(null);
+  const [layerLockLayer, setLayerLockLayer] = useState(null);
+  const [selectedSublenses, setSelectedSublenses] = useState(() => 
+    new Array(lensNames.length).fill(0)
+  );
+  const [dropdownOpen, setDropdownOpen] = useState(() => 
+    new Array(lensNames.length).fill(false)
+  );
+
+  // Memoize complex calculations
+  const getNewLens = useMemo(() => (lens) => {
+    const newLayerOrder = {};
+    orders.forEach((order) => {
+      const desiredName = lens[order];
+      const desiredDataset = layers.find((d) => d.name === desiredName);
+      if (desiredDataset) {
+        newLayerOrder[order] = desiredDataset;
+      } else {
+        console.error(`No matching dataset found for ${desiredName}`);
+      }
+    });
+    return newLayerOrder;
+  }, [layers, orders]);
+
+  const changeLensPermanent = useCallback((lens, id) => {
+    const newLayerOrder = getNewLens(lens);
+    if (Object.keys(newLayerOrder).length === orders.length) {
+      if (permanentLens?.id !== id) {
+        setSearchByFactorInds([]);
+      }
+      setLayerOrder(newLayerOrder);
+      setLayer(newLayerOrder[order]);
+      setPermanentLens({ lens, id });
+    }
+  }, [getNewLens, order, orders.length, permanentLens?.id, setLayer, setLayerOrder, setSearchByFactorInds]);
+
   // positioning with zoom legend label boxes
   const zoomLegendElement = document.querySelector('.label-box');
   const xPos = zoomLegendElement?.getBoundingClientRect().left
   const buttonWidth = zoomLegendElement?.getBoundingClientRect().width
 
-  const lensNames = Object.keys(lenses)
-
-  const [permanentLens, setPermanentLens] = useState(null)
-  const [layerLockLayer, setLayerLockLayer] = useState(null)
-
-  // finds the layer order for desired lens
-  const getNewLens = (lens) => {
-    let newLayerOrder = {}
-    orders.forEach((order) => {
-      const desiredName = lens[order]
-      const desiredDatasetArr = layers.filter((d) => d.name == desiredName)
-      if(desiredDatasetArr.length === 1) {
-        const desiredDataset = desiredDatasetArr[0]
-        newLayerOrder[order] = desiredDataset
-      } else {
-        console.error(`error: ${desiredDatasetArr.length} matching datasets found, expected 1`);
-      }
-    })
-    return newLayerOrder
-  }
-
-  // change layerOrder to desired lens
-  const changeLensPermanent = (lens, id) => {
-    const newLayerOrder = getNewLens(lens)
-    if(Object.keys(newLayerOrder).length === orders.length) {
-      if(permanentLens?.id !== id) {
-        setSearchByFactorInds([])
-      }
-      setLayerOrder(newLayerOrder)
-      setLayer(newLayerOrder[order])
-      setPermanentLens({
-        lens: lens,
-        id: id
-      })
-    }
-  }
-
   // setLayer to what desired lens defines at current order
-  const onMouseOver = (lens, id) => {
+  const onMouseOver = useCallback((lens, id) => {
     setLensHovering(true)
     const newLayerOrder = getNewLens(lens, id)
     if(Object.keys(newLayerOrder).length === orders.length) {
       setLayer(newLayerOrder[order])
       setLayerOrder(newLayerOrder)
     }
-  }
+  }, [setLayer, setLayerOrder])
 
-  const [selectedSublenses, setSelectedSublenses] = useState(new Array(lensNames.length).fill(0))
   // override layerLock and set lens
-  const onClick = (lens, id, lensIndex, sublensIndex) => {
+  const onClick = useCallback((lens, id, lensIndex, sublensIndex) => {
     setLayerLock(false)
     setLayerLockFromIcon(null)
     changeLensPermanent(lens, id)
@@ -97,17 +87,17 @@ const LensModal = ({
       newSelectedSublenses[lensIndex] = sublensIndex
       setSelectedSublenses(newSelectedSublenses)
     }
-  }
+  }, [layerLock, layerLockLayer, setLayer, changeLensPermanent])
 
   // set the layer or lens depending on layerLock
-  const onMouseLeave = (lens, id) => {
+  const onMouseLeave = useCallback((lens, id) => {
     setLensHovering(false)
     if(layerLock) {
       setLayer(layerLockLayer)
     } else {
       changeLensPermanent(lens, id)
     }
-  }
+  }, [layerLock, layerLockLayer, setLayer, changeLensPermanent])
 
   // on render, set the permanent layer to Default
   useEffect(() => {
@@ -135,34 +125,41 @@ const LensModal = ({
     }
   }, [currentLayer])
 
-  let isDropdown = new Array(lensNames.length).fill(false)
-  lensNames.map((l, i) => {
-    if (typeof Object.values(lenses[l])[0] == "object") {
-      isDropdown[i] = true
-    }
-  })
+  // Memoize the dropdown state calculation
+  const isDropdown = useMemo(() => 
+    lensNames.map(lensName => 
+      typeof Object.values(lenses[lensName])[0] === "object"
+    ),
+  [lensNames]);
 
-  const [dropdownOpen, setDropdownOpen] = useState(new Array(lensNames.length).fill(false))
+  // Extract dropdown button component
+  const DropdownButton = memo(({ lensName, isSelected, onClick, onMouseOver, onMouseLeave }) => (
+    <button
+      className={isSelected ? 'dropdown-button-selected' : 'dropdown-button'}
+      id={lensName}
+      onClick={onClick}
+      onMouseOver={onMouseOver}
+      onMouseLeave={onMouseLeave}
+    >
+      {lensName}
+    </button>
+  ));
 
-  const handleDropdownOpen = (buttonName) => {
-    let openArr = [...dropdownOpen]
-    const lensIndex = lensNames.indexOf(buttonName)
-
-    // rotate dropdown arrow
-    const dropdownButtonElement = document.getElementById(buttonName)
-    if (dropdownOpen[lensIndex]) {
-      dropdownButtonElement.style.setProperty('--rotation', 'rotate(0deg)'); 
-    } else {
-      dropdownButtonElement.style.setProperty('--rotation', 'rotate(180deg)'); 
-    }
-
-    // set open
-    openArr[lensIndex] = !dropdownOpen[lensIndex]
-    setDropdownOpen(openArr)
-  }
+  // Extract lens button component
+  const LensButton = memo(({ lensName, isSelected, onClick, onMouseOver, onMouseLeave }) => (
+    <button 
+      className={isSelected ? 'lens-button-selected' : 'lens-button'}
+      id={lensName}
+      onClick={onClick}
+      onMouseOver={onMouseOver}
+      onMouseLeave={onMouseLeave}
+    >
+      {lensName}
+    </button>
+  ));
 
   // when the lock icon is clicked
-  const handleLayerLock = () => {
+  const handleLayerLock = useCallback(() => {
     if(!layerLock) {
       // setLayerLockLens(permanentLens)
       setLayerLockFromIcon(true)
@@ -171,7 +168,7 @@ const LensModal = ({
       setLayerLockFromIcon(null)
     }
     setLayerLock(!layerLock)
-  }
+  }, [layerLock, setLayerLock, setLayerLockFromIcon])
 
   // let tooltip = document.getElementById('label-tooltip')
   // const labelMouseOver = (label) => {
@@ -225,15 +222,9 @@ const LensModal = ({
                     {/* <div className='lens-label'>
                       {l}
                     </div> */}
-                    <button
-                      className={
-                        ((layerLockFromIcon != false) && sublensNames.includes(permanentLens?.id)) ? 
-                          'dropdown-button-selected' 
-                        : 'dropdown-button'
-                      }
-                      id={l}
-                      key={l}
-                      // style={{width: buttonWidth}}
+                    <DropdownButton
+                      lensName={l}
+                      isSelected={(layerLockFromIcon != false) && sublensNames.includes(permanentLens?.id)}
                       onClick={
                         ((permanentLens?.id == sublensName) && (layerLockFromIcon != false)) ? 
                           (() => handleDropdownOpen(l)) 
@@ -241,7 +232,7 @@ const LensModal = ({
                       }
                       onMouseOver={(sublensName && sublensLenses) && (() => onMouseOver(sublensLenses, sublensName))}
                       onMouseLeave={() => onMouseLeave(permanentLens.lens, permanentLens.id)}
-                    >{l}</button>
+                    />
                     {dropdownOpen[i] ? (
                       <div  className='dropdown-container'>
                         {sublensNames.map((s, j) => {
@@ -282,19 +273,13 @@ const LensModal = ({
                     {/* <div className='lens-label'>
                       {l}
                     </div> */}
-                    <button 
-                      className={
-                        ((layerLockFromIcon != false) && permanentLens?.id == l) ? 
-                        'lens-button-selected'
-                        : 'lens-button'
-                      }
-                      id={l} 
-                      key={l} 
-                      // style={{width: buttonWidth}}
+                    <LensButton
+                      lensName={l}
+                      isSelected={(layerLockFromIcon != false) && permanentLens?.id == l}
                       onClick={() => onClick(lensLayers, l)}
                       onMouseOver={() => onMouseOver(lensLayers, l)}
                       onMouseLeave={() => onMouseLeave(permanentLens.lens, permanentLens.id)}
-                    >{l}</button>
+                    />
                   </div>
                 )
               }
@@ -305,4 +290,4 @@ const LensModal = ({
     </>
   )
 }
-export default LensModal
+export default memo(LensModal)

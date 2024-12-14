@@ -816,19 +816,19 @@ function Home() {
   //   highlightPath: true 
   // })
   const canvasRenderers = useMemo(() => [
-    // drawActiveFilteredRegions,
     drawEffectiveFilteredRegions,
     drawAllFilteredRegions,
     drawAnnotationRegionSelected,
-    drawAnnotationRegionHover,
-    // drawAnnotationRegionCenter,
   ], [
-    // drawActiveFilteredRegions,
     drawEffectiveFilteredRegions,
     drawAllFilteredRegions,
     drawAnnotationRegionSelected,
+  ]);
+
+  const hoverRenderers = useMemo(() => [
     drawAnnotationRegionHover,
-    // drawAnnotationRegionCenter,
+  ], [
+    drawAnnotationRegionHover,
   ]);
 
 
@@ -991,6 +991,11 @@ function Home() {
       })
     }
   }, [selected])
+
+  const handleSelectActiveRegionSet = useCallback((effective, base) => {
+    setSelected(effective)
+    setRegion(base)
+  }, [setSelected, setRegion])
 
   return (
     <>
@@ -1158,11 +1163,7 @@ function Home() {
 
               <ActiveRegionSetModal
                 show={showActiveRegionSet}
-                onSelect={(effective,base) => {
-                  console.log("SELECTED", effective, base)
-                  setSelected(effective)
-                  setRegion(base)
-                }}
+                onSelect={handleSelectActiveRegionSet}
                 // selectedRegion={selected}
                 // queryRegions={filteredSegments} 
                 // queryRegionsCount={filteredSegmentsCount}
@@ -1233,6 +1234,7 @@ function Home() {
                   selected={selected}
                   zoomDuration={duration}
                   CanvasRenderers={canvasRenderers}
+                  HoverRenderers={hoverRenderers}
                   SVGRenderers={[
                     SVGChromosomeNames({ }),
                     showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
