@@ -32,6 +32,34 @@ function fetchRegionSetEnrichments({regions, N = 10, factorExclusion = []}) {
 }
 
 
+/*
+Fetches segments across factors overlapping a single region. 
+region: {chromosome, i, order}
+factorExclusion: list of factors to exclude from the results [{dataset, factor}, ...]
+
+Returns:
+[{dataset, factor, segments: [{order, chromosome, i, score}, ...]}, ...]
+*/
+function fetchSingleRegionFactorOverlap({region, factorExclusion = []}) {
+  const url = "https://explore.altius.org:5001/api/regionSetEnrichment/single_region_factor_query"
+  const postBody = {region, factorExclusion}
+  console.log("SINGLE REGION FACTOR OVERLAP POST BODY", postBody)
+  return axios({
+    method: 'POST',
+    url: url,
+    data: postBody
+  }).then(response => {
+    // console.log("SINGLE REGION FACTOR OVERLAP", response.data)
+    return response.data
+  }).catch(error => {
+    console.error(`error:     ${JSON.stringify(error)}`);
+    console.error(`post body: ${JSON.stringify(postBody)}`);
+    return null
+  })
+}
+
+
 export {
   fetchRegionSetEnrichments,
+  fetchSingleRegionFactorOverlap
 }

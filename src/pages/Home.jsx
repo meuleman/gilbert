@@ -78,7 +78,7 @@ import { getSet } from '../components/Regions/localstorage'
 import SelectedModal from '../components/SelectedModal'
 import InspectorGadget from '../components/InspectorGadget'
 import SimSearchResultList from '../components/SimSearch/ResultList'
-import { fetchRegionSetEnrichments } from '../lib/regionSetEnrichments';
+import { fetchSingleRegionFactorOverlap } from '../lib/regionSetEnrichments';
 
 import RegionStrip from '../components/RegionStrip'
 
@@ -998,8 +998,8 @@ function Home() {
       } 
       // console.log(region)
       let originalFactor = activeSet?.factor
-      fetchRegionSetEnrichments({
-        regions: [region],
+      fetchSingleRegionFactorOverlap({
+        region: region,
         factorExclusion: [
           ...(originalFactor ? [{dataset: originalFactor?.layer?.datasetName, factor: originalFactor?.index}] : []), 
           ...activeFilters.map(d => ({dataset: d.layer.datasetName, factor: d.index}))
@@ -1009,7 +1009,7 @@ function Home() {
         let enrichedFactors = response.map(f => {
           return {...f, factorName: layers.find(d => d.datasetName == f.dataset).fieldColor.domain()[f.factor]}
         })
-        // console.log("FACTOR ENRICHMENTS FOR SINGLE REGION", enrichedFactors)
+        console.log("SINGLE REGION FACTOR OVERLAP", enrichedFactors)
       })
     }
   }, [selected])
