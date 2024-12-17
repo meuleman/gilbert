@@ -7,7 +7,7 @@ import { fullList as layers, countLayers, fullDataLayers, rehydrate, csnLayerLis
 import calculateCrossScaleNarration from './calculateCSN'
 import { HilbertChromosome, hilbertPosToOrder } from "./HilbertChromosome";
 import { fetchGenes } from './genesForRegions'
-
+import { fetchGWASforPositions } from "./gwas";
 
 
 // * ================================================================
@@ -194,13 +194,24 @@ function createTopPathsForRegions(regions) {
     
     // retrieve full data and genes
     let promises = [retrieveFullDataForCSN(csn), fetchGenes([r])]
+    if(r.order === 14) {
+      promises.push(fetchGWASforPositions([{chromosome: r.chromosome, index: r.i}]))
+    }
 
     return Promise.all(promises)
     .then((responses) => {
       let fullDataResponse = responses[0]
       let genesResponse = responses[1]
 
-      fillNarration(fullDataResponse)
+      let gwasResponse = r.order === 14 ? responses[2] : null
+      const csnGWAS = gwasResponse ? gwasResponse[0]['trait_names'].map((trait, i) => {
+        return {trait: trait, score: gwasResponse[0]['scores'][i], layer: gwasResponse[0]['layer']}
+      }).sort((a,b) => b.score - a.score) : null
+      // add GWAS associations to the full data response
+      let csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14)
+      csnOrder14Segment ? csnOrder14Segment["GWAS"] = csnGWAS : null
+
+      fillNarration(fullDataResponse)  // not yet including GWAS in path creation
       fullDataResponse['genes'] = genesResponse[0]
       return fullDataResponse
     })

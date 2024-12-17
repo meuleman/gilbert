@@ -259,6 +259,7 @@ function Home() {
     clearActive,
     saveSet,
     activeGenesetEnrichment,
+    topNarrations,
     activeRegions,
     filteredBaseRegions,
     effectiveMap,

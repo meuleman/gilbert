@@ -8,6 +8,7 @@ import { fetchGenesetEnrichment } from '../../lib/genesetEnrichment';
 import { csnLayers, variantLayers, makeField } from '../../layers'
 import { fetchRegionSetEnrichments } from '../../lib/regionSetEnrichments';
 import { fetchGenes } from '../../lib/genesForRegions';
+import { createTopPathsForRegions } from '../../lib/csn';
 
 // import { v4 as uuidv4 } from 'uuid';
 
@@ -440,7 +441,22 @@ const RegionsProvider = ({ children }) => {
       })
     }
   }, [effectiveRegions])
-
+  
+  
+  // collecting full data for top regions
+  const [topNarrations, setTopNarrations] = useState([])
+  // useEffect(() => {
+  //   if(activeRegions?.length) {
+  //     let regions = activeRegions.slice(0, 2)  // numTopRegions
+  //     createTopPathsForRegions(regions)
+  //     .then((response) => {
+  //       setTopNarrations(response)
+  //     })
+  //   } else {
+  //     setTopNarrations([])
+  //   }
+  // }, [activeRegions])
+  // console.log("TOP NARRATIONS", topNarrations)
 
   return (
     <RegionsContext.Provider value={{ 
@@ -458,6 +474,7 @@ const RegionsProvider = ({ children }) => {
       regionSetEnrichmentsLoading,
       activeGenesetEnrichment,
       selectedGenesetMembership,
+      topNarrations,
       numTopRegions,
       setNumTopRegions,
       saveSet, 
