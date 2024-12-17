@@ -643,7 +643,8 @@ function Home() {
       // if the region is smaller than the activeSet regions, the first one where the selected region is within the activeset region
       let region = selected
       if(effectiveRegions?.length) {
-        region = overlaps(selected, effectiveRegions)[0] || selected
+        let overlappingEffectiveRegion = overlaps(selected, effectiveRegions)[0] || selected
+        region = overlappingEffectiveRegion.order > selected.order ? overlappingEffectiveRegion : selected
       } 
       setLoadingSelectedCSN(true)
       // setLoadingRegionCSNS(true)
