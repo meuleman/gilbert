@@ -126,6 +126,33 @@ function fetchTopPathsForRegions(regions, N) {
 
 
 /*
+Collects the partial path for each region in regions
+region: [{chromosome, order, i}, ...]
+
+Returns:
+{ regions: [{ chromosome, order, i, path_factors: [], factor_scores: [] }, ...] }
+*/
+function fetchPartialPathsForRegions(regions) {
+  const url = "https://explore.altius.org:5001/api/csns/partial_paths_for_regions"
+  const postBody = {regions}
+  console.log("PARTIAL PATHS POST BODY", postBody)
+  return axios({
+    method: 'POST',
+    url: url,
+    data: postBody
+  }).then(response => {
+    // console.log("PARTIAL PATHS FOR REGIONS DATA", response.data)
+    return response.data
+  }).catch(error => {
+    console.error(`error:     ${JSON.stringify(error)}`);
+    console.error(`post body: ${JSON.stringify(postBody)}`);
+    return null
+  })
+}
+
+
+
+/*
 filters: [{order, field}, ...]
 order: 4-14
 
@@ -584,6 +611,7 @@ export {
   fetchDehydratedCSN,
   rehydrateCSN,
   fetchTopCSNs,
+  fetchPartialPathsForRegions,
   fetchTopPathsForRegions,
   createTopPathsForRegions,
   fetchFilterPreview,
