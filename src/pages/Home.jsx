@@ -18,6 +18,7 @@ import { calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/f
 import { gencode, getRangesOverCell } from '../lib/Genes'
 import { range, group } from 'd3-array'
 import { Tooltip } from 'react-tooltip'
+import { createSubregionPaths } from '../lib/subregionPaths'
 
 import './Home.css'
 
@@ -1011,6 +1012,8 @@ function Home() {
         let enrichedFactors = response.map(f => {
           return {...f, factorName: layers.find(d => d.datasetName == f.dataset).fieldColor.domain()[f.factor]}
         })
+        // look at the below surface segments and create subregion paths
+        createSubregionPaths(enrichedFactors, region)
         console.log("SINGLE REGION FACTOR OVERLAP", enrichedFactors)
       })
     }
