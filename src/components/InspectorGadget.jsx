@@ -20,6 +20,7 @@ import './InspectorGadget.css'
 
 const InspectorGadget = ({
   selected = null,
+  subregionPaths=null,
   narration = null,
   zoomOrder,
   maxPathScore,
@@ -32,6 +33,7 @@ const InspectorGadget = ({
   onCSNIndex=()=>{},
   onClose=()=>{},
   onZoom=()=>{},
+  setSelected=()=>{},
   children=null
 } = {}) => {
 
@@ -197,6 +199,24 @@ const InspectorGadget = ({
   }, [narration])
 
 
+  const [numSubpaths, setNumSubpaths] = useState(null)
+  const [numSubpathFactors, setNumSubpathFactors] = useState(null)
+  const [topFactors, setTopFactors] = useState(null)
+  useEffect(() => {
+    if(subregionPaths && subregionPaths.paths && subregionPaths.topFactors) {
+      setNumSubpaths(subregionPaths.paths.length)
+      setNumSubpathFactors(subregionPaths.topFactors.length)
+      setTopFactors(subregionPaths.topFactors)
+    }
+  }, [subregionPaths])
+
+  const handleFactorClick = useCallback((f, topFactors) => {
+    // console.log("F", f, topFactors)
+    let factor = topFactors[f]
+    // console.log("handle factor click", factor, subregionPaths, subregionPaths?.topFactors, subregionPaths?.topFactors[f], factor.maxScoringSegment)
+    factor?.maxScoringSegment && setSelected(factor.maxScoringSegment)
+  }, [])
+
   
   return (
     <>
@@ -265,6 +285,14 @@ const InspectorGadget = ({
                 />
               </div>
               
+          </div>
+          <div>
+            {numSubpaths > 0 && numSubpathFactors > 0 && <div>{numSubpaths} subpaths considering {numSubpathFactors} factors:</div>}
+            <div className="scroll-container">
+            {topFactors && topFactors.map((f, i) => (
+              <button key={i} className="scroll-button" onClick={() => handleFactorClick(i, topFactors)} style={{ borderColor: f.color }}>{f.factorName}</button>
+            ))}
+            </div>
           </div>
           { /*
           <div className="zoom-text">

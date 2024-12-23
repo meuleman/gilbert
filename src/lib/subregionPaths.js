@@ -59,6 +59,12 @@ const createSubregionPaths = function(factorData, region, numFactors = 10) {
     const topFactors = factorData.map(d => {
         return {...d, maxScoringSegment: d.segments.sort((a, b) => b.score - a.score)[0]}
     }).sort((a, b) => b.maxScoringSegment.score - a.maxScoringSegment.score).slice(0, numFactors)
+    // get coordinates for max scoring segment
+    topFactors.forEach(d => {
+        d.maxScoringSegment.start = d.maxScoringSegment.i * (4 ** (14 - d.maxScoringSegment.order))
+        d.maxScoringSegment.end = (d.maxScoringSegment.i + 1) * (4 ** (14 - d.maxScoringSegment.order))
+    })
+
     // flatten the segments
     const segments = topFactors.reduce((acc, d) => {
         return acc.concat(d.segments.map(e => {
@@ -76,9 +82,9 @@ const createSubregionPaths = function(factorData, region, numFactors = 10) {
 
     // collect paths
     const paths = parseTree(tree.root)
-    console.log("PATHS", paths, topFactors)
+    // console.log("PATHS", paths, topFactors)
 
-    // return paths
+    return {paths, topFactors}
 }
 
 

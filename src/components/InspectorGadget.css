@@ -104,3 +104,9 @@
 .power-overlay .score-bars {
   margin-left: 0px;
 }
+
+.scroll-container {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+}

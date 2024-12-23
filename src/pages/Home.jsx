@@ -993,13 +993,15 @@ function Home() {
 
 
   // factor enrichments for selected region
+  const [subregionPaths, setSubregionPaths] = useState(null)
   useEffect(() => {
     if(selected) {
       let region = selected
       if(effectiveRegions?.length) {
-        region = overlaps(selected, effectiveRegions)[0] || selected
+        let overlappingEffectiveRegion = overlaps(selected, effectiveRegions)[0] || selected
+        region = overlappingEffectiveRegion.order > selected.order ? overlappingEffectiveRegion : selected
       } 
-      // console.log(region)
+      setSubregionPaths(null)
       let originalFactor = activeSet?.factor
       fetchSingleRegionFactorOverlap({
         region: region,
@@ -1009,12 +1011,14 @@ function Home() {
         ]
       })
       .then((response) => {
-        let enrichedFactors = response.map(f => {
-          return {...f, factorName: layers.find(d => d.datasetName == f.dataset).fieldColor.domain()[f.factor]}
+        let topSubregionFactors = response.map(f => {
+          let layer = layers.find(d => d.datasetName == f.dataset)
+          let factorName = layer.fieldColor.domain()[f.factor]
+          return {...f, factorName, color: layer.fieldColor(factorName), layer}
         })
         // look at the below surface segments and create subregion paths
-        createSubregionPaths(enrichedFactors, region)
-        console.log("SINGLE REGION FACTOR OVERLAP", enrichedFactors)
+        const subregionPathsResponse = createSubregionPaths(topSubregionFactors, region)
+        setSubregionPaths(subregionPathsResponse)
       })
     }
   }, [selected])
@@ -1236,6 +1240,7 @@ function Home() {
             {selected && (selectedTopCSN || loadingSelectedCSN) ? 
               <InspectorGadget 
                 selected={selected} 
+                subregionPaths={subregionPaths}
                 zoomOrder={powerOrder}
                 narration={selectedTopCSN}
                 layers={csnLayers}
@@ -1244,6 +1249,7 @@ function Home() {
                 mapHeight={height}
                 modalPosition={modalPosition}
                 onClose={handleModalClose}
+                setSelected={setSelected}
                 >
             </InspectorGadget> : null}
 
