@@ -109,4 +109,5 @@
   display: flex;
   overflow-x: auto;
   white-space: nowrap;
+  gap: 5px;
 }
