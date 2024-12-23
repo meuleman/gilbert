@@ -57,8 +57,8 @@ const parseTree = function(node, path = [], paths = []) {
 const createSubregionPaths = function(factorData, region, numFactors = 10) {
     // get the top factors
     const topFactors = factorData.map(d => {
-        return {...d, maxScore: Math.max(...d.segments.map(e => e.score))}
-    }).sort((a, b) => b.maxScore - a.maxScore).slice(0, numFactors)
+        return {...d, maxScoringSegment: d.segments.sort((a, b) => b.score - a.score)[0]}
+    }).sort((a, b) => b.maxScoringSegment.score - a.maxScoringSegment.score).slice(0, numFactors)
     // flatten the segments
     const segments = topFactors.reduce((acc, d) => {
         return acc.concat(d.segments.map(e => {
@@ -76,7 +76,7 @@ const createSubregionPaths = function(factorData, region, numFactors = 10) {
 
     // collect paths
     const paths = parseTree(tree.root)
-    console.log("PATHS", paths)
+    console.log("PATHS", paths, topFactors)
 
     // return paths
 }
