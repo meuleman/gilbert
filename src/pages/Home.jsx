@@ -237,8 +237,10 @@ function Home() {
   
     
 
-    // selected powers the sidebar modal and the 1D track
+  // selected powers the sidebar modal and the 1D track
   const [selected, setSelected] = useState(jsonify(initialSelectedRegion))
+  const [subpathSelected, setSubpathSelected] = useState(false)
+  const [subpathRevert, setSubpathRevert] = useState(jsonify(initialSelectedRegion))
   const [selectedOrder, setSelectedOrder] = useState(selected?.order)
 
   const { filters, setFilters, clearFilters, hasFilters } = useContext(FiltersContext);
@@ -382,6 +384,8 @@ function Home() {
     if(!initialSelectedRegion) {
       // TODO: need a reliable way to clear state when deselecting a region
       setSelected(null)
+      setSubpathRevert(null)
+      setSubpathSelected(false)
       setSimilarRegions([])
       setCrossScaleNarration([])
     }
@@ -415,8 +419,10 @@ function Home() {
     } else {
       setSimilarRegions([])
       setSelected(null)
+      setSubpathRevert(null)
+      setSubpathSelected(false)
     }
-  }, [setSimSearch, setSimilarRegions, setSelected])
+  }, [setSimSearch, setSimilarRegions, setSelected, setSubpathRevert, setSubpathSelected])
 
 
   const updateUrlParams = useCallback((newRegionSet, newSelected, newFilters) => {
@@ -467,6 +473,8 @@ function Home() {
       if(simSearchMethod != "Region") {
         SimSearchByFactor(newSearchByFactorInds, order, layer).then((SBFResult) => {
           setSelected(null)
+          setSubpathRevert(null)
+          setSubpathSelected(false)
           setSelectedNarration(null)
           processSimSearchResults(order, SBFResult)
           setSimSearchMethod("SBF")
@@ -482,7 +490,7 @@ function Home() {
       processSimSearchResults(order, {simSearch: null, factors: null, method: null, layer: null})
       setSimSearchMethod(null)
     }
-  }, [selected, order,  setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, setSelectedNarration, layer])  // setGenesetEnrichment
+  }, [selected, order,  setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, setSubpathRevert, setSubpathSelected, setSelectedNarration, layer])  // setGenesetEnrichment
 
   
   const [showHilbert, setShowHilbert] = useState(false)
@@ -760,6 +768,8 @@ function Home() {
     let hit = fromPosition(csn.chromosome, csn.start, csn.end, order)
     console.log("SELECTED SANKEY CSN", csn, hit)
     setSelected(csn?.region)
+    setSubpathRevert(csn?.region)
+    setSubpathSelected(false)
     setRegion(hit)
   }, [order])
 
@@ -861,6 +871,8 @@ function Home() {
     console.log("CLEARING STATE")
     setRegion(null)
     setSelected(null)
+    setSubpathRevert(null)
+    setSubpathSelected(false)
     setSelectedOrder(null)
     setSimSearch(null)
     setSearchByFactorInds([])
@@ -870,7 +882,7 @@ function Home() {
     setSelectedTopCSN(null)
     setRegionCSNS([])
     // setPowerNarration(null)
-  }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN]) 
+  }, [setRegion, setSelected, setSubpathRevert, setSubpathSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN]) 
 
   useEffect(() => {
     // if the filters change from a user interaction we want to clear the selected
@@ -909,9 +921,11 @@ function Home() {
       //   setSelected(hit)
       // }
       setSelected(hit)
+      setSubpathRevert(hit)
+      setSubpathSelected(false)
       setRegion(hit)
     }
-  }, [setSelected, setRegion, clearSelectedState, effectiveRegions])
+  }, [setSelected, setSubpathRevert, setSubpathSelected, setRegion, clearSelectedState, effectiveRegions])
 
   const autocompleteRef = useRef(null)
   // keybinding that closes the modal on escape
@@ -993,7 +1007,7 @@ function Home() {
 
 
   // factor enrichments for selected region
-  const [subregionPaths, setSubregionPaths] = useState(null)
+  const [subpaths, setSubpaths] = useState(null)
   useEffect(() => {
     if(selected) {
       let region = selected
@@ -1001,7 +1015,7 @@ function Home() {
         let overlappingEffectiveRegion = overlaps(selected, effectiveRegions)[0] || selected
         region = overlappingEffectiveRegion.order > selected.order ? overlappingEffectiveRegion : selected
       } 
-      setSubregionPaths(null)
+      setSubpaths(null)
       let originalFactor = activeSet?.factor
       fetchSingleRegionFactorOverlap({
         region: region,
@@ -1017,16 +1031,18 @@ function Home() {
           return {...f, factorName, color: layer.fieldColor(factorName), layer}
         })
         // look at the below surface segments and create subregion paths
-        const subregionPathsResponse = createSubregionPaths(topSubregionFactors, region)
-        setSubregionPaths(subregionPathsResponse)
+        const subpathResponse = createSubregionPaths(topSubregionFactors, region)
+        setSubpaths(subpathResponse)
       })
     }
   }, [selected])
 
   const handleSelectActiveRegionSet = useCallback((effective, base) => {
     setSelected(effective)
+    setSubpathRevert(effective)
     setRegion(base)
-  }, [setSelected, setRegion])
+    setSubpathSelected(false)
+  }, [setSelected, setSubpathRevert, setSubpathSelected, setRegion])
 
   return (
     <>
@@ -1240,7 +1256,7 @@ function Home() {
             {selected && (selectedTopCSN || loadingSelectedCSN) ? 
               <InspectorGadget 
                 selected={selected} 
-                subregionPaths={subregionPaths}
+                subpaths={subpaths}
                 zoomOrder={powerOrder}
                 narration={selectedTopCSN}
                 layers={csnLayers}
@@ -1250,6 +1266,10 @@ function Home() {
                 modalPosition={modalPosition}
                 onClose={handleModalClose}
                 setSelected={setSelected}
+                subpathRevert={subpathRevert}
+                setSubpathSelected={setSubpathSelected}
+                subpathSelected={subpathSelected}
+                setSubpaths={setSubpaths}
                 >
             </InspectorGadget> : null}
 

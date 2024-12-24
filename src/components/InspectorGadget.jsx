@@ -20,7 +20,7 @@ import './InspectorGadget.css'
 
 const InspectorGadget = ({
   selected = null,
-  subregionPaths=null,
+  subpaths=null,
   narration = null,
   zoomOrder,
   maxPathScore,
@@ -34,6 +34,10 @@ const InspectorGadget = ({
   onClose=()=>{},
   onZoom=()=>{},
   setSelected=()=>{},
+  setSubpathSelected=()=>{},
+  subpathSelected=false,
+  subpathRevert=null,
+  setSubpaths=()=>{},
   children=null
 } = {}) => {
 
@@ -202,21 +206,40 @@ const InspectorGadget = ({
   const [numSubpaths, setNumSubpaths] = useState(null)
   const [numSubpathFactors, setNumSubpathFactors] = useState(null)
   const [topFactors, setTopFactors] = useState(null)
+  // collect subregion information
   useEffect(() => {
-    if(subregionPaths && subregionPaths.paths && subregionPaths.topFactors) {
-      setNumSubpaths(subregionPaths.paths.length)
-      setNumSubpathFactors(subregionPaths.topFactors.length)
-      setTopFactors(subregionPaths.topFactors)
+    if(subpaths && subpaths.paths && subpaths.topFactors) {
+      setNumSubpaths(subpaths.paths.length)
+      setNumSubpathFactors(subpaths.topFactors.length)
+      setTopFactors(subpaths.topFactors)
+    } else {
+      setNumSubpaths(null)
+      setNumSubpathFactors(null)
+      setTopFactors(null)
     }
-  }, [subregionPaths])
+  }, [subpaths])
 
-  const handleFactorClick = useCallback((f, topFactors) => {
-    // console.log("F", f, topFactors)
+  // set factor selection
+  const setFactorSelection = useCallback((f, topFactors) => {
     let factor = topFactors[f]
-    // console.log("handle factor click", factor, subregionPaths, subregionPaths?.topFactors, subregionPaths?.topFactors[f], factor.maxScoringSegment)
-    factor?.maxScoringSegment && setSelected(factor.maxScoringSegment)
+    if(factor?.maxScoringSegment) {
+      setSelected(factor.maxScoringSegment)
+      setSubpaths(null)
+      setSubpathSelected(true)
+    }
   }, [])
 
+  // handle factor button click
+  const handleFactorClick = useCallback((f) => {
+    setFactorSelection(f, topFactors)
+  }, [topFactors])
+
+  // revert to originally clicked region
+  const revertToOriginalRegion = useCallback(() => {
+    setSubpaths(null)
+    setSelected(subpathRevert)
+    setSubpathSelected(false)
+  }, [subpathRevert])
   
   return (
     <>
@@ -288,10 +311,11 @@ const InspectorGadget = ({
           </div>
           <div>
             {numSubpaths > 0 && numSubpathFactors > 0 && <div>{numSubpaths} subpaths considering {numSubpathFactors} factors:</div>}
+            {subpathRevert && subpathSelected && <button className="scroll-button" onClick={() => revertToOriginalRegion()} style={{ borderColor: "black" }}>Original Region</button>}
             <div className="scroll-container">
-            {topFactors && topFactors.map((f, i) => (
-              <button key={i} className="scroll-button" onClick={() => handleFactorClick(i, topFactors)} style={{ borderColor: f.color }}>{f.factorName}</button>
-            ))}
+              {topFactors && topFactors.map((f, i) => (
+                <button key={i} className="scroll-button" onClick={() => handleFactorClick(i)} style={{ borderColor: f.color }}>{f.factorName}</button>
+              ))}
             </div>
           </div>
           { /*
