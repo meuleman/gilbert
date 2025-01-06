@@ -111,3 +111,10 @@
   white-space: nowrap;
   gap: 5px;
 }
+
+.subregion-factor-color {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 4px;
+}

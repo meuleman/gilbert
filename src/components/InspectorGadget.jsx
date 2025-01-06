@@ -314,7 +314,10 @@ const InspectorGadget = ({
             {subpathRevert && subpathSelected && <button className="scroll-button" onClick={() => revertToOriginalRegion()} style={{ borderColor: "black" }}>Original Region</button>}
             <div className="scroll-container">
               {topFactors && topFactors.map((f, i) => (
-                <button key={i} className="scroll-button" onClick={() => handleFactorClick(i)} style={{ borderColor: f.color }}>{f.factorName}</button>
+                <button key={i} className="scroll-button" onClick={() => handleFactorClick(i)} style={{ borderColor: f.color }}>
+                  <span className='subregion-factor-color' style={{ backgroundColor: f.color }}></span>
+                  {f.factorName}
+                </button>
               ))}
             </div>
           </div>
