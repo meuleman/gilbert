@@ -109,8 +109,8 @@ const assignSubpath = function(paths, topFactors, regionOrder) {
             }
             return false
         })
-        // limit subpath to the order of the max scoring segment NEED TO FIXXXXXXXXXX!!!!!!!
-        f.subpath = {subpath: subpath.subpath.slice(0, order - regionOrder + 1), order, i}
+        // limit subpath to the order of the max scoring segment
+        f.subpath = {subpath: subpath.subpath.filter(s => s.maxFactor.order <= order), order, i}
     })
 }
 
@@ -154,6 +154,7 @@ const createSubregionPaths = function(factorData, region, numFactors = 10) {
     // console.log("PATHS", paths)
     // assign a subpath to each top factor
     assignSubpath(paths, topFactors, region.order)
+    console.log("TOP FACTORS", topFactors)
 
     return {paths, topFactors}
 }
