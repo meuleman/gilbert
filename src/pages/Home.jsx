@@ -239,8 +239,6 @@ function Home() {
 
   // selected powers the sidebar modal and the 1D track
   const [selected, setSelected] = useState(jsonify(initialSelectedRegion))
-  const [subpathSelected, setSubpathSelected] = useState(false)
-  const [subpathRevert, setSubpathRevert] = useState(jsonify(initialSelectedRegion))
   const [selectedOrder, setSelectedOrder] = useState(selected?.order)
 
   const { filters, setFilters, clearFilters, hasFilters } = useContext(FiltersContext);
@@ -384,8 +382,6 @@ function Home() {
     if(!initialSelectedRegion) {
       // TODO: need a reliable way to clear state when deselecting a region
       setSelected(null)
-      setSubpathRevert(null)
-      setSubpathSelected(false)
       setSimilarRegions([])
       setCrossScaleNarration([])
     }
@@ -419,10 +415,8 @@ function Home() {
     } else {
       setSimilarRegions([])
       setSelected(null)
-      setSubpathRevert(null)
-      setSubpathSelected(false)
     }
-  }, [setSimSearch, setSimilarRegions, setSelected, setSubpathRevert, setSubpathSelected])
+  }, [setSimSearch, setSimilarRegions, setSelected])
 
 
   const updateUrlParams = useCallback((newRegionSet, newSelected, newFilters) => {
@@ -473,8 +467,6 @@ function Home() {
       if(simSearchMethod != "Region") {
         SimSearchByFactor(newSearchByFactorInds, order, layer).then((SBFResult) => {
           setSelected(null)
-          setSubpathRevert(null)
-          setSubpathSelected(false)
           setSelectedNarration(null)
           processSimSearchResults(order, SBFResult)
           setSimSearchMethod("SBF")
@@ -490,7 +482,7 @@ function Home() {
       processSimSearchResults(order, {simSearch: null, factors: null, method: null, layer: null})
       setSimSearchMethod(null)
     }
-  }, [selected, order,  setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, setSubpathRevert, setSubpathSelected, setSelectedNarration, layer])  // setGenesetEnrichment
+  }, [selected, order,  setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, setSelectedNarration, layer])  // setGenesetEnrichment
 
   
   const [showHilbert, setShowHilbert] = useState(false)
@@ -768,8 +760,6 @@ function Home() {
     let hit = fromPosition(csn.chromosome, csn.start, csn.end, order)
     console.log("SELECTED SANKEY CSN", csn, hit)
     setSelected(csn?.region)
-    setSubpathRevert(csn?.region)
-    setSubpathSelected(false)
     setRegion(hit)
   }, [order])
 
@@ -871,8 +861,6 @@ function Home() {
     console.log("CLEARING STATE")
     setRegion(null)
     setSelected(null)
-    setSubpathRevert(null)
-    setSubpathSelected(false)
     setSelectedOrder(null)
     setSimSearch(null)
     setSearchByFactorInds([])
@@ -882,7 +870,7 @@ function Home() {
     setSelectedTopCSN(null)
     setRegionCSNS([])
     // setPowerNarration(null)
-  }, [setRegion, setSelected, setSubpathRevert, setSubpathSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN]) 
+  }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN]) 
 
   useEffect(() => {
     // if the filters change from a user interaction we want to clear the selected
@@ -921,11 +909,9 @@ function Home() {
       //   setSelected(hit)
       // }
       setSelected(hit)
-      setSubpathRevert(hit)
-      setSubpathSelected(false)
       setRegion(hit)
     }
-  }, [setSelected, setSubpathRevert, setSubpathSelected, setRegion, clearSelectedState, effectiveRegions])
+  }, [setSelected, setRegion, clearSelectedState, effectiveRegions])
 
   const autocompleteRef = useRef(null)
   // keybinding that closes the modal on escape
@@ -1039,10 +1025,8 @@ function Home() {
 
   const handleSelectActiveRegionSet = useCallback((effective, base) => {
     setSelected(effective)
-    setSubpathRevert(effective)
     setRegion(base)
-    setSubpathSelected(false)
-  }, [setSelected, setSubpathRevert, setSubpathSelected, setRegion])
+  }, [setSelected, setRegion])
 
   return (
     <>
@@ -1259,17 +1243,13 @@ function Home() {
                 subpaths={subpaths}
                 zoomOrder={powerOrder}
                 narration={selectedTopCSN}
+                setNarration={setSelectedTopCSN}
                 layers={csnLayers}
                 loadingCSN={loadingSelectedCSN}
                 mapWidth={width}
                 mapHeight={height}
                 modalPosition={modalPosition}
                 onClose={handleModalClose}
-                setSelected={setSelected}
-                subpathRevert={subpathRevert}
-                setSubpathSelected={setSubpathSelected}
-                subpathSelected={subpathSelected}
-                setSubpaths={setSubpaths}
                 >
             </InspectorGadget> : null}
 

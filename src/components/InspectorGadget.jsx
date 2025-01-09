@@ -33,10 +33,7 @@ const InspectorGadget = ({
   onCSNIndex=()=>{},
   onClose=()=>{},
   onZoom=()=>{},
-  setSelected=()=>{},
-  setSubpathSelected=()=>{},
-  subpathSelected=false,
-  subpathRevert=null,
+  setNarration=()=>{},
   setSubpaths=()=>{},
   children=null
 } = {}) => {
@@ -124,35 +121,36 @@ const InspectorGadget = ({
     setLoadingFullNarration(true)
   }, [narration])
 
-  // updates preferential factors in path with full data
-  const resetNarration = useCallback((fullData) => {
-    if (fullData?.path) {
-      // pull out full data
-      let full = fullData.path.flatMap(d => 
-        Object.keys(d.fullData).map(k => {
-          let [layerIndex, index] = k.split(",")
-          let layer = csnLayerList[+layerIndex]
-          let field = layer.fieldColor.domain()[+index]
-          let color = layer.fieldColor(field)
-          let value = d.fullData[k]
-          let count = (d.counts && (d.counts[layerIndex]?.length)) ? d.counts[layerIndex][index] : null
-          return { order: d.order, factor: k, value, layer: layer, field: {field, count, color, index: parseInt(index), value} }
-        })
-      ).sort((a,b) => b.value - a.value)
+  // // updates preferential factors in path with full data
+  // const resetNarration = useCallback((fullData) => {
+  //   console.log("FULL DATA", fullData)
+  //   if (fullData?.path) {
+  //     // pull out full data
+  //     let full = fullData.path.flatMap(d => 
+  //       Object.keys(d.fullData).map(k => {
+  //         let [layerIndex, index] = k.split(",")
+  //         let layer = csnLayerList[+layerIndex]
+  //         let field = layer.fieldColor.domain()[+index]
+  //         let color = layer.fieldColor(field)
+  //         let value = d.fullData[k]
+  //         let count = (d.counts && (d.counts[layerIndex]?.length)) ? d.counts[layerIndex][index] : null
+  //         return { order: d.order, factor: k, value, layer: layer, field: {field, count, color, index: parseInt(index), value} }
+  //       })
+  //     ).sort((a,b) => b.value - a.value)
 
-      // update path preferential factors with full data
-      while (full.length > 0) {
-        let factor = full[0]
-        let p = fullData.path.find(d => d.order === factor.order)
-        // update segment preferential factor
-        p.field = factor.field
-        p.region.field = factor.field
-        p.layer = factor.layer
-        // filter out used factors and orders
-        full = full.filter(f => f.factor !== factor.factor && f.order !== factor.order)
-      }
-    }
-  }, [])
+  //     // update path preferential factors with full data
+  //     while (full.length > 0) {
+  //       let factor = full[0]
+  //       let p = fullData.path.find(d => d.order === factor.order)
+  //       // update segment preferential factor
+  //       p.field = factor.field
+  //       p.region.field = factor.field
+  //       p.layer = factor.layer
+  //       // filter out used factors and orders
+  //       full = full.filter(f => f.factor !== factor.factor && f.order !== factor.order)
+  //     }
+  //   }
+  // }, [])
 
   const handlePowerData = useCallback((data) => {
     // when the power data is done loading (when Narration changes)
@@ -192,10 +190,10 @@ const InspectorGadget = ({
       fullDataResponse['genesets'] = csnGenesets
       setSelectedGenesetMembership(csnGenesets)
 
-      // only reset narration if not showing all orders 4-14 (assumes we never remove/slice lower orders)
-      if (!fullDataResponse?.path.find(d => d.order === 14)) {
-        resetNarration(fullDataResponse)
-      }
+      // // only reset narration if not showing all orders 4-14 (assumes we never remove/slice lower orders)
+      // if (!fullDataResponse?.path.find(d => d.order === 14)) {
+      //   resetNarration(fullDataResponse)
+      // }  // don't need this anymore?
       console.log("IG: full narration", fullDataResponse)
       setFullNarration(fullDataResponse)
       setLoadingFullNarration(false)
@@ -220,26 +218,62 @@ const InspectorGadget = ({
   }, [subpaths])
 
   // set factor selection
-  const setFactorSelection = useCallback((f, topFactors) => {
+  const [currentFactorSubpath, setCurrentFactorSubpath] = useState(null)
+  const setFactorSelection = useCallback((f, topFactors, narration) => {
     let factor = topFactors[f]
-    if(factor?.maxScoringSegment) {
-      setSelected(factor.maxScoringSegment)
-      setSubpaths(null)
-      setSubpathSelected(true)
+    let subpath = factor.subpath.subpath.map(d => d.maxFactor)
+    if(subpath?.length && narration) {
+      let newNarration = {...narration}
+      let currentPathOrders = newNarration.path.map(d => d.order)
+      // ensure that if any overlap (there shouldn't be), original path is not overwritten
+      subpath.forEach(s => {
+        if(!currentPathOrders.includes(s.order)) {
+          newNarration.path.push(s)
+        }
+      })
+      console.log("new narration", newNarration)
+      setCurrentFactorSubpath(factor)
+      setNarration(newNarration)
+      // setSubpaths(null)
     }
-  }, [])
+  }, [subpaths])
 
   // handle factor button click
   const handleFactorClick = useCallback((f) => {
-    setFactorSelection(f, topFactors)
-  }, [topFactors])
+    setFactorSelection(f, topFactors, narration)
+  }, [topFactors, narration])
+
+
+  // checks if two objects are equal
+  function deepEqual(obj1, obj2) {
+    if (obj1 === obj2) return true
+  
+    if (typeof obj1 !== 'object' || obj1 === null || typeof obj2 !== 'object' || obj2 === null) return false
+  
+    let keys1 = Object.keys(obj1)
+    let keys2 = Object.keys(obj2)
+  
+    if (keys1.length !== keys2.length) return false
+  
+    for (let key of keys1) {
+      if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) return false
+    }
+    return true;
+  }
 
   // revert to originally clicked region
-  const revertToOriginalRegion = useCallback(() => {
-    setSubpaths(null)
-    setSelected(subpathRevert)
-    setSubpathSelected(false)
-  }, [subpathRevert])
+  const subpathGoBack = useCallback(() => {
+    let subpath = currentFactorSubpath.subpath.subpath.map(d => d.maxFactor)
+    if(subpath?.length && narration) {
+      let currentNarration = {...narration}
+      currentNarration.path = currentNarration.path.filter(d => !subpath.some(s => deepEqual(d, s)))
+      console.log("filtered narration path", currentNarration)
+
+      setCurrentFactorSubpath(null)
+      setNarration(currentNarration)
+    }
+    // setSubpaths(null)
+  }, [narration])
   
   return (
     <>
@@ -311,7 +345,7 @@ const InspectorGadget = ({
           </div>
           <div>
             {numSubpaths > 0 && numSubpathFactors > 0 && <div>{numSubpaths} subpaths considering {numSubpathFactors} factors:</div>}
-            {subpathRevert && subpathSelected && <button className="scroll-button" onClick={() => revertToOriginalRegion()} style={{ borderColor: "black" }}>Original Region</button>}
+            {currentFactorSubpath && <button className="scroll-button" onClick={() => subpathGoBack()} style={{ borderColor: "black" }}>🔙</button>}
             <div className="scroll-container">
               {topFactors && topFactors.map((f, i) => (
                 <button key={i} className="scroll-button" onClick={() => handleFactorClick(i)} style={{ borderColor: f.color }}>
