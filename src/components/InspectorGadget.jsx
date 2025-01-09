@@ -35,6 +35,7 @@ const InspectorGadget = ({
   onZoom=()=>{},
   setNarration=()=>{},
   setSubpaths=()=>{},
+  findSubpaths=()=>{},
   children=null
 } = {}) => {
 
@@ -201,6 +202,7 @@ const InspectorGadget = ({
   }, [narration])
 
 
+  // subpaths
   const [numSubpaths, setNumSubpaths] = useState(null)
   const [numSubpathFactors, setNumSubpathFactors] = useState(null)
   const [topFactors, setTopFactors] = useState(null)
@@ -218,6 +220,7 @@ const InspectorGadget = ({
   }, [subpaths])
 
   // set factor selection
+  const [subpathCollection, setSubpathCollection] = useState([])
   const [currentFactorSubpath, setCurrentFactorSubpath] = useState(null)
   const setFactorSelection = useCallback((f, topFactors, narration) => {
     let factor = topFactors[f]
@@ -233,8 +236,10 @@ const InspectorGadget = ({
       })
       console.log("new narration", newNarration)
       setCurrentFactorSubpath(factor)
+      setSubpathCollection([...subpathCollection, subpaths])
       setNarration(newNarration)
-      // setSubpaths(null)
+      setSubpaths(null)  //redundant
+      findSubpaths(newNarration.path.slice(-1)[0].region)
     }
   }, [subpaths])
 
@@ -261,19 +266,24 @@ const InspectorGadget = ({
     return true;
   }
 
-  // revert to originally clicked region
+  // revert subpath selection
   const subpathGoBack = useCallback(() => {
     let subpath = currentFactorSubpath.subpath.subpath.map(d => d.maxFactor)
     if(subpath?.length && narration) {
       let currentNarration = {...narration}
       currentNarration.path = currentNarration.path.filter(d => !subpath.some(s => deepEqual(d, s)))
       console.log("filtered narration path", currentNarration)
-
-      setCurrentFactorSubpath(null)
+      
+      // setCurrentFactorSubpath(subpathCollection.length > 1 ? subpathCollection.slice(-2, -1)[0] : null)
+      
       setNarration(currentNarration)
+      setSubpaths(subpathCollection.length ? subpathCollection.slice(-1)[0] : null)  // redundant - not redundant
+      setSubpathCollection(subpathCollection.slice(0, -1))
+      // findSubpaths(currentNarration.path.slice(-1)[0].region)
     }
-    // setSubpaths(null)
   }, [narration])
+
+  // console.log("SUBPATH COLLECTION", subpathCollection)
   
   return (
     <>
@@ -345,7 +355,7 @@ const InspectorGadget = ({
           </div>
           <div>
             {numSubpaths > 0 && numSubpathFactors > 0 && <div>{numSubpaths} subpaths considering {numSubpathFactors} factors:</div>}
-            {currentFactorSubpath && <button className="scroll-button" onClick={() => subpathGoBack()} style={{ borderColor: "black" }}>🔙</button>}
+            {subpathCollection.length > 0 && <button className="scroll-button" onClick={() => subpathGoBack()} style={{ borderColor: "black" }}>🔙</button>}
             <div className="scroll-container">
               {topFactors && topFactors.map((f, i) => (
                 <button key={i} className="scroll-button" onClick={() => handleFactorClick(i)} style={{ borderColor: f.color }}>
