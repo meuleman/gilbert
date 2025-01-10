@@ -222,10 +222,12 @@ const InspectorGadget = ({
   // set factor selection
   const [subpathCollection, setSubpathCollection] = useState([])
   const [currentFactorSubpath, setCurrentFactorSubpath] = useState(null)
-  const [subpathFactorCollection, setSubpathFactorCollection] = useState([])
+  const [factorSubpathCollection, setFactorSubpathCollection] = useState([])
   const setFactorSelection = useCallback((f, topFactors, narration) => {
     let factor = topFactors[f]
+    // top subpath for factor
     let subpath = factor.subpath.subpath.map(d => d.maxFactor)
+    // update narration with subpath
     if(subpath?.length && narration) {
       let newNarration = {...narration}
       let currentPathOrders = newNarration.path.map(d => d.order)
@@ -235,12 +237,10 @@ const InspectorGadget = ({
           newNarration.path.push(s)
         }
       })
-      console.log("new narration", newNarration)
       setCurrentFactorSubpath(factor)
-      setSubpathFactorCollection([...subpathFactorCollection, factor])
+      setFactorSubpathCollection([...factorSubpathCollection, factor])
       setSubpathCollection([...subpathCollection, subpaths])
       setNarration(newNarration)
-      setSubpaths(null)  //redundant
       findSubpaths(newNarration.path.slice(-1)[0].region)
     }
   }, [subpaths])
@@ -273,20 +273,16 @@ const InspectorGadget = ({
     let subpath = currentFactorSubpath.subpath.subpath.map(d => d.maxFactor)
     if(subpath?.length && narration) {
       let currentNarration = {...narration}
+      // remove subpath segments from current narration
       currentNarration.path = currentNarration.path.filter(d => !subpath.some(s => deepEqual(d, s)))
-      console.log("filtered narration path", currentNarration)
       
       setNarration(currentNarration)
-      setCurrentFactorSubpath(subpathFactorCollection.length > 1 ? subpathFactorCollection.slice(-2, -1)[0] : null)
-      setSubpathFactorCollection(subpathFactorCollection.slice(0, -1))
-      setSubpaths(subpathCollection.length ? subpathCollection.slice(-1)[0] : null)  // redundant - not redundant
+      setCurrentFactorSubpath(factorSubpathCollection.length > 1 ? factorSubpathCollection.slice(-2, -1)[0] : null)
+      setFactorSubpathCollection(factorSubpathCollection.slice(0, -1))
+      setSubpaths(subpathCollection.length ? subpathCollection.slice(-1)[0] : null)
       setSubpathCollection(subpathCollection.slice(0, -1))
-      // findSubpaths(currentNarration.path.slice(-1)[0].region)
     }
   }, [narration])
-
-  // console.log("SUBPATH COLLECTION", subpathCollection)
-  // console.log("CURRENT FACTOR SUBPATH", currentFactorSubpath)
   
   return (
     <>

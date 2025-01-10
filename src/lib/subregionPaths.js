@@ -59,18 +59,24 @@ const parseTree = function(node, path = [], paths = []) {
 const topFactorPerSubpathPosition = function(paths, regionChromosome) {
     return paths.map((p) => {
 
+        // get the last segment of the subpath
         let subpathEndpoint = p.slice(-1)[0][0].i
         let subpathEndOrder = p.slice(-1)[0][0].order
         let subpathLength = p.length
         
+        // for each segment in the subpath...
         let subpathFactors = p.map((s, o) => {
+            // segment order
             let sOrder = subpathEndOrder - subpathLength + o + 1
+            // get hilbert segment
             let i = hilbertPosToOrder(subpathEndpoint, {from: subpathEndOrder, to: sOrder})
             const hilbert = new HilbertChromosome(sOrder)
             let region = hilbert.fromRange(regionChromosome, i, i)[0]
 
             let maxFactor
+            // if data for segment...
             if(s.length > 0) {
+                // find the max scoring factor
                 let maxFactorIndex = 0;
                 let maxFactorValue = s[0].field.value;
 
@@ -89,10 +95,8 @@ const topFactorPerSubpathPosition = function(paths, regionChromosome) {
             }
             return {maxFactor, allFactors: s}
         })
-
-        let i = subpathFactors.slice(-1)[0].maxFactor.i
-        let order = subpathFactors.slice(-1)[0].maxFactor.order
-        return {subpath: subpathFactors, i, order}
+        
+        return {subpath: subpathFactors, i: subpathEndpoint, order: subpathEndOrder}
     })    
 }
 
@@ -117,15 +121,14 @@ const assignSubpath = function(paths, topFactors, regionOrder) {
 
 // creates subregion paths for a region given overlapping factor segments
 const createSubregionPaths = function(factorData, region, numFactors = 10) {
+    if(factorData.length === 0) {
+        return {paths: [], topFactors: []}
+    }
+
     // get the top factors
     const topFactors = factorData.map(d => {
         return {...d, maxScoringSegment: d.segments.sort((a, b) => b.score - a.score)[0]}
     }).sort((a, b) => b.maxScoringSegment.score - a.maxScoringSegment.score).slice(0, numFactors)
-    // get coordinates for max scoring segment
-    // topFactors.forEach(d => {
-    //     d.maxScoringSegment.start = d.maxScoringSegment.i * (4 ** (14 - d.maxScoringSegment.order))
-    //     d.maxScoringSegment.end = (d.maxScoringSegment.i + 1) * (4 ** (14 - d.maxScoringSegment.order))
-    // })
 
     // flatten the segments
     const segments = topFactors.reduce((acc, d) => {
@@ -135,7 +138,6 @@ const createSubregionPaths = function(factorData, region, numFactors = 10) {
             return {...e, factor: d.factor, dataset: d.dataset, relativePath, path, field, layer: d.layer}
         }))
     }, [])
-    // console.log("SEGMENTS", segments)
 
     // create a tree
     const tree = new Tree()
@@ -143,18 +145,15 @@ const createSubregionPaths = function(factorData, region, numFactors = 10) {
     segments.forEach(s => {
         tree.insertSegment(s.relativePath, s)
     })
-    // console.log("TREE", tree)
 
     // collect paths
     let paths = parseTree(tree.root)
-    // console.log("PATHS", paths.map((p, i) => Math.max(...p.map(q => {return q.length > 1 ? 1 : 0}))))
     
     // find the top factor for each subpath segment
     paths = topFactorPerSubpathPosition(paths, region.chromosome)
-    // console.log("PATHS", paths)
+
     // assign a subpath to each top factor
     assignSubpath(paths, topFactors, region.order)
-    console.log("TOP FACTORS", topFactors)
 
     return {paths, topFactors}
 }
