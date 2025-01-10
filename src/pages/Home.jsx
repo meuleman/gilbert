@@ -1010,22 +1010,44 @@ function Home() {
     })
   }, [])
 
+
+  // determine factor exclusion for subpath query
+  const determineFactorExclusion = useCallback((narration) => {
+    let originalFactor = activeSet?.factor
+    let factorExclusion = [
+      ...(originalFactor ? [{dataset: originalFactor?.layer?.datasetName, factor: originalFactor?.index}] : []), 
+      ...activeFilters.map(d => ({dataset: d.layer.datasetName, factor: d.index})),
+      ...narration.path.map(d => ({dataset: d.layer?.datasetName, factor: d.field?.index}))
+    ]
+    
+    // reduce factor list to unique set
+    const uniqueFactors = []
+    const seen = new Set()
+
+    factorExclusion.forEach(d => {
+      const factorString = `${d.dataset},${d.factor}`
+      if (d.factor && d.dataset && !seen.has(factorString)) {
+        seen.add(factorString)
+        uniqueFactors.push(d)
+      }
+    })
+    
+    return uniqueFactors
+  }, [activeSet, activeFilters])
+
+
   useEffect(() => {
-    if(selected) {
+    if(selected && selectedTopCSN) {
       let region = selected
       if(effectiveRegions?.length) {
         let overlappingEffectiveRegion = overlaps(selected, effectiveRegions)[0] || selected
         region = overlappingEffectiveRegion.order > selected.order ? overlappingEffectiveRegion : selected
       } 
-      let originalFactor = activeSet?.factor
-      let factorExclusion = [
-        ...(originalFactor ? [{dataset: originalFactor?.layer?.datasetName, factor: originalFactor?.index}] : []), 
-        ...activeFilters.map(d => ({dataset: d.layer.datasetName, factor: d.index}))
-      ]
+      let factorExclusion = determineFactorExclusion(selectedTopCSN)
       // find and set subpaths
       findSubpaths(region, factorExclusion)
     }
-  }, [selected])
+  }, [selected, selectedTopCSN])
 
   const handleSelectActiveRegionSet = useCallback((effective, base) => {
     setSelected(effective)
@@ -1256,6 +1278,7 @@ function Home() {
                 onClose={handleModalClose}
                 setSubpaths={setSubpaths}
                 findSubpaths={findSubpaths}
+                determineFactorExclusion={determineFactorExclusion}
                 >
             </InspectorGadget> : null}
 

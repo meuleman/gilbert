@@ -36,6 +36,7 @@ const InspectorGadget = ({
   setNarration=()=>{},
   setSubpaths=()=>{},
   findSubpaths=()=>{},
+  determineFactorExclusion=()=>{},
   children=null
 } = {}) => {
 
@@ -241,7 +242,10 @@ const InspectorGadget = ({
       setFactorSubpathCollection([...factorSubpathCollection, factor])
       setSubpathCollection([...subpathCollection, subpaths])
       setNarration(newNarration)
-      findSubpaths(newNarration.path.slice(-1)[0].region)
+      
+      // subpath query
+      let factorExclusion = determineFactorExclusion(newNarration)
+      findSubpaths(newNarration.path.slice(-1)[0].region, factorExclusion)
     }
   }, [subpaths])
 
