@@ -1025,7 +1025,7 @@ function Home() {
     const seen = new Set()
 
     factorExclusion.forEach(d => {
-      const factorString = `${d.dataset.replace("_top10", "")},${d.factor}`  // convert top10 TF dataset name
+      const factorString = `${d.dataset?.replace("_top10", "")},${d.factor}`  // convert top10 TF dataset name
       if (d.factor && d.dataset && !seen.has(factorString)) {
         seen.add(factorString)
         uniqueFactors.push(d)
