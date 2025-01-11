@@ -1017,7 +1017,7 @@ function Home() {
     let factorExclusion = [
       ...(originalFactor ? [{dataset: originalFactor?.layer?.datasetName, factor: originalFactor?.index}] : []), 
       ...activeFilters.map(d => ({dataset: d.layer.datasetName, factor: d.index})),
-      ...narration.path.map(d => ({dataset: d.layer?.datasetName, factor: d.field?.index}))
+      ...(narration ? narration.path.map(d => ({dataset: d.layer?.datasetName, factor: d.field?.index})) : [])
     ]
     
     // reduce factor list to unique set
@@ -1037,17 +1037,18 @@ function Home() {
 
 
   useEffect(() => {
-    if(selected && selectedTopCSN) {
+    // TODO: wait until after the original narration only to get the full factor exclusion
+    if(selected) {
       let region = selected
       if(effectiveRegions?.length) {
         let overlappingEffectiveRegion = overlaps(selected, effectiveRegions)[0] || selected
         region = overlappingEffectiveRegion.order > selected.order ? overlappingEffectiveRegion : selected
       } 
-      let factorExclusion = determineFactorExclusion(selectedTopCSN)
+      let factorExclusion = determineFactorExclusion(selectedTopCSN ? selectedTopCSN : null)
       // find and set subpaths
       findSubpaths(region, factorExclusion)
     }
-  }, [selected, selectedTopCSN])
+  }, [selected])
 
   const handleSelectActiveRegionSet = useCallback((effective, base) => {
     setSelected(effective)
