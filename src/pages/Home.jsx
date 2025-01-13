@@ -660,17 +660,25 @@ function Home() {
               setSelectedTopCSN(null)
               setLoadingSelectedCSN(false)
               setLoadingRegionCSNS(false)
-              return
+              return null
             } else { 
               setSelectedTopCSN(response[0])
               setLoadingRegionCSNS(false)
               setLoadingSelectedCSN(false)
+              return response
             }
           }).catch((e) => {
             console.log("error creating top paths for selected region", e)
             // setRegionCSNS([])
             setSelectedTopCSN(null),
             setLoadingRegionCSNS(false)
+            return null
+          })
+          .then((response) => {
+            // subpath query
+            let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null)
+            // find and set subpaths
+            findSubpaths(region, factorExclusion)
           })
       } else {
         fetchTopPathsForRegions([toPosition(region)], 1)
@@ -1036,19 +1044,19 @@ function Home() {
   }, [activeSet, activeFilters])
 
 
-  useEffect(() => {
-    // TODO: wait until after the original narration only to get the full factor exclusion
-    if(selected) {
-      let region = selected
-      if(effectiveRegions?.length) {
-        let overlappingEffectiveRegion = overlaps(selected, effectiveRegions)[0] || selected
-        region = overlappingEffectiveRegion.order > selected.order ? overlappingEffectiveRegion : selected
-      } 
-      let factorExclusion = determineFactorExclusion(selectedTopCSN ? selectedTopCSN : null)
-      // find and set subpaths
-      findSubpaths(region, factorExclusion)
-    }
-  }, [selected])
+  // useEffect(() => {
+  //   // TODO: wait until after the original narration only to get the full factor exclusion
+  //   if(selected) {
+  //     let region = selected
+  //     if(effectiveRegions?.length) {
+  //       let overlappingEffectiveRegion = overlaps(selected, effectiveRegions)[0] || selected
+  //       region = overlappingEffectiveRegion.order > selected.order ? overlappingEffectiveRegion : selected
+  //     } 
+  //     let factorExclusion = determineFactorExclusion(selectedTopCSN ? selectedTopCSN : null)
+  //     // find and set subpaths
+  //     findSubpaths(region, factorExclusion)
+  //   }
+  // }, [selected])
 
   const handleSelectActiveRegionSet = useCallback((effective, base) => {
     setSelected(effective)
