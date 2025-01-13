@@ -363,7 +363,7 @@ const InspectorGadget = ({
               {topFactors && topFactors.map((f, i) => (
                 <button key={i} className="scroll-button" onClick={() => handleFactorClick(i)} style={{ borderColor: f.color }}>
                   <span className='subregion-factor-color' style={{ backgroundColor: f.color }}></span>
-                  {f.factorName}
+                  {f.factorName} ({showKbOrder(f.maxScoringSegment.order)}, {f.maxScoringSegment.score.toFixed(2)})
                 </button>
               ))}
             </div>

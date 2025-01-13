@@ -1043,21 +1043,6 @@ function Home() {
     return uniqueFactors
   }, [activeSet, activeFilters])
 
-
-  // useEffect(() => {
-  //   // TODO: wait until after the original narration only to get the full factor exclusion
-  //   if(selected) {
-  //     let region = selected
-  //     if(effectiveRegions?.length) {
-  //       let overlappingEffectiveRegion = overlaps(selected, effectiveRegions)[0] || selected
-  //       region = overlappingEffectiveRegion.order > selected.order ? overlappingEffectiveRegion : selected
-  //     } 
-  //     let factorExclusion = determineFactorExclusion(selectedTopCSN ? selectedTopCSN : null)
-  //     // find and set subpaths
-  //     findSubpaths(region, factorExclusion)
-  //   }
-  // }, [selected])
-
   const handleSelectActiveRegionSet = useCallback((effective, base) => {
     setSelected(effective)
     setRegion(base)
