@@ -110,9 +110,10 @@ export default function ZoomLine({
     setOr(or)
     // console.log("y", y, my, or)//, p, rect)
     if(p) {
-
       const xoff = tipOrientation === "left" ? -5 : width + 5
-      tooltipRef.current.show({...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score, GWAS: p.GWAS}, p.layer, rect.x + xoff + offsetX, rect.y + my + 1.5)
+      let x = rect.x + xoff + offsetX
+      let y = rect.y + my + 1.5
+      tooltipRef.current.show({...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score, GWAS: p.GWAS}, p.layer, x, y)
     }
     // tooltipRef.current.show(tooltipRef.current, csn)
   }, [csn, path, yScale, rw, offsetX, onHover])
@@ -125,7 +126,9 @@ export default function ZoomLine({
     const svg = e.target.ownerSVGElement
     const rect = svg.getBoundingClientRect();
     const xoff = tipOrientation === "left" ? -5 : width + 5
-    scoreTooltipRef.current.show(csn.score, null, rect.x + xoff, rect.y + scoreHeight - scoreHeight * (csn.score/maxPathScore)/2)
+    const x = rect.x + xoff
+    const y = rect.y + scoreHeight - scoreHeight * (csn.score/maxPathScore)/2
+    scoreTooltipRef.current.show(csn.score, null, x,y)
   }, [csn, maxPathScore, rw])
 
   const handleScoreLeave = useCallback(() => {

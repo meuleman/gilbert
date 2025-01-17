@@ -6,6 +6,7 @@ import { showKbOrder, showPosition } from '../lib/display'
 import GoogleSearchLink from './Narration/GoogleSearchLink'
 import ZoomLine from './Narration/ZoomLine'
 import ScoreBars from './Narration/ScoreBars'
+import SubPaths from './Narration/SubPaths'
 import Power from './Narration/Power'
 import Loading from './Loading'
 import { scaleLinear } from 'd3-scale'
@@ -15,8 +16,7 @@ import { fetchGenesetEnrichment } from '../lib/genesetEnrichment'
 import { makeField } from '../layers'
 import RegionsContext from './Regions/RegionsContext';
 import { csnLayerList } from '../layers'
-
-import './InspectorGadget.css'
+import styles from './InspectorGadget.module.css'
 
 const InspectorGadget = ({
   selected = null,
@@ -40,9 +40,10 @@ const InspectorGadget = ({
   children=null
 } = {}) => {
 
-  const tipOrientation = "left"
+  const tipOrientation = "right"
   const powerWidth = 300
   const powerHeight = 300 //Math.round(powerWidth / mapWidth * mapHeight);
+  const zoomHeight = 400
 
   const { filters, handleFilter } = useContext(FiltersContext);
   const { activeGenesetEnrichment, setSelectedGenesetMembership } = useContext(RegionsContext);
@@ -95,7 +96,7 @@ const InspectorGadget = ({
     if (narration && narration.path && narration.path.length) {
       let z = Math.floor(zOrder)
       if(z > 14) z = 14
-      let zr = narration.path.find(n => n.order == z)
+      let zr = narration.path.find(d => d.order == z)
       if(z == 14 && narration.variants && narration.variants.length) {
         let v = variantChooser(narration.variants)
         zr = {field: v.topField, layer: v.layer, order: 14, region: v}
@@ -224,8 +225,7 @@ const InspectorGadget = ({
   const [subpathCollection, setSubpathCollection] = useState([])
   const [currentFactorSubpath, setCurrentFactorSubpath] = useState(null)
   const [factorSubpathCollection, setFactorSubpathCollection] = useState([])
-  const setFactorSelection = useCallback((f, topFactors, narration) => {
-    let factor = topFactors[f]
+  const setFactorSelection = useCallback((factor) => {
     // top subpath for factor
     let subpath = factor.subpath.subpath.map(d => d.maxFactor)
     // update narration with subpath
@@ -247,11 +247,11 @@ const InspectorGadget = ({
       let factorExclusion = determineFactorExclusion(newNarration)
       findSubpaths(newNarration.path.slice(-1)[0].region, factorExclusion)
     }
-  }, [subpaths])
+  }, [narration, subpaths])
 
   // handle factor button click
-  const handleFactorClick = useCallback((f) => {
-    setFactorSelection(f, topFactors, narration)
+  const handleFactorClick = useCallback((i) => {
+    setFactorSelection(factor)
   }, [topFactors, narration])
 
 
@@ -291,29 +291,26 @@ const InspectorGadget = ({
   return (
     <>
     {selected && (
-    <div className="power-overlay" style={{
+    <div className={styles.powerOverlay} style={{
       position: "absolute", 
-      // top: modalTop, 
-      // left: modalLeft,
       top:5,
       right: 10,
       height: `${mapHeight - 20}px`,
-      // backgroundColor: `rgba(255, 255, 255, ${opacity})`
       }}>
-      <div className="header">
-        <div className="power-modal-selected">
-        {/* {showPosition(selected)} */}
+      <div className={styles.header}>
+        <div className={styles.powerModalSelected}>
           { narration?.region && showPosition(narration.region) }
-          { /* <button onClick={() => setZoomOrder(selected.order + 0.5)}>reset zoom</button> */ }
         </div>
-        <div className="header-buttons">
-          <div className="close" onClick={onClose}>x</div>
+        <div className={styles.headerButtons}>
+          <div className={styles.close} onClick={onClose}>x</div>
         </div>
       </div>
-      <div className={`content ${minimized ? "minimized" : ""}`}>
+      <div className={`${styles.content} ${minimized ? styles.minimized : ""}`}>
         {loadingCSN ? <div style={{height: `${powerHeight}px`}}><Loading text={"Loading CSN..."}></Loading></div> : 
-         selected && narration ? <div className="csn">
-          <div className="power-container">
+         selected && narration ? <div className={styles.csn}>
+
+          <div className={styles.tempContainer}>
+          <div className={styles.powerContainer}>
             <Power 
               csn={loadingFullNarration ? narration : fullNarration} 
               width={powerWidth} 
@@ -322,7 +319,7 @@ const InspectorGadget = ({
               onOrder={handleZoom}
               onData={handlePowerData}
               />
-            <div className="zoom-scores">
+            <div className={styles.zoomScores}>
               <ZoomLine 
                 csn={loadingFullNarration ? narration : fullNarration} 
                 order={zOrder} 
@@ -331,15 +328,12 @@ const InspectorGadget = ({
                 selected={true}
                 text={true}
                 width={34} 
-                offsetX={-300}
-                height={powerHeight} 
+                offsetX={30}
+                height={zoomHeight} 
                 tipOrientation={tipOrientation}
                 onHover={handleZoom}
+                showScore={false}
                 onClick={(c) => { console.log("narration", c)}}
-                // onFactor={(p) => {
-                //   let field = makeField(p.layer, p.field.index, p.order)
-                //   handleFilter(field, p.order)
-                // }}
                 /> 
               <ScoreBars
                 csn={loadingFullNarration ? narration : fullNarration} 
@@ -348,35 +342,52 @@ const InspectorGadget = ({
                 selected={true}
                 text={true}
                 width={30}
-                height={powerHeight} 
+                height={zoomHeight} 
                 tipOrientation={tipOrientation}
                 onHover={handleZoom}
+                showScore={false}
                 onClick={(c) => { console.log("narration", c)}}
                 />
+              <SubPaths 
+                csn={loadingFullNarration ? narration : fullNarration} 
+                factors={topFactors}
+                subpathCollection={subpathCollection}
+                order={zOrder} 
+                maxPathScore={maxPathScore}
+                highlight={true}
+                selected={true}
+                text={true}
+                width={34} 
+                height={zoomHeight} 
+                offsetX={0}
+                tipOrientation={tipOrientation}
+                onHover={handleZoom}
+                showScore={false}
+                onFactor={(f) => { setFactorSelection(f) }}
+                onSubpathBack={subpathGoBack}
+                /> 
               </div>
-              
           </div>
-          <div>
-            {numSubpaths > 0 && numSubpathFactors > 0 && <div>{numSubpaths} subpaths considering {numSubpathFactors} factors:</div>}
-            {subpathCollection.length > 0 && <button className="scroll-button" onClick={() => subpathGoBack()} style={{ borderColor: "black" }}>🔙</button>}
-            <div className="scroll-container">
-              {topFactors && topFactors.map((f, i) => (
-                <button key={i} className="scroll-button" onClick={() => handleFactorClick(i)} style={{ borderColor: f.color }}>
-                  <span className='subregion-factor-color' style={{ backgroundColor: f.color }}></span>
-                  {f.factorName} ({showKbOrder(f.maxScoringSegment.order)}, {f.maxScoringSegment.score.toFixed(2)})
-                </button>
-              ))}
-            </div>
+
+              <div className={styles.subpathContainer}>
+                {numSubpaths > 0 && numSubpathFactors > 0 && <div>{numSubpaths} subpaths considering {numSubpathFactors} factors:</div>}
+                {subpathCollection.length > 0 && <button className={styles.scrollButton} onClick={() => subpathGoBack()} style={{ borderColor: "black" }}>🔙</button>}
+                <div className={styles.scrollContainer}>
+                  {topFactors && topFactors.map((f, i) => (
+                    <button key={i} className={styles.scrollButton} onClick={() => setFactorSelection(f)} style={{ borderColor: f.color }}>
+                      <span className={styles.subregionFactorColor} style={{ backgroundColor: f.color }}></span>
+                      {f.factorName} ({showKbOrder(f.maxScoringSegment.order)}, {f.maxScoringSegment.score.toFixed(2)})
+                    </button>
+                  ))}
+                </div>
+              </div>
           </div>
-          { /*
-          <div className="zoom-text">
-            {zoomedPathRegion?.field ? `${zoomedPathRegion.field?.field} ${zoomedPathRegion.layer?.name} (${showKbOrder(zOrder)})` : ""}
+          
+          <div className={styles.summaryContainer}>
+            <GoogleSearchLink height={mapHeight - 500} narration={narration} />
           </div>
-          */ }
-          {/* { loadingFullNarration ? <Loading text={"📊 Preparing literature search..."} /> : <GoogleSearchLink narration={fullNarration} /> } */}
-          <GoogleSearchLink height= {mapHeight - 500} narration={narration} />
         </div> : null }
-        <div className="power-modal-children">
+        <div className={styles.powerModalChildren}>
           {children}
         </div>
       </div>

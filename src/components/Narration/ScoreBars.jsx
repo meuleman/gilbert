@@ -33,6 +33,7 @@ export default function ScoreBars({
   width = 50,
   height = 400,
   scoreHeight = 20,
+  showScore=true,
   tipOrientation="left",
   onHover = () => {},
   onClick = () => {}
@@ -74,10 +75,14 @@ export default function ScoreBars({
 
 
   // we create an extra space for the score bar
-  const depth = 15 - 4
+  // we create an extra space for the score bar
+  const depth = (showScore ? 15 : 14) - 4
+  if(!showScore) scoreHeight = -5
+  let scoreOffset = scoreHeight
+  if(!showScore) scoreOffset = -scoreHeight
   const spacing = (height - scoreHeight)/(depth + 1)
   const h = height - spacing - 1 
-  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([ 5 + scoreHeight, h + 3 - scoreHeight]), [h, scoreHeight])
+  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([ 5 + scoreHeight, h + 3 - scoreOffset]), [h, scoreOffset, scoreHeight])
   const rw = useMemo(() => yScale(5) - yScale(4) - 2, [yScale])
 
   const handleClick = useCallback((e, o) => {
@@ -102,7 +107,9 @@ export default function ScoreBars({
     if(p) {
 
       const xoff = tipOrientation === "left" ? -5 : width + 3
-      tooltipRef.current.show({...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score, GWAS: p.GWAS}, p.layer, rect.x + xoff, rect.y + my + 1.5)
+      let x = rect.x + xoff
+      let y = rect.y + my + 1.5
+      tooltipRef.current.show({...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score, GWAS: p.GWAS}, p.layer, x, y)
     }
     // tooltipRef.current.show(tooltipRef.current, csn)
   }, [csn, path, yScale, rw, onHover])
@@ -178,7 +185,7 @@ export default function ScoreBars({
             </g>
           })}
           {
-            <text
+            showScore && <text
               y={h + scoreHeight}
               x={width / 2}
               textAnchor="middle"

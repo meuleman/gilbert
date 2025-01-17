@@ -1,6 +1,7 @@
-import { useRef, useEffect, useState, useImperativeHandle, forwardRef, useMemo } from 'react';
+import { useRef, useEffect, useState, useImperativeHandle, forwardRef, useMemo, useCallback } from 'react';
 // import { showPosition, showFloat, showKb } from '../../lib/display'
 import { defaultContent } from './Content'
+import { calc } from 'antd/es/theme/internal';
 
 const Tooltip = forwardRef(({ 
   orientation: defaultOrientation, 
@@ -15,6 +16,9 @@ const Tooltip = forwardRef(({
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [orientation, setOrientation] = useState(defaultOrientation);
   const cfn = useMemo(() => contentFn, [contentFn])
+
+  // keep track if the tooltip is being shoved down by the top of the screen
+  const [yDiff, setYDiff] = useState(0)
 
   useImperativeHandle(ref, () => ({
     show: (region, layer, x, y) => {
@@ -117,7 +121,16 @@ const Tooltip = forwardRef(({
           }
         }
 
-        // console.log("tooltip", tooltipX, newOrientation, width)
+        // TODO: make this a variable depending on the header
+        if(tooltipY < 94) {
+          setYDiff(94 - tooltipY)
+          tooltipY = 94;
+        } else {
+          setYDiff(0)
+        }
+        if(tooltipX < 0) {
+          tooltipX = 0;
+        }
         setOrientation(newOrientation);
         tooltip.style.left = `${tooltipX}px`;
         tooltip.style.top = `${tooltipY}px`;
@@ -139,7 +152,7 @@ const Tooltip = forwardRef(({
     };
   }, [position, defaultOrientation, bottomOffset, enforceBounds]);
 
-  const getArrowStyle = () => {
+  const getArrowStyle = useCallback(() => {
     const arrowSize = 5;
     const halfSize = arrowSize / 2;
 
@@ -167,7 +180,7 @@ const Tooltip = forwardRef(({
       case 'left':
         return {
           right: '-5px',
-          top: '50%',
+          top: `calc(50% - ${yDiff}px)`,
           marginTop: `-${halfSize}px`,
           borderTop: `${halfSize}px solid transparent`,
           borderBottom: `${halfSize}px solid transparent`,
@@ -176,7 +189,7 @@ const Tooltip = forwardRef(({
       case 'right':
         return {
           left: '-5px',
-          top: '50%',
+          top: `calc(50% - ${yDiff}px)`,
           marginTop: `-${halfSize}px`,
           borderTop: `${halfSize}px solid transparent`,
           borderBottom: `${halfSize}px solid transparent`,
@@ -185,14 +198,14 @@ const Tooltip = forwardRef(({
       default:
         return {};
     }
-  };
+  }, [orientation, yDiff])
 
   return (
     <div
       ref={tooltipRef}
       style={{
         position: 'fixed',
-        zIndex: 1000,
+        zIndex: 2000,
         background: '#efefef',
         border: `1px solid black`,
         color: 'black',

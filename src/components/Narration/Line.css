@@ -1,7 +1,7 @@
 .csn-line {
   display: flex;
   flex-direction: row;
-  cursor: pointer;
+  /* cursor: pointer; */
 }
 
 .line-info {

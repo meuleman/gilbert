@@ -118,7 +118,7 @@ const Sentence = ({
   }, [narration, narration?.genesets])
 
   return (
-    <div className={styles.googleSearchLink} style={{height: height}}>
+    <div className={styles.googleSearchLink}>
       <a href={`https://www.google.com/search?q=${query}`} target="_blank" rel="noreferrer" data-tooltip-id="search-debug">Search relevant literature ↗</a>
       <Tooltip id="search-debug">
         <p style={{ fontSize: '10px' }}>search debug: {query}</p>
