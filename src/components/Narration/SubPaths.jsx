@@ -86,7 +86,7 @@ export default function SubPaths({
   }, [factors])
 
   const [path, setPath] = useState([])
-  const [maxFactorOrder, setMaxFactorOrder] = useState(0)
+  const [chosenFactorOrder, setChosenFactorOrder] = useState(0)
   useEffect(() => {
     // console.log(csn, order)
     if(csn?.path){
@@ -104,7 +104,7 @@ export default function SubPaths({
       p.forEach(d => {
         if(d.score && d.order > mfo) mfo = d.order
       })
-      setMaxFactorOrder(mfo)
+      setChosenFactorOrder(mfo)
     }
   }, [csn, order])
 
@@ -146,7 +146,7 @@ export default function SubPaths({
           {range(4, 15).map(o => {
             // let p = path.find(d => d.order == o)
             let facs = factorsByOrder[o]
-            if(facs?.length || o === maxFactorOrder) {
+            if(facs?.length || o === chosenFactorOrder) {
               return <g key={o}
                  
                 // onMouseLeave={() => handleLeave()}
@@ -207,12 +207,12 @@ export default function SubPaths({
           })}
         </g> : null}
 
-        {maxFactorOrder && subpathCollection?.length && (
+        {chosenFactorOrder && subpathCollection?.length && (
           <g>
             <text 
               onClick={onSubpathBack}
               x={rw * .25} 
-              y={yScale(maxFactorOrder) + rw * .67}
+              y={yScale(chosenFactorOrder) + rw * .67}
               style={{cursor: "pointer"}}
             >❌</text>
           </g>

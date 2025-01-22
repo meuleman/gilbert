@@ -73,27 +73,31 @@ const topFactorPerSubpathPosition = function(paths, regionChromosome) {
             const hilbert = new HilbertChromosome(sOrder)
             let region = hilbert.fromRange(regionChromosome, i, i)[0]
 
-            let maxFactor
+            // assign region to each factor
+            s.forEach(d => {
+                d.region = {...region}
+                d.region.field = d.field
+            })
+
+            let chosenFactor
             // if data for segment...
             if(s.length > 0) {
-                // find the max scoring factor
-                let maxFactorIndex = 0;
-                let maxFactorValue = s[0].field.value;
+                // initialize chosen with max scoring factor
+                let chosenFactorIndex = 0;
+                let chosenFactorValue = s[0].field.value;
 
                 for (let j = 1; j < s.length; j++) {
-                    if (s[j].field.value > maxFactorValue) {
-                        maxFactorIndex = j;
-                        maxFactorValue = s[j].field.value;
+                    if (s[j].field.value > chosenFactorValue) {
+                        chosenFactorIndex = j;
+                        chosenFactorValue = s[j].field.value;
                     }
                 }
                 
-                maxFactor = s[maxFactorIndex]
-                maxFactor.region = region
-                maxFactor.region.field = maxFactor.field
+                chosenFactor = s[chosenFactorIndex]
             } else {
-                maxFactor = {region, order: sOrder}
+                chosenFactor = {region, order: sOrder}
             }
-            return {maxFactor, allFactors: s}
+            return {chosenFactor, allFactors: s}
         })
         
         return {subpath: subpathFactors, i: subpathEndpoint, order: subpathEndOrder}
@@ -114,7 +118,14 @@ const assignSubpath = function(paths, topFactors, regionOrder) {
             return false
         })
         // limit subpath to the order of the max scoring segment
-        f.subpath = {subpath: subpath.subpath.filter(s => s.maxFactor.order <= order), order, i}
+        let subpathThroughOrder = subpath.subpath.filter(s => s.chosenFactor.order <= order)
+        // ensure the selected factor will be shown in path
+        let factorSegment = subpathThroughOrder.find(s => s.chosenFactor.order === order)
+        if(factorSegment.chosenFactor.field.index !== f.factor || factorSegment.chosenFactor.layer.datasetName !== f.layer.datasetName) {
+            factorSegment.chosenFactor = factorSegment.allFactors.find(s => (s.field.index === f.factor) && (s.layer.datasetName === f.layer.datasetName))
+        }
+
+        f.subpath = {subpath: subpathThroughOrder, order, i}
     })
 }
 

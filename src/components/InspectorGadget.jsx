@@ -227,7 +227,7 @@ const InspectorGadget = ({
   const [factorSubpathCollection, setFactorSubpathCollection] = useState([])
   const setFactorSelection = useCallback((factor) => {
     // top subpath for factor
-    let subpath = factor.subpath.subpath.map(d => d.maxFactor)
+    let subpath = factor.subpath.subpath.map(d => d.chosenFactor)
     // update narration with subpath
     if(subpath?.length && narration) {
       let newNarration = {...narration}
@@ -274,7 +274,7 @@ const InspectorGadget = ({
 
   // revert subpath selection
   const subpathGoBack = useCallback(() => {
-    let subpath = currentFactorSubpath.subpath.subpath.map(d => d.maxFactor)
+    let subpath = currentFactorSubpath.subpath.subpath.map(d => d.chosenFactor)
     if(subpath?.length && narration) {
       let currentNarration = {...narration}
       // remove subpath segments from current narration
