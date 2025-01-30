@@ -47,19 +47,19 @@ const SettingsPanel = ({
           <input type='range' min={0} max={maxCSNIndex} value={crossScaleNarrationIndex} onChange={handleChangeCSNIndex} />
           Cross Scale Narration {crossScaleNarrationIndex}
         </label>
-        <label>
+        {/* <label>
           <select onChange={handleCsnMethodChange}>
             <option value="sum">Sum</option>
             <option value="normalizedSum">Normalized Sum</option>
             <option value="max">Max</option>
-            {/* <option value="rank">Rank</option> */}
+            <option value="rank">Rank</option>
           </select>
           CSN Method
-        </label>
-        <label>
+        </label> */}
+        {/* <label>
           <input type="number" value={csnEnrThreshold} onChange={handleCsnEnrThresholdChange} min="0" step="0.1"></input>
           CSN ENR Threshold
-        </label>
+        </label> */}
       </div>
     </div>
   );
