@@ -163,8 +163,15 @@ const RegionsProvider = ({ children }) => {
       fetchBackfillFiltering(activeRegions, filters)
       .then((response) => {
         if (response) {
-          let rs = response?.regions.map(r => ({...fromIndex(r.chromosome, r.i, r.order), ...r}))
-          console.log("FILTERED ACTIVE REGIONS", response, rs)
+          let rs = response?.regions.map(r => ({
+            ...fromIndex(r.chromosome, r.i, r.order), 
+            ...r, 
+            subregion: {
+              ...fromIndex(r.subregion.chromosome, r.subregion.i, r.subregion.order), 
+              score: r.score
+            }
+          }))
+          console.log("FILTERED ACTIVE REGIONS", rs)
           setFilteredActiveRegions(rs)
         }
         setFilteredRegionsLoading(false)
