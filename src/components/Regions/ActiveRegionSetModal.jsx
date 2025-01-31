@@ -201,7 +201,7 @@ const ActiveRegionSetModal = ({
                       <tr key={index}>
                         <td style={{ width: '80%' }}>
                           {showPosition(region)} 
-                          {!!activeFilters.length && filteredActiveRegions.length > 0 && 
+                          {!!activeFilters.length && filteredActiveRegions?.length > 0 && 
                             <span 
                               className={styles['effective-count']}
                               onClick={() => toggleExpand(regionKey)}
