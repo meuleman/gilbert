@@ -150,13 +150,13 @@ const ActiveRegionSetModal = ({
             {filteredRegionsLoading ? <h3><Loading text="Loading filtered regions..."/> </h3> :
             <div>
               {/* <h3> {filteredActiveRegions?.length} / {activeRegions?.length} regions</h3> */}
-              <h3> {
-                filteredActiveRegions?.length
-              } selected {
-                filteredActiveRegions?.length === 1 ? "region" : "regions"
-              } showing {
-                activeFilters?.map(f => f.field).join(", ")
-              }</h3>
+              <h3>
+                {`${
+                  filteredActiveRegions?.length
+                } selected ${
+                  filteredActiveRegions?.length === 1 ? "region" : "regions"
+                }${activeFilters?.length > 0 ? ` showing ${activeFilters.map(f => f.field).join(", ")}` : ""}`}
+              </h3>
             </div>
             }
           </div>
