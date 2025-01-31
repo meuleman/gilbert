@@ -80,6 +80,7 @@ const ActiveRegionSetModal = ({
   }, [])
 
   const [activeTab, setActiveTab] = useState('table')
+  console.log(activeFilters)
 
   return (
     <div className={`${styles['active-regionsets-modal']} ${show ? styles.show : ''}`}>
@@ -149,7 +150,14 @@ const ActiveRegionSetModal = ({
           <div className={styles['region-sets-header']}>
             {filteredRegionsLoading ? <h3><Loading text="Loading filtered regions..."/> </h3> :
             <div>
-              <h3> {filteredActiveRegions?.length} / {activeRegions?.length} regions</h3>
+              {/* <h3> {filteredActiveRegions?.length} / {activeRegions?.length} regions</h3> */}
+              <h3> {
+                filteredActiveRegions?.length
+              } selected {
+                filteredActiveRegions?.length === 1 ? "region" : "regions"
+              } showing {
+                activeFilters?.map(f => f.field).join(", ")
+              }</h3>
             </div>
             }
           </div>
