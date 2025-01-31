@@ -80,7 +80,6 @@ const ActiveRegionSetModal = ({
   }, [])
 
   const [activeTab, setActiveTab] = useState('table')
-  console.log(activeFilters)
 
   return (
     <div className={`${styles['active-regionsets-modal']} ${show ? styles.show : ''}`}>
