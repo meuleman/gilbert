@@ -79,7 +79,7 @@ const ActiveRegionSetModal = ({
     })
   }, [])
 
-  const [activeTab, setActiveTab] = useState('summary')
+  const [activeTab, setActiveTab] = useState('table')
 
   return (
     <div className={`${styles['active-regionsets-modal']} ${show ? styles.show : ''}`}>
@@ -156,16 +156,16 @@ const ActiveRegionSetModal = ({
 
           <div className={styles.tabs}>
             <button 
-              className={`${styles.tab} ${activeTab === 'summary' ? styles.active : ''}`}
-              onClick={() => setActiveTab('summary')}
-            >
-              Summary
-            </button>
-            <button 
               className={`${styles.tab} ${activeTab === 'table' ? styles.active : ''}`}
               onClick={() => setActiveTab('table')}
             >
               Table
+            </button>
+            <button 
+              className={`${styles.tab} ${activeTab === 'summary' ? styles.active : ''}`}
+              onClick={() => setActiveTab('summary')}
+            >
+              Summary
             </button>
           </div>
 
