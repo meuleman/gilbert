@@ -27,10 +27,8 @@ const ActiveRegionSetModal = ({
     activeSet, 
     activeRegions, 
     activeFilters,
-    effectiveRegions,
-    effectiveRegionsLoading,
-    effectiveMap,
-    filteredBaseRegions,
+    filteredRegionsLoading,
+    filteredActiveRegions,
     regionSetEnrichments,
     regionSetEnrichmentsLoading,
     setActiveSet,
@@ -39,14 +37,14 @@ const ActiveRegionSetModal = ({
 
   const [regions, setRegions] = useState([])
   useEffect(() => {
-    if(filteredBaseRegions) {
-      setRegions(filteredBaseRegions)
-    } else if (activeRegions) {
-      setRegions(activeRegions)
+    if(filteredActiveRegions) {
+      setRegions(filteredActiveRegions)
+    // } else if (activeRegions) {
+    //   setRegions(activeRegions)
     } else {
       setRegions([])
     }
-  }, [activeRegions, filteredBaseRegions])
+  }, [filteredActiveRegions])  // activeRegions
 
   const handleDeselect = useCallback(() => {
     setActiveSet(null)
@@ -81,15 +79,15 @@ const ActiveRegionSetModal = ({
     })
   }, [])
 
-  const [activeTab, setActiveTab] = useState('summary')
+  const [activeTab, setActiveTab] = useState('table')
 
   return (
     <div className={`${styles['active-regionsets-modal']} ${show ? styles.show : ''}`}>
       <div className={styles.content}>
         {/* <div className={styles.manage}>
           <span className={styles['set-name']}>{activeSet?.name}</span>
-          {filteredBaseRegions ? 
-            <span className={styles['set-count']}>{filteredBaseRegions?.length} / {activeRegions?.length} total regions</span> :
+          {filteredActiveRegions ? 
+            <span className={styles['set-count']}>{filteredActiveRegions?.length} / {activeRegions?.length} total regions</span> :
             <span className={styles['set-count']}>{activeRegions?.length} total regions</span>}
           
           <div className={styles.buttons}>
@@ -149,26 +147,32 @@ const ActiveRegionSetModal = ({
         
         <div className={`${styles.section} ${styles['region-sets']}`}>
           <div className={styles['region-sets-header']}>
-            {effectiveRegionsLoading ? <h3><Loading text="Loading filtered regions..."/> </h3> :
+            {filteredRegionsLoading ? <h3><Loading text="Loading filtered regions..."/> </h3> :
             <div>
-              <h3> {filteredBaseRegions?.length} / {activeRegions?.length} base regions</h3>
-              {effectiveRegions?.length ? <h4> {effectiveRegions?.length} effective regions</h4> : null}
+              {/* <h3> {filteredActiveRegions?.length} / {activeRegions?.length} regions</h3> */}
+              <h3>
+                {`${
+                  filteredActiveRegions?.length
+                } selected ${
+                  filteredActiveRegions?.length === 1 ? "region" : "regions"
+                }${activeFilters?.length > 0 ? ` showing ${activeFilters.map(f => f.field).join(", ")}` : ""}`}
+              </h3>
             </div>
             }
           </div>
 
           <div className={styles.tabs}>
             <button 
-              className={`${styles.tab} ${activeTab === 'summary' ? styles.active : ''}`}
-              onClick={() => setActiveTab('summary')}
-            >
-              Summary
-            </button>
-            <button 
               className={`${styles.tab} ${activeTab === 'table' ? styles.active : ''}`}
               onClick={() => setActiveTab('table')}
             >
               Table
+            </button>
+            <button 
+              className={`${styles.tab} ${activeTab === 'summary' ? styles.active : ''}`}
+              onClick={() => setActiveTab('summary')}
+            >
+              Summary
             </button>
           </div>
 
@@ -190,21 +194,21 @@ const ActiveRegionSetModal = ({
                 <tbody>
                 {regions.map((region, index) => {
                   const regionKey = `${region.order}:${region.chromosome}:${region.i}`
-                  const effectiveRegions = effectiveMap?.get(regionKey) || []
+                  // const effectiveRegions = []  // can get rid of
     
                   return (
                     <>
                       <tr key={index}>
                         <td style={{ width: '80%' }}>
                           {showPosition(region)} 
-                          {!!activeFilters.length && effectiveRegions.length > 0 && 
+                          {!!activeFilters.length && filteredActiveRegions?.length > 0 && 
                             <span 
                               className={styles['effective-count']}
                               onClick={() => toggleExpand(regionKey)}
                               style={{ cursor: 'pointer' }}
                             >
-                              ({effectiveRegions.length} effective)
-                              {expandedRows.has(regionKey) ? ' 🔽' : ' ▶️'}
+                              {/* ({region.subregion ? 1 : 0} subregions) */}
+                              {/* {expandedRows.has(regionKey) ? ' 🔽' : ' ▶️'} */}
                             </span>
                           }
                         </td>
@@ -213,20 +217,20 @@ const ActiveRegionSetModal = ({
                           <button onClick={() => onSelect(region, region)}>🔍</button>
                         </td>
                       </tr>
-                      {expandedRows.has(regionKey) && effectiveRegions.map((effectiveRegion, effectiveIndex) => (
+                      {/* {expandedRows.has(regionKey) && [region.subregion].map((subregion, subregionIndex) => (
                         <tr 
-                          key={`${regionKey}-effective-${effectiveIndex}`}
+                          key={`${regionKey}-effective-${subregionIndex}`}
                           className={styles['effective-row']}
                         >
                           <td style={{ width: '80%', paddingLeft: '2em' }}>
-                            {showPosition(effectiveRegion)}
+                            {showPosition(subregion)}
                           </td>
-                          {<td style={{ width: '10%' }}>{effectiveRegion.score?.toFixed(3)}</td>}
+                          {<td style={{ width: '10%' }}>{region.score?.toFixed(3)}</td>}
                           <td style={{ width: '10%' }}>
-                            <button onClick={() => onSelect(effectiveRegion, region)}>🔍</button>
+                            <button onClick={() => onSelect(subregion, region)}>🔍</button>
                           </td>
                         </tr>
-                      ))}
+                      ))} */}
                     </>
                   )
                 })}

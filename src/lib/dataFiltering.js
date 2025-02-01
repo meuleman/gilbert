@@ -188,9 +188,38 @@ function fetchFilteringWithoutOrder(filters, regions) {
 }
 
 
+/*
+Get the top N regions that adhere to filtering criteria. 
+regions: [{chromosome, i, order, score}, ...]
+filters: [{factor, dataset}, ...], where factor is the factorIndex
+N: number of paths to return (default 100)
+
+Returns:
+[{chromosome, i, order, score, ranges, subregion}, ...]
+*/
+function fetchBackfillFiltering(regions, filters, N=100) {
+  const url = "https://explore.altius.org:5001/api/filteringWithoutOrder/backfill_region_filtering"
+  const postBody = {regions, filters, N}
+  console.log("REGION BACKFILL FILTERING POST BODY", postBody)
+  return axios({
+    method: 'POST',
+    url: url,
+    data: postBody
+  }).then(response => {
+    // console.log("FILTER WITHOUT ORDER", response.data)
+    return response.data
+  }).catch(error => {
+    console.error(`error:     ${JSON.stringify(error.status)}`);
+    console.error(`post body: ${JSON.stringify(postBody)}`);
+    return null
+  })
+}
+
+
 export {
   fetchFilterSegments,
   fetchFilteringWithoutOrder,
+  fetchBackfillFiltering,
   fetchFilterPreview,
   fetchOrderPreview,
 }

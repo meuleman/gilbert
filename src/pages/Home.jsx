@@ -262,23 +262,21 @@ function Home() {
     activeGenesetEnrichment,
     topNarrations,
     activeRegions,
-    filteredBaseRegions,
-    effectiveMap,
-    effectiveRegions,
+    filteredActiveRegions,
     activeFilters
   } = useContext(RegionsContext)
 
   const regions = useMemo(() => {
-    // console.log("REGIONS MEMO", filteredBaseRegions, activeRegions)
-    // if(filteredBaseRegions?.length) {
-    //   return filteredBaseRegions
+    // console.log("REGIONS MEMO", filteredActiveRegions, activeRegions)
+    // if(filteredActiveRegions?.length) {
+    //   return filteredActiveRegions
     // } else if(activeRegions?.length) {
     if(activeRegions?.length) {
       return activeRegions
     } else {
       return []
     }
-  }, [activeRegions])//, filteredBaseRegions])
+  }, [activeRegions])//, filteredActiveRegions])
 
   useEffect(() => {
     if(showFilter && regions?.length) {
@@ -644,9 +642,10 @@ function Home() {
       // if an activeSet we grab the first region (since they are ordered) that falls witin the selected region
       // if the region is smaller than the activeSet regions, the first one where the selected region is within the activeset region
       let region = selected
-      if(effectiveRegions?.length) {
-        let overlappingEffectiveRegion = overlaps(selected, effectiveRegions)[0] || selected
-        region = overlappingEffectiveRegion.order > selected.order ? overlappingEffectiveRegion : selected
+      if(filteredActiveRegions?.length) {
+        let overlappingRegion = overlaps(selected, filteredActiveRegions)[0] || selected
+        overlappingRegion.subregion ? overlappingRegion = overlappingRegion.subregion : null
+        region = overlappingRegion.order > selected.order ? overlappingRegion : selected
       } 
       setLoadingSelectedCSN(true)
       // setLoadingRegionCSNS(true)
@@ -706,11 +705,11 @@ function Home() {
         })
       }
     }
-  }, [selected, effectiveRegions])
+  }, [selected, filteredActiveRegions])
 
   const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
 
-  const [effectiveRegionsByCurrentOrder, setEffectiveRegionsByCurrentOrder] = useState(new Map())
+  const [filteredRegionsByCurrentOrder, setFilteredRegionsByCurrentOrder] = useState(new Map())
   const [allRegionsByCurrentOrder, setAllRegionsByCurrentOrder] = useState(new Map())
   // group the top regions found through filtering by the current order
   useEffect(() => {
@@ -730,18 +729,19 @@ function Home() {
 
   useEffect(() => {
     // let regions = activeRegions 
-    if(effectiveRegions?.length) {
-      console.log("EFFECTIVE REGIONS HOME", effectiveRegions)
-      const groupedEffectiveRegions = group(
-        effectiveRegions, 
+    if(filteredActiveRegions?.length) {
+      console.log("FILTERED ACTVE REGIONS HOME", filteredActiveRegions)
+      const groupedFilteredRegions = group(
+        // filteredActiveRegions.map(d => d.subregion ? d.subregion : d), 
+        filteredActiveRegions,  // only using base regions for now
         d => d.chromosome + ":" + (d.order > order ? hilbertPosToOrder(d.i, {from: d.order, to: order}) : d.i))
-      console.log("GROUPED EFFECTIVE REGIONS", groupedEffectiveRegions)
-      setEffectiveRegionsByCurrentOrder(groupedEffectiveRegions)
+      console.log("GROUPED EFFECTIVE REGIONS", groupedFilteredRegions)
+      setFilteredRegionsByCurrentOrder(groupedFilteredRegions)
     } else {
       // console.log("no regions!!")
-      setEffectiveRegionsByCurrentOrder(new Map())
+      setFilteredRegionsByCurrentOrder(new Map())
     }
-  }, [effectiveRegions, order])
+  }, [filteredActiveRegions, order])
 
   // useEffect(() => {
   //   if(activePaths?.length) {
@@ -784,10 +784,11 @@ function Home() {
   const [associatedGenes, setAssociatedGenes] = useState([])
   // TODO: we probably want logic here for effective regions
   useEffect(() => {
-    if(hover && activeSet && regions?.length && effectiveRegions?.length) {
+    if(hover && activeSet && regions?.length && filteredActiveRegions?.length) {
       // find the regions within the hover
-      let activeInHover = overlaps(hover, effectiveRegions, r => r)
-      // console.log("ACTIVE IN HOVER", hover, effectiveRegions, activeInHover)
+      // do we need to perform on the subregions if they exist?
+      let activeInHover = overlaps(hover, filteredActiveRegions, r => r)
+      // console.log("ACTIVE IN HOVER", hover, filteredActiveRegions, activeInHover)
       // let intersected = [...new Set(paths.flatMap(p => p.genes.filter(g => g.in_gene).map(g => g.name)))]
       // let associated = [...new Set(paths.flatMap(p => p.genes.filter(g => !g.in_gene).map(g => g.name)))]
       // // make sure the 'associated' genes do not contain any 'intersected'/overlapping genes
@@ -799,7 +800,7 @@ function Home() {
     } else {
       setActiveInHovered(null)
     }
-  }, [hover, activeSet, effectiveRegions, regions])
+  }, [hover, activeSet, filteredActiveRegions, regions])
 
   useEffect(() => {
     if(mapLoading || activeState) {
@@ -823,7 +824,7 @@ function Home() {
 
   // const drawFilteredRegions = useCanvasFilteredRegions(filterSegmentsByCurrentOrder)
   // const drawActiveFilteredRegions = useCanvasFilteredRegions(activeRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
-  const drawEffectiveFilteredRegions = useCanvasFilteredRegions(effectiveRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
+  const drawEffectiveFilteredRegions = useCanvasFilteredRegions(filteredRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
   const drawAllFilteredRegions = useCanvasFilteredRegions(allRegionsByCurrentOrder, { color: "gray", opacity: 0.5, strokeScale: 0.5, mask: false })
   const drawAnnotationRegionSelected = useCanvasAnnotationRegions(selected, "selected", { 
     stroke: "orange", 
@@ -905,8 +906,8 @@ function Home() {
     if(hit && selectedRef.current) {
       clearSelectedState()
     } else if(hit) {
-      // if(effectiveRegions?.length) {
-      //   let overs = overlaps(hit, effectiveRegions, r => r)
+      // if(filteredActiveRegions?.length) {
+      //   let overs = overlaps(hit, filteredActiveRegions, r => r)
       //   console.log("OVERS", overs, hit.order)
       //   if(overs.length && overs[0].order > hit.order) {
       //     setSelected(overs[0])
@@ -919,7 +920,7 @@ function Home() {
       setSelected(hit)
       setRegion(hit)
     }
-  }, [setSelected, setRegion, clearSelectedState, effectiveRegions])
+  }, [setSelected, setRegion, clearSelectedState, filteredActiveRegions])
 
   const autocompleteRef = useRef(null)
   // keybinding that closes the modal on escape
@@ -1395,7 +1396,7 @@ function Home() {
               // center={data?.center} 
               data={data?.data} 
               dataOrder={data?.dataOrder}
-              activeRegions={effectiveRegionsByCurrentOrder}
+              activeRegions={filteredRegionsByCurrentOrder}
               layer={data?.layer}
               width={width} height={100} 
               mapWidth={width}
