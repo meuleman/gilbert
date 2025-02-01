@@ -87,7 +87,7 @@ export default function ZoomLine({
   if(!showScore) scoreOffset = -scoreHeight
   const spacing = (height - scoreHeight)/(depth + 1)
   const h = height - spacing - 1 
-  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([ 5 + scoreHeight, h - scoreOffset - 1]), [h, scoreOffset, scoreHeight])
+  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([ 5 + scoreHeight, h - scoreOffset + 2]), [h, scoreOffset, scoreHeight])
   const rw = useMemo(() => yScale(5) - yScale(4), [yScale])
 
   const handleClick = useCallback((e, o) => {
