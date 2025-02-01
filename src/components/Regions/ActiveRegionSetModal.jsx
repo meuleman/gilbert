@@ -39,12 +39,12 @@ const ActiveRegionSetModal = ({
   useEffect(() => {
     if(filteredActiveRegions) {
       setRegions(filteredActiveRegions)
-    } else if (activeRegions) {
-      setRegions(activeRegions)
+    // } else if (activeRegions) {
+    //   setRegions(activeRegions)
     } else {
       setRegions([])
     }
-  }, [activeRegions, filteredActiveRegions])
+  }, [filteredActiveRegions])  // activeRegions
 
   const handleDeselect = useCallback(() => {
     setActiveSet(null)
