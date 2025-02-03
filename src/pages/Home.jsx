@@ -260,6 +260,7 @@ function Home() {
     clearActive,
     saveSet,
     activeGenesetEnrichment,
+    setSelectedGenesetMembership,
     topNarrations,
     activeRegions,
     filteredActiveRegions,
@@ -704,6 +705,9 @@ function Home() {
           setLoadingRegionCSNS(false)
         })
       }
+    } else {
+      // selected is cleared
+      setSelectedGenesetMembership([])
     }
   }, [selected, filteredActiveRegions])
 
