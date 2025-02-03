@@ -688,7 +688,7 @@ function Home() {
             setSelectedTopCSN(null)
             setLoadingSelectedCSN(false)
             setLoadingRegionCSNS(false)
-            return
+            return null
           } else { 
             let dehydrated = getDehydrated([region], response.regions)
             let hydrated = dehydrated.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
@@ -697,17 +697,25 @@ function Home() {
             setSelectedTopCSN(hydrated[0])
             setLoadingRegionCSNS(false)
             setLoadingSelectedCSN(false)
+            return response
           }
         }).catch((e) => {
           console.log("error fetching top paths for selected region", e)
           // setRegionCSNS([])
           setSelectedTopCSN(null),
           setLoadingRegionCSNS(false)
+          return null
+        }).then((response) => {
+          // // subpath query
+          // let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null)
+          // find and set subpaths
+          findSubpaths(null, [])  // there should be no possible subpath at order 14
         })
       }
     } else {
       // selected is cleared
       setSelectedGenesetMembership([])
+      findSubpaths(null, [])
     }
   }, [selected, filteredActiveRegions])
 
@@ -1010,17 +1018,19 @@ function Home() {
   // find the subpaths for region
   const findSubpaths = useCallback((region, factorExclusion) => {
     setSubpaths(null)
-    fetchSingleRegionFactorOverlap({region: region, factorExclusion: factorExclusion})
-    .then((response) => {
-      let topSubregionFactors = response.map(f => {
-        let layer = layers.find(d => d.datasetName == f.dataset)
-        let factorName = layer.fieldColor.domain()[f.factor]
-        return {...f, factorName, color: layer.fieldColor(factorName), layer}
+    if(region) {
+      fetchSingleRegionFactorOverlap({region: region, factorExclusion: factorExclusion})
+      .then((response) => {
+        let topSubregionFactors = response.map(f => {
+          let layer = layers.find(d => d.datasetName == f.dataset)
+          let factorName = layer.fieldColor.domain()[f.factor]
+          return {...f, factorName, color: layer.fieldColor(factorName), layer}
+        })
+        // look at the below surface segments and create subregion paths
+        const subpathResponse = createSubregionPaths(topSubregionFactors, region)
+        setSubpaths(subpathResponse)
       })
-      // look at the below surface segments and create subregion paths
-      const subpathResponse = createSubregionPaths(topSubregionFactors, region)
-      setSubpaths(subpathResponse)
-    })
+    }
   }, [])
 
 
