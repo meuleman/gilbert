@@ -896,7 +896,8 @@ function Home() {
   useEffect(() => {
     // if the filters change from a user interaction we want to clear the selected
     if(filters.userTriggered) clearSelectedState()
-  }, [filters, clearSelectedState])
+    clearSelectedState()
+  }, [filters, activeFilters, clearSelectedState])  // don't need filters anymore?
 
   // TODO: consistent clear state
   const handleModalClose = useCallback(() => {
