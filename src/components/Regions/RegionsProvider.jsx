@@ -176,15 +176,21 @@ const RegionsProvider = ({ children }) => {
         }
         setFilteredRegionsLoading(false)
       })
-    } else if(activeRegions?.length) {
-      // use top active regions if no filters
+    }
+  }, [activeFilters])
+
+
+  useEffect(() => {
+    // clear active filters any time active regions change
+    setActiveFilters([])
+    if(activeRegions?.length) {
       setFilteredActiveRegions(activeRegions.slice(0,100))
       setFilteredRegionsLoading(false)
     } else {
       setFilteredActiveRegions(null)
       setFilteredRegionsLoading(false)
     }
-  }, [activeFilters, activeRegions])
+  }, [activeRegions])
 
 
   // ACTIVE PATH logic
