@@ -17,9 +17,9 @@ function factorTooltipContent(factor) {
     <div style={{display: 'flex', flexDirection: 'column', borderColor: factor.color, gap: 2}}>
        <span>
         <span style={{ display: 'inline-block', width: 10, height: 10, marginRight: 4, backgroundColor: factor.color }}></span>
-        <span>{factor.factorName} ({factor.maxScoringSegment.score.toFixed(2)})</span>
+        <span>{factor.factorName} ({factor.topSegment.score.toFixed(2)})</span>
        </span>
-       <span>{showKbOrder(factor.maxScoringSegment.order)}</span>
+       <span>{showKbOrder(factor.topSegment.order)}</span>
        <span>{factor.layer.name}</span>
     </div>
   )
@@ -74,8 +74,8 @@ export default function SubPaths({
     let facs = {}
     if(!factors) return facs
     factors.forEach(f => {
-      let o = f.maxScoringSegment.order
-      let score = f.maxScoringSegment.score
+      let o = f.topSegment.order
+      let score = f.topSegment.score
       if(!facs[o]) facs[o] = []
       facs[o].push({factor: f, score} )
       facs[o].sort((a, b) => b.score - a.score)

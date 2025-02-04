@@ -108,8 +108,8 @@ const topFactorPerSubpathPosition = function(paths, regionChromosome) {
 // assign a subpath to each top factor
 const assignSubpath = function(paths, topFactors, regionOrder) {
     topFactors.map(f => {
-        let i = f.maxScoringSegment.i
-        let order = f.maxScoringSegment.order
+        let i = f.topSegment.i
+        let order = f.topSegment.order
         // find the subpath that contains the max scoring segment
         let subpath = paths.find(p => {
             if(p.order >= order) {
@@ -130,16 +130,51 @@ const assignSubpath = function(paths, topFactors, regionOrder) {
 }
 
 
+// find the top factors by selecting one factor per order
+const getTopFactors = function(factorData) {
+    let allSegments = factorData.flatMap((d, i) => d.segments.map(s => ({...s, dataset: i}))).sort((a, b) => b.score - a.score)
+    let topFactorSegments = []
+    let processedDatasets = new Set()
+    let processedOrders = new Set()
+
+    // find the top segment for each order
+    for (let i = 0; i < allSegments.length; i++) {
+        let topSegment = allSegments[i]
+        if (!processedDatasets.has(topSegment.dataset) && !processedOrders.has(topSegment.order)) {
+            topFactorSegments.push(topSegment)
+            processedDatasets.add(topSegment.dataset)
+            processedOrders.add(topSegment.order)
+        }
+    }
+
+    // assign the top segment to the factor data
+    factorData = factorData.map((d, i) => {
+        let factorTopSegment = topFactorSegments.filter(s => s.dataset === i)
+        if(factorTopSegment.length === 1) {
+            let segment = factorTopSegment[0]
+            delete segment.dataset
+            d.topSegment = segment
+        }
+        return d
+    })
+
+    return factorData.filter(d => d.topSegment).sort((a, b) => b.topSegment.score - a.topSegment.score)
+}
+
+
 // creates subregion paths for a region given overlapping factor segments
 const createSubregionPaths = function(factorData, region, numFactors = 10) {
     if(factorData.length === 0) {
         return {paths: [], topFactors: []}
     }
 
-    // get the top factors
-    const topFactors = factorData.map(d => {
-        return {...d, maxScoringSegment: d.segments.sort((a, b) => b.score - a.score)[0]}
-    }).sort((a, b) => b.maxScoringSegment.score - a.maxScoringSegment.score).slice(0, numFactors)
+    // get top factors
+    const topFactors = getTopFactors(factorData)
+
+    // // get the top factors
+    // const topFactors = factorData.map(d => {
+    //     return {...d, topSegment: d.segments.sort((a, b) => b.score - a.score)[0]}
+    // }).sort((a, b) => b.topSegment.score - a.topSegment.score).slice(0, numFactors)
 
     // flatten the segments
     const segments = topFactors.reduce((acc, d) => {
