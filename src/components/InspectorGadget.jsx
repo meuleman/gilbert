@@ -3,7 +3,7 @@ import FiltersContext from './ComboLock/FiltersContext'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
 import { showKbOrder, showPosition } from '../lib/display'
-import GoogleSearchLink from './Narration/GoogleSearchLink'
+import RegionAISummary from './Narration/RegionAISummary'
 import ZoomLine from './Narration/ZoomLine'
 import ScoreBars from './Narration/ScoreBars'
 import SubPaths from './Narration/SubPaths'
@@ -389,7 +389,7 @@ const InspectorGadget = ({
           </div>
           
           <div className={styles.summaryContainer}>
-            <GoogleSearchLink height={mapHeight - 500} narration={narration} />
+            <RegionAISummary height={mapHeight - 500} narration={narration} />
           </div>
         </div> : null }
         <div className={styles.powerModalChildren}>
