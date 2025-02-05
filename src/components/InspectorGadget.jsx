@@ -374,8 +374,8 @@ const InspectorGadget = ({
               </div>
           </div>
 
-              <div className={styles.subpathContainer}>
-                {/* {numSubpaths > 0 && numSubpathFactors > 0 && <div>{numSubpaths} subpaths considering {numSubpathFactors} factors:</div>} */}
+              {/* <div className={styles.subpathContainer}>
+                {numSubpaths > 0 && numSubpathFactors > 0 && <div>{numSubpaths} subpaths considering {numSubpathFactors} factors:</div>}
                 {subpathCollection.length > 0 && <button className={styles.scrollButton} onClick={() => subpathGoBack()} style={{ borderColor: "black" }}>🔙</button>}
                 <div className={styles.scrollContainer}>
                   {topFactors && topFactors.map((f, i) => (
@@ -385,7 +385,7 @@ const InspectorGadget = ({
                     </button>
                   ))}
                 </div>
-              </div>
+              </div> */}
           </div>
           
           <div className={styles.summaryContainer}>
