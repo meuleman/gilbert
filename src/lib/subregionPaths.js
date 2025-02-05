@@ -133,7 +133,7 @@ const assignSubpath = function(paths, topFactors, regionOrder) {
 
 
 // find the top factors by selecting one factor per order
-const getTopFactors = function(factorData, maxPerOrder = 3) {
+const getTopFactors = function(factorData, maxPerOrder = 5) {
     let allSegments = factorData.flatMap((d, i) => d.segments.map(s => ({...s, dataset: i}))).sort((a, b) => b.score - a.score)
     let topFactorSegments = []
     let processedDatasets = new Set()
