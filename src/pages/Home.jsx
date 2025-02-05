@@ -1028,8 +1028,10 @@ function Home() {
           return {...f, factorName, color: layer.fieldColor(factorName), layer}
         })
         // look at the below surface segments and create subregion paths
-        const subpathResponse = createSubregionPaths(topSubregionFactors, region)
-        setSubpaths(subpathResponse)
+        createSubregionPaths(topSubregionFactors, region)
+          .then((subpathResponse) => {
+            setSubpaths(subpathResponse)
+          })
       })
     }
   }, [])

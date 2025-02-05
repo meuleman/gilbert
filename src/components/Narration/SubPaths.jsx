@@ -102,7 +102,7 @@ export default function SubPaths({
       }
       setPath(p)
       p.forEach(d => {
-        if(d.score && d.order > mfo) mfo = d.order
+        if(d?.field?.value && d.order > mfo) mfo = d.order
       })
       setChosenFactorOrder(mfo)
     }
@@ -146,7 +146,7 @@ export default function SubPaths({
           {range(4, 15).map(o => {
             // let p = path.find(d => d.order == o)
             let facs = factorsByOrder[o]
-            if(facs?.length || o === chosenFactorOrder) {
+            if(facs?.length) {  //  || o === chosenFactorOrder
               return <g key={o}
                  
                 // onMouseLeave={() => handleLeave()}
@@ -209,6 +209,16 @@ export default function SubPaths({
 
         {chosenFactorOrder && subpathCollection?.length && (
           <g>
+            <rect
+              y={yScale(chosenFactorOrder)}
+              x={0}
+              height={rw}
+              width={width}
+              fill={ "white" }
+              strokeWidth={1}
+              stroke="lightgray"
+              fillOpacity={0.01}
+            />
             <text 
               onClick={onSubpathBack}
               x={rw * .25} 

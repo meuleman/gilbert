@@ -205,18 +205,19 @@ const InspectorGadget = ({
 
 
   // subpaths
-  const [numSubpaths, setNumSubpaths] = useState(null)
-  const [numSubpathFactors, setNumSubpathFactors] = useState(null)
+  // const [numSubpaths, setNumSubpaths] = useState(null)
+  // const [numSubpathFactors, setNumSubpathFactors] = useState(null)
   const [topFactors, setTopFactors] = useState(null)
   // collect subregion information
   useEffect(() => {
-    if(subpaths && subpaths.paths && subpaths.topFactors) {
-      setNumSubpaths(subpaths.paths.length)
-      setNumSubpathFactors(subpaths.topFactors.length)
+    // if(subpaths && subpaths.paths && subpaths.topFactors) {
+    if(subpaths && subpaths.topFactors) {
+      // setNumSubpaths(subpaths.paths.length)
+      // setNumSubpathFactors(subpaths.topFactors.length)
       setTopFactors(subpaths.topFactors)
     } else {
-      setNumSubpaths(null)
-      setNumSubpathFactors(null)
+      // setNumSubpaths(null)
+      // setNumSubpathFactors(null)
       setTopFactors(null)
     }
   }, [subpaths])
@@ -225,9 +226,10 @@ const InspectorGadget = ({
   const [subpathCollection, setSubpathCollection] = useState([])
   const [currentFactorSubpath, setCurrentFactorSubpath] = useState(null)
   const [factorSubpathCollection, setFactorSubpathCollection] = useState([])
+  const [numFactorSelected, setNumFactorSelected] = useState(0)
   const setFactorSelection = useCallback((factor) => {
     // top subpath for factor
-    let subpath = factor.subpath.subpath.map(d => d.chosenFactor)
+    let subpath = factor.path.path.map(d => ({...d, selection: numFactorSelected}))
     // update narration with subpath
     if(subpath?.length && narration) {
       let newNarration = {...narration}
@@ -246,6 +248,7 @@ const InspectorGadget = ({
       // subpath query
       let factorExclusion = determineFactorExclusion(newNarration)
       findSubpaths(newNarration.path.slice(-1)[0].region, factorExclusion)
+      setNumFactorSelected(numFactorSelected + 1)
     }
   }, [narration, subpaths])
 
@@ -274,11 +277,13 @@ const InspectorGadget = ({
 
   // revert subpath selection
   const subpathGoBack = useCallback(() => {
-    let subpath = currentFactorSubpath.subpath.subpath.map(d => d.chosenFactor)
+    let subpath = currentFactorSubpath.path.path
     if(subpath?.length && narration) {
       let currentNarration = {...narration}
       // remove subpath segments from current narration
-      currentNarration.path = currentNarration.path.filter(d => !subpath.some(s => deepEqual(d, s)))
+      // currentNarration.path = currentNarration.path.filter(d => !subpath.some(s => deepEqual(d, s)))
+      currentNarration.path = currentNarration.path.filter(d => d?.selection !== (numFactorSelected - 1))
+      setNumFactorSelected(numFactorSelected - 1)
       
       setNarration(currentNarration)
       setCurrentFactorSubpath(factorSubpathCollection.length > 1 ? factorSubpathCollection.slice(-2, -1)[0] : null)
@@ -370,7 +375,7 @@ const InspectorGadget = ({
           </div>
 
               <div className={styles.subpathContainer}>
-                {numSubpaths > 0 && numSubpathFactors > 0 && <div>{numSubpaths} subpaths considering {numSubpathFactors} factors:</div>}
+                {/* {numSubpaths > 0 && numSubpathFactors > 0 && <div>{numSubpaths} subpaths considering {numSubpathFactors} factors:</div>} */}
                 {subpathCollection.length > 0 && <button className={styles.scrollButton} onClick={() => subpathGoBack()} style={{ borderColor: "black" }}>🔙</button>}
                 <div className={styles.scrollContainer}>
                   {topFactors && topFactors.map((f, i) => (

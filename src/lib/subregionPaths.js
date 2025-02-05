@@ -1,5 +1,7 @@
 import { max } from 'd3-array';
 import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome';
+import { fetchPartialPathsForRegions } from '../lib/csn';
+import { rehydrate, csnLayerList } from '../layers';
 
 // TreeNode class to create path segments
 class TreeNode {
@@ -162,46 +164,119 @@ const getTopFactors = function(factorData) {
 }
 
 
+// rehydrate a partial csn path
+function rehydratePartialCSN(r, layers) {
+    const hydrated = r?.path_factors.map((d, i) => {
+        let segmentOrder = 4 + i
+        const l = rehydrate(d, layers)
+        const hilbert = new HilbertChromosome(segmentOrder)
+        const pos = hilbertPosToOrder(r.i, {from: r.order, to: segmentOrder})
+        const region = hilbert.fromRange(r.chromosome, pos, pos+1)[0]
+        let field = null
+        if(l) {
+            field = {
+                field: l.fieldName,
+                index: l.fieldIndex,
+                color: l.layer.fieldColor(l.fieldName),
+                value: r.factor_scores[i]
+            }
+            region.field = field
+        }
+        return {
+            field,
+            layer: l?.layer,
+            order: segmentOrder,
+            region
+        }
+    })
+    return {
+        ...r,
+        path: hydrated,
+    }
+}
+
+// fetches partial paths for factor segments up to the factor segment order
+// ensures that the top factor is in the correct location in the path
+const getPathsForRegions = function(topFactors, region) {
+    let rehydratedTopFactors = fetchPartialPathsForRegions(topFactors.map(d => d.topSegment))
+        .then((response) => {
+            // let rehydratedTopFactors = response.regions.map((r, i) => ({...(topFactors[i]), path: rehydratePartialCSN(r, csnLayerList)}))
+            let rehydrated = response.regions.map(r => rehydratePartialCSN(r, csnLayerList))
+            // force top factor to show up in prescribed location in path
+            let rehydratedTopFactors = topFactors.map((d, i) => {
+                let path = rehydrated[i]
+                
+                let field = {color: d.color, field: d.factorName, value: d.topSegment.score, index: d.factor}
+                let layer = d.layer
+                let order = d.topSegment.order
+                const hilbert = new HilbertChromosome(order)
+                const pos = d.topSegment.i
+                let region = hilbert.fromRange(d.topSegment.chromosome, pos, pos+1)[0]
+                region.field = field
+
+                let factorSegment = path.path.filter(p => p.order === d.topSegment.order)
+                if(factorSegment.length === 1) {
+                    factorSegment = {field, layer, order, region}
+                } else {
+                    path.path.push({field, layer, order, region})
+                }
+
+                return {...d, path}
+            })
+            return rehydratedTopFactors
+        })
+        .catch((error) => {
+            console.log("error in fetching partial csn paths", error)
+            return null
+        })
+    return rehydratedTopFactors
+}
+
+
 // creates subregion paths for a region given overlapping factor segments
-const createSubregionPaths = function(factorData, region, numFactors = 10) {
+const createSubregionPaths = async function(factorData, region, numFactors = 10) {
     if(factorData.length === 0) {
         return {paths: [], topFactors: []}
     }
 
     // get top factors
-    const topFactors = getTopFactors(factorData)
+    let topFactors = getTopFactors(factorData)
+
+    // attach partial paths for top factor regions
+    topFactors = await getPathsForRegions(topFactors, region)
+
 
     // // get the top factors
     // const topFactors = factorData.map(d => {
     //     return {...d, topSegment: d.segments.sort((a, b) => b.score - a.score)[0]}
     // }).sort((a, b) => b.topSegment.score - a.topSegment.score).slice(0, numFactors)
 
-    // flatten the segments
-    const segments = topFactors.reduce((acc, d) => {
-        return acc.concat(d.segments.map(e => {
-            const [path, relativePath] = getRelativePath(e, region)
-            const field = {field: d.factorName, color: d.color, value: e.score, index: d.factor}
-            return {...e, factor: d.factor, dataset: d.dataset, relativePath, path, field, layer: d.layer}
-        }))
-    }, [])
+    // // flatten the segments
+    // const segments = topFactors.reduce((acc, d) => {
+    //     return acc.concat(d.segments.map(e => {
+    //         const [path, relativePath] = getRelativePath(e, region)
+    //         const field = {field: d.factorName, color: d.color, value: e.score, index: d.factor}
+    //         return {...e, factor: d.factor, dataset: d.dataset, relativePath, path, field, layer: d.layer}
+    //     }))
+    // }, [])
 
-    // create a tree
-    const tree = new Tree()
-    // fill tree
-    segments.forEach(s => {
-        tree.insertSegment(s.relativePath, s)
-    })
+    // // create a tree
+    // const tree = new Tree()
+    // // fill tree
+    // segments.forEach(s => {
+    //     tree.insertSegment(s.relativePath, s)
+    // })
 
-    // collect paths
-    let paths = parseTree(tree.root)
+    // // collect paths
+    // let paths = parseTree(tree.root)
     
-    // find the top factor for each subpath segment
-    paths = topFactorPerSubpathPosition(paths, region.chromosome)
+    // // find the top factor for each subpath segment
+    // paths = topFactorPerSubpathPosition(paths, region.chromosome)
 
-    // assign a subpath to each top factor
-    assignSubpath(paths, topFactors, region.order)
+    // // assign a subpath to each top factor
+    // assignSubpath(paths, topFactors, region.order)
 
-    return {paths, topFactors}
+    return {paths: null, topFactors}
 }
 
 
