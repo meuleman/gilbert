@@ -6,9 +6,6 @@ import { parseBED } from '../../lib/regionsets';
 
 import './RegionFiles.css';
 
-import Domain20kbRegions from '../ExampleRegions/domains.samples_3517.20kb.strict_max_mi.non_overlapping.gte_HBG2.qualifyingDHS_maxMI_sorted.CT20231212.json'
-import Domain1kbRegions from '../ExampleRegions/domains.samples_3517.1kb.strict_max_mi.non_overlapping.gte_92.2per.maxMI_meanMI_sorted.CT20231212.json'
-import HBG2DHSMaskedRegions from '../ExampleRegions/top_100_HBG2_DHS_masked_regions_across_biosamples_CT20240126.json'
 
 
 function RegionFiles({
@@ -90,9 +87,6 @@ function RegionFiles({
 
   // // Example Regions to project onto the Hilbert Curve
   const exampleSets = useMemo(() => [
-    {"name": "Domain 20kb", "data": Domain20kbRegions},
-    {"name": "Domain 1kb", "data": Domain1kbRegions},
-    {"name": "HBG2 DHS Distance Masked", "data": HBG2DHSMaskedRegions}
   ], [])
   useEffect(() => {
     exampleSets.forEach(set =>  saveSet(set.name, set.data, false, new Date("2024-01-01")))
