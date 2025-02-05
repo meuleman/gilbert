@@ -25,31 +25,40 @@ const Sentence = ({
 
 
   const generate = useCallback(() => {
-    setLoading(true)
     setGenerated("")
     setArticles([])
-    fetch(`${url}?query=${encodeURIComponent(query)}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        query: query,
-        narration: narration
-      })
-    }).then(res => res.json())
-      .then(data => {
-        console.log("generate", data)
-        setGenerated(data.summary)
-        setArticles(data.results)
-        setRequest_id(data.request_id)
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error(err)
-        setLoading(false)
-      })
+    if(query !== "") {
+      setLoading(true)
+      fetch(`${url}?query=${encodeURIComponent(query)}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          query: query,
+          narration: narration
+        })
+      }).then(res => res.json())
+        .then(data => {
+          console.log("generate", data)
+          setGenerated(data.summary)
+          setArticles(data.results)
+          setRequest_id(data.request_id)
+          setLoading(false)
+        })
+        .catch(err => {
+          console.error(err)
+          setLoading(false)
+        })
+      }
   }, [query, narration])
+
+  // generate summary on new query
+  useEffect(() => {
+    if(query !== "") {
+      generate()
+    }
+  }, [query])
 
   const feedback = useCallback((feedback) => {
     fetch(`${url_feedback}?request_id=${request_id}&feedback=${feedback}`)
@@ -142,7 +151,7 @@ const Sentence = ({
         <button onClick={() => feedback("👎")}>👎</button>
       </div>: null} */}
 
-      <button onClick={generate} disabled={loading}>Generate summary</button>
+      {/* <button onClick={generate} disabled={loading}>Generate summary</button> */}
     </div>
   )
 }
