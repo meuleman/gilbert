@@ -139,6 +139,12 @@ const getTopFactors = function(factorData) {
     let processedDatasets = new Set()
     let processedOrders = new Set()
 
+    // reserve order 14 for variants
+    let variantDatasets = factorData.map((d, i) => d.dataset === "ukbb_94_traits" ? i : -1).filter(i => i > -1)
+    if(variantDatasets.length > 0) {
+        allSegments = allSegments.filter(s => !((s.order === 14) && (!variantDatasets.includes(s.dataset))))
+    }
+
     // find the top segment for each order
     for (let i = 0; i < allSegments.length; i++) {
         let topSegment = allSegments[i]
