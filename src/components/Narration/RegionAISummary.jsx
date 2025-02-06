@@ -49,8 +49,9 @@ const RegionAISummary = ({
   const [generated, setGenerated] = useState("")
   const [articles, setArticles] = useState([])
   // const url = "https://enjalot--pubmed-query-transformermodel-rag-generate.modal.run"
+  // const url_feedback = "https://enjalot--pubmed-query-transformermodel-feedback.modal.run"
   const url = "https://explore.altius.org:5001/api/pubmedSummary/pubmed_summary"
-  const url_feedback = "https://enjalot--pubmed-query-transformermodel-feedback.modal.run"
+  const url_feedback = "https://explore.altius.org:5001/api/pubmedSummary/feedback"
   // const url = "https://enjalot--pubmed-query-transformermodel-rag-generate-dev.modal.run"
   // const url_feedback = "https://enjalot--pubmed-query-transformermodel-feedback-dev.modal.run"
 
@@ -96,7 +97,17 @@ const RegionAISummary = ({
   }, [query])
 
   const feedback = useCallback((feedback) => {
-    fetch(`${url_feedback}?request_id=${request_id}&feedback=${feedback}`)
+    // fetch(`${url_feedback}?request_id=${request_id}&feedback=${feedback}`)
+    fetch(`${url_feedback}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        request_id: request_id,
+        feedback: feedback,
+      })
+    })
       .then(res => res.json())
       .then(data => {
         console.log("feedback", data)
