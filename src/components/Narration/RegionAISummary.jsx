@@ -40,7 +40,6 @@ Summary:
 
 const RegionAISummary = ({
   narration = null,
-  height = 320,
 } = {}) => {
   const [query, setQuery] = useState("")
   const [showPromptEditor, setShowPromptEditor] = useState(false)

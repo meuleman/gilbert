@@ -32,6 +32,7 @@ export default function ScoreBars({
   text=true,
   width = 50,
   height = 400,
+  fontSize = 9,
   scoreHeight = 20,
   showScore=true,
   tipOrientation="left",
@@ -110,6 +111,8 @@ export default function ScoreBars({
       let x = rect.x + xoff
       let y = rect.y + my + 1.5
       tooltipRef.current.show({...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score, GWAS: p.GWAS}, p.layer, x, y)
+    } else {
+      tooltipRef.current.hide()
     }
     // tooltipRef.current.show(tooltipRef.current, csn)
   }, [csn, path, yScale, rw, onHover])
@@ -170,11 +173,11 @@ export default function ScoreBars({
             // let bp = showKb(Math.pow(4, 14 - o))
             return <g key={o} onMouseMove={(e) => handleHover(e, o)}>
               <text
-                y={yScale(o) + 2*rw/3}
+                y={yScale(o) + rw/2 + fontSize/2}
                 x={width / 2}
                 textAnchor="middle"
                 fontFamily="Courier"
-                fontSize={9}
+                fontSize={fontSize}
                 // stroke="#333"
                 fill="#111"
                 paintOrder="stroke"

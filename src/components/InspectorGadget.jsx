@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useContext, useMemo } from 'react'
+import React, { useState, useCallback, useEffect, useContext, useMemo, useRef } from 'react'
 import FiltersContext from './ComboLock/FiltersContext'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
@@ -7,6 +7,7 @@ import RegionAISummary from './Narration/RegionAISummary'
 import ZoomLine from './Narration/ZoomLine'
 import ScoreBars from './Narration/ScoreBars'
 import SubPaths from './Narration/SubPaths'
+import ZoomInspector from './ZoomInspector'
 import Power from './Narration/Power'
 import Loading from './Loading'
 import { scaleLinear } from 'd3-scale'
@@ -18,387 +19,300 @@ import RegionsContext from './Regions/RegionsContext';
 import { csnLayerList } from '../layers'
 import styles from './InspectorGadget.module.css'
 
+/*
+  InspectorGadget explains an analysis of a CSN.
+  It receives narration data and (optionally) subpath data and renders various
+  UI pieces (summary, power, zoom inspector). It also manages internal state:
+    • the current zoom order,
+    • the enriched narration data,
+    • and some state for handling factor-based subpath selections.
+*/
+
 const InspectorGadget = ({
   selected = null,
-  subpaths=null,
+  subpaths = null,
   narration = null,
   zoomOrder,
   maxPathScore,
-  layers = [],
   loadingCSN = false,
   mapWidth,
   mapHeight,
-  modalPosition,
-  // tipOrientation="left",
-  onCSNIndex=()=>{},
-  onClose=()=>{},
-  onZoom=()=>{},
-  setNarration=()=>{},
-  setSubpaths=()=>{},
-  findSubpaths=()=>{},
-  determineFactorExclusion=()=>{},
-  children=null
-} = {}) => {
-
-  const tipOrientation = "right"
-  const powerWidth = 300
-  const powerHeight = 300 //Math.round(powerWidth / mapWidth * mapHeight);
-  const zoomHeight = 400
-
-  const { filters, handleFilter } = useContext(FiltersContext);
+  onClose = () => {},
+  setNarration = () => {},
+  setSubpaths = () => {},
+  findSubpaths = () => {},
+  determineFactorExclusion = () => {}
+  // Note: Removed unused props (e.g., children, modalPosition, layers, onCSNIndex, onZoom)
+}) => {
+  // Constants for dimensions of the visual components
   const { activeGenesetEnrichment, setSelectedGenesetMembership } = useContext(RegionsContext);
 
-  // create a mapping between geneset and score for easy lookup
+  // Create a mapping (object) from geneset to its score for quick lookup
   const genesetScoreMapping = useMemo(() => {
-    let mapping = {}
-    activeGenesetEnrichment && activeGenesetEnrichment.forEach(g => {
-      mapping[g.geneset] = g.p
-    })
-    return mapping
-  }, [activeGenesetEnrichment])
+    return activeGenesetEnrichment
+      ? activeGenesetEnrichment.reduce((acc, g) => {
+          acc[g.geneset] = g.p;
+          return acc;
+        }, {})
+      : {};
+  }, [activeGenesetEnrichment]);
 
-  const [minimized, setMinimized] = useState(false)
-  const onMinimize = useCallback(() => {
-    setMinimized(!minimized)
-  }, [minimized, setMinimized])
+  // -----------------------
+  // Component State
+  // -----------------------
 
-  const [zOrder, setZoomOrder] = useState(zoomOrder)
-  // useEffect(() => {
-  //   console.log("zoom order changed", zoomOrder)
-  //   if(zoomOrder < 4) zoomOrder = 4
-  //   setZoomOrder(zoomOrder)
-  // }, [zoomOrder])
+  // Controls the current zoom order (numeric display level)
+  const [zOrder, setZoomOrder] = useState(zoomOrder);
+
+  // State for holding enriched narration (full data) and its loading status.
+  const [fullNarration, setFullNarration] = useState(null);
+  const [loadingFullNarration, setLoadingFullNarration] = useState(false);
+
+  // State used for managing subpaths triggered by factor selections.
+  const [topFactors, setTopFactors] = useState(null);
+  const [subpathCollection, setSubpathCollection] = useState([]);
+  const [currentFactorSubpath, setCurrentFactorSubpath] = useState(null);
+  const [factorSubpathCollection, setFactorSubpathCollection] = useState([]);
+  const [numFactorSelected, setNumFactorSelected] = useState(0);
+
+  // Add a ref for the power container
+  const powerContainerRef = useRef(null);
+  // Add state for the power width
+  const [powerWidth, setPowerWidth] = useState(300);
+
+  // -----------------------
+  // Effects & Callbacks
+  // -----------------------
+
+  // When narration data updates, recalc the zoom order.
+  // (The narration region's order is increased by 0.5; but it is at least 4.)
   useEffect(() => {
-    // console.log("zoom order changed", zoomOrder)
-    if(!narration) return
-    let zr = narration.region.order + 0.5
-    if(zr < 4) zr = 4
-    setZoomOrder(zr)
-  }, [narration])
+    if (!narration) return;
+    let newZoom = narration.region.order + 0.5;
+    if (newZoom < 4) newZoom = 4;
+    setZoomOrder(newZoom);
+  }, [narration]);
 
-  const handleZoom = useCallback((or) => {
-    if(or < 4) or = 4
-    setZoomOrder(or)
-  }, [setZoomOrder])
-  
-  const [opacity, setOpacity] = useState(1)
+  // When narration changes, reset the enriched narration data while new data loads.
   useEffect(() => {
-    if(Math.floor(zOrder) == Math.floor(zoomOrder)) {
-      setOpacity(0.25)
-    } else {
-      setOpacity(1)
+    setFullNarration(narration);
+    setLoadingFullNarration(true);
+  }, [narration]);
+
+  // Update the top factors (from subpaths) whenever the subpaths prop changes.
+  useEffect(() => {
+    setTopFactors(subpaths?.topFactors ?? null);
+  }, [subpaths]);
+
+  // Callback to update the zoom order.
+  // Ensures the order never goes below 4.
+  const handleZoom = useCallback((order) => {
+    if (order < 4) {
+      order = 4;
     }
-  }, [zOrder, zoomOrder])
+    setZoomOrder(order);
+  }, []);
 
-  
-  const [zoomedPathRegion, setZoomedPathRegion] = useState(null)
-  useEffect(() => {
-    if (narration && narration.path && narration.path.length) {
-      let z = Math.floor(zOrder)
-      if(z > 14) z = 14
-      let zr = narration.path.find(d => d.order == z)
-      if(z == 14 && narration.variants && narration.variants.length) {
-        let v = variantChooser(narration.variants)
-        zr = {field: v.topField, layer: v.layer, order: 14, region: v}
-      }
-      setZoomedPathRegion(zr)
-    }
-  }, [narration, zOrder])
+  // Called when the "power" data (enriched CSN data) is ready.
+  // It updates geneset membership and merges additional data such as GWAS.
+  const handlePowerData = useCallback(async (data) => {
+    setSelectedGenesetMembership([]); // Reset geneset membership
 
-  // const modalTop = useMemo(() => {
-  //   let top = modalPosition?.y - powerHeight/2 - 62
-  //   if(top < 0) top = 0
-  //   return top
-  // }, [modalPosition, powerHeight])
-  // const modalLeft = useMemo(() => {
-  //   let left = modalPosition?.x - powerWidth/2 - 12
-  //   if(left < 0) left = 0
-  //   return left
-  // }, [modalPosition, powerWidth])
-
-  const [fullNarration, setFullNarration] = useState(null)
-  const [loadingFullNarration, setLoadingFullNarration] = useState(false)
-  useEffect(()=> {
-    // defaults to the un-annotated Narration passed in
-    setFullNarration(narration)
-    setLoadingFullNarration(true)
-  }, [narration])
-
-  // // updates preferential factors in path with full data
-  // const resetNarration = useCallback((fullData) => {
-  //   console.log("FULL DATA", fullData)
-  //   if (fullData?.path) {
-  //     // pull out full data
-  //     let full = fullData.path.flatMap(d => 
-  //       Object.keys(d.fullData).map(k => {
-  //         let [layerIndex, index] = k.split(",")
-  //         let layer = csnLayerList[+layerIndex]
-  //         let field = layer.fieldColor.domain()[+index]
-  //         let color = layer.fieldColor(field)
-  //         let value = d.fullData[k]
-  //         let count = (d.counts && (d.counts[layerIndex]?.length)) ? d.counts[layerIndex][index] : null
-  //         return { order: d.order, factor: k, value, layer: layer, field: {field, count, color, index: parseInt(index), value} }
-  //       })
-  //     ).sort((a,b) => b.value - a.value)
-
-  //     // update path preferential factors with full data
-  //     while (full.length > 0) {
-  //       let factor = full[0]
-  //       let p = fullData.path.find(d => d.order === factor.order)
-  //       // update segment preferential factor
-  //       p.field = factor.field
-  //       p.region.field = factor.field
-  //       p.layer = factor.layer
-  //       // filter out used factors and orders
-  //       full = full.filter(f => f.factor !== factor.factor && f.order !== factor.order)
-  //     }
-  //   }
-  // }, [])
-
-  const handlePowerData = useCallback((data) => {
-    // when the power data is done loading (when Narration changes)
-    // then we load full
-    // console.log("IG: power data", data)
-    // console.log("IG: narration", narration)
-    setSelectedGenesetMembership([])
-
-    let promises = [
+    // Prepare data fetch promises; if region order is 14 then also fetch GWAS data.
+    const promises = [
       retrieveFullDataForCSN(narration),
       fetchGenesetEnrichment(narration.genes.map(g => g.name), true)
-    ]
-    if(narration.region.order === 14) {
+    ];
+    if (narration.region.order === 14) {
       promises.push(
-        fetchGWASforPositions([{chromosome: narration.region.chromosome, index: narration.region.i}])
-      )
+        fetchGWASforPositions([{
+          chromosome: narration.region.chromosome,
+          index: narration.region.i
+        }])
+      );
     }
-    Promise.all(promises).then((responses) => {
-      let fullDataResponse = responses[0]
-      let genesetResponse = responses[1]
-      let gwasResponse = narration.region.order === 14 ? responses[2] : null
-      // refactor GWAS response
-      // console.log("IG: gwas response", gwasResponse)
-      // console.log("IG: full data response", fullDataResponse)
-      // console.log("IG: geneset response", genesetResponse)
-      // parse GWAS response
-      const csnGWAS = gwasResponse ? gwasResponse[0]['trait_names'].map((trait, i) => {
-        return {trait: trait, score: gwasResponse[0]['scores'][i], layer: gwasResponse[0]['layer']}
-      }).sort((a,b) => b.score - a.score) : null
-      // add GWAS associations to the full data response
-      let csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14)
-      csnOrder14Segment ? csnOrder14Segment["GWAS"] = csnGWAS : null
-      // add geneset memberships to the full data response
-      const csnGenesets = genesetResponse.map((g) => {
-        return {geneset: g.geneset, p: g.geneset in genesetScoreMapping ? genesetScoreMapping[g.geneset] : 1}
-      })
-      fullDataResponse['genesets'] = csnGenesets
-      setSelectedGenesetMembership(csnGenesets)
 
-      // // only reset narration if not showing all orders 4-14 (assumes we never remove/slice lower orders)
-      // if (!fullDataResponse?.path.find(d => d.order === 14)) {
-      //   resetNarration(fullDataResponse)
-      // }  // don't need this anymore?
-      console.log("IG: full narration", fullDataResponse)
-      setFullNarration(fullDataResponse)
-      setLoadingFullNarration(false)
-    })
-  }, [narration])
+    const responses = await Promise.all(promises);
+    const fullDataResponse = responses[0];
+    const genesetResponse = responses[1];
+    const gwasResponse = narration.region.order === 14 ? responses[2] : null;
 
-
-  // subpaths
-  // const [numSubpaths, setNumSubpaths] = useState(null)
-  // const [numSubpathFactors, setNumSubpathFactors] = useState(null)
-  const [topFactors, setTopFactors] = useState(null)
-  // collect subregion information
-  useEffect(() => {
-    // if(subpaths && subpaths.paths && subpaths.topFactors) {
-    if(subpaths && subpaths.topFactors) {
-      // setNumSubpaths(subpaths.paths.length)
-      // setNumSubpathFactors(subpaths.topFactors.length)
-      setTopFactors(subpaths.topFactors)
-    } else {
-      // setNumSubpaths(null)
-      // setNumSubpathFactors(null)
-      setTopFactors(null)
+    // Process GWAS data if available and attach to the order 14 segment.
+    const csnGWAS = gwasResponse
+      ? gwasResponse[0].trait_names.map((trait, i) => ({
+          trait,
+          score: gwasResponse[0].scores[i],
+          layer: gwasResponse[0].layer
+        })).sort((a, b) => b.score - a.score)
+      : null;
+    const csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14);
+    if (csnOrder14Segment) {
+      csnOrder14Segment.GWAS = csnGWAS;
     }
-  }, [subpaths])
 
-  // set factor selection
-  const [subpathCollection, setSubpathCollection] = useState([])
-  const [currentFactorSubpath, setCurrentFactorSubpath] = useState(null)
-  const [factorSubpathCollection, setFactorSubpathCollection] = useState([])
-  const [numFactorSelected, setNumFactorSelected] = useState(0)
+    // Process geneset memberships; if a geneset is missing a score then default to 1.
+    const csnGenesets = genesetResponse.map(g => ({
+      geneset: g.geneset,
+      p: genesetScoreMapping[g.geneset] || 1
+    }));
+    fullDataResponse.genesets = csnGenesets;
+    setSelectedGenesetMembership(csnGenesets);
+
+    // Set the enriched narration and mark loading as complete.
+    setFullNarration(fullDataResponse);
+    setLoadingFullNarration(false);
+  }, [narration, genesetScoreMapping, setSelectedGenesetMembership]);
+
+  // Callback to update the narration with a factor's subpath selection.
   const setFactorSelection = useCallback((factor) => {
-    // top subpath for factor
-    let subpath = factor.path.path.map(d => ({...d, selection: numFactorSelected}))
-    // update narration with subpath
-    if(subpath?.length && narration) {
-      let newNarration = {...narration}
-      let currentPathOrders = newNarration.path.map(d => d.order)
-      // ensure that if any overlap (there shouldn't be), original path is not overwritten
+    // Capture current selection value (used to tag segments)
+    const selection = numFactorSelected;
+    // Map through the factor's own path to mark its segments with the selection number.
+    const subpath = factor.path.path.map(d => ({ ...d, selection }));
+
+    if (subpath?.length && narration) {
+      // Clone current narration (to avoid direct state mutation) and get orders already present.
+      const newNarration = { ...narration };
+      const currentPathOrders = newNarration.path.map(d => d.order);
+      // For each segment in the new subpath, add it only if not already present.
       subpath.forEach(s => {
-        if(!currentPathOrders.includes(s.order)) {
-          newNarration.path.push(s)
+        if (!currentPathOrders.includes(s.order)) {
+          newNarration.path.push(s);
         }
-      })
-      setCurrentFactorSubpath(factor)
-      setFactorSubpathCollection([...factorSubpathCollection, factor])
-      setSubpathCollection([...subpathCollection, subpaths])
-      setNarration(newNarration)
-      
-      // subpath query
-      let factorExclusion = determineFactorExclusion(newNarration)
-      findSubpaths(newNarration.path.slice(-1)[0].region, factorExclusion)
-      setNumFactorSelected(numFactorSelected + 1)
+      });
+
+      setCurrentFactorSubpath(factor);
+      setFactorSubpathCollection(prev => [...prev, factor]);
+      setSubpathCollection(prev => [...prev, subpaths]);
+      setNarration(newNarration);
+
+      // Determine which factors to exclude based on the updated narration,
+      // and then search for new subpaths from the latest region.
+      const factorExclusion = determineFactorExclusion(newNarration);
+      findSubpaths(newNarration.path.slice(-1)[0].region, factorExclusion);
+
+      setNumFactorSelected(selection + 1);
     }
-  }, [narration, subpaths])
+  }, [narration, subpaths, determineFactorExclusion, findSubpaths, numFactorSelected]);
 
-  // handle factor button click
-  const handleFactorClick = useCallback((i) => {
-    setFactorSelection(factor)
-  }, [topFactors, narration])
-
-
-  // checks if two objects are equal
-  function deepEqual(obj1, obj2) {
-    if (obj1 === obj2) return true
-  
-    if (typeof obj1 !== 'object' || obj1 === null || typeof obj2 !== 'object' || obj2 === null) return false
-  
-    let keys1 = Object.keys(obj1)
-    let keys2 = Object.keys(obj2)
-  
-    if (keys1.length !== keys2.length) return false
-  
-    for (let key of keys1) {
-      if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) return false
-    }
-    return true;
-  }
-
-  // revert subpath selection
+  // Callback to revert the most recent factor subpath selection.
   const subpathGoBack = useCallback(() => {
-    let subpath = currentFactorSubpath.path.path
-    if(subpath?.length && narration) {
-      let currentNarration = {...narration}
-      // remove subpath segments from current narration
-      // currentNarration.path = currentNarration.path.filter(d => !subpath.some(s => deepEqual(d, s)))
-      currentNarration.path = currentNarration.path.filter(d => d?.selection !== (numFactorSelected - 1))
-      setNumFactorSelected(numFactorSelected - 1)
-      
-      setNarration(currentNarration)
-      setCurrentFactorSubpath(factorSubpathCollection.length > 1 ? factorSubpathCollection.slice(-2, -1)[0] : null)
-      setFactorSubpathCollection(factorSubpathCollection.slice(0, -1))
-      setSubpaths(subpathCollection.length ? subpathCollection.slice(-1)[0] : null)
-      setSubpathCollection(subpathCollection.slice(0, -1))
+    if (currentFactorSubpath?.path?.path?.length && narration) {
+      const newNarration = { ...narration };
+      // Remove all segments tagged with the last selection.
+      newNarration.path = newNarration.path.filter(d => d?.selection !== (numFactorSelected - 1));
+      setNumFactorSelected(prev => prev - 1);
+      setNarration(newNarration);
+
+      // Restore previous factor subpath and subpaths collections if available.
+      setCurrentFactorSubpath(
+        factorSubpathCollection.length > 1
+          ? factorSubpathCollection.slice(-2, -1)[0]
+          : null
+      );
+      setFactorSubpathCollection(prev => prev.slice(0, -1));
+      setSubpaths(
+        subpathCollection.length ? subpathCollection.slice(-1)[0] : null
+      );
+      setSubpathCollection(prev => prev.slice(0, -1));
     }
-  }, [narration])
-  
+  }, [
+    narration,
+    currentFactorSubpath,
+    factorSubpathCollection,
+    numFactorSelected,
+    subpathCollection,
+    setSubpaths
+  ]);
+
+  // Add useEffect to update power width when container size changes
+  useEffect(() => {
+    if (!powerContainerRef.current) return;
+
+    const updateWidth = () => {
+      setPowerWidth(powerContainerRef.current.offsetWidth - 24);
+    };
+
+    // Initial width set
+    updateWidth();
+
+    // Create ResizeObserver to watch for container size changes
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(powerContainerRef.current);
+
+    return () => observer.disconnect();
+  }, [narration]);
+
+  // -----------------------
+  // Render
+  // -----------------------
+
   return (
     <>
-    {selected && (
-    <div className={styles.powerOverlay} style={{
-      position: "absolute", 
-      top:5,
-      right: 10,
-      height: `${mapHeight - 20}px`,
-      }}>
-      <div className={styles.header}>
-        <div className={styles.powerModalSelected}>
-          { narration?.region && showPosition(narration.region) }
-        </div>
-        <div className={styles.headerButtons}>
-          <div className={styles.close} onClick={onClose}>x</div>
-        </div>
-      </div>
-      <div className={`${styles.content} ${minimized ? styles.minimized : ""}`}>
-        {loadingCSN ? <div style={{height: `${powerHeight}px`}}><Loading text={"Loading CSN..."}></Loading></div> : 
-         selected && narration ? <div className={styles.csn}>
-
-          <div className={styles.tempContainer}>
-          <div className={styles.powerContainer}>
-            <Power 
-              csn={loadingFullNarration ? narration : fullNarration} 
-              width={powerWidth} 
-              height={powerHeight} 
-              userOrder={zOrder}
-              onOrder={handleZoom}
-              onData={handlePowerData}
-              />
-            <div className={styles.zoomScores}>
-              <ZoomLine 
-                csn={loadingFullNarration ? narration : fullNarration} 
-                order={zOrder} 
-                maxPathScore={maxPathScore}
-                highlight={true}
-                selected={true}
-                text={true}
-                width={34} 
-                offsetX={30}
-                height={zoomHeight} 
-                tipOrientation={tipOrientation}
-                onHover={handleZoom}
-                showScore={false}
-                onClick={(c) => { console.log("narration", c)}}
-                /> 
-              <ScoreBars
-                csn={loadingFullNarration ? narration : fullNarration} 
-                order={zOrder} 
-                highlight={true}
-                selected={true}
-                text={true}
-                width={30}
-                height={zoomHeight} 
-                tipOrientation={tipOrientation}
-                onHover={handleZoom}
-                showScore={false}
-                onClick={(c) => { console.log("narration", c)}}
-                />
-              <SubPaths 
-                csn={loadingFullNarration ? narration : fullNarration} 
-                factors={topFactors}
-                subpathCollection={subpathCollection}
-                order={zOrder} 
-                maxPathScore={maxPathScore}
-                highlight={true}
-                selected={true}
-                text={true}
-                width={34} 
-                height={zoomHeight} 
-                offsetX={0}
-                tipOrientation={tipOrientation}
-                onHover={handleZoom}
-                showScore={false}
-                onFactor={(f) => { setFactorSelection(f) }}
-                onSubpathBack={subpathGoBack}
-                /> 
-              </div>
-          </div>
-
-              {/* <div className={styles.subpathContainer}>
-                {numSubpaths > 0 && numSubpathFactors > 0 && <div>{numSubpaths} subpaths considering {numSubpathFactors} factors:</div>}
-                {subpathCollection.length > 0 && <button className={styles.scrollButton} onClick={() => subpathGoBack()} style={{ borderColor: "black" }}>🔙</button>}
-                <div className={styles.scrollContainer}>
-                  {topFactors && topFactors.map((f, i) => (
-                    <button key={i} className={styles.scrollButton} onClick={() => setFactorSelection(f)} style={{ borderColor: f.color }}>
-                      <span className={styles.subregionFactorColor} style={{ backgroundColor: f.color }}></span>
-                      {f.factorName} ({showKbOrder(f.topSegment.order)}, {f.topSegment.score.toFixed(2)})
-                    </button>
-                  ))}
-                </div>
-              </div> */}
-          </div>
+      {selected && (
+        <div
+          className={styles.powerOverlay}
+          style={{
+            position: "absolute",
+            top: 5,
+            right: 10,
+            height: `${mapHeight - 10}px`
+          }}
+        >
           
-          <div className={styles.summaryContainer}>
-            <RegionAISummary height={mapHeight - 500} narration={narration} />
+          <div className={styles.content}>
+            {loadingCSN ? (
+              <div style={{ height: `${powerWidth}px` }}>
+                <Loading text="Loading CSN..." />
+              </div>
+            ) : (
+              selected && narration && (
+                <div className={styles.csn}>
+                  <div className={styles.summaryContainer}>
+
+                    <div className={styles.header}>
+                      <div className={styles.powerModalSelected}>
+                        {narration?.region && showPosition(narration.region)}
+                      </div>
+                      <div className={styles.headerButtons}>
+                        <div className={styles.close} onClick={onClose}>x</div>
+                      </div>
+                    </div>
+
+                    <RegionAISummary narration={narration} />
+                  </div>
+                  <div className={styles.powerContainer} ref={powerContainerRef}>
+                    <Power
+                      csn={loadingFullNarration ? narration : fullNarration}
+                      width={powerWidth}
+                      height={powerWidth}
+                      userOrder={zOrder}
+                      onOrder={handleZoom}
+                      onData={handlePowerData}
+                    />
+                  </div>
+                  <div className={styles.zoomInspectorContainer}>
+                    <ZoomInspector
+                      csn={loadingFullNarration ? narration : fullNarration}
+                      order={zOrder}
+                      maxPathScore={maxPathScore}
+                      zoomHeight={mapHeight - 20}
+                      onHover={handleZoom}
+                      onClick={(c) => { console.log("narration", c); }}
+                      factors={topFactors}
+                      subpathCollection={subpathCollection}
+                      onFactor={setFactorSelection}
+                      onSubpathBack={subpathGoBack}
+                    />
+                  </div>
+                </div>
+              )
+            )}
           </div>
-        </div> : null }
-        <div className={styles.powerModalChildren}>
-          {children}
         </div>
-      </div>
-    </div>
-  )}
-</>
-  )
-}
-export default InspectorGadget
+      )}
+    </>
+  );
+};
+
+export default InspectorGadget;

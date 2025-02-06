@@ -55,6 +55,7 @@ export default function SubPaths({
   showScore=true,
   width = 50,
   height = 400,
+  fontSize = 9,
   offsetX = 0,
   scoreHeight = 20,
   tipOrientation="left",
@@ -139,7 +140,7 @@ export default function SubPaths({
   }, [])
 
   return (
-    <div className="csn-line">
+    <div className="subpath-container">
       <svg width={width} height={height} onMouseLeave={() => handleLeave()}>
         {path.length && yScale ? <g>
 
@@ -200,7 +201,7 @@ export default function SubPaths({
                   height={rectSize}
                   fill={f.factor.color}
                   stroke="none"
-                  style={{"cursor": "pointer"}}
+                  style={{"cursor": "pointer", "pointer-events": "auto"}}
                 />;
               })
             }
@@ -210,21 +211,23 @@ export default function SubPaths({
         {chosenFactorOrder && subpathCollection?.length && (
           <g>
             <rect
-              y={yScale(chosenFactorOrder)}
-              x={0}
-              height={rw}
-              width={width}
-              fill={ "white" }
+              y={yScale(chosenFactorOrder) + rw - 2*fontSize - 4}
+              x={rw * .25 - 4} 
+              height={fontSize + 6}
+              width={fontSize * 8}
+              fill={ "red" }
               strokeWidth={1}
-              stroke="lightgray"
-              fillOpacity={0.01}
+              stroke="white"
+              rx={3}
+              fillOpacity={0.1}
             />
             <text 
               onClick={onSubpathBack}
               x={rw * .25} 
-              y={yScale(chosenFactorOrder) + rw * .67}
-              style={{cursor: "pointer"}}
-            >❌</text>
+              y={yScale(chosenFactorOrder) + rw - fontSize - 2}
+              fontSize={fontSize}
+              style={{cursor: "pointer", pointerEvents: "auto"}}
+            >❌ remove pin</text>
           </g>
         )}
 

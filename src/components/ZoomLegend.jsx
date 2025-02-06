@@ -5,7 +5,7 @@ import { group, range } from 'd3-array';
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
 import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import Data from '../lib/data'
-import { showKb } from '../lib/display'
+import { showKbHTML } from '../lib/display'
 
 import './ZoomLegend.css';
 
@@ -321,13 +321,13 @@ const ZoomLegend = ({
               // textAlign: "center",
               borderTop: "1px solid lightgray",
               display: "flex",
-              flexDirection: "row",
+              flexDirection: "column",
               justifyContent: "center",
               alignItems: "center",
               // display: "inline-block"
             }}>
               {/* {d.order}  */}
-              {showKb(4 ** (14 - d.order))}
+              {showKbHTML(4 ** (14 - d.order))}
             </div>
 
             <div className="label-box"

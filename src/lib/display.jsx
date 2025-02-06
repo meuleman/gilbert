@@ -18,11 +18,24 @@ function showKb10(diff) {
 function showKb(diff) {
   const log2Diff = Math.log2(diff);
   const scaleAsStr = 
-              (log2Diff < 10) ? `${Math.ceil(diff)}bp` :
-              (log2Diff < 20) ? `${Math.floor(diff/2**10)}kbp` :
-              (log2Diff < 30) ? `${Math.floor(diff/2**20)}Mbp` :
-                                `${Math.floor(diff/2**30)}Gbp`;
+              (log2Diff < 10) ? [Math.ceil(diff), "bp"] :
+              (log2Diff < 20) ? [Math.floor(diff/2**10), "kbp"] :
+              (log2Diff < 30) ? [Math.floor(diff/2**20), "Mbp"] :
+                                [Math.floor(diff/2**30), "Gbp"];
   return scaleAsStr
+}
+
+function showKbHTML(diff) {
+  const [value, unit] = showKb(diff)
+  return <><span>{value}</span><span>{unit}</span></>
+}
+
+function showKbSVG(diff) {
+  const [value, unit] = showKb(diff)
+  return <>
+    <tspan x="0" dy="-0.6em" textAnchor="middle">{value}</tspan>
+    <tspan x="0" dy="1.2em" textAnchor="middle">{unit}</tspan>
+  </>
 }
 
 const showKbOrder = (order) => {
@@ -53,6 +66,8 @@ function showPosition(d, full=true) {
 
 export {
   showKb,
+  showKbHTML,
+  showKbSVG,
   showKbOrder,
   showPosition,
   showFloat,
