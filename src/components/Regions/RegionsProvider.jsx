@@ -157,6 +157,16 @@ const RegionsProvider = ({ children }) => {
     // }
   }, []);
 
+  const resetFilteredActiveRegions = useCallback(() => {
+    if(activeRegions?.length) {
+      setFilteredActiveRegions(activeRegions.slice(0,100))
+      setFilteredRegionsLoading(false)
+    } else {
+      setFilteredActiveRegions(null)
+      setFilteredRegionsLoading(false)
+    }
+  }, [activeRegions, setFilteredActiveRegions, setFilteredRegionsLoading])
+
   // Filtering regions
   useEffect(() => {
     if(activeFilters.length && activeRegions?.length) {
@@ -178,20 +188,14 @@ const RegionsProvider = ({ children }) => {
         }
         setFilteredRegionsLoading(false)
       })
+    } else {
+      resetFilteredActiveRegions()
     }
   }, [activeFilters])
-
 
   useEffect(() => {
     // clear active filters any time active regions change
     setActiveFilters([])
-    if(activeRegions?.length) {
-      setFilteredActiveRegions(activeRegions.slice(0,100))
-      setFilteredRegionsLoading(false)
-    } else {
-      setFilteredActiveRegions(null)
-      setFilteredRegionsLoading(false)
-    }
   }, [activeRegions])
 
 
