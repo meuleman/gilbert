@@ -1,13 +1,12 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { scaleLinear } from 'd3-scale';
 import { range } from 'd3-array';
-import { showFloat, showKb } from '../../lib/display';
+import { hierarchy, treemap, treemapDice } from 'd3-hierarchy';
 import { variantChooser } from '../../lib/csn';
 import { showKbOrder } from '../../lib/display';
 import './Line.css';
 
 import Tooltip from '../Tooltips/Tooltip';
-import { tooltipContent } from './FactorTooltip'
 
 import PropTypes from 'prop-types';
 
@@ -148,22 +147,31 @@ export default function SubPaths({
             // let p = path.find(d => d.order == o)
             let facs = factorsByOrder[o]
             if(facs?.length) {  //  || o === chosenFactorOrder
-              return <g key={o}
-                 
-                // onMouseLeave={() => handleLeave()}
-                >
-                  <rect
-                  y={yScale(o)}
-                  x={0}
-                  height={rw}
-                  width={width}
-                  fill={ "white" }
-                  strokeWidth={1}
-                  stroke="lightgray"
-                  fillOpacity={0.01}
-                />
-                
-              </g>
+              // Create a treemap layout for the facs of this order group.
+              const root = hierarchy({ children: facs }).sum(d => d.score);
+              treemap()
+                .size([width, rw])
+                .tile(treemapDice)
+                .padding(2)(root);
+              return (
+                <g key={o} transform={`translate(0, ${yScale(o)})`}>
+                  {root.leaves().map((leaf, i) => (
+                    <rect
+                      key={`${o}-${i}`}
+                      onClick={(e) => handleClick(e, leaf.data.factor)}
+                      onMouseMove={(e) => handleHover(e, leaf.data.factor)}
+                      x={leaf.x0}
+                      y={leaf.y0}
+                      width={leaf.x1 - leaf.x0}
+                      height={leaf.y1 - leaf.y0}
+                      fill={leaf.data.factor.color}
+                      fillOpacity={0.5}
+                      stroke="none"
+                      style={{ cursor: "pointer", pointerEvents: "auto" }}
+                    />
+                  ))}
+                </g>
+              );
             }
           })}
         </g> : null}
@@ -178,36 +186,6 @@ export default function SubPaths({
           pointerEvents="none"
           /> : null} */}
           
-        {factors?.length && yScale ? <g>
-          {range(4, 15).map(o => {
-            let facs = factorsByOrder[o]
-            if(facs?.length) {
-              return facs.map((f,i) => {
-                const rectSize = 8;
-                const spacing = 2;
-                const rectsPerRow = Math.floor(width / (rectSize + spacing));
-                const row = Math.floor(i / rectsPerRow);
-                const col = i % rectsPerRow;
-                const x = 2 + col * (rectSize + spacing);
-                const y = 2 + yScale(o) + row * (rectSize + spacing);
-                
-                return <rect
-                  key={`${o}-${i}`}
-                  onClick={(e) => handleClick(e, f.factor)}
-                  onMouseMove={(e) => handleHover(e, f.factor)}
-                  x={x}
-                  y={y} 
-                  width={rectSize}
-                  height={rectSize}
-                  fill={f.factor.color}
-                  stroke="none"
-                  style={{"cursor": "pointer", "pointer-events": "auto"}}
-                />;
-              })
-            }
-          })}
-        </g> : null}
-
         {chosenFactorOrder && subpathCollection?.length && (
           <g>
             <rect
