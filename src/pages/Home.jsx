@@ -1116,10 +1116,13 @@ function Home() {
       <div className="flex-1 flex">
         <div className="grow-0 outline-1 outline-dashed">Region set</div>
         <div className="grow-0 outline-1 outline-dashed">details</div>
-        <div className="flex-1 outline-1 outline-dashed grid grid-cols-2">
-          <div className=""></div>
-          <div className=""></div>
-          <div className="grow-0 outline-1 outline-dashed">Zoomy zoom</div>
+        <div className="flex-1 outline-1 outline-dashed flex">
+          <div className="flex-1 flex flex-col outline-1 outline-dashed">
+            <div className="grow-0 outline-1 outline-dashed">top</div>
+            <div className="flex-1 outline-1 outline-dashed">GENOME</div>
+            <div className="grow-0 outline-1 outline-dashed">bottom</div>
+          </div>
+          <div className="grow-0 outline-1 outline-dashed col-start-2 row-start-2 row-end-3">Zoomy zoom</div>
         </div>
       </div>
       <div className="grow-0">
