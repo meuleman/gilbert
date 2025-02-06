@@ -7,15 +7,15 @@ import { allFactorFilterFields } from '../layers'
 const factorLabel = (f) => {
   return (
     <div key={f.label}>
-      <div style={{ 
+      <div style={{
         display: 'inline-block',
         backgroundColor: f.color,
         borderRadius: 2,
         marginRight: 8,
         height: 10,
         width: 10,
-        }} />
-      <span>{f.field}</span> 
+      }} />
+      <span>{f.field}</span>
       <div style={{ fontSize: '0.8em', color: '#888' }}>
         {f.layer.name}
       </div>
@@ -24,7 +24,8 @@ const factorLabel = (f) => {
 }
 
 const FactorSearch = memo(({
-  onSelect = () => {},
+  onSelect = () => { },
+  onBlur = () => { },
 }) => {
 
   const [searchValue, setSearchValue] = useState('');
@@ -60,16 +61,16 @@ const FactorSearch = memo(({
   };
 
   return (
-    <div>
-      <AutoComplete
-        options={filteredOptions}
-        value={inputValue}
-        onSearch={handleSearch}
-        onSelect={handleSelect}
-        placeholder="Search for a dataset factor"
-        style={{ width: '400px' }}
-      />
-    </div>
+    <AutoComplete
+      autoFocus
+      options={filteredOptions}
+      value={inputValue}
+      onBlur={onBlur}
+      onSearch={handleSearch}
+      onSelect={handleSelect}
+      placeholder="Search for a dataset factor"
+      style={{ width: '100%' }}
+    />
   )
 })
 FactorSearch.displayName = 'FactorSearch';

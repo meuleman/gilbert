@@ -1089,29 +1089,9 @@ function Home() {
             </div>
           </div>
           <div className="grow-0 border-separator border-r-1">
-            <div className="relative h-globalMenuBar flex items-center">
-              <div className="px-3.5 flex items-center">
-                <div>
-                  <div className="text-bodyMuted">Active region set</div>
-                  <div>Myeloid / erythroid DHS Components (ENR, Full)</div>
-                </div>
-                <div className="ml-9">
-                  <UpDownChevronIcon />
-                </div>
-              </div>
-              <div className="h-2/5 w-px bg-separator" />
-              <div className="h-globalMenuBar aspect-square flex items-center justify-center">
-                <CloseIcon />
-              </div>
-              <div className="h-2/5 w-px bg-separator" />
-              <div className="h-globalMenuBar aspect-square flex items-center justify-center">
-                <DownloadIcon />
-              </div>
-              <div className="h-2/5 w-px bg-separator" />
-              <div className="h-globalMenuBar aspect-square flex items-center justify-center">
-                <UploadIcon />
-              </div>
-            </div>
+            <HeaderRegionSetModal
+              selectedRegion={selected}
+            />
           </div>
           <form className="flex-1 border-separator border-r-1 flex items-center bg-gray-100">
             <div className="flex-1 h-full">
@@ -1128,9 +1108,10 @@ function Home() {
           </form>
           <div className="grow-0 border-separator border-r-1 px-3.5 flex gap-3.5 items-center">
             <div>legend</div>
-            <button className="relative rounded-full bg-muted-foreground border-2 border-muted-foreground h-3 w-6">
-              <span className="block h-full aspect-square bg-white rounded-full" />
-            </button>
+            <label className="inline-block">
+              <input className="absolute -z-50 pointer-events-none opacity-0 peer" type="checkbox" />
+              <span className="block bg-muted-foreground border-2 border-muted-foreground h-3 w-6 rounded-full after:block after:h-full after:aspect-square after:bg-white after:rounded-full peer-checked:bg-primary peer-checked:border-primary peer-checked:after:ml-[0.725rem]"></span>
+            </label>
           </div>
           <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center border-separator border-r-1 ">
             <SettingsIcon />
@@ -1143,8 +1124,11 @@ function Home() {
       <div className="flex-1 flex">
         <div className="grow-0 outline-1 outline-dashed">Region set</div>
         <div className="grow-0 outline-1 outline-dashed">details</div>
-        <div className="flex-1 outline-1 outline-dashed">Genome</div>
-        <div className="grow-0 outline-1 outline-dashed">Zoomy zoom</div>
+        <div className="flex-1 outline-1 outline-dashed grid grid-cols-2">
+          <div className=""></div>
+          <div className=""></div>
+          <div className="grow-0 outline-1 outline-dashed">Zoomy zoom</div>
+        </div>
       </div>
       <div className="grow-0">
         <div className="bg-statusBar h-6 px-6 text-xs font-mono flex gap-6 items-center">
