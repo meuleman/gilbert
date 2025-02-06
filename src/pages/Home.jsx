@@ -1093,19 +1093,11 @@ function Home() {
               selectedRegion={selected}
             />
           </div>
-          <form className="flex-1 border-separator border-r-1 flex items-center bg-gray-100">
-            <div className="flex-1 h-full">
-              <input className="px-3.5 w-full h-full focus:outline-none bg-transparent" placeholder='Search for a gene or genomic coordinate...' />
-            </div>
-            <div className="grow-0 px-1.5">
-              <button className='flex gap-1.5 items-center border border-primary bg-primary text-primary-foreground rounded-md px-3 py-1'>
-                <span>Search</span>
-                <span>
-                  <SearchIcon className="[&>path]:fill-primary-foreground" />
-                </span>
-              </button>
-            </div>
-          </form>
+          <div className="flex-1 border-separator border-r-1 bg-gray-100">
+            <GeneSearch
+              onSelect={handleChangeLocationViaGeneSearch}
+            />
+          </div>
           <div className="grow-0 border-separator border-r-1 px-3.5 flex gap-3.5 items-center">
             <div>legend</div>
             <label className="inline-block">
