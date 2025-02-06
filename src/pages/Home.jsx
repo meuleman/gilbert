@@ -1,4 +1,4 @@
-import {useEffect, useState, useRef, useCallback, useMemo, useContext } from 'react'
+import { useEffect, useState, useRef, useCallback, useMemo, useContext } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { FilterOutlined } from '@ant-design/icons';
@@ -83,21 +83,35 @@ import { fetchSingleRegionFactorOverlap } from '../lib/regionSetEnrichments';
 
 import RegionStrip from '../components/RegionStrip'
 
+
+/**
+BT ADDED IMPORTS
+*/
+import CloseIcon from "@/assets/close.svg?react"
+import DebugIcon from "@/assets/debug.svg?react"
+import DownloadIcon from "@/assets/download.svg?react"
+import GilbertG from "@/assets/gilbert-logo-g.svg?react"
+import SearchIcon from "@/assets/search.svg?react"
+import SettingsIcon from "@/assets/settings.svg?react"
+import UpDownChevronIcon from "@/assets/up-down-chevron.svg?react"
+import UploadIcon from "@/assets/upload.svg?react"
+
+
 // TODO: move this to a shared lib (also in RegionsProvider)
 function getDehydrated(regions, paths) {
-    return paths.flatMap((r,ri) => r.dehydrated_paths.map((dp,i) => {
-      return {
-        ...r,
-        i: r.top_positions[0], // hydrating assumes order 14 position
-        factors: r.top_factor_scores[0],
-        score: r.top_path_scores[0],
-        genes: r.genes[0]?.genes,
-        scoreType: "full",
-        path: dp,
-        region: regions[ri] // the activeSet region
-      }
-    }))
-  }
+  return paths.flatMap((r, ri) => r.dehydrated_paths.map((dp, i) => {
+    return {
+      ...r,
+      i: r.top_positions[0], // hydrating assumes order 14 position
+      factors: r.top_factor_scores[0],
+      score: r.top_path_scores[0],
+      genes: r.genes[0]?.genes,
+      scoreType: "full",
+      path: dp,
+      region: regions[ri] // the activeSet region
+    }
+  }))
+}
 
 
 // declare globally so it isn't recreated on every render
@@ -113,7 +127,7 @@ function Home() {
   // console.log("initial selected region", initialSelectedRegion)
   // if we have a position URL, overwrite the initial region
   // this will be converted into a selected region
-  if(initialPosition) {
+  if (initialPosition) {
     const [chrom, pos] = initialPosition.split(":")
     const [start, end] = pos.split("-")
     initialSelectedRegion = JSON.stringify(fromPosition(chrom, start, end))
@@ -124,7 +138,7 @@ function Home() {
 
   const { order, transform, orderOffset, setOrderOffset, zoomMin, zoomMax, orderMin, orderMax } = useZoom()
   const zoomExtent = useMemo(() => [zoomMin, zoomMax], [zoomMin, zoomMax])
-  const orderDomain= useMemo(() => [orderMin, orderMax], [orderMin, orderMax])
+  const orderDomain = useMemo(() => [orderMin, orderMax], [orderMin, orderMax])
 
   const containerRef = useRef()
 
@@ -132,7 +146,7 @@ function Home() {
   const [layerOrder, setLayerOrder] = useState(null)
   const layerOrderRef = useRef(layerOrder)
   useEffect(() => {
-    if(layerOrderNatural){
+    if (layerOrderNatural) {
       setLayerOrder(layerOrderNatural)
       layerOrderRef.current = layerOrderNatural
     }
@@ -149,7 +163,7 @@ function Home() {
     const [size, setSize] = useState([800, 800]);
     useEffect(() => {
       function updateSize() {
-        if(!containerRef.current) return
+        if (!containerRef.current) return
         const { height, width } = containerRef.current.getBoundingClientRect()
         // console.log(containerRef.current.getBoundingClientRect())
         // console.log("width x height", width, height)
@@ -199,11 +213,11 @@ function Home() {
   // TODO:
   // something is wrong with the order being calculated by the zoom
   // also why isn't zoom legend showing up?
-  
+
 
 
   // We want to keep track of the zoom state
-  const [zoom, setZoom] = useState({points: [], bbox: {}})
+  const [zoom, setZoom] = useState({ points: [], bbox: {} })
   const zoomRef = useRef(zoom)
   useEffect(() => {
     zoomRef.current = zoom
@@ -228,14 +242,14 @@ function Home() {
 
   useEffect(() => {
     // turn on showfilter if showfactorpreview is on
-    if(showFactorPreview) {
+    if (showFactorPreview) {
       setShowFilter(showFactorPreview)
     }
   }, [showFactorPreview])
 
   const [showSankey, setShowSankey] = useState(false)
-  
-    
+
+
 
   // selected powers the sidebar modal and the 1D track
   const [selected, setSelected] = useState(jsonify(initialSelectedRegion))
@@ -244,19 +258,19 @@ function Home() {
   const { filters, setFilters, clearFilters, hasFilters } = useContext(FiltersContext);
   const initialUpdateRef = useRef(true);
   useEffect(() => {
-    if(initialUpdateRef.current) {
+    if (initialUpdateRef.current) {
       // console.log("INITIAL FILTERS", initialFilters)
       setFilters(parseFilters(initialFilters || "[]"))
       initialUpdateRef.current = false
     }
   }, [initialFilters, setFilters])
 
-  const { 
-    activeSet, 
+  const {
+    activeSet,
     // activePaths, 
-    activeState, 
-    numTopRegions, 
-    setActiveSet, 
+    activeState,
+    numTopRegions,
+    setActiveSet,
     clearActive,
     saveSet,
     activeGenesetEnrichment,
@@ -272,7 +286,7 @@ function Home() {
     // if(filteredActiveRegions?.length) {
     //   return filteredActiveRegions
     // } else if(activeRegions?.length) {
-    if(activeRegions?.length) {
+    if (activeRegions?.length) {
       return activeRegions
     } else {
       return []
@@ -280,7 +294,7 @@ function Home() {
   }, [activeRegions])//, filteredActiveRegions])
 
   useEffect(() => {
-    if(showFilter && regions?.length) {
+    if (showFilter && regions?.length) {
       let path_density = layers.find(d => d.datasetName == "precomputed_csn_path_density_above_90th_percentile")
       const lo = {}
       range(4, 15).map(o => {
@@ -289,7 +303,7 @@ function Home() {
       // console.log("setting layer order for density", lo)
       setLayerOrder(lo)
       setLayer(lo[orderRef.current])
-    } else if(layerOrderNatural) {
+    } else if (layerOrderNatural) {
       // console.log("setting layer order back to natural", layerOrderNatural)
       // setLayerLock(false)
       setLayerOrder(layerOrderNatural)
@@ -297,7 +311,7 @@ function Home() {
     }
   }, [filters, showFilter, layerOrderNatural, regions])
 
-  
+
 
   const handleZoom = useCallback((newZoom) => {
     // if(zoomRef.current.order !== newZoom.order && !layerLockRef.current) {
@@ -313,15 +327,15 @@ function Home() {
 
 
   const [scales, setScales] = useState(null)
-  const [modalPosition, setModalPosition] = useState({x: 0, y: 0})
+  const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 })
   useEffect(() => {
     const calculateModalPosition = () => {
       if (!selected || !transform || !scales) return { x: 0, y: 0 };
 
       let hit = selected
-      if(selected.order !== order) {
+      if (selected.order !== order) {
         hit = fromPosition(selected.chromosome, selected.start, selected.end, order)
-      } 
+      }
       // console.log("HIT", hit)
 
       // const { k, x, y } = transform;
@@ -329,8 +343,8 @@ function Home() {
       // const selectedY = scales.yScale(hit.y) * k + y;
 
       // always center it
-      const selectedX = width/2
-      const selectedY = height/2
+      const selectedX = width / 2
+      const selectedY = height / 2
 
       return { x: selectedX, y: selectedY };
     };
@@ -340,7 +354,7 @@ function Home() {
   }, [selected, transform, order, scales, width, height])
 
   const [hover, setHover] = useState(null)
-  const [hoveredPosition, setHoveredPosition] = useState({x: 0, y: 0, sw: 0})
+  const [hoveredPosition, setHoveredPosition] = useState({ x: 0, y: 0, sw: 0 })
 
   useEffect(() => {
     if (!hover || !transform || !scales) {
@@ -349,14 +363,14 @@ function Home() {
     }
 
     let hit = hover
-    if(hover.order !== order) {
+    if (hover.order !== order) {
       hit = fromPosition(hover.chromosome, hover.start, hover.end, order)
-    } 
+    }
 
     const { k, x, y } = transform;
     const step = Math.pow(0.5, order)
     const sw = scales.sizeScale(step) * k
-    const hoveredX = scales.xScale(hit.x) * k + x + sw/2
+    const hoveredX = scales.xScale(hit.x) * k + x + sw / 2
     const hoveredY = scales.yScale(hit.y) * k + y// - sw/2
 
     setHoveredPosition({ x: hoveredX, y: hoveredY, sw, stepSize: scales.sizeScale(step) });
@@ -367,7 +381,7 @@ function Home() {
   // const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(null)
   const [simSearchMethod, setSimSearchMethod] = useState(null)
   const [selectedNarration, setSelectedNarration] = useState(null)
-  const [crossScaleNarration, setCrossScaleNarration] = useState(new Array(1).fill({'path': []}))
+  const [crossScaleNarration, setCrossScaleNarration] = useState(new Array(1).fill({ 'path': [] }))
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
   const [csnMethod, setCsnMethod] = useState("sum")
   const [csnEnrThreshold, setCsnEnrThreshold] = useState(0)
@@ -378,7 +392,7 @@ function Home() {
   }, [selected]);
 
   useEffect(() => {
-    if(!initialSelectedRegion) {
+    if (!initialSelectedRegion) {
       // TODO: need a reliable way to clear state when deselecting a region
       setSelected(null)
       setSimilarRegions([])
@@ -386,7 +400,7 @@ function Home() {
     }
   }, [initialSelectedRegion])
 
-   // the hover can be null or the data in a hilbert cell
+  // the hover can be null or the data in a hilbert cell
   const [lastHover, setLastHover] = useState(null)
   // for when a region is hovered in the similar region list
   const [similarRegionListHover, setSimilarRegionListHover] = useState(null)
@@ -405,7 +419,7 @@ function Home() {
   const processSimSearchResults = useCallback((order, result) => {
     setSimSearch(result)
     let similarRegions = result?.simSearch
-    if(similarRegions && similarRegions.length)  {
+    if (similarRegions && similarRegions.length) {
       const similarRanges = similarRegions.map((d) => {
         return fromCoordinates(d.coordinates)
       })
@@ -430,7 +444,7 @@ function Home() {
   const [exampleRegions, setExampleRegions] = useState([])
   useEffect(() => {
     const set = getSet(regionset)
-    if(set) {
+    if (set) {
       setExampleRegions(set)
     }
     if (!initialUpdateRef.current) {
@@ -449,28 +463,28 @@ function Home() {
   const handleCsnMethodChange = (e) => setCsnMethod(e.target.value)
   // function to change the ENR threshold for CSN
   const handleCsnEnrThresholdChange = (e) => setCsnEnrThreshold(e.target.value)
-  
-  const handleHover = useCallback((hit, similarRegionList=false) => {
+
+  const handleHover = useCallback((hit, similarRegionList = false) => {
     // if(hit && !selectedRef.current) {}
-    if(similarRegionList) {
+    if (similarRegionList) {
       setSimilarRegionListHover(hit)
     }
     setHover(hit)
-    if(hit) setLastHover(hit)
+    if (hit) setLastHover(hit)
   }, [setSimilarRegionListHover, setHover])
- 
+
   const handleFactorClick = useCallback((newSearchByFactorInds) => {
     console.log("HANDLE FACTOR CLICK", newSearchByFactorInds, simSearchMethod)
     setSearchByFactorInds(newSearchByFactorInds)
-    if(newSearchByFactorInds.length > 0) {
-      if(simSearchMethod != "Region") {
+    if (newSearchByFactorInds.length > 0) {
+      if (simSearchMethod != "Region") {
         SimSearchByFactor(newSearchByFactorInds, order, layer).then((SBFResult) => {
           setSelected(null)
           setSelectedNarration(null)
           processSimSearchResults(order, SBFResult)
           setSimSearchMethod("SBF")
         })
-      } else if(simSearchMethod == "Region") {
+      } else if (simSearchMethod == "Region") {
         SimSearchRegion(selected, selected.order, layer, setSearchByFactorInds, newSearchByFactorInds, simSearchMethod).then((regionResult) => {
           processSimSearchResults(selected.order, regionResult)
           console.log("REGION RESULT", regionResult)
@@ -478,18 +492,18 @@ function Home() {
       }
     } else {
       // clear the sim search
-      processSimSearchResults(order, {simSearch: null, factors: null, method: null, layer: null})
+      processSimSearchResults(order, { simSearch: null, factors: null, method: null, layer: null })
       setSimSearchMethod(null)
     }
-  }, [selected, order,  setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, setSelectedNarration, layer])  // setGenesetEnrichment
+  }, [selected, order, setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, setSelectedNarration, layer])  // setGenesetEnrichment
 
-  
+
   const [showHilbert, setShowHilbert] = useState(false)
   const handleChangeShowHilbert = (e) => {
     setShowHilbert(!showHilbert)
   }
 
-  
+
   const [showDebug, setShowDebug] = useState(false)
   const handleChangeShowDebug = (e) => {
     setShowDebug(!showDebug)
@@ -499,7 +513,7 @@ function Home() {
   const handleChangeShowSettings = (e) => {
     setShowSettings(!showSettings)
   }
-  
+
   const [showGenes, setShowGenes] = useState(true)
   const handleChangeShowGenes = (e) => {
     setShowGenes(!showGenes)
@@ -509,8 +523,8 @@ function Home() {
   const handleChangeShowGaps = (e) => {
     setShowGaps(!showGaps)
   }
-  
-  const handleChangeLocationViaGeneSearch= useCallback((selected) => {
+
+  const handleChangeLocationViaGeneSearch = useCallback((selected) => {
     if (!selected) return
     console.log("selected", selected)
     let range = []
@@ -528,24 +542,24 @@ function Home() {
     //     })
 
     // } else {
-      if(selected.gene) {
-        range = fromRange(selected.gene.chromosome, selected.gene.start, selected.gene.end, 200)
-      } else {
-        range = fromRange(selected.chromosome, selected.start, selected.end, 200)
-      }
-      // const mid = range[Math.floor(range.length / 2)]
-      // Find the region closest to the midpoint of the x,y coordinates in the range
-      const midX = (range[0].x + range[range.length - 1].x) / 2;
-      const midY = (range[0].y + range[range.length - 1].y) / 2;
-      const mid = range.reduce((closest, current) => {
-        const closestDist = Math.sqrt(Math.pow(closest.x - midX, 2) + Math.pow(closest.y - midY, 2));
-        const currentDist = Math.sqrt(Math.pow(current.x - midX, 2) + Math.pow(current.y - midY, 2));
-        return currentDist < closestDist ? current : closest;
-      }, range[0]);
-      // console.log("MID", mid)
-      setRegion(mid)
-      // console.log("autocomplete range", range)
-      // saveSet(selected.value, range, { activate: true, type: "search"})
+    if (selected.gene) {
+      range = fromRange(selected.gene.chromosome, selected.gene.start, selected.gene.end, 200)
+    } else {
+      range = fromRange(selected.chromosome, selected.start, selected.end, 200)
+    }
+    // const mid = range[Math.floor(range.length / 2)]
+    // Find the region closest to the midpoint of the x,y coordinates in the range
+    const midX = (range[0].x + range[range.length - 1].x) / 2;
+    const midY = (range[0].y + range[range.length - 1].y) / 2;
+    const mid = range.reduce((closest, current) => {
+      const closestDist = Math.sqrt(Math.pow(closest.x - midX, 2) + Math.pow(closest.y - midY, 2));
+      const currentDist = Math.sqrt(Math.pow(current.x - midX, 2) + Math.pow(current.y - midY, 2));
+      return currentDist < closestDist ? current : closest;
+    }, range[0]);
+    // console.log("MID", mid)
+    setRegion(mid)
+    // console.log("autocomplete range", range)
+    // saveSet(selected.value, range, { activate: true, type: "search"})
     // }
   }, [setRegion, saveSet])
 
@@ -567,7 +581,7 @@ function Home() {
   //   saveSet(autocompleteRegion.name || autocompleteRegion.location, range, { activate: true, type: "search"})
   // }, [setRegion, saveSet])
 
-  
+
   const onData = useCallback((payload) => {
     // console.log("data payload", payload)
     setData(payload)
@@ -636,32 +650,32 @@ function Home() {
   // const [pathDiversity, setPathDiversity] = useState(true)
   const [loadingRegionCSNS, setLoadingRegionCSNS] = useState(false)
   const [loadingSelectedCSN, setLoadingSelectedCSN] = useState(false)
-  
+
   useEffect(() => {
-    if(selected) {
+    if (selected) {
       // TODO: check if logic is what we want
       // if an activeSet we grab the first region (since they are ordered) that falls witin the selected region
       // if the region is smaller than the activeSet regions, the first one where the selected region is within the activeset region
       let region = selected
-      if(filteredActiveRegions?.length) {
+      if (filteredActiveRegions?.length) {
         let overlappingRegion = overlaps(selected, filteredActiveRegions)[0] || selected
         overlappingRegion.subregion ? overlappingRegion = overlappingRegion.subregion : null
         region = overlappingRegion.order > selected.order ? overlappingRegion : selected
-      } 
+      }
       setLoadingSelectedCSN(true)
       // setLoadingRegionCSNS(true)
       setSelectedTopCSN(null)
       // setRegionCSNS([])
-      if(region.order < 14) {
+      if (region.order < 14) {
         createTopPathsForRegions([region])
           .then((response) => {
-            if(!response) { 
+            if (!response) {
               // setRegionCSNS([])
               setSelectedTopCSN(null)
               setLoadingSelectedCSN(false)
               setLoadingRegionCSNS(false)
               return null
-            } else { 
+            } else {
               setSelectedTopCSN(response[0])
               setLoadingRegionCSNS(false)
               setLoadingSelectedCSN(false)
@@ -671,7 +685,7 @@ function Home() {
             console.log("error creating top paths for selected region", e)
             // setRegionCSNS([])
             setSelectedTopCSN(null),
-            setLoadingRegionCSNS(false)
+              setLoadingRegionCSNS(false)
             return null
           })
           .then((response) => {
@@ -682,35 +696,35 @@ function Home() {
           })
       } else {
         fetchTopPathsForRegions([toPosition(region)], 1)
-        .then((response) => {
-          if(!response) { 
+          .then((response) => {
+            if (!response) {
+              // setRegionCSNS([])
+              setSelectedTopCSN(null)
+              setLoadingSelectedCSN(false)
+              setLoadingRegionCSNS(false)
+              return null
+            } else {
+              let dehydrated = getDehydrated([region], response.regions)
+              let hydrated = dehydrated.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
+              hydrated[0].path = hydrated[0].path.filter(d => d.order <= region.order)
+              // setRegionCSNS(hydrated)
+              setSelectedTopCSN(hydrated[0])
+              setLoadingRegionCSNS(false)
+              setLoadingSelectedCSN(false)
+              return response
+            }
+          }).catch((e) => {
+            console.log("error fetching top paths for selected region", e)
             // setRegionCSNS([])
-            setSelectedTopCSN(null)
-            setLoadingSelectedCSN(false)
-            setLoadingRegionCSNS(false)
+            setSelectedTopCSN(null),
+              setLoadingRegionCSNS(false)
             return null
-          } else { 
-            let dehydrated = getDehydrated([region], response.regions)
-            let hydrated = dehydrated.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
-            hydrated[0].path = hydrated[0].path.filter(d => d.order <= region.order)
-            // setRegionCSNS(hydrated)
-            setSelectedTopCSN(hydrated[0])
-            setLoadingRegionCSNS(false)
-            setLoadingSelectedCSN(false)
-            return response
-          }
-        }).catch((e) => {
-          console.log("error fetching top paths for selected region", e)
-          // setRegionCSNS([])
-          setSelectedTopCSN(null),
-          setLoadingRegionCSNS(false)
-          return null
-        }).then((response) => {
-          // // subpath query
-          // let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null)
-          // find and set subpaths
-          findSubpaths(null, [])  // there should be no possible subpath at order 14
-        })
+          }).then((response) => {
+            // // subpath query
+            // let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null)
+            // find and set subpaths
+            findSubpaths(null, [])  // there should be no possible subpath at order 14
+          })
       }
     } else {
       // selected is cleared
@@ -726,11 +740,11 @@ function Home() {
   // group the top regions found through filtering by the current order
   useEffect(() => {
     // let regions = activeRegions
-    if(regions?.length) {
+    if (regions?.length) {
       console.log("REGIONS HOME", regions)
       const groupedAllRegions = group(
-        regions, 
-        d => d.chromosome + ":" + (d.order > order ? hilbertPosToOrder(d.i, {from: d.order, to: order}) : d.i))
+        regions,
+        d => d.chromosome + ":" + (d.order > order ? hilbertPosToOrder(d.i, { from: d.order, to: order }) : d.i))
       console.log("GROUPED ALL REGIONS", groupedAllRegions)
       setAllRegionsByCurrentOrder(groupedAllRegions)
     } else {
@@ -741,12 +755,12 @@ function Home() {
 
   useEffect(() => {
     // let regions = activeRegions 
-    if(filteredActiveRegions?.length) {
+    if (filteredActiveRegions?.length) {
       console.log("FILTERED ACTVE REGIONS HOME", filteredActiveRegions)
       const groupedFilteredRegions = group(
         // filteredActiveRegions.map(d => d.subregion ? d.subregion : d), 
         filteredActiveRegions,  // only using base regions for now
-        d => d.chromosome + ":" + (d.order > order ? hilbertPosToOrder(d.i, {from: d.order, to: order}) : d.i))
+        d => d.chromosome + ":" + (d.order > order ? hilbertPosToOrder(d.i, { from: d.order, to: order }) : d.i))
       console.log("GROUPED EFFECTIVE REGIONS", groupedFilteredRegions)
       setFilteredRegionsByCurrentOrder(groupedFilteredRegions)
     } else {
@@ -796,7 +810,7 @@ function Home() {
   const [associatedGenes, setAssociatedGenes] = useState([])
   // TODO: we probably want logic here for effective regions
   useEffect(() => {
-    if(hover && activeSet && regions?.length && filteredActiveRegions?.length) {
+    if (hover && activeSet && regions?.length && filteredActiveRegions?.length) {
       // find the regions within the hover
       // do we need to perform on the subregions if they exist?
       let activeInHover = overlaps(hover, filteredActiveRegions, r => r)
@@ -815,13 +829,13 @@ function Home() {
   }, [hover, activeSet, filteredActiveRegions, regions])
 
   useEffect(() => {
-    if(mapLoading || activeState) {
+    if (mapLoading || activeState) {
       document.body.style.cursor = "wait"
       return;
     }
-    if(hover) {
-      if(activeSet) {
-        if(activeInHovered?.length) {
+    if (hover) {
+      if (activeSet) {
+        if (activeInHovered?.length) {
           document.body.style.cursor = "pointer"
         } else {
           document.body.style.cursor = "default"
@@ -838,20 +852,20 @@ function Home() {
   // const drawActiveFilteredRegions = useCanvasFilteredRegions(activeRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
   const drawEffectiveFilteredRegions = useCanvasFilteredRegions(filteredRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
   const drawAllFilteredRegions = useCanvasFilteredRegions(allRegionsByCurrentOrder, { color: "gray", opacity: 0.5, strokeScale: 0.5, mask: false })
-  const drawAnnotationRegionSelected = useCanvasAnnotationRegions(selected, "selected", { 
-    stroke: "orange", 
-    mask: !activeSet, 
-    radiusMultiplier: 1, 
-    strokeWidthMultiplier: 0.35, 
-    showGenes: false 
+  const drawAnnotationRegionSelected = useCanvasAnnotationRegions(selected, "selected", {
+    stroke: "orange",
+    mask: !activeSet,
+    radiusMultiplier: 1,
+    strokeWidthMultiplier: 0.35,
+    showGenes: false
   })
-  const drawAnnotationRegionHover = useCanvasAnnotationRegions(hover, "hover", { 
+  const drawAnnotationRegionHover = useCanvasAnnotationRegions(hover, "hover", {
     // if there is an activeSet and no paths in the hover, lets make it lightgray to indicate you can't click on it
-    stroke: activeSet && !activeInHovered?.length ? "lightgray" : "black", 
-    radiusMultiplier: 1, 
-    strokeWidthMultiplier: 0.1, 
-    showGenes, 
-    highlightPath: true 
+    stroke: activeSet && !activeInHovered?.length ? "lightgray" : "black",
+    radiusMultiplier: 1,
+    strokeWidthMultiplier: 0.1,
+    showGenes,
+    highlightPath: true
   })
   // const drawAnnotationRegionCenter = useCanvasAnnotationRegions(data?.center, "hover", { 
   //   // if there is an activeSet and no paths in the hover, lets make it lightgray to indicate you can't click on it
@@ -891,11 +905,11 @@ function Home() {
     setSelectedTopCSN(null)
     setRegionCSNS([])
     // setPowerNarration(null)
-  }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN]) 
+  }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN])
 
   useEffect(() => {
     // if the filters change from a user interaction we want to clear the selected
-    if(filters.userTriggered) clearSelectedState()
+    if (filters.userTriggered) clearSelectedState()
   }, [filters, activeFilters, clearSelectedState])  // don't need filters anymore?
 
   // TODO: consistent clear state
@@ -915,9 +929,9 @@ function Home() {
   const handleClick = useCallback((hit, order, double) => {
     // console.log("app click handler", hit, order, double)
     console.log("HANDLE CLICK", hit, selectedRef.current)
-    if(hit && selectedRef.current) {
+    if (hit && selectedRef.current) {
       clearSelectedState()
-    } else if(hit) {
+    } else if (hit) {
       // if(filteredActiveRegions?.length) {
       //   let overs = overlaps(hit, filteredActiveRegions, r => r)
       //   console.log("OVERS", overs, hit.order)
@@ -938,11 +952,11 @@ function Home() {
   // keybinding that closes the modal on escape
   useEffect(() => {
     function handleKeyDown(e) {
-      if(e.key === "Escape") {
+      if (e.key === "Escape") {
         handleModalClose()
       }
-      if(e.key == "/") {
-        if(autocompleteRef.current) {
+      if (e.key == "/") {
+        if (autocompleteRef.current) {
           autocompleteRef.current.applyFocus()
         }
       }
@@ -959,7 +973,7 @@ function Home() {
   const [showManageRegionSets, setShowManageRegionSets] = useState(false)
   const [showActiveRegionSet, setShowActiveRegionSet] = useState(false)
   const [loadingSpectrum, setLoadingSpectrum] = useState(false);
-  
+
   // useEffect(() => {
   //   if(regions?.length && activeGenesetEnrichment === null) {
   //     setLoadingSpectrum(true)
@@ -969,7 +983,7 @@ function Home() {
   // }, [activeGenesetEnrichment, regions])
 
   useEffect(() => {
-    if(activeSet) {
+    if (activeSet) {
       setShowManageRegionSets(false)
       setShowLayerLegend(false)
       // setShowFilter(true)
@@ -984,8 +998,8 @@ function Home() {
 
   // console.log(showSpectrum, activeGenesetEnrichment)
 
-  useEffect(() => { 
-    if(!activeSet) {
+  useEffect(() => {
+    if (!activeSet) {
       setShowSpectrum(false)
     } else {
       // console.log("FIRING FROM HERE!!!", activeGenesetEnrichment?.length)
@@ -1018,20 +1032,20 @@ function Home() {
   // find the subpaths for region
   const findSubpaths = useCallback((region, factorExclusion) => {
     setSubpaths(null)
-    if(region) {
-      fetchSingleRegionFactorOverlap({region: region, factorExclusion: factorExclusion})
-      .then((response) => {
-        let topSubregionFactors = response.map(f => {
-          let layer = layers.find(d => d.datasetName == f.dataset)
-          let factorName = layer.fieldColor.domain()[f.factor]
-          return {...f, factorName, color: layer.fieldColor(factorName), layer}
-        })
-        // look at the below surface segments and create subregion paths
-        createSubregionPaths(topSubregionFactors, region)
-          .then((subpathResponse) => {
-            setSubpaths(subpathResponse)
+    if (region) {
+      fetchSingleRegionFactorOverlap({ region: region, factorExclusion: factorExclusion })
+        .then((response) => {
+          let topSubregionFactors = response.map(f => {
+            let layer = layers.find(d => d.datasetName == f.dataset)
+            let factorName = layer.fieldColor.domain()[f.factor]
+            return { ...f, factorName, color: layer.fieldColor(factorName), layer }
           })
-      })
+          // look at the below surface segments and create subregion paths
+          createSubregionPaths(topSubregionFactors, region)
+            .then((subpathResponse) => {
+              setSubpaths(subpathResponse)
+            })
+        })
     }
   }, [])
 
@@ -1040,11 +1054,11 @@ function Home() {
   const determineFactorExclusion = useCallback((narration) => {
     let originalFactor = activeSet?.factor
     let factorExclusion = [
-      ...(originalFactor ? [{dataset: originalFactor?.layer?.datasetName, factor: originalFactor?.index}] : []), 
-      ...activeFilters.map(d => ({dataset: d.layer.datasetName, factor: d.index})),
-      ...(narration ? narration.path.map(d => ({dataset: d.layer?.datasetName, factor: d.field?.index})) : [])
+      ...(originalFactor ? [{ dataset: originalFactor?.layer?.datasetName, factor: originalFactor?.index }] : []),
+      ...activeFilters.map(d => ({ dataset: d.layer.datasetName, factor: d.index })),
+      ...(narration ? narration.path.map(d => ({ dataset: d.layer?.datasetName, factor: d.field?.index })) : [])
     ]
-    
+
     // reduce factor list to unique set
     const uniqueFactors = []
     const seen = new Set()
@@ -1056,7 +1070,7 @@ function Home() {
         uniqueFactors.push(d)
       }
     })
-    
+
     return uniqueFactors
   }, [activeSet, activeFilters])
 
@@ -1066,16 +1080,102 @@ function Home() {
   }, [setSelected, setRegion])
 
   return (
+    <div className="w-dvw h-dvh overflow-hidden flex flex-col">
+      <div className="grow-0">
+        <div className="flex text-xs border-separator border-b-1">
+          <div className="grow-0 border-separator border-r-1">
+            <div className="h-globalMenuBar aspect-square flex items-center justify-center">
+              <GilbertG />
+            </div>
+          </div>
+          <div className="grow-0 border-separator border-r-1">
+            <div className="relative h-globalMenuBar flex items-center">
+              <div className="px-3.5 flex items-center">
+                <div>
+                  <div className="text-bodyMuted">Active region set</div>
+                  <div>Myeloid / erythroid DHS Components (ENR, Full)</div>
+                </div>
+                <div className="ml-9">
+                  <UpDownChevronIcon />
+                </div>
+              </div>
+              <div className="h-2/5 w-px bg-separator" />
+              <div className="h-globalMenuBar aspect-square flex items-center justify-center">
+                <CloseIcon />
+              </div>
+              <div className="h-2/5 w-px bg-separator" />
+              <div className="h-globalMenuBar aspect-square flex items-center justify-center">
+                <DownloadIcon />
+              </div>
+              <div className="h-2/5 w-px bg-separator" />
+              <div className="h-globalMenuBar aspect-square flex items-center justify-center">
+                <UploadIcon />
+              </div>
+            </div>
+          </div>
+          <form className="flex-1 border-separator border-r-1 flex items-center bg-gray-100">
+            <div className="flex-1 h-full">
+              <input className="px-3.5 w-full h-full focus:outline-none bg-transparent" placeholder='Search for a gene or genomic coordinate...' />
+            </div>
+            <div className="grow-0 px-1.5">
+              <button className='flex gap-1.5 items-center border border-primary bg-primary text-primary-foreground rounded-md px-3 py-1'>
+                <span>Search</span>
+                <span>
+                  <SearchIcon className="[&>path]:fill-primary-foreground" />
+                </span>
+              </button>
+            </div>
+          </form>
+          <div className="grow-0 border-separator border-r-1 px-3.5 flex gap-3.5 items-center">
+            <div>legend</div>
+            <button className="relative rounded-full bg-muted-foreground border-2 border-muted-foreground h-3 w-6">
+              <span className="block h-full aspect-square bg-white rounded-full" />
+            </button>
+          </div>
+          <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center border-separator border-r-1 ">
+            <SettingsIcon />
+          </div>
+          <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center">
+            <DebugIcon />
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 flex">
+        <div className="grow-0 outline-1 outline-dashed">Region set</div>
+        <div className="grow-0 outline-1 outline-dashed">details</div>
+        <div className="flex-1 outline-1 outline-dashed">Genome</div>
+        <div className="grow-0 outline-1 outline-dashed">Zoomy zoom</div>
+      </div>
+      <div className="grow-0">
+        <div className="bg-statusBar h-6 px-6 text-xs font-mono flex gap-6 items-center">
+          <div>chr20: 46137344</div>
+          <div>Genes overlapping region: CTNNBL1</div>
+          <div className="ml-auto">
+            <div className="flex gap-1">
+              <div>Order offset</div>
+              <div>
+                <input className="rounded border border-bodyMuted w-7 text-center" value="0" maxLength="2" />
+              </div>
+              <div>effective order</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  // eslint-disable-next-line no-unreachable
+  return (
     <>
       <div className="primary-grid">
         {/* header row */}
-        
+
         <div className="header">
           <div className="header--brand">
-            <LogoNav/>
+            <LogoNav />
           </div>
           <div className="header--region-list">
-            <HeaderRegionSetModal 
+            <HeaderRegionSetModal
               selectedRegion={selected}
             />
             {/* <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
@@ -1098,50 +1198,50 @@ function Home() {
               </button>
               <Tooltip id="filter-button-tooltip"></Tooltip>
             </div> */}
-            {showFactorPreview? 
-              <SelectFactorPreview 
+            {showFactorPreview ?
+              <SelectFactorPreview
                 activeWidth={400}
                 restingWidth={400}
                 onPreviewValues={handleFactorPreview}
-                />
-            : 
-            //<Autocomplete
-            //   ref={autocompleteRef}
-            //   onChangeLocation={handleChangeLocationViaAutocomplete}
-            // /> 
-            <GeneSearch
-              onSelect={handleChangeLocationViaGeneSearch}
-            />
+              />
+              :
+              //<Autocomplete
+              //   ref={autocompleteRef}
+              //   onChangeLocation={handleChangeLocationViaAutocomplete}
+              // /> 
+              <GeneSearch
+                onSelect={handleChangeLocationViaGeneSearch}
+              />
             }
           </div>
         </div>
         <div className="lensmode">
           <LensModal
-              layers={layers}
-              currentLayer={layer}
-              setLayerOrder={useCallback((lo) => {
-                setLayerOrderNatural(lo)
-              }, [setLayerOrderNatural])}
-              setLayer={setLayer}
-              setLayerLock={setLayerLock}
-              layerLock={layerLock}
-              setLayerLockFromIcon={setLayerLockFromIcon}
-              layerLockFromIcon={layerLockFromIcon}
-              setSearchByFactorInds={setSearchByFactorInds}
-              setLensHovering={setLensHovering}
-              lensHovering={lensHovering}
-              order={order}
-            />
-            
-            <LayerDropdown 
-              layers={dropdownList} 
-              activeLayer={layer} 
-              onLayer={handleLayer}
-              order={order}
-              layerLock={layerLock}
-              setLayerLock={setLayerLock}
-              setLayerLockFromIcon={setLayerLockFromIcon}
-            />
+            layers={layers}
+            currentLayer={layer}
+            setLayerOrder={useCallback((lo) => {
+              setLayerOrderNatural(lo)
+            }, [setLayerOrderNatural])}
+            setLayer={setLayer}
+            setLayerLock={setLayerLock}
+            layerLock={layerLock}
+            setLayerLockFromIcon={setLayerLockFromIcon}
+            layerLockFromIcon={layerLockFromIcon}
+            setSearchByFactorInds={setSearchByFactorInds}
+            setLensHovering={setLensHovering}
+            lensHovering={lensHovering}
+            order={order}
+          />
+
+          <LayerDropdown
+            layers={dropdownList}
+            activeLayer={layer}
+            onLayer={handleLayer}
+            order={order}
+            layerLock={layerLock}
+            setLayerLock={setLayerLock}
+            setLayerLockFromIcon={setLayerLockFromIcon}
+          />
         </div>
         {/* primary content */}
         <div className="left-toolbar">
@@ -1160,10 +1260,10 @@ function Home() {
             showSankey={showSankey}
             onSankey={setShowSankey}
           />
-          
+
         </div>
         <div className="visualization">
-          <LayerLegend 
+          <LayerLegend
             data={data}
             hover={hover}
             selected={selected}
@@ -1173,7 +1273,7 @@ function Home() {
             searchByFactorInds={searchByFactorInds}
           />
           <div className="spectrum-container">
-            <Spectrum 
+            <Spectrum
               show={showSpectrum}
             />
           </div>
@@ -1184,8 +1284,8 @@ function Home() {
             />  */}
           </div>
 
-          
-          
+
+
           {/* {selected ? 
               <SelectedModal 
                 showFilter={showFilter}
@@ -1209,7 +1309,7 @@ function Home() {
                 >
             </SelectedModal> : null} */}
 
-            {/* <SimSearchResultList
+          {/* <SimSearchResultList
                     simSearch={simSearch}
                     zoomRegion={region}
                     searchByFactorInds={searchByFactorInds}
@@ -1222,24 +1322,24 @@ function Home() {
                     onHover={setHover}
                   /> */}
 
-            
-            
-            <div>
-              <ManageRegionSetsModal 
-                show={showManageRegionSets}
-              /> 
 
-              <ActiveRegionSetModal
-                show={showActiveRegionSet}
-                onSelect={handleSelectActiveRegionSet}
-                // selectedRegion={selected}
-                // queryRegions={filteredSegments} 
-                // queryRegionsCount={filteredSegmentsCount}
-                // queryRegionOrder={filterOrder}
-                // queryLoading={filterLoading}
-              /> 
 
-              {/* <FilterSelects
+          <div>
+            <ManageRegionSetsModal
+              show={showManageRegionSets}
+            />
+
+            <ActiveRegionSetModal
+              show={showActiveRegionSet}
+              onSelect={handleSelectActiveRegionSet}
+            // selectedRegion={selected}
+            // queryRegions={filteredSegments} 
+            // queryRegionsCount={filteredSegmentsCount}
+            // queryRegionOrder={filterOrder}
+            // queryLoading={filterLoading}
+            />
+
+            {/* <FilterSelects
                 show={showFilter}
                 orderSums={orderSums} 
                 previewField={factorPreviewField}
@@ -1251,92 +1351,92 @@ function Home() {
                 orderMargin={orderMargin}
               /> */}
 
-              <SankeyModal 
-                show={showSankey}
-                width={400} 
-                height={height-10} 
-                numPaths={numPaths}
-                selectedRegion={selected}
-                hoveredRegion={hover}
-                factorCsns={topFactorCSNS}
-                fullCsns={topFullCSNS}
-                loading={activeState}
-                shrinkNone={false} 
-                onSelectedCSN={handleSelectedCSNSankey}
-                onHoveredCSN={handleHoveredCSN}
-                onSort={(sort) => {
-                  setCSNSort(sort)
-                }}
-                onNumPaths={(n) => {
-                  setNumPaths(n)
-                }}
-                onClearRegion={clearSelectedState}
-              />
-            </div>
+            <SankeyModal
+              show={showSankey}
+              width={400}
+              height={height - 10}
+              numPaths={numPaths}
+              selectedRegion={selected}
+              hoveredRegion={hover}
+              factorCsns={topFactorCSNS}
+              fullCsns={topFullCSNS}
+              loading={activeState}
+              shrinkNone={false}
+              onSelectedCSN={handleSelectedCSNSankey}
+              onHoveredCSN={handleHoveredCSN}
+              onSort={(sort) => {
+                setCSNSort(sort)
+              }}
+              onNumPaths={(n) => {
+                setNumPaths(n)
+              }}
+              onClearRegion={clearSelectedState}
+            />
+          </div>
 
-            {selected && (selectedTopCSN || loadingSelectedCSN) ? 
-              <InspectorGadget 
-                selected={selected} 
-                subpaths={subpaths}
-                zoomOrder={powerOrder}
-                narration={selectedTopCSN}
-                setNarration={setSelectedTopCSN}
-                layers={csnLayers}
-                loadingCSN={loadingSelectedCSN}
-                mapWidth={width}
-                mapHeight={height}
-                modalPosition={modalPosition}
-                onClose={handleModalClose}
-                setSubpaths={setSubpaths}
-                findSubpaths={findSubpaths}
-                determineFactorExclusion={determineFactorExclusion}
-                >
+          {selected && (selectedTopCSN || loadingSelectedCSN) ?
+            <InspectorGadget
+              selected={selected}
+              subpaths={subpaths}
+              zoomOrder={powerOrder}
+              narration={selectedTopCSN}
+              setNarration={setSelectedTopCSN}
+              layers={csnLayers}
+              loadingCSN={loadingSelectedCSN}
+              mapWidth={width}
+              mapHeight={height}
+              modalPosition={modalPosition}
+              onClose={handleModalClose}
+              setSubpaths={setSubpaths}
+              findSubpaths={findSubpaths}
+              determineFactorExclusion={determineFactorExclusion}
+            >
             </InspectorGadget> : null}
 
-            <div ref={containerRef} className="hilbert-container">
-              {containerRef.current && ( 
-                <HilbertGenome 
-                  orderMin={orderDomain[0]}
-                  orderMax={orderDomain[1]}
-                  zoomMin={zoomExtent[0]}
-                  zoomMax={zoomExtent[1]}
-                  width={width} 
-                  height={height}
-                  zoomToRegion={region}
-                  activeLayer={layer}
-                  selected={selected}
-                  zoomDuration={duration}
-                  CanvasRenderers={canvasRenderers}
-                  HoverRenderers={hoverRenderers}
-                  SVGRenderers={[
-                    SVGChromosomeNames({ }),
-                    showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5}),
-                    SVGSelected({ hit: hover, dataOrder: order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
-                    showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25}),
-                  ]}
-                  onZoom={handleZoom}
-                  onHover={handleHover}
-                  onClick={handleClick}
-                  onData={onData}
-                  onScales={setScales}
-                  onZooming={(d) => setIsZooming(d.zooming)}
-                  onLoading={setMapLoading}
-                  // onLayer={handleLayer}
-                  debug={showDebug}
-                />
-              )}
-            </div>
+          <div ref={containerRef} className="hilbert-container">
+            {containerRef.current && (
+              <HilbertGenome
+                orderMin={orderDomain[0]}
+                orderMax={orderDomain[1]}
+                zoomMin={zoomExtent[0]}
+                zoomMax={zoomExtent[1]}
+                width={width}
+                height={height}
+                zoomToRegion={region}
+                activeLayer={layer}
+                selected={selected}
+                zoomDuration={duration}
+                CanvasRenderers={canvasRenderers}
+                HoverRenderers={hoverRenderers}
+                SVGRenderers={[
+                  SVGChromosomeNames({}),
+                  showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5 }),
+                  SVGSelected({ hit: hover, dataOrder: order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
+                  showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25 }),
+                ]}
+                onZoom={handleZoom}
+                onHover={handleHover}
+                onClick={handleClick}
+                onData={onData}
+                onScales={setScales}
+                onZooming={(d) => setIsZooming(d.zooming)}
+                onLoading={setMapLoading}
+                // onLayer={handleLayer}
+                debug={showDebug}
+              />
+            )}
+          </div>
 
-            <div style={{
-              position: "absolute",
-              left: hoveredPosition.x,
-              top: hoveredPosition.y,
-              pointerEvents: "none"
-            }} data-tooltip-id="hovered">
-              {/* {true || mapLoading || activeState ? <div style={{ marginTop: -hoveredPosition.stepSize*1.5, marginLeft: -hoveredPosition.sw/2 - hoveredPosition.stepSize }} ><Loading /></div> : null} */}
-            </div>
-            
-            {activeInHovered?.length ? <Tooltip id="hovered"
+          <div style={{
+            position: "absolute",
+            left: hoveredPosition.x,
+            top: hoveredPosition.y,
+            pointerEvents: "none"
+          }} data-tooltip-id="hovered">
+            {/* {true || mapLoading || activeState ? <div style={{ marginTop: -hoveredPosition.stepSize*1.5, marginLeft: -hoveredPosition.sw/2 - hoveredPosition.stepSize }} ><Loading /></div> : null} */}
+          </div>
+
+          {activeInHovered?.length ? <Tooltip id="hovered"
             isOpen={hover && activeInHovered?.length}
             delayShow={0}
             delayHide={0}
@@ -1353,11 +1453,11 @@ function Home() {
               left: hoveredPosition.x,
               top: hoveredPosition.y,
             }}
-            >
-              <b>{activeInHovered?.length} {activeInHovered?.length > 1 ? "filtered regions" : "filtered region"}</b><br/>
-              {/* {intersectedGenes.length ? <span>Overlapping genes: {intersectedGenes.join(", ")}<br/></span> : null} */}
-              {/* {associatedGenes.length ? <span>Nearby genes: {associatedGenes.join(", ")}<br/></span> : null} */}
-              {/* {activeInHovered.map(p => {
+          >
+            <b>{activeInHovered?.length} {activeInHovered?.length > 1 ? "filtered regions" : "filtered region"}</b><br />
+            {/* {intersectedGenes.length ? <span>Overlapping genes: {intersectedGenes.join(", ")}<br/></span> : null} */}
+            {/* {associatedGenes.length ? <span>Nearby genes: {associatedGenes.join(", ")}<br/></span> : null} */}
+            {/* {activeInHovered.map(p => {
                 return <div key={p.chromosome + ":" + p.i}>
                   {showPosition(p.region)}: {p.genes.map(g => 
                   <span key={g.name} style={{
@@ -1368,23 +1468,23 @@ function Home() {
                   </span>)}
                 </div>
                 })} */}
-            </Tooltip> : null}
-            
-            
-            
+          </Tooltip> : null}
+
+
+
         </div>
 
         <div className="lenses">
-          
+
           <div className='layer-column'>
             <div className="zoom-legend-container">
               {containerRef.current && (
-                <ZoomLegend 
-                  k={transform.k} 
-                  height={height} 
+                <ZoomLegend
+                  k={transform.k}
+                  height={height}
                   effectiveOrder={order}
-                  zoomExtent={zoomExtent} 
-                  orderDomain={orderDomain} 
+                  zoomExtent={zoomExtent}
+                  orderDomain={orderDomain}
                   layerOrder={layerOrder}
                   layer={layer}
                   layerLock={layerLock}
@@ -1392,42 +1492,42 @@ function Home() {
                   selected={selected}
                   hovered={hover}
                   // crossScaleNarration={csn}
-                  onZoom={(region) => { 
-                    setRegion(null); 
+                  onZoom={(region) => {
+                    setRegion(null);
                     const hit = fromPosition(region.chromosome, region.start, region.end)
                     setRegion(hit)
                     // setSelected(hit)
                   }}
                 />
               )}
+            </div>
           </div>
         </div>
-      </div>
-      
-      <div className='footer'>
-        <div className='footer-row'>
-          <div className='linear-tracks'>
 
-            <LinearGenome 
-              // center={data?.center} 
-              data={data?.data} 
-              dataOrder={data?.dataOrder}
-              activeRegions={filteredRegionsByCurrentOrder}
-              layer={data?.layer}
-              width={width} height={100} 
-              mapWidth={width}
-              mapHeight={height}
-              hover={hover}
-              onHover={handleHover}
-              onClick={(hit) => {
-                setRegion(hit)
-              }}
+        <div className='footer'>
+          <div className='footer-row'>
+            <div className='linear-tracks'>
+
+              <LinearGenome
+                // center={data?.center} 
+                data={data?.data}
+                dataOrder={data?.dataOrder}
+                activeRegions={filteredRegionsByCurrentOrder}
+                layer={data?.layer}
+                width={width} height={100}
+                mapWidth={width}
+                mapHeight={height}
+                hover={hover}
+                onHover={handleHover}
+                onClick={(hit) => {
+                  setRegion(hit)
+                }}
               />
 
-            {/* {selected  && <RegionStrip region={selected} segments={100} layer={layer} width={width} height={40} /> }
+              {/* {selected  && <RegionStrip region={selected} segments={100} layer={layer} width={width} height={40} /> }
             {!selected && hover && <RegionStrip region={hover} segments={100} layer={layer} width={width} height={40} /> } */}
 
-            {/* <TrackPyramid
+              {/* <TrackPyramid
               state={trackState} 
               tracks={tracks}
               tracksLoading={isZooming || tracksLoading}
@@ -1438,45 +1538,45 @@ function Home() {
               selected={selected} 
               setHovered={handleHover} 
             ></TrackPyramid> */}
+            </div>
           </div>
+          <StatusBar
+            width={width + 12 + 30}
+            hover={hover} // the information about the cell the mouse is over
+            // filteredRegions={filteredRegions}
+            // regionsByOrder={rbos}
+            topCSNS={topCSNSFactorByCurrentOrder}
+            layer={layer}
+            zoom={zoom}
+            showFilter={showFilter}
+            showDebug={showDebug}
+            showSettings={showSettings}
+            orderOffset={orderOffset}
+            layers={layers}
+            onClear={handleClear}
+            onDebug={handleChangeShowDebug}
+            onSettings={handleChangeShowSettings}
+            onOrderOffset={setOrderOffset}
+            onFilter={handleChangeShowFilter}
+          />
+          {showSettings ? <SettingsPanel
+            showHilbert={showHilbert}
+            showGenes={showGenes}
+            duration={duration}
+            onShowHilbertChange={handleChangeShowHilbert}
+            onShowGenesChange={handleChangeShowGenes}
+            onDurationChange={handleChangeDuration}
+            handleChangeCSNIndex={handleChangeCSNIndex}
+            maxCSNIndex={crossScaleNarration.length - 1}
+            crossScaleNarrationIndex={crossScaleNarrationIndex}
+            csnMethod={csnMethod}
+            handleCsnMethodChange={handleCsnMethodChange}
+            csnEnrThreshold={csnEnrThreshold}
+            handleCsnEnrThresholdChange={handleCsnEnrThresholdChange}
+          /> : null}
         </div>
-        <StatusBar 
-          width={width + 12 + 30} 
-          hover={hover} // the information about the cell the mouse is over
-          // filteredRegions={filteredRegions}
-          // regionsByOrder={rbos}
-          topCSNS={topCSNSFactorByCurrentOrder}
-          layer={layer} 
-          zoom={zoom} 
-          showFilter={showFilter}
-          showDebug={showDebug}
-          showSettings={showSettings}
-          orderOffset={orderOffset}
-          layers={layers} 
-          onClear={handleClear}
-          onDebug={handleChangeShowDebug}
-          onSettings={handleChangeShowSettings}
-          onOrderOffset={setOrderOffset}
-          onFilter={handleChangeShowFilter}
-        />
-        { showSettings ? <SettingsPanel 
-          showHilbert={showHilbert}
-          showGenes={showGenes}
-          duration={duration}
-          onShowHilbertChange={handleChangeShowHilbert}
-          onShowGenesChange={handleChangeShowGenes}
-          onDurationChange={handleChangeDuration}
-          handleChangeCSNIndex={handleChangeCSNIndex}
-          maxCSNIndex={crossScaleNarration.length - 1}
-          crossScaleNarrationIndex={crossScaleNarrationIndex}
-          csnMethod={csnMethod}
-          handleCsnMethodChange={handleCsnMethodChange}
-          csnEnrThreshold={csnEnrThreshold}
-          handleCsnEnrThresholdChange={handleCsnEnrThresholdChange}
-        /> : null }
       </div>
-    </div>
-  </>
+    </>
   )
 }
 
