@@ -77,6 +77,7 @@ export default {
       spacing: {
         2.75: "0.6875rem",
         4.5: "1.125rem",
+        100: "28rem",
         globalMenuBar: "var(--global-menubar-height)",
       },
     },

@@ -1120,14 +1120,33 @@ function Home() {
             onSelect={handleSelectActiveRegionSet}
           />
         </div>
-        <div className="grow-0">details</div>
-        <div className="flex-1 outline-1 outline-dashed flex">
-          <div className="flex-1 flex flex-col outline-1 outline-dashed">
-            <div className="grow-0 outline-1 outline-dashed">top</div>
-            <div className="flex-1 outline-1 outline-dashed">GENOME</div>
-            <div className="grow-0 outline-1 outline-dashed">bottom</div>
+        <div className="grow-0">
+          {selected && (selectedTopCSN || loadingSelectedCSN) && (
+            <InspectorGadget
+              selected={selected}
+              subpaths={subpaths}
+              zoomOrder={powerOrder}
+              narration={selectedTopCSN}
+              setNarration={setSelectedTopCSN}
+              layers={csnLayers}
+              loadingCSN={loadingSelectedCSN}
+              mapWidth={width}
+              mapHeight={height}
+              modalPosition={modalPosition}
+              onClose={handleModalClose}
+              setSubpaths={setSubpaths}
+              findSubpaths={findSubpaths}
+              determineFactorExclusion={determineFactorExclusion}
+            />
+          )}
+        </div>
+        <div className="flex-1 flex">
+          <div className="flex-1 flex flex-col">
+            <div className="grow-0">top</div>
+            <div className="flex-1">GENOME</div>
+            <div className="grow-0">bottom</div>
           </div>
-          <div className="grow-0 outline-1 outline-dashed col-start-2 row-start-2 row-end-3">Zoomy zoom</div>
+          <div className="grow-0 col-start-2 row-start-2 row-end-3">Zoomy zoom</div>
         </div>
       </div>
       <div className="grow-0">

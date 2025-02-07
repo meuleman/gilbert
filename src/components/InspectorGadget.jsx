@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useContext, useMemo } from 'react'
 import FiltersContext from './ComboLock/FiltersContext'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
-import { showKbOrder, showPosition } from '../lib/display'
+import { getPositionText, showKbOrder, showPosition } from '../lib/display'
 import RegionAISummary from './Narration/RegionAISummary'
 import ZoomLine from './Narration/ZoomLine'
 import ScoreBars from './Narration/ScoreBars'
@@ -20,7 +20,7 @@ import styles from './InspectorGadget.module.css'
 
 const InspectorGadget = ({
   selected = null,
-  subpaths=null,
+  subpaths = null,
   narration = null,
   zoomOrder,
   maxPathScore,
@@ -30,14 +30,14 @@ const InspectorGadget = ({
   mapHeight,
   modalPosition,
   // tipOrientation="left",
-  onCSNIndex=()=>{},
-  onClose=()=>{},
-  onZoom=()=>{},
-  setNarration=()=>{},
-  setSubpaths=()=>{},
-  findSubpaths=()=>{},
-  determineFactorExclusion=()=>{},
-  children=null
+  onCSNIndex = () => { },
+  onClose = () => { },
+  onZoom = () => { },
+  setNarration = () => { },
+  setSubpaths = () => { },
+  findSubpaths = () => { },
+  determineFactorExclusion = () => { },
+  children = null
 } = {}) => {
 
   const tipOrientation = "right"
@@ -70,36 +70,36 @@ const InspectorGadget = ({
   // }, [zoomOrder])
   useEffect(() => {
     // console.log("zoom order changed", zoomOrder)
-    if(!narration) return
+    if (!narration) return
     let zr = narration.region.order + 0.5
-    if(zr < 4) zr = 4
+    if (zr < 4) zr = 4
     setZoomOrder(zr)
   }, [narration])
 
   const handleZoom = useCallback((or) => {
-    if(or < 4) or = 4
+    if (or < 4) or = 4
     setZoomOrder(or)
   }, [setZoomOrder])
-  
+
   const [opacity, setOpacity] = useState(1)
   useEffect(() => {
-    if(Math.floor(zOrder) == Math.floor(zoomOrder)) {
+    if (Math.floor(zOrder) == Math.floor(zoomOrder)) {
       setOpacity(0.25)
     } else {
       setOpacity(1)
     }
   }, [zOrder, zoomOrder])
 
-  
+
   const [zoomedPathRegion, setZoomedPathRegion] = useState(null)
   useEffect(() => {
     if (narration && narration.path && narration.path.length) {
       let z = Math.floor(zOrder)
-      if(z > 14) z = 14
+      if (z > 14) z = 14
       let zr = narration.path.find(d => d.order == z)
-      if(z == 14 && narration.variants && narration.variants.length) {
+      if (z == 14 && narration.variants && narration.variants.length) {
         let v = variantChooser(narration.variants)
-        zr = {field: v.topField, layer: v.layer, order: 14, region: v}
+        zr = { field: v.topField, layer: v.layer, order: 14, region: v }
       }
       setZoomedPathRegion(zr)
     }
@@ -118,7 +118,7 @@ const InspectorGadget = ({
 
   const [fullNarration, setFullNarration] = useState(null)
   const [loadingFullNarration, setLoadingFullNarration] = useState(false)
-  useEffect(()=> {
+  useEffect(() => {
     // defaults to the un-annotated Narration passed in
     setFullNarration(narration)
     setLoadingFullNarration(true)
@@ -166,9 +166,9 @@ const InspectorGadget = ({
       retrieveFullDataForCSN(narration),
       fetchGenesetEnrichment(narration.genes.map(g => g.name), true)
     ]
-    if(narration.region.order === 14) {
+    if (narration.region.order === 14) {
       promises.push(
-        fetchGWASforPositions([{chromosome: narration.region.chromosome, index: narration.region.i}])
+        fetchGWASforPositions([{ chromosome: narration.region.chromosome, index: narration.region.i }])
       )
     }
     Promise.all(promises).then((responses) => {
@@ -181,14 +181,14 @@ const InspectorGadget = ({
       // console.log("IG: geneset response", genesetResponse)
       // parse GWAS response
       const csnGWAS = gwasResponse ? gwasResponse[0]['trait_names'].map((trait, i) => {
-        return {trait: trait, score: gwasResponse[0]['scores'][i], layer: gwasResponse[0]['layer']}
-      }).sort((a,b) => b.score - a.score) : null
+        return { trait: trait, score: gwasResponse[0]['scores'][i], layer: gwasResponse[0]['layer'] }
+      }).sort((a, b) => b.score - a.score) : null
       // add GWAS associations to the full data response
       let csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14)
       csnOrder14Segment ? csnOrder14Segment["GWAS"] = csnGWAS : null
       // add geneset memberships to the full data response
       const csnGenesets = genesetResponse.map((g) => {
-        return {geneset: g.geneset, p: g.geneset in genesetScoreMapping ? genesetScoreMapping[g.geneset] : 1}
+        return { geneset: g.geneset, p: g.geneset in genesetScoreMapping ? genesetScoreMapping[g.geneset] : 1 }
       })
       fullDataResponse['genesets'] = csnGenesets
       setSelectedGenesetMembership(csnGenesets)
@@ -211,7 +211,7 @@ const InspectorGadget = ({
   // collect subregion information
   useEffect(() => {
     // if(subpaths && subpaths.paths && subpaths.topFactors) {
-    if(subpaths && subpaths.topFactors) {
+    if (subpaths && subpaths.topFactors) {
       // setNumSubpaths(subpaths.paths.length)
       // setNumSubpathFactors(subpaths.topFactors.length)
       setTopFactors(subpaths.topFactors)
@@ -229,14 +229,14 @@ const InspectorGadget = ({
   const [numFactorSelected, setNumFactorSelected] = useState(0)
   const setFactorSelection = useCallback((factor) => {
     // top subpath for factor
-    let subpath = factor.path.path.map(d => ({...d, selection: numFactorSelected}))
+    let subpath = factor.path.path.map(d => ({ ...d, selection: numFactorSelected }))
     // update narration with subpath
-    if(subpath?.length && narration) {
-      let newNarration = {...narration}
+    if (subpath?.length && narration) {
+      let newNarration = { ...narration }
       let currentPathOrders = newNarration.path.map(d => d.order)
       // ensure that if any overlap (there shouldn't be), original path is not overwritten
       subpath.forEach(s => {
-        if(!currentPathOrders.includes(s.order)) {
+        if (!currentPathOrders.includes(s.order)) {
           newNarration.path.push(s)
         }
       })
@@ -244,7 +244,7 @@ const InspectorGadget = ({
       setFactorSubpathCollection([...factorSubpathCollection, factor])
       setSubpathCollection([...subpathCollection, subpaths])
       setNarration(newNarration)
-      
+
       // subpath query
       let factorExclusion = determineFactorExclusion(newNarration)
       findSubpaths(newNarration.path.slice(-1)[0].region, factorExclusion)
@@ -261,14 +261,14 @@ const InspectorGadget = ({
   // checks if two objects are equal
   function deepEqual(obj1, obj2) {
     if (obj1 === obj2) return true
-  
+
     if (typeof obj1 !== 'object' || obj1 === null || typeof obj2 !== 'object' || obj2 === null) return false
-  
+
     let keys1 = Object.keys(obj1)
     let keys2 = Object.keys(obj2)
-  
+
     if (keys1.length !== keys2.length) return false
-  
+
     for (let key of keys1) {
       if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) return false
     }
@@ -278,13 +278,13 @@ const InspectorGadget = ({
   // revert subpath selection
   const subpathGoBack = useCallback(() => {
     let subpath = currentFactorSubpath.path.path
-    if(subpath?.length && narration) {
-      let currentNarration = {...narration}
+    if (subpath?.length && narration) {
+      let currentNarration = { ...narration }
       // remove subpath segments from current narration
       // currentNarration.path = currentNarration.path.filter(d => !subpath.some(s => deepEqual(d, s)))
       currentNarration.path = currentNarration.path.filter(d => d?.selection !== (numFactorSelected - 1))
       setNumFactorSelected(numFactorSelected - 1)
-      
+
       setNarration(currentNarration)
       setCurrentFactorSubpath(factorSubpathCollection.length > 1 ? factorSubpathCollection.slice(-2, -1)[0] : null)
       setFactorSubpathCollection(factorSubpathCollection.slice(0, -1))
@@ -292,87 +292,145 @@ const InspectorGadget = ({
       setSubpathCollection(subpathCollection.slice(0, -1))
     }
   }, [narration])
-  
+
   return (
-    <>
-    {selected && (
-    <div className={styles.powerOverlay} style={{
-      position: "absolute", 
-      top:5,
-      right: 10,
-      height: `${mapHeight - 20}px`,
-      }}>
+    <div className="pl-3 pr-6 py-2.5 border-r-separator border-r-1 w-dvw max-w-100 min-h-0 overflow-auto text-sm flex flex-col gap-6">
+      <div>
+        <p><strong className="text-bodyMuted">Region:</strong></p>
+        <p className="font-mono">
+          {narration?.region && getPositionText(narration.region, true, false)}
+        </p>
+      </div>
+      <div>
+        <p><strong className="text-bodyMuted">Initial BP view:</strong></p>
+        <p className="font-mono">
+          16 Kbp
+        </p>
+      </div>
+      <div>
+        <p><strong className="text-bodyMuted">AI Summary:</strong></p>
+        <p className="font-sans">The presence of enriched placental and trophoblast DHS at 16kbp suggests a regulatory role for nearby genes CLEC11A, GPR32, and ACP4, while also indicating potential contributions of satellite repeats and critical transcription factor motifs within the region.</p>
+      </div>
+      <div className="flex items-center gap-6">
+        <div>Regenerate</div>
+        <div className="flex items-center gap-2.5">
+          <span>how did our AI do?</span>
+          <div className="flex">
+            <span>👍🏽</span>
+            <span>👎</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p><strong className="text-bodyMuted">Supporting documentation:</strong></p>
+        <div className="pt-3">
+          <strong>10 PubMed articles:</strong>
+        </div>
+        <ol className="underline [&>li]:my-3 list-decimal ml-4">
+          <li>
+            <a href="#externalLink">Link text here</a>
+          </li>
+          <li>
+            <a href="#externalLink">Link text here</a>
+          </li>
+          <li>
+            <a href="#externalLink">Link text here</a>
+          </li>
+        </ol>
+      </div>
+      <div>
+        <div className="pt-3">
+          <strong>10 PubMed articles:</strong>
+        </div>
+        <ol className="underline [&>li]:my-3 list-decimal ml-4">
+          <li>
+            <a href="#externalLink">Link text here</a>
+          </li>
+          <li>
+            <a href="#externalLink">Link text here</a>
+          </li>
+          <li>
+            <a href="#externalLink">Link text here</a>
+          </li>
+        </ol>
+      </div>
+    </div>
+  )
+
+  // eslint-disable-next-line no-unreachable
+  return (
+    <div className="border-r-separator border-r-1">
       <div className={styles.header}>
         <div className={styles.powerModalSelected}>
-          { narration?.region && showPosition(narration.region) }
+          {narration?.region && showPosition(narration.region)}
         </div>
         <div className={styles.headerButtons}>
           <div className={styles.close} onClick={onClose}>x</div>
         </div>
       </div>
       <div className={`${styles.content} ${minimized ? styles.minimized : ""}`}>
-        {loadingCSN ? <div style={{height: `${powerHeight}px`}}><Loading text={"Loading CSN..."}></Loading></div> : 
-         selected && narration ? <div className={styles.csn}>
+        {loadingCSN ? <div style={{ height: `${powerHeight}px` }}><Loading text={"Loading CSN..."}></Loading></div> :
+          selected && narration ? <div className={styles.csn}>
 
-          <div className={styles.tempContainer}>
-          <div className={styles.powerContainer}>
-            <Power 
-              csn={loadingFullNarration ? narration : fullNarration} 
-              width={powerWidth} 
-              height={powerHeight} 
-              userOrder={zOrder}
-              onOrder={handleZoom}
-              onData={handlePowerData}
-              />
-            <div className={styles.zoomScores}>
-              <ZoomLine 
-                csn={loadingFullNarration ? narration : fullNarration} 
-                order={zOrder} 
-                maxPathScore={maxPathScore}
-                highlight={true}
-                selected={true}
-                text={true}
-                width={34} 
-                offsetX={30}
-                height={zoomHeight} 
-                tipOrientation={tipOrientation}
-                onHover={handleZoom}
-                showScore={false}
-                onClick={(c) => { console.log("narration", c)}}
-                /> 
-              <ScoreBars
-                csn={loadingFullNarration ? narration : fullNarration} 
-                order={zOrder} 
-                highlight={true}
-                selected={true}
-                text={true}
-                width={30}
-                height={zoomHeight} 
-                tipOrientation={tipOrientation}
-                onHover={handleZoom}
-                showScore={false}
-                onClick={(c) => { console.log("narration", c)}}
+            <div className={styles.tempContainer}>
+              <div className={styles.powerContainer}>
+                <Power
+                  csn={loadingFullNarration ? narration : fullNarration}
+                  width={powerWidth}
+                  height={powerHeight}
+                  userOrder={zOrder}
+                  onOrder={handleZoom}
+                  onData={handlePowerData}
                 />
-              <SubPaths 
-                csn={loadingFullNarration ? narration : fullNarration} 
-                factors={topFactors}
-                subpathCollection={subpathCollection}
-                order={zOrder} 
-                maxPathScore={maxPathScore}
-                highlight={true}
-                selected={true}
-                text={true}
-                width={34} 
-                height={zoomHeight} 
-                offsetX={0}
-                tipOrientation={tipOrientation}
-                onHover={handleZoom}
-                showScore={false}
-                onFactor={(f) => { setFactorSelection(f) }}
-                onSubpathBack={subpathGoBack}
-                /> 
+                <div className={styles.zoomScores}>
+                  <ZoomLine
+                    csn={loadingFullNarration ? narration : fullNarration}
+                    order={zOrder}
+                    maxPathScore={maxPathScore}
+                    highlight={true}
+                    selected={true}
+                    text={true}
+                    width={34}
+                    offsetX={30}
+                    height={zoomHeight}
+                    tipOrientation={tipOrientation}
+                    onHover={handleZoom}
+                    showScore={false}
+                    onClick={(c) => { console.log("narration", c) }}
+                  />
+                  <ScoreBars
+                    csn={loadingFullNarration ? narration : fullNarration}
+                    order={zOrder}
+                    highlight={true}
+                    selected={true}
+                    text={true}
+                    width={30}
+                    height={zoomHeight}
+                    tipOrientation={tipOrientation}
+                    onHover={handleZoom}
+                    showScore={false}
+                    onClick={(c) => { console.log("narration", c) }}
+                  />
+                  <SubPaths
+                    csn={loadingFullNarration ? narration : fullNarration}
+                    factors={topFactors}
+                    subpathCollection={subpathCollection}
+                    order={zOrder}
+                    maxPathScore={maxPathScore}
+                    highlight={true}
+                    selected={true}
+                    text={true}
+                    width={34}
+                    height={zoomHeight}
+                    offsetX={0}
+                    tipOrientation={tipOrientation}
+                    onHover={handleZoom}
+                    showScore={false}
+                    onFactor={(f) => { setFactorSelection(f) }}
+                    onSubpathBack={subpathGoBack}
+                  />
+                </div>
               </div>
-          </div>
 
               <div className={styles.subpathContainer}>
                 {/* {numSubpaths > 0 && numSubpathFactors > 0 && <div>{numSubpaths} subpaths considering {numSubpathFactors} factors:</div>} */}
@@ -386,19 +444,17 @@ const InspectorGadget = ({
                   ))}
                 </div>
               </div>
-          </div>
-          
-          <div className={styles.summaryContainer}>
-            <RegionAISummary height={mapHeight - 500} narration={narration} />
-          </div>
-        </div> : null }
+            </div>
+
+            <div className={styles.summaryContainer}>
+              <RegionAISummary height={mapHeight - 500} narration={narration} />
+            </div>
+          </div> : null}
         <div className={styles.powerModalChildren}>
           {children}
         </div>
       </div>
     </div>
-  )}
-</>
   )
 }
 export default InspectorGadget
