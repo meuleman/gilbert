@@ -161,7 +161,7 @@ const RegionAISummary = ({
     let genesets = narration.genesets
       // ?.filter(d => d.p < 1)  // geneset membership
       // .sort((a,b) => a.p - b.p)
-      .slice(0, 3)
+      ?.slice(0, 3)
       .map(d => {
         const term = d.geneset.split('_').slice(1).join(' ')
         return `GO ${term.toUpperCase()}`
