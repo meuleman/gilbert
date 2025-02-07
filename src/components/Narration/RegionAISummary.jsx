@@ -146,17 +146,17 @@ const RegionAISummary = ({
       }
       let enrocc = ""
       if(d.layer?.datasetName?.toLowerCase().includes("enr")) {
-        enrocc = "enrichment"
+        enrocc = "domain"
       } else if(d.layer?.datasetName?.toLowerCase().includes("occ")) {
         enrocc = "occurrence"
       }
       
       // Format with resolution if available
-      const resolution = `@ ${showKbOrder(d.order)}`
+      const resolution = `@ ${showKbOrder(d.order)}`.replace(",", "")
       return `${d.field?.field} ${prefix} ${enrocc} ${resolution}`
     })
   
-    let genes = narration.genes.map(d => `GENE ${d.name}`)
+    let genes = narration.genes.map(d => d.in_gene ? `GENE_OVL ${d.name}` : `GENE_ADJ ${d.name}`)
     
     let genesets = narration.genesets
       ?.filter(d => d.p < 1)
