@@ -71,9 +71,7 @@ const InspectorGadget = ({
   // State used for managing subpaths triggered by factor selections.
   const [topFactors, setTopFactors] = useState(null);
   const [subpathCollection, setSubpathCollection] = useState([]);
-  const [currentFactorSubpath, setCurrentFactorSubpath] = useState(null);
-  const [factorSubpathCollection, setFactorSubpathCollection] = useState([]);
-  const [numFactorSelected, setNumFactorSelected] = useState(0);
+  const [narrationCollection, setNarrationCollection] = useState([]);
 
   // Add a ref for the power container
   const powerContainerRef = useRef(null);
@@ -165,24 +163,23 @@ const InspectorGadget = ({
 
   // Callback to update the narration with a factor's subpath selection.
   const setFactorSelection = useCallback((factor) => {
-    // Capture current selection value (used to tag segments)
-    const selection = numFactorSelected;
-    // Map through the factor's own path to mark its segments with the selection number.
-    const subpath = factor.path.path.map(d => ({ ...d, selection }));
+    // Save current narration to collection.
+    setNarrationCollection(prev => [...prev, narration]);
 
-    if (subpath?.length && narration) {
-      // Clone current narration (to avoid direct state mutation) and get orders already present.
-      const newNarration = { ...narration };
-      const currentPathOrders = newNarration.path.map(d => d.order);
-      // For each segment in the new subpath, add it only if not already present.
-      subpath.forEach(s => {
-        if (!currentPathOrders.includes(s.order)) {
-          newNarration.path.push(s);
+    const newNarration = { ...narration };
+    let newPath = factor.path.path;
+
+    if (newNarration?.path?.length && newPath?.length) {
+      // add previously collected fullData and counts to segments of the new path
+      newNarration.path.forEach(d => {
+        let correspondingSegment = newPath.filter(e => e.order === d.order)
+        if(correspondingSegment.length === 1) {
+          d.fullData ? correspondingSegment[0]["fullData"] = d.fullData : null;
+          d.counts ? correspondingSegment[0]["counts"] = d.counts : null;
         }
-      });
+      })
+      newNarration.path = newPath;
 
-      setCurrentFactorSubpath(factor);
-      setFactorSubpathCollection(prev => [...prev, factor]);
       setSubpathCollection(prev => [...prev, subpaths]);
       setNarration(newNarration);
 
@@ -190,39 +187,37 @@ const InspectorGadget = ({
       // and then search for new subpaths from the latest region.
       const factorExclusion = determineFactorExclusion(newNarration);
       findSubpaths(newNarration.path.slice(-1)[0].region, factorExclusion);
-
-      setNumFactorSelected(selection + 1);
     }
-  }, [narration, subpaths, determineFactorExclusion, findSubpaths, numFactorSelected]);
+  }, [
+    narration, 
+    subpaths, 
+    determineFactorExclusion,
+    findSubpaths,
+    setNarrationCollection, 
+    setSubpathCollection, 
+    setNarration
+  ]);
 
   // Callback to revert the most recent factor subpath selection.
   const subpathGoBack = useCallback(() => {
-    if (currentFactorSubpath?.path?.path?.length && narration) {
-      const newNarration = { ...narration };
-      // Remove all segments tagged with the last selection.
-      newNarration.path = newNarration.path.filter(d => d?.selection !== (numFactorSelected - 1));
-      setNumFactorSelected(prev => prev - 1);
+    if (narrationCollection?.length) {
+      const newNarration = narrationCollection.slice(-1)[0];
       setNarration(newNarration);
+      setNarrationCollection(prev => prev.slice(0, -1));
 
-      // Restore previous factor subpath and subpaths collections if available.
-      setCurrentFactorSubpath(
-        factorSubpathCollection.length > 1
-          ? factorSubpathCollection.slice(-2, -1)[0]
-          : null
-      );
-      setFactorSubpathCollection(prev => prev.slice(0, -1));
+      // Restore previous factor subpaths and update subpaths collections.
       setSubpaths(
         subpathCollection.length ? subpathCollection.slice(-1)[0] : null
       );
       setSubpathCollection(prev => prev.slice(0, -1));
     }
   }, [
-    narration,
-    currentFactorSubpath,
-    factorSubpathCollection,
-    numFactorSelected,
+    narrationCollection,
     subpathCollection,
-    setSubpaths
+    setSubpaths,
+    setSubpathCollection,
+    setNarration,
+    setNarrationCollection,
   ]);
 
   // Add useEffect to update power width when container size changes
