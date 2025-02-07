@@ -141,7 +141,7 @@ const RegionAISummary = ({
         prefix = "CS"
       } else if (d.layer?.datasetName?.toLowerCase().includes("repeat")) {
         prefix = "REPEAT"
-      } else if (d.layer?.datasetName?.toLowerCase().includes("gwas")) {
+      } else if (d.layer?.datasetName?.toLowerCase().includes("ukbb")) {
         prefix = "GWAS"
       }
       let enrocc = ""
