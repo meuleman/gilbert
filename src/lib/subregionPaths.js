@@ -221,9 +221,13 @@ const getPathsForRegions = function(topFactors, region) {
                 let region = hilbert.fromRange(d.topSegment.chromosome, pos, pos+1)[0]
                 region.field = field
 
-                let factorSegment = path.path.filter(p => p.order === d.topSegment.order)
-                if(factorSegment.length === 1) {
-                    factorSegment = {field, layer, order, region}
+                let factorSegment = path.path.find(p => p.order === d.topSegment.order)
+                if(factorSegment) {
+                    // Update the existing segment
+                    factorSegment.field = field
+                    factorSegment.layer = layer
+                    factorSegment.order = order
+                    factorSegment.region = region
                 } else {
                     path.path.push({field, layer, order, region})
                 }
