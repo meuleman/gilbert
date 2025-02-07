@@ -16,6 +16,7 @@ import CSNExamples from '../ExampleRegions/Nice_CSN_Examples.json'
 import dbp from '../ExampleRegions/Diastolic_blood_pressure_Variants_UKBB_94_Traits.json'
 import ec from '../ExampleRegions/Eosinophil_count_Variants_UKBB_94_Traits.json'
 import tc from '../ExampleRegions/Total_cholesterol_Variants_UKBB_94_Traits.json'
+import knownLCRs from '../ExampleRegions/known_LCRs.json'
 import OneMbRegions from '../ExampleRegions/1mb_regions.json'
 import { range } from 'd3-array';
 
@@ -85,7 +86,8 @@ const RegionsProvider = ({ children }) => {
       {"id": "example-2", type: "example", "name": "Diastolic Blood Pressure Variants", "regions": convertExamples(dbp), createdAt: new Date(exampleDate).toISOString(), example:true},
       {"id": "example-3", type: "example", "name": "Eosinophil Count Variants", "regions": convertExamples(ec), createdAt: new Date(exampleDate).toISOString(), example:true},
       {"id": "example-4", type: "example", "name": "Total Cholesterol Variants", "regions": convertExamples(tc), createdAt: new Date(exampleDate).toISOString(), example:true},
-      {"id": "example-5", type: "example", "name": "1MB Top paths", "regions": convertExamples(OneMbRegions), createdAt: new Date(exampleDate).toISOString(), example:true}
+      {"id": "example-5", type: "example", "name": "Known Locus Control Regions (LCRs)", "regions": convertExamples(knownLCRs), createdAt: new Date(exampleDate).toISOString(), example:true},
+      {"id": "example-6", type: "example", "name": "1MB Top paths", "regions": convertExamples(OneMbRegions), createdAt: new Date(exampleDate).toISOString(), example:true}
     ]
     setSets(exampleSets)
   }, []);
