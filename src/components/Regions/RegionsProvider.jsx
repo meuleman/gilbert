@@ -196,6 +196,7 @@ const RegionsProvider = ({ children }) => {
   useEffect(() => {
     // clear active filters any time active regions change
     setActiveFilters([])
+    resetFilteredActiveRegions()
   }, [activeRegions])
 
 
