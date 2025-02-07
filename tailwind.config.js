@@ -71,7 +71,11 @@ export default {
           "sans-serif",
         ],
       },
-      height: {
+      gridTemplateColumns: {
+        regionSet: "1rem 1fr minmax(0, max-content)",
+      },
+      spacing: {
+        2.75: "0.6875rem",
         4.5: "1.125rem",
         globalMenuBar: "var(--global-menubar-height)",
       },

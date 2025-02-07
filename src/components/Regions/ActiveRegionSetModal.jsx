@@ -1,11 +1,14 @@
 import { useState, useCallback, useEffect, useContext, memo } from 'react'
 
 import { showPosition, showKbOrder } from '../../lib/display'
-import {Tooltip} from 'react-tooltip';
+import { Tooltip } from 'react-tooltip';
 import { download } from '../../lib/regionsets'
 import RegionsContext from './RegionsContext'
 import FactorSearch from '../FactorSearch';
 import Loading from '../Loading';
+import AccordionArrow from '@/assets/accordion-circle-arrow.svg?react';
+import DetailsIcon from "@/assets/details.svg?react";
+import FiltersIcon from "@/assets/filters.svg?react";
 
 import styles from './ActiveRegionSetModal.module.css'
 
@@ -20,12 +23,12 @@ function inFilters(filters, f) {
 
 const ActiveRegionSetModal = ({
   show = false,
-  onSelect = () => {},
+  onSelect = () => { },
 } = {}) => {
 
-  const { 
-    activeSet, 
-    activeRegions, 
+  const {
+    activeSet,
+    activeRegions,
     activeFilters,
     filteredRegionsLoading,
     filteredActiveRegions,
@@ -37,10 +40,10 @@ const ActiveRegionSetModal = ({
 
   const [regions, setRegions] = useState([])
   useEffect(() => {
-    if(filteredActiveRegions) {
+    if (filteredActiveRegions) {
       setRegions(filteredActiveRegions)
-    // } else if (activeRegions) {
-    //   setRegions(activeRegions)
+      // } else if (activeRegions) {
+      //   setRegions(activeRegions)
     } else {
       setRegions([])
     }
@@ -56,8 +59,8 @@ const ActiveRegionSetModal = ({
   }, [activeRegions])
 
   const handleFactorSelect = useCallback((f) => {
-    const exists = activeFilters.some(filter => 
-      filter.index === f.index && 
+    const exists = activeFilters.some(filter =>
+      filter.index === f.index &&
       filter.layer.datasetName === f.layer.datasetName
     )
     if (!exists) {
@@ -81,8 +84,80 @@ const ActiveRegionSetModal = ({
 
   const [activeTab, setActiveTab] = useState('table')
 
+  if (!show) {
+    return null
+  }
+
   return (
-    <div className={`${styles['active-regionsets-modal']} ${show ? styles.show : ''}`}>
+    <div className="h-full w-dvw max-w-[26.9375rem] max-h-full overflow-auto flex border-r-1 border-r-separator">
+      <div className="grow-0 shrink-0 w-[2.4375rem] flex justify-center p-1.5">
+        <div className="w-full h-full bg-separator rounded">
+          <div className="w-full aspect-square rounded flex items-center justify-center bg-primary">
+            <DetailsIcon className="[&_path]:fill-primary-foreground" />
+          </div>
+          <div className="w-full aspect-square rounded flex items-center justify-center">
+            <FiltersIcon />
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 pl-1 py-1.5 min-h-0 max-h-full">
+        <div className="pt-1 max-h-full overflow-auto text-xs">
+          <div className="px-1.5 pb-2.75">
+            <strong>55 / 1483 base regions </strong>
+            <span className="text-bodyMuted">(141 effective regions)</span>
+          </div>
+          <div className="border-t-1 botder-t-separator px-1.5 py-2.75">
+            <strong>AI Summary: </strong>
+            <span>Enriched placental and trophoblast DHS at 16kbp co-localizes with significant regulatory motifs and genes such as CLEC11A and GPR32, implicating potential roles in neuronal synaptic plasticity and developmental processes through associated transposable elements.</span>
+          </div>
+          <div className="border-t-1 botder-t-separator py-2.75">
+            <div className="grid grid-cols-regionSet gap-y-1.5">
+              <div className='grid grid-cols-subgrid col-start-1 col-end-4 [&>div:last-child]:pr-1.5'>
+                <div className="col-span-2 px-1.5">
+                  <strong>Position</strong>
+                </div>
+                <div className="col-start-3 col-end-4">
+                  <strong>Score</strong>
+                </div>
+              </div>
+              {regions.map((region) => {
+                const regionKey = `${region.order}:${region.chromosome}:${region.i}`
+                // {
+                //   !!activeFilters.length && filteredActiveRegions?.length > 0 &&
+                //   <span
+                //     className={styles['effective-count']}
+                //     onClick={() => toggleExpand(regionKey)}
+                //     style={{ cursor: 'pointer' }}
+                //   >
+                //     {/* ({region.subregion ? 1 : 0} subregions) */}
+                //     {/* {expandedRows.has(regionKey) ? ' 🔽' : ' ▶️'} */}
+                //   </span>
+                // }
+                return (
+                  <div className="grid grid-cols-subgrid col-start-1 col-end-4 border-t-separator border-t-1 pt-1.5 gap-y-1.5" key={regionKey}>
+                    <div className="px-1.5 col-span-2 underline">
+                      <a href="#gotoRegion" onClick={(event) => {
+                        event.preventDefault()
+                        onSelect(region, region)
+                      }}>
+                        {showPosition(region)}
+                      </a>
+                    </div>
+                    <div>{region.score?.toFixed(3)}</div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+
+  // eslint-disable-next-line no-unreachable
+  return (
+    <div className="w-full max-w-[26.9375rem] max-h-full overflow-auto">
       <div className={styles.content}>
         {/* <div className={styles.manage}>
           <span className={styles['set-name']}>{activeSet?.name}</span>
@@ -109,66 +184,64 @@ const ActiveRegionSetModal = ({
 
         <div className={styles.section}>
           <h3>Filter</h3>
-          <FactorSearch onSelect={(f) => handleFactorSelect(f.factor)}/>
-          
+          <FactorSearch onSelect={(f) => handleFactorSelect(f.factor)} />
+
           {activeFilters?.length ? <div className={`${styles['active-filters']}`}>
-              <span>Active filters: </span>
-              <span className={styles['active-filters-list']}>
-              {activeFilters.map((f,i) => 
-                <span key={f.label} className={styles['active-filter']} style={{border: `1px solid ${f.color}`}}>
-                  <span className={styles['active-filter-color']} style={{backgroundColor: f.color}}>
+            <span>Active filters: </span>
+            <span className={styles['active-filters-list']}>
+              {activeFilters.map((f, i) =>
+                <span key={f.label} className={styles['active-filter']} style={{ border: `1px solid ${f.color}` }}>
+                  <span className={styles['active-filter-color']} style={{ backgroundColor: f.color }}>
                   </span>
                   {f.label}
-                <button onClick={() => setActiveFilters(activeFilters.slice(0, i).concat(activeFilters.slice(i+1)))}>❌</button>
-              </span>)}
-              </span>
-            </div>
-          : null}
+                  <button onClick={() => setActiveFilters(activeFilters.slice(0, i).concat(activeFilters.slice(i + 1)))}>❌</button>
+                </span>)}
+            </span>
+          </div>
+            : null}
 
           {regionSetEnrichmentsLoading ? <div className={`${styles['region-set-enrichments']}`}>
-            <Loading text="Loading suggested filters..."/>
+            <Loading text="Loading suggested filters..." />
           </div> : null}
           {!regionSetEnrichmentsLoading && regionSetEnrichments?.length ? <div className={`${styles['region-set-enrichments']}`}>
-              <span>Suggested filters: </span>
-              <span className={styles['region-set-enrichments-list']}>
-              {regionSetEnrichments.filter(f => !inFilters(activeFilters, f)).map((f,i) => 
-                <span onClick={() => handleFactorSelect(f)} key={"enrichment-" + f.label} className={styles['region-set-enrichment']} style={{border: `1px solid ${f.color}`}}>
-                  <span className={styles['active-filter-color']} style={{backgroundColor: f.color}}>
+            <span>Suggested filters: </span>
+            <span className={styles['region-set-enrichments-list']}>
+              {regionSetEnrichments.filter(f => !inFilters(activeFilters, f)).map((f, i) =>
+                <span onClick={() => handleFactorSelect(f)} key={"enrichment-" + f.label} className={styles['region-set-enrichment']} style={{ border: `1px solid ${f.color}` }}>
+                  <span className={styles['active-filter-color']} style={{ backgroundColor: f.color }}>
                   </span>
                   {f.label}: {f.score.toFixed(3)}, ~{f.percent.toFixed(0)}%
-                <button>➕</button>
-              </span>)}
-              </span>
-            </div>
-          : null}
-         </div>
+                  <button>➕</button>
+                </span>)}
+            </span>
+          </div>
+            : null}
+        </div>
 
-         
-        
+
+
         <div className={`${styles.section} ${styles['region-sets']}`}>
           <div className={styles['region-sets-header']}>
-            {filteredRegionsLoading ? <h3><Loading text="Loading filtered regions..."/> </h3> :
-            <div>
-              {/* <h3> {filteredActiveRegions?.length} / {activeRegions?.length} regions</h3> */}
-              <h3>
-                {`${
-                  filteredActiveRegions?.length
-                } selected ${
-                  filteredActiveRegions?.length === 1 ? "region" : "regions"
-                }${activeFilters?.length > 0 ? ` showing ${activeFilters.map(f => f.field).join(", ")}` : ""}`}
-              </h3>
-            </div>
+            {filteredRegionsLoading ? <h3><Loading text="Loading filtered regions..." /> </h3> :
+              <div>
+                {/* <h3> {filteredActiveRegions?.length} / {activeRegions?.length} regions</h3> */}
+                <h3>
+                  {`${filteredActiveRegions?.length
+                    } selected ${filteredActiveRegions?.length === 1 ? "region" : "regions"
+                    }${activeFilters?.length > 0 ? ` showing ${activeFilters.map(f => f.field).join(", ")}` : ""}`}
+                </h3>
+              </div>
             }
           </div>
 
           <div className={styles.tabs}>
-            <button 
+            <button
               className={`${styles.tab} ${activeTab === 'table' ? styles.active : ''}`}
               onClick={() => setActiveTab('table')}
             >
               Table
             </button>
-            <button 
+            <button
               className={`${styles.tab} ${activeTab === 'summary' ? styles.active : ''}`}
               onClick={() => setActiveTab('summary')}
             >
@@ -192,32 +265,32 @@ const ActiveRegionSetModal = ({
                   </tr>
                 </thead>
                 <tbody>
-                {regions.map((region, index) => {
-                  const regionKey = `${region.order}:${region.chromosome}:${region.i}`
-                  // const effectiveRegions = []  // can get rid of
-    
-                  return (
-                    <>
-                      <tr key={index}>
-                        <td style={{ width: '80%' }}>
-                          {showPosition(region)} 
-                          {!!activeFilters.length && filteredActiveRegions?.length > 0 && 
-                            <span 
-                              className={styles['effective-count']}
-                              onClick={() => toggleExpand(regionKey)}
-                              style={{ cursor: 'pointer' }}
-                            >
-                              {/* ({region.subregion ? 1 : 0} subregions) */}
-                              {/* {expandedRows.has(regionKey) ? ' 🔽' : ' ▶️'} */}
-                            </span>
-                          }
-                        </td>
-                        {regions?.[0]?.score && <td style={{ width: '10%' }}>{region.score?.toFixed(3)}</td>}
-                        <td style={{ width: '10%' }}>
-                          <button onClick={() => onSelect(region, region)}>🔍</button>
-                        </td>
-                      </tr>
-                      {/* {expandedRows.has(regionKey) && [region.subregion].map((subregion, subregionIndex) => (
+                  {regions.map((region, index) => {
+                    const regionKey = `${region.order}:${region.chromosome}:${region.i}`
+                    // const effectiveRegions = []  // can get rid of
+
+                    return (
+                      <>
+                        <tr key={index}>
+                          <td style={{ width: '80%' }}>
+                            {showPosition(region)}
+                            {!!activeFilters.length && filteredActiveRegions?.length > 0 &&
+                              <span
+                                className={styles['effective-count']}
+                                onClick={() => toggleExpand(regionKey)}
+                                style={{ cursor: 'pointer' }}
+                              >
+                                {/* ({region.subregion ? 1 : 0} subregions) */}
+                                {/* {expandedRows.has(regionKey) ? ' 🔽' : ' ▶️'} */}
+                              </span>
+                            }
+                          </td>
+                          {regions?.[0]?.score && <td style={{ width: '10%' }}>{region.score?.toFixed(3)}</td>}
+                          <td style={{ width: '10%' }}>
+                            <button onClick={() => onSelect(region, region)}>🔍</button>
+                          </td>
+                        </tr>
+                        {/* {expandedRows.has(regionKey) && [region.subregion].map((subregion, subregionIndex) => (
                         <tr 
                           key={`${regionKey}-effective-${subregionIndex}`}
                           className={styles['effective-row']}
@@ -231,9 +304,9 @@ const ActiveRegionSetModal = ({
                           </td>
                         </tr>
                       ))} */}
-                    </>
-                  )
-                })}
+                      </>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

@@ -1113,9 +1113,14 @@ function Home() {
           </div>
         </div>
       </div>
-      <div className="flex-1 flex">
-        <div className="grow-0 outline-1 outline-dashed">Region set</div>
-        <div className="grow-0 outline-1 outline-dashed">details</div>
+      <div className="flex-1 flex min-h-0">
+        <div className="grow-0">
+          <ActiveRegionSetModal
+            show={activeSet}
+            onSelect={handleSelectActiveRegionSet}
+          />
+        </div>
+        <div className="grow-0">details</div>
         <div className="flex-1 outline-1 outline-dashed flex">
           <div className="flex-1 flex flex-col outline-1 outline-dashed">
             <div className="grow-0 outline-1 outline-dashed">top</div>
@@ -1222,7 +1227,7 @@ function Home() {
             setLayerLockFromIcon={setLayerLockFromIcon}
           />
         </div>
-        {/* primary content */}
+        {/* primary content */}ManageRegionSetModal
         <div className="left-toolbar">
           <LeftToolbar
             showLayerLegend={showLayerLegend}
