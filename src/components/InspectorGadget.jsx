@@ -293,69 +293,69 @@ const InspectorGadget = ({
     }
   }, [narration])
 
-  return (
-    <div className="min-h-full pl-3 pr-6 py-2.5 border-r-separator border-r-1 w-dvw max-w-100 min-h-0 overflow-auto text-sm flex flex-col gap-6">
-      <div>
-        <p><strong className="text-bodyMuted">Region:</strong></p>
-        <p className="font-mono">
-          {narration?.region && getPositionText(narration.region, true, false)}
-        </p>
-      </div>
-      <div>
-        <p><strong className="text-bodyMuted">Initial BP view:</strong></p>
-        <p className="font-mono">
-          16 Kbp
-        </p>
-      </div>
-      <div>
-        <p><strong className="text-bodyMuted">AI Summary:</strong></p>
-        <p className="font-sans">The presence of enriched placental and trophoblast DHS at 16kbp suggests a regulatory role for nearby genes CLEC11A, GPR32, and ACP4, while also indicating potential contributions of satellite repeats and critical transcription factor motifs within the region.</p>
-      </div>
-      <div className="flex items-center gap-6">
-        <div>Regenerate</div>
-        <div className="flex items-center gap-2.5">
-          <span>how did our AI do?</span>
-          <div className="flex">
-            <span>👍🏽</span>
-            <span>👎</span>
-          </div>
-        </div>
-      </div>
-      <div>
-        <p><strong className="text-bodyMuted">Supporting documentation:</strong></p>
-        <div className="pt-3">
-          <strong>10 PubMed articles:</strong>
-        </div>
-        <ol className="underline [&>li]:my-3 list-decimal ml-4">
-          <li>
-            <a href="#externalLink">Link text here</a>
-          </li>
-          <li>
-            <a href="#externalLink">Link text here</a>
-          </li>
-          <li>
-            <a href="#externalLink">Link text here</a>
-          </li>
-        </ol>
-      </div>
-      <div>
-        <div className="pt-3">
-          <strong>10 PubMed articles:</strong>
-        </div>
-        <ol className="underline [&>li]:my-3 list-decimal ml-4">
-          <li>
-            <a href="#externalLink">Link text here</a>
-          </li>
-          <li>
-            <a href="#externalLink">Link text here</a>
-          </li>
-          <li>
-            <a href="#externalLink">Link text here</a>
-          </li>
-        </ol>
-      </div>
-    </div>
-  )
+  // return (
+  //   <div className="min-h-full pl-3 pr-6 py-2.5 border-r-separator border-r-1 w-dvw max-w-100 overflow-auto text-sm flex flex-col gap-6">
+  //     <div>
+  //       <p><strong className="text-bodyMuted">Region:</strong></p>
+  //       <p className="font-mono">
+  //         {narration?.region && getPositionText(narration.region, true, false)}
+  //       </p>
+  //     </div>
+  //     <div>
+  //       <p><strong className="text-bodyMuted">Initial BP view:</strong></p>
+  //       <p className="font-mono">
+  //         16 Kbp
+  //       </p>
+  //     </div>
+  //     <div>
+  //       <p><strong className="text-bodyMuted">AI Summary:</strong></p>
+  //       <p className="font-sans">The presence of enriched placental and trophoblast DHS at 16kbp suggests a regulatory role for nearby genes CLEC11A, GPR32, and ACP4, while also indicating potential contributions of satellite repeats and critical transcription factor motifs within the region.</p>
+  //     </div>
+  //     <div className="flex items-center gap-6">
+  //       <div>Regenerate</div>
+  //       <div className="flex items-center gap-2.5">
+  //         <span>how did our AI do?</span>
+  //         <div className="flex">
+  //           <span>👍🏽</span>
+  //           <span>👎</span>
+  //         </div>
+  //       </div>
+  //     </div>
+  //     <div>
+  //       <p><strong className="text-bodyMuted">Supporting documentation:</strong></p>
+  //       <div className="pt-3">
+  //         <strong>10 PubMed articles:</strong>
+  //       </div>
+  //       <ol className="underline [&>li]:my-3 list-decimal ml-4">
+  //         <li>
+  //           <a href="#externalLink">Link text here</a>
+  //         </li>
+  //         <li>
+  //           <a href="#externalLink">Link text here</a>
+  //         </li>
+  //         <li>
+  //           <a href="#externalLink">Link text here</a>
+  //         </li>
+  //       </ol>
+  //     </div>
+  //     <div>
+  //       <div className="pt-3">
+  //         <strong>10 PubMed articles:</strong>
+  //       </div>
+  //       <ol className="underline [&>li]:my-3 list-decimal ml-4">
+  //         <li>
+  //           <a href="#externalLink">Link text here</a>
+  //         </li>
+  //         <li>
+  //           <a href="#externalLink">Link text here</a>
+  //         </li>
+  //         <li>
+  //           <a href="#externalLink">Link text here</a>
+  //         </li>
+  //       </ol>
+  //     </div>
+  //   </div>
+  // )
 
   // eslint-disable-next-line no-unreachable
   return (
