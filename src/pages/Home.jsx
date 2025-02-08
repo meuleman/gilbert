@@ -87,6 +87,7 @@ import RegionStrip from '../components/RegionStrip'
 /**
 BT ADDED IMPORTS
 */
+import { cn } from '@/lib/utils'
 import CloseIcon from "@/assets/close.svg?react"
 import DebugIcon from "@/assets/debug.svg?react"
 import DownloadIcon from "@/assets/download.svg?react"
@@ -1086,6 +1087,8 @@ function Home() {
     setRegion(base)
   }, [setSelected, setRegion])
 
+  const showInspectorGadget = selected && (selectedTopCSN || loadingSelectedCSN)
+
   return (
     <div className="w-dvw h-dvh overflow-hidden flex flex-col">
       <div className="grow-0">
@@ -1130,9 +1133,41 @@ function Home() {
           <ActiveRegionSetModal
             show={activeSet}
             onSelect={handleSelectActiveRegionSet}
-          />
+          >
+            {selected && (selectedTopCSN || loadingSelectedCSN) && (
+              <HilbertGenome
+                orderMin={orderDomain[0]}
+                orderMax={orderDomain[1]}
+                zoomMin={zoomExtent[0]}
+                zoomMax={zoomExtent[1]}
+                width={430}
+                height={242}
+                zoomToRegion={region}
+                activeLayer={layer}
+                selected={selected}
+                zoomDuration={duration}
+                CanvasRenderers={canvasRenderers}
+                HoverRenderers={hoverRenderers}
+                SVGRenderers={[
+                  SVGChromosomeNames({}),
+                  showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5 }),
+                  SVGSelected({ hit: hover, dataOrder: order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
+                  showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25 }),
+                ]}
+                onZoom={handleZoom}
+                onHover={handleHover}
+                onClick={handleClick}
+                onData={onData}
+                onScales={setScales}
+                onZooming={(d) => setIsZooming(d.zooming)}
+                onLoading={setMapLoading}
+                // onLayer={handleLayer}
+                debug={showDebug}
+              />
+            )}
+          </ActiveRegionSetModal>
         </div>
-        <div className="grow-0">
+        <div className={showInspectorGadget ? "flex-1" : "grow-0"}>
           {selected && (selectedTopCSN || loadingSelectedCSN) && (
             <InspectorGadget
               selected={selected}
@@ -1278,6 +1313,10 @@ function Home() {
           onFilter={handleChangeShowFilter}
         />
       </div>
+
+      {/* These are all components that seem to need to exist in order for app
+        to render and zoom correctly
+       */}
       <div className="fixed top-0 left-full opacity-0 pointer-events-none">
         {showFactorPreview ?
           <SelectFactorPreview
