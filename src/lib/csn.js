@@ -251,22 +251,22 @@ function createTopPathsForRegions(regions) {
 
 
 function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
-  // if the fullData is already present, return the csn
-  if(csn.path[0].fullData) {
-    console.log("CSN already has full data")
-    return Promise.resolve(csn)
-  }
   const fetchData = Data({debug: false}).fetchData
   let countLayerNames = countLayers.map(d => d.datasetName)  // so we can track counts vs full data
 
   let singleBPRegion = csn.path.filter(d => d.region.order === 14)[0]?.region
   let timings = {}
   let csnWithFull = Promise.all(csn.path.map(p => {
+    if(p.fullData) {
+      console.log("CSN path already has full data at order", p.order)
+      return
+    }
     let order = p.order
     let fullData = {}
     let counts = {}
     let data = {}
 
+    console.log("Retrieving full data for CSN path at order", p.order)
     let orderAcrossLayers = Promise.all(fullDataLayers.map((layer, l) => {
       // if the layer includes current order
       if((layer.orders[0] <= order) && (layer.orders[1] >= order)) {
