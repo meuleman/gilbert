@@ -156,31 +156,38 @@ function Home() {
   }, [layerOrder])
 
   const [lensHovering, setLensHovering] = useState(false)
+  const [width, height] = useWindowSize()
 
-  // let's fill the container and update the width and height if window resizes
-  const [width, height] = useWindowSize();
   function useWindowSize() {
-    const [size, setSize] = useState([800, 800]);
-    useEffect(() => {
-      function updateSize() {
-        if (!containerRef.current) return
-        const { height, width } = containerRef.current.getBoundingClientRect()
-        // console.log(containerRef.current.getBoundingClientRect())
-        // console.log("width x height", width, height)
-        //  let height = window.innerHeight - 270;
-        //  // account for the zoom legend (30) and padding (48)
-        //  let w = window.innerWidth - 30 - 24 - 180// - 500
-        //  // console.log("sup", window.innerWidth, w, width)
-        //  setSize([w, height]);
+    const [size, setSize] = useState([0, 0]);
 
-        setSize([width, height]);
-      }
-      window.addEventListener('resize', updateSize);
-      updateSize();
-      return () => window.removeEventListener('resize', updateSize);
+    useEffect(() => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      // Create a new ResizeObserver instance
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (let entry of entries) {
+          // The contentRect provides the new dimensions
+          const { width, height } = entry.contentRect;
+          setSize([width, height]);
+        }
+      });
+
+      // Start observing the container element
+      resizeObserver.observe(container);
+
+      // Cleanup: unobserve the element and disconnect the observer when component unmounts
+      return () => {
+        resizeObserver.unobserve(container);
+        resizeObserver.disconnect();
+      };
     }, []);
+
     return size;
   }
+
+  // console.log("outer width, height", width, height)
 
   // Zoom duration for programmatic zoom
   const [duration, setDuration] = useState(1000)
@@ -1136,17 +1143,102 @@ function Home() {
               onClose={handleModalClose}
               setSubpaths={setSubpaths}
               findSubpaths={findSubpaths}
-              determineFactorExclusion={determineFactorExclusion}
+              determineFacto rExclusion={determineFactorExclusion}
             />
           )}
         </div>
         <div className="flex-1 flex">
           <div className="flex-1 flex flex-col">
-            <div className="grow-0">top</div>
-            <div className="flex-1">GENOME</div>
-            <div className="grow-0">bottom</div>
+            <div className="grow-0">
+              <div className="relative h-28 border-t-1 border-separator">
+                <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+                  <Spectrum
+                    show
+                    width={width}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="relative flex-1">
+              <div ref={containerRef} className="absolute top-0 left-0 w-full h-full overflow-hidden">
+                <HilbertGenome
+                  orderMin={orderDomain[0]}
+                  orderMax={orderDomain[1]}
+                  zoomMin={zoomExtent[0]}
+                  zoomMax={zoomExtent[1]}
+                  width={width}
+                  height={height}
+                  zoomToRegion={region}
+                  activeLayer={layer}
+                  selected={selected}
+                  zoomDuration={duration}
+                  CanvasRenderers={canvasRenderers}
+                  HoverRenderers={hoverRenderers}
+                  SVGRenderers={[
+                    SVGChromosomeNames({}),
+                    showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5 }),
+                    SVGSelected({ hit: hover, dataOrder: order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
+                    showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25 }),
+                  ]}
+                  onZoom={handleZoom}
+                  onHover={handleHover}
+                  onClick={handleClick}
+                  onData={onData}
+                  onScales={setScales}
+                  onZooming={(d) => setIsZooming(d.zooming)}
+                  onLoading={setMapLoading}
+                  // onLayer={handleLayer}
+                  debug={showDebug}
+                />
+              </div>
+            </div>
+            <div className="grow-0">
+              {data && (
+                <div className="relative h-24 border-t-1 border-separator">
+                  <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+                    <LinearGenome
+                      // center={data?.center} 
+                      data={data?.data}
+                      dataOrder={data?.dataOrder}
+                      activeRegions={filteredRegionsByCurrentOrder}
+                      layer={data?.layer}
+                      width={width}
+                      height={96}
+                      mapWidth={width}
+                      mapHeight={height}
+                      hover={hover}
+                      onHover={handleHover}
+                      onClick={(hit) => {
+                        setRegion(hit)
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="grow-0 col-start-2 row-start-2 row-end-3">Zoomy zoom</div>
+          <div className="grow-0 shrink-0 col-start-2 row-start-2 row-end-3 flex">
+            <ZoomLegend
+              k={transform.k}
+              height={height}
+              effectiveOrder={order}
+              zoomExtent={zoomExtent}
+              orderDomain={orderDomain}
+              layerOrder={layerOrder}
+              layer={layer}
+              layerLock={layerLock}
+              lensHovering={lensHovering}
+              selected={selected}
+              hovered={hover}
+              // crossScaleNarration={csn}
+              onZoom={(region) => {
+                setRegion(null);
+                const hit = fromPosition(region.chromosome, region.start, region.end)
+                setRegion(hit)
+                // setSelected(hit)
+              }}
+            />
+          </div>
         </div>
       </div>
       <div className="grow-0">

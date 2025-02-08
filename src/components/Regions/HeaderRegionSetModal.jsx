@@ -101,7 +101,7 @@ const HeaderRegionSetModal = ({
         </>
       )}
       {searchShowing && (
-        <div className="absolute top-full -left-px -right-px p-3 border border-separator bg-white">
+        <div className="absolute z-50 top-full -left-px -right-px p-3 border border-separator bg-white">
           <FactorSearch onBlur={() => {
             setSearchShowing(false)
           }} onSelect={handleSelectFactor} />

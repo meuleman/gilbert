@@ -7,6 +7,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        activeOrder: "hsl(var(--active-order))",
         body: colors.gray[900],
         bodyMuted: colors.gray[400],
         border: "hsl(var(--border))",
@@ -70,6 +71,9 @@ export default {
           "Arial",
           "sans-serif",
         ],
+      },
+      fontSize: {
+        "2xs": "0.6875rem",
       },
       gridTemplateColumns: {
         regionSet: "1rem 1fr minmax(0, max-content)",

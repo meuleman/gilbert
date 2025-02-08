@@ -51,6 +51,20 @@ function showPosition(d, full = true) {
   )
 }
 
+function getKb(diff) {
+  const log2Diff = Math.log2(diff);
+  const scaleSuffix = (log2Diff < 10) ? "bp" :
+    (log2Diff < 20) ? "Kbp" :
+      (log2Diff < 30) ? "Mbp" :
+        "Gbp";
+
+  return {
+    formattedString: `${log2Diff}${scaleSuffix}`,
+    value: log2Diff,
+    scaleSuffix,
+  }
+}
+
 function getPositionText(d, full = true, kb = true) {
   const startString = `${d.chromosome}:${d.start}`
   const endString = `${d.end}`
@@ -59,6 +73,7 @@ function getPositionText(d, full = true, kb = true) {
 }
 
 export {
+  getKb,
   getPositionText,
   showKb,
   showKbOrder,

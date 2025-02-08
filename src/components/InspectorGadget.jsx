@@ -294,7 +294,7 @@ const InspectorGadget = ({
   }, [narration])
 
   return (
-    <div className="pl-3 pr-6 py-2.5 border-r-separator border-r-1 w-dvw max-w-100 min-h-0 overflow-auto text-sm flex flex-col gap-6">
+    <div className="min-h-full pl-3 pr-6 py-2.5 border-r-separator border-r-1 w-dvw max-w-100 min-h-0 overflow-auto text-sm flex flex-col gap-6">
       <div>
         <p><strong className="text-bodyMuted">Region:</strong></p>
         <p className="font-mono">
