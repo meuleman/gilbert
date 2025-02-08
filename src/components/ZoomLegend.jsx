@@ -227,8 +227,8 @@ const ZoomLegend = ({
 
   const orderHeightPercent = 100 / (orderDomain[1] - orderDomain[0] + 1)
   const minPercent = (order - orderDomain[0]) * orderHeightPercent
-  const orderPercet = orderHeightPercent * (orderRaw - orderDomain[0])
-  const markerPosition = minPercent + orderPercet
+  const orderPercent = orderHeightPercent * (orderRaw - order)
+  const markerPosition = minPercent + orderPercent
 
   return (
     <div className="w-[12.5rem] overflow-hidden">
@@ -242,44 +242,44 @@ const ZoomLegend = ({
         </div>
         {orders && orders.map(d => {
           const { value, scaleSuffix } = getKb(4 ** (14 - d.order))
+
           return (
-            <div key={d.order} className={cn(
-              "z-0 border-t-separator border-t-1 flex items-center",
-              d.order == order && "bg-activeOrder",
-            )}>
-              <div className={cn(
-                "grow-0 shrink-0 h-full w-9 flex flex-col justify-center border-l-separator border-l-1 text-center font-mono",
-                d.order == order && "font-bold",
-              )}>
-                <p className="text-sm">{value}</p>
-                <p className="text-2xs">{scaleSuffix}</p>
-              </div>
-              <div className="flex-1 h-full border-l-separator border-l-1 py-1.5 px-2.5">
-                <div className="label-box"
-                  style={{
-                    backgroundColor: `rgba(0.5, 0.5, 0.5, ${d.order == effectiveOrder ? 0.4 : 0.1})`,
-                    width: "100%",
-                  }}
-                >
-                  <div className="dataset-label"
-                    style={{
-                      fontWeight: (d.order == effectiveOrder && !CSNView) ? "bold" : "normal",
-                      color: d.order == effectiveOrder ? "black" : "gray",
-                    }}
-                  >
+            <div
+              key={d.order}
+              className={cn(
+                "relative z-0 border-t-separator border-t-1",
+                d.order == order && "bg-activeOrder",
+              )}
+            >
+              <div className="absolute w-full h-full top-0 left-0 flex items-center">
+                <div className={cn(
+                  "grow-0 h-full w-9 flex flex-col justify-center border-l-separator border-l-1 text-center font-mono",
+                  d.order == order && "font-bold",
+                )}>
+                  <p className="text-sm">{value}</p>
+                  <p className="text-2xs">{scaleSuffix}</p>
+                </div>
+                <div className={cn(
+                  "flex-1 h-full border-l-separator border-l-1 py-1.5 px-2.5 text-2xs",
+                  d.order == order && "font-bold"
+                )}>
+                  <div>
                     {(layerLock && !lensHovering) ? layer?.name : layerOrder && layerOrder[d.order]?.name}
                   </div>
-
                   <div className="station">
-                    <div className="station-square" onClick={() => CSNView && handleSelectStation(d)} style={{
-                      backgroundColor: d.color,
-                      marginRight: "5px",
-                      width: "10px",
-                      height: "10px",
-                      display: "inline-block",
-                      cursor: `${CSNView ? "pointer" : "default"}`
-                    }}></div>
-                    {d.field && d.field.field}
+                    <div
+                      onClick={() => CSNView && handleSelectStation(d)}
+                      style={{
+                        backgroundColor: d.color,
+                        marginRight: "5px",
+                        width: "10px",
+                        height: "10px",
+                        display: "inline-block",
+                        cursor: `${CSNView ? "pointer" : "default"}`
+                      }}
+                    >
+                      {d.field && d.field.field}
+                    </div>
                   </div>
                 </div>
               </div>

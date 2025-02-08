@@ -974,7 +974,7 @@ function Home() {
     }
   }, [handleModalClose])
 
-  const [showLayerLegend, setShowLayerLegend] = useState(true)
+  const [showLayerLegend, setShowLayerLegend] = useState(false)
   const [showSpectrum, setShowSpectrum] = useState(false)
   const [showTopFactors, setShowTopFactors] = useState(false)
   const [showManageRegionSets, setShowManageRegionSets] = useState(false)
@@ -1105,10 +1105,15 @@ function Home() {
               onSelect={handleChangeLocationViaGeneSearch}
             />
           </div>
-          <div className="grow-0 border-separator border-r-1 px-3.5 flex gap-3.5 items-center">
-            <div>legend</div>
-            <label className="inline-block">
-              <input className="absolute -z-50 pointer-events-none opacity-0 peer" type="checkbox" />
+          <div className="grow-0 border-separator border-r-1 px-3.5 flex items-center">
+            <label className="inline-flex gap-3.5 items-center cursor-pointer">
+              <div className="font-medium">Legend</div>
+              <input
+                className="absolute -z-50 pointer-events-none opacity-0 peer"
+                type="checkbox"
+                checked={showLayerLegend}
+                onChange={() => setShowLayerLegend(!showLayerLegend)}
+              />
               <span className="block bg-muted-foreground border-2 border-muted-foreground h-3 w-6 rounded-full after:block after:h-full after:aspect-square after:bg-white after:rounded-full peer-checked:bg-primary peer-checked:border-primary peer-checked:after:ml-[0.725rem]"></span>
             </label>
           </div>
@@ -1150,17 +1155,28 @@ function Home() {
         <div className="flex-1 flex">
           <div className="flex-1 flex flex-col">
             <div className="grow-0">
-              <div className="relative h-28 border-t-1 border-separator">
-                <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-                  <Spectrum
-                    show
-                    width={width}
-                  />
+              {data && (
+                <div className="relative h-28 border-t-1 border-separator">
+                  <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+                    <Spectrum
+                      show
+                      width={width - 24}
+                      height={90}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
             <div className="relative flex-1">
               <div ref={containerRef} className="absolute top-0 left-0 w-full h-full overflow-hidden">
+                <LayerLegend
+                  data={data}
+                  hover={hover}
+                  selected={selected}
+                  show={showLayerLegend}
+                  handleFactorClick={handleFactorClick}
+                  searchByFactorInds={searchByFactorInds}
+                />
                 <HilbertGenome
                   orderMin={orderDomain[0]}
                   orderMax={orderDomain[1]}
@@ -1242,317 +1258,154 @@ function Home() {
         </div>
       </div>
       <div className="grow-0">
-        <div className="bg-statusBar h-6 px-6 text-xs font-mono flex gap-6 items-center">
-          <div>chr20: 46137344</div>
-          <div>Genes overlapping region: CTNNBL1</div>
-          <div className="ml-auto">
-            <div className="flex gap-1">
-              <div>Order offset</div>
-              <div>
-                <input className="rounded border border-bodyMuted w-7 text-center" value="0" maxLength="2" />
-              </div>
-              <div>effective order</div>
-            </div>
-          </div>
-        </div>
+        <StatusBar
+          width={width + 12 + 30}
+          hover={hover} // the information about the cell the mouse is over
+          // filteredRegions={filteredRegions}
+          // regionsByOrder={rbos}
+          topCSNS={topCSNSFactorByCurrentOrder}
+          layer={layer}
+          zoom={zoom}
+          showFilter={showFilter}
+          showDebug={showDebug}
+          showSettings={showSettings}
+          orderOffset={orderOffset}
+          layers={layers}
+          onClear={handleClear}
+          onDebug={handleChangeShowDebug}
+          onSettings={handleChangeShowSettings}
+          onOrderOffset={setOrderOffset}
+          onFilter={handleChangeShowFilter}
+        />
       </div>
-    </div>
-  )
-
-  // eslint-disable-next-line no-unreachable
-  return (
-    <>
-      <div className="primary-grid">
-        {/* header row */}
-
-        <div className="header">
-          <div className="header--brand">
-            <LogoNav />
-          </div>
-          <div className="header--region-list">
-            <HeaderRegionSetModal
-              selectedRegion={selected}
-            />
-            {/* <RegionFilesSelect selected={regionset} onSelect={(name, set) => {
-              if(set) { setRegionSet(name) } else { setRegionSet('') }
-            }} /> */}
-          </div>
-          {/* <div className="header--path-summary">
-              <SummarizePaths
-                topFullCSNS={topFullCSNS}
-              />
-          </div> */}
-          <div className="header--search">
-            {/* <div className="filter-button">
-              <button className={`filter-button ${showFactorPreview ? 'active' : null}`}
-                data-tooltip-id="filter-button-tooltip"
-                data-tooltip-content="Filter regions by factor"
-                onClick={() => setShowFactorPreview(!showFactorPreview)}
-              >
-                <FilterOutlined />
-              </button>
-              <Tooltip id="filter-button-tooltip"></Tooltip>
-            </div> */}
-            {showFactorPreview ?
-              <SelectFactorPreview
-                activeWidth={400}
-                restingWidth={400}
-                onPreviewValues={handleFactorPreview}
-              />
-              :
-              //<Autocomplete
-              //   ref={autocompleteRef}
-              //   onChangeLocation={handleChangeLocationViaAutocomplete}
-              // /> 
-              <GeneSearch
-                onSelect={handleChangeLocationViaGeneSearch}
-              />
-            }
-          </div>
-        </div>
-        <div className="lensmode">
-          <LensModal
-            layers={layers}
-            currentLayer={layer}
-            setLayerOrder={useCallback((lo) => {
-              setLayerOrderNatural(lo)
-            }, [setLayerOrderNatural])}
-            setLayer={setLayer}
-            setLayerLock={setLayerLock}
-            layerLock={layerLock}
-            setLayerLockFromIcon={setLayerLockFromIcon}
-            layerLockFromIcon={layerLockFromIcon}
-            setSearchByFactorInds={setSearchByFactorInds}
-            setLensHovering={setLensHovering}
-            lensHovering={lensHovering}
-            order={order}
+      <div className="fixed top-0 left-full opacity-0 pointer-events-none">
+        {showFactorPreview ?
+          <SelectFactorPreview
+            activeWidth={400}
+            restingWidth={400}
+            onPreviewValues={handleFactorPreview}
           />
-
-          <LayerDropdown
-            layers={dropdownList}
-            activeLayer={layer}
-            onLayer={handleLayer}
-            order={order}
-            layerLock={layerLock}
-            setLayerLock={setLayerLock}
-            setLayerLockFromIcon={setLayerLockFromIcon}
+          :
+          //<Autocomplete
+          //   ref={autocompleteRef}
+          //   onChangeLocation={handleChangeLocationViaAutocomplete}
+          // /> 
+          <GeneSearch
+            onSelect={handleChangeLocationViaGeneSearch}
           />
-        </div>
-        {/* primary content */}ManageRegionSetModal
-        <div className="left-toolbar">
-          <LeftToolbar
-            showLayerLegend={showLayerLegend}
-            onLayerLegend={setShowLayerLegend}
-            showSpectrum={showSpectrum}
-            onSpectrum={setShowSpectrum}
-            loadingSpectrum={loadingSpectrum}
-            showTopFactors={showTopFactors}
-            onTopFactors={setShowTopFactors}
-            showManageRegionSets={showManageRegionSets}
-            showActiveRegionSet={showActiveRegionSet}
-            onManageRegionSets={setShowManageRegionSets}
-            onActiveRegionSet={setShowActiveRegionSet}
-            showSankey={showSankey}
-            onSankey={setShowSankey}
-          />
+        }
 
-        </div>
-        <div className="visualization">
-          <LayerLegend
-            data={data}
-            hover={hover}
-            selected={selected}
-            show={showLayerLegend}
-            onShow={setShowLayerLegend}
-            handleFactorClick={handleFactorClick}
-            searchByFactorInds={searchByFactorInds}
-          />
-          <div className="spectrum-container">
-            <Spectrum
-              show={showSpectrum}
-            />
-          </div>
-          <div className="topfactors-container">
-            {/* <SummarizePaths
-              show={showTopFactors}
-              topFullCSNS={activePaths?.slice(0, numTopRegions)}
-            />  */}
-          </div>
+        <LensModal
+          layers={layers}
+          currentLayer={layer}
+          setLayerOrder={useCallback((lo) => {
+            setLayerOrderNatural(lo)
+          }, [setLayerOrderNatural])}
+          setLayer={setLayer}
+          setLayerLock={setLayerLock}
+          layerLock={layerLock}
+          setLayerLockFromIcon={setLayerLockFromIcon}
+          layerLockFromIcon={layerLockFromIcon}
+          setSearchByFactorInds={setSearchByFactorInds}
+          setLensHovering={setLensHovering}
+          lensHovering={lensHovering}
+          order={order}
+        />
 
+        <LayerDropdown
+          layers={dropdownList}
+          activeLayer={layer}
+          onLayer={handleLayer}
+          order={order}
+          layerLock={layerLock}
+          setLayerLock={setLayerLock}
+          setLayerLockFromIcon={setLayerLockFromIcon}
+        />
 
+        <LeftToolbar
+          showLayerLegend={showLayerLegend}
+          onLayerLegend={setShowLayerLegend}
+          showSpectrum={showSpectrum}
+          onSpectrum={setShowSpectrum}
+          loadingSpectrum={loadingSpectrum}
+          showTopFactors={showTopFactors}
+          onTopFactors={setShowTopFactors}
+          showManageRegionSets={showManageRegionSets}
+          showActiveRegionSet={showActiveRegionSet}
+          onManageRegionSets={setShowManageRegionSets}
+          onActiveRegionSet={setShowActiveRegionSet}
+          showSankey={showSankey}
+          onSankey={setShowSankey}
+        />
 
-          {/* {selected ? 
-              <SelectedModal 
-                showFilter={showFilter}
-                selected={selected} 
-                regionCSNS={regionCSNS}
-                loadingRegionCSNS={loadingRegionCSNS}
-                topCSNS={topCSNSFactorByCurrentOrder}
-                // regionsByOrder={rbos}
-                selectedTopCSN={selectedTopCSN}
-                loadingSelectedCSN={loadingSelectedCSN}
-                k={zoom.transform.k}
-                diversity={pathDiversity}
-                onCSNSelected={(csn) => {
-                  handleSelectedCSNSelectedModal(csn)
-                }}
-                onZoom={(region) => { setRegion(null); setRegion(region)}}
-                onClose={handleModalClose}
-                // onNarration={(n) => setPowerNarration(n)}
-                onZoomOrder={(n) => setPowerOrder(n)}
-                onDiversity={(d) => setPathDiversity(d)}
-                >
-            </SelectedModal> : null} */}
+        <LayerLegend
+          data={data}
+          hover={hover}
+          selected={selected}
+          show={showLayerLegend}
+          onShow={setShowLayerLegend}
+          handleFactorClick={handleFactorClick}
+          searchByFactorInds={searchByFactorInds}
+        />
 
-          {/* <SimSearchResultList
-                    simSearch={simSearch}
-                    zoomRegion={region}
-                    searchByFactorInds={searchByFactorInds}
-                    onFactorClick={handleFactorClick}
-                    onZoom={(region) => { 
-                      const hit = fromPosition(region.chromosome, region.start, region.end)
-                      setRegion(null); 
-                      setRegion(hit)}
-                    }
-                    onHover={setHover}
-                  /> */}
+        <ManageRegionSetsModal
+          show={showManageRegionSets}
+        />
 
+        <ActiveRegionSetModal
+          show={showActiveRegionSet}
+          onSelect={handleSelectActiveRegionSet}
+        // selectedRegion={selected}
+        // queryRegions={filteredSegments} 
+        // queryRegionsCount={filteredSegmentsCount}
+        // queryRegionOrder={filterOrder}
+        // queryLoading={filterLoading}
+        />
 
+        <SankeyModal
+          show={showSankey}
+          width={400}
+          height={height - 10}
+          numPaths={numPaths}
+          selectedRegion={selected}
+          hoveredRegion={hover}
+          factorCsns={topFactorCSNS}
+          fullCsns={topFullCSNS}
+          loading={activeState}
+          shrinkNone={false}
+          onSelectedCSN={handleSelectedCSNSankey}
+          onHoveredCSN={handleHoveredCSN}
+          onSort={(sort) => {
+            setCSNSort(sort)
+          }}
+          onNumPaths={(n) => {
+            setNumPaths(n)
+          }}
+          onClearRegion={clearSelectedState}
+        />
 
-          <div>
-            <ManageRegionSetsModal
-              show={showManageRegionSets}
-            />
-
-            <ActiveRegionSetModal
-              show={showActiveRegionSet}
-              onSelect={handleSelectActiveRegionSet}
-            // selectedRegion={selected}
-            // queryRegions={filteredSegments} 
-            // queryRegionsCount={filteredSegmentsCount}
-            // queryRegionOrder={filterOrder}
-            // queryLoading={filterLoading}
-            />
-
-            {/* <FilterSelects
-                show={showFilter}
-                orderSums={orderSums} 
-                previewField={factorPreviewField}
-                previewValues={factorPreviewValues}
-                showNone={false} 
-                showUniquePaths={true}
-                activeWidth={585}
-                restingWidth={65}
-                orderMargin={orderMargin}
-              /> */}
-
-            <SankeyModal
-              show={showSankey}
-              width={400}
-              height={height - 10}
-              numPaths={numPaths}
-              selectedRegion={selected}
-              hoveredRegion={hover}
-              factorCsns={topFactorCSNS}
-              fullCsns={topFullCSNS}
-              loading={activeState}
-              shrinkNone={false}
-              onSelectedCSN={handleSelectedCSNSankey}
-              onHoveredCSN={handleHoveredCSN}
-              onSort={(sort) => {
-                setCSNSort(sort)
-              }}
-              onNumPaths={(n) => {
-                setNumPaths(n)
-              }}
-              onClearRegion={clearSelectedState}
-            />
-          </div>
-
-          {selected && (selectedTopCSN || loadingSelectedCSN) ?
-            <InspectorGadget
-              selected={selected}
-              subpaths={subpaths}
-              zoomOrder={powerOrder}
-              narration={selectedTopCSN}
-              setNarration={setSelectedTopCSN}
-              layers={csnLayers}
-              loadingCSN={loadingSelectedCSN}
-              mapWidth={width}
-              mapHeight={height}
-              modalPosition={modalPosition}
-              onClose={handleModalClose}
-              setSubpaths={setSubpaths}
-              findSubpaths={findSubpaths}
-              determineFactorExclusion={determineFactorExclusion}
-            >
-            </InspectorGadget> : null}
-
-          <div ref={containerRef} className="hilbert-container">
-            {containerRef.current && (
-              <HilbertGenome
-                orderMin={orderDomain[0]}
-                orderMax={orderDomain[1]}
-                zoomMin={zoomExtent[0]}
-                zoomMax={zoomExtent[1]}
-                width={width}
-                height={height}
-                zoomToRegion={region}
-                activeLayer={layer}
-                selected={selected}
-                zoomDuration={duration}
-                CanvasRenderers={canvasRenderers}
-                HoverRenderers={hoverRenderers}
-                SVGRenderers={[
-                  SVGChromosomeNames({}),
-                  showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5 }),
-                  SVGSelected({ hit: hover, dataOrder: order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
-                  showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25 }),
-                ]}
-                onZoom={handleZoom}
-                onHover={handleHover}
-                onClick={handleClick}
-                onData={onData}
-                onScales={setScales}
-                onZooming={(d) => setIsZooming(d.zooming)}
-                onLoading={setMapLoading}
-                // onLayer={handleLayer}
-                debug={showDebug}
-              />
-            )}
-          </div>
-
-          <div style={{
-            position: "absolute",
+        {activeInHovered?.length ? <Tooltip id="hovered"
+          isOpen={hover && activeInHovered?.length}
+          delayShow={0}
+          delayHide={0}
+          delayUpdate={0}
+          place="right"
+          border="1px solid gray"
+          style={{
+            position: 'absolute',
+            pointerEvents: 'none',
+            backgroundColor: "white",
+            color: "black",
+            fontSize: "12px",
+            padding: "6px",
             left: hoveredPosition.x,
             top: hoveredPosition.y,
-            pointerEvents: "none"
-          }} data-tooltip-id="hovered">
-            {/* {true || mapLoading || activeState ? <div style={{ marginTop: -hoveredPosition.stepSize*1.5, marginLeft: -hoveredPosition.sw/2 - hoveredPosition.stepSize }} ><Loading /></div> : null} */}
-          </div>
-
-          {activeInHovered?.length ? <Tooltip id="hovered"
-            isOpen={hover && activeInHovered?.length}
-            delayShow={0}
-            delayHide={0}
-            delayUpdate={0}
-            place="right"
-            border="1px solid gray"
-            style={{
-              position: 'absolute',
-              pointerEvents: 'none',
-              backgroundColor: "white",
-              color: "black",
-              fontSize: "12px",
-              padding: "6px",
-              left: hoveredPosition.x,
-              top: hoveredPosition.y,
-            }}
-          >
-            <b>{activeInHovered?.length} {activeInHovered?.length > 1 ? "filtered regions" : "filtered region"}</b><br />
-            {/* {intersectedGenes.length ? <span>Overlapping genes: {intersectedGenes.join(", ")}<br/></span> : null} */}
-            {/* {associatedGenes.length ? <span>Nearby genes: {associatedGenes.join(", ")}<br/></span> : null} */}
-            {/* {activeInHovered.map(p => {
+          }}
+        >
+          <b>{activeInHovered?.length} {activeInHovered?.length > 1 ? "filtered regions" : "filtered region"}</b><br />
+          {/* {intersectedGenes.length ? <span>Overlapping genes: {intersectedGenes.join(", ")}<br/></span> : null} */}
+          {/* {associatedGenes.length ? <span>Nearby genes: {associatedGenes.join(", ")}<br/></span> : null} */}
+          {/* {activeInHovered.map(p => {
                 return <div key={p.chromosome + ":" + p.i}>
                   {showPosition(p.region)}: {p.genes.map(g => 
                   <span key={g.name} style={{
@@ -1563,115 +1416,45 @@ function Home() {
                   </span>)}
                 </div>
                 })} */}
-          </Tooltip> : null}
+        </Tooltip> : null}
 
+        <StatusBar
+          width={width + 12 + 30}
+          hover={hover} // the information about the cell the mouse is over
+          // filteredRegions={filteredRegions}
+          // regionsByOrder={rbos}
+          topCSNS={topCSNSFactorByCurrentOrder}
+          layer={layer}
+          zoom={zoom}
+          showFilter={showFilter}
+          showDebug={showDebug}
+          showSettings={showSettings}
+          orderOffset={orderOffset}
+          layers={layers}
+          onClear={handleClear}
+          onDebug={handleChangeShowDebug}
+          onSettings={handleChangeShowSettings}
+          onOrderOffset={setOrderOffset}
+          onFilter={handleChangeShowFilter}
+        />
 
-
-        </div>
-
-        <div className="lenses">
-
-          <div className='layer-column'>
-            <div className="zoom-legend-container">
-              {containerRef.current && (
-                <ZoomLegend
-                  k={transform.k}
-                  height={height}
-                  effectiveOrder={order}
-                  zoomExtent={zoomExtent}
-                  orderDomain={orderDomain}
-                  layerOrder={layerOrder}
-                  layer={layer}
-                  layerLock={layerLock}
-                  lensHovering={lensHovering}
-                  selected={selected}
-                  hovered={hover}
-                  // crossScaleNarration={csn}
-                  onZoom={(region) => {
-                    setRegion(null);
-                    const hit = fromPosition(region.chromosome, region.start, region.end)
-                    setRegion(hit)
-                    // setSelected(hit)
-                  }}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className='footer'>
-          <div className='footer-row'>
-            <div className='linear-tracks'>
-
-              <LinearGenome
-                // center={data?.center} 
-                data={data?.data}
-                dataOrder={data?.dataOrder}
-                activeRegions={filteredRegionsByCurrentOrder}
-                layer={data?.layer}
-                width={width} height={100}
-                mapWidth={width}
-                mapHeight={height}
-                hover={hover}
-                onHover={handleHover}
-                onClick={(hit) => {
-                  setRegion(hit)
-                }}
-              />
-
-              {/* {selected  && <RegionStrip region={selected} segments={100} layer={layer} width={width} height={40} /> }
-            {!selected && hover && <RegionStrip region={hover} segments={100} layer={layer} width={width} height={40} /> } */}
-
-              {/* <TrackPyramid
-              state={trackState} 
-              tracks={tracks}
-              tracksLoading={isZooming || tracksLoading}
-              width={width * 1.0}
-              height={100}
-              segment={!showGaps}
-              hovered={lastHover} 
-              selected={selected} 
-              setHovered={handleHover} 
-            ></TrackPyramid> */}
-            </div>
-          </div>
-          <StatusBar
-            width={width + 12 + 30}
-            hover={hover} // the information about the cell the mouse is over
-            // filteredRegions={filteredRegions}
-            // regionsByOrder={rbos}
-            topCSNS={topCSNSFactorByCurrentOrder}
-            layer={layer}
-            zoom={zoom}
-            showFilter={showFilter}
-            showDebug={showDebug}
-            showSettings={showSettings}
-            orderOffset={orderOffset}
-            layers={layers}
-            onClear={handleClear}
-            onDebug={handleChangeShowDebug}
-            onSettings={handleChangeShowSettings}
-            onOrderOffset={setOrderOffset}
-            onFilter={handleChangeShowFilter}
-          />
-          {showSettings ? <SettingsPanel
-            showHilbert={showHilbert}
-            showGenes={showGenes}
-            duration={duration}
-            onShowHilbertChange={handleChangeShowHilbert}
-            onShowGenesChange={handleChangeShowGenes}
-            onDurationChange={handleChangeDuration}
-            handleChangeCSNIndex={handleChangeCSNIndex}
-            maxCSNIndex={crossScaleNarration.length - 1}
-            crossScaleNarrationIndex={crossScaleNarrationIndex}
-            csnMethod={csnMethod}
-            handleCsnMethodChange={handleCsnMethodChange}
-            csnEnrThreshold={csnEnrThreshold}
-            handleCsnEnrThresholdChange={handleCsnEnrThresholdChange}
-          /> : null}
-        </div>
+        {showSettings ? <SettingsPanel
+          showHilbert={showHilbert}
+          showGenes={showGenes}
+          duration={duration}
+          onShowHilbertChange={handleChangeShowHilbert}
+          onShowGenesChange={handleChangeShowGenes}
+          onDurationChange={handleChangeDuration}
+          handleChangeCSNIndex={handleChangeCSNIndex}
+          maxCSNIndex={crossScaleNarration.length - 1}
+          crossScaleNarrationIndex={crossScaleNarrationIndex}
+          csnMethod={csnMethod}
+          handleCsnMethodChange={handleCsnMethodChange}
+          csnEnrThreshold={csnEnrThreshold}
+          handleCsnEnrThresholdChange={handleCsnEnrThresholdChange}
+        /> : null}
       </div>
-    </>
+    </div>
   )
 }
 
