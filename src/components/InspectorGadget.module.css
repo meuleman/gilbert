@@ -6,7 +6,7 @@
   border: 1px solid gold;
   border-radius: 6px;
   padding: 6px 6px 6px 6px;
-  width: calc(100% - 520px);
+  width: calc(100% - 512px);
   height: auto;
   z-index: 1;
   display: flex;
@@ -38,11 +38,9 @@
 
 .content {
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
 
+/* contains the AI summary, the 2d map, and the zoom inspector */
 .csn {
   display: flex;
   flex-direction: row;
@@ -50,25 +48,26 @@
   height: 100%;
 }
 
-/* contains the 2d map and the zoom controls */
+/* contains the AI summary */
+.summaryContainer {
+  width: 400px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+/* contains the 2d map */
 .powerContainer {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
   max-width: 500px;
   flex-shrink: 0;
   padding: 12px;
 }
 
-/* .subpathContainer {
-  display: flex;
-  gap: 12px;
-  max-width: 500px;
-} */
-
-.summaryContainer {
+.zoomInspectorContainer {
   flex-grow: 1;
+  width: 200px;
 }
+
+
 
 .powerOverlaySelectedPoint {
   margin-left: 5px;
@@ -132,7 +131,13 @@
   display: flex;
   flex-direction: row;
   gap: 0px;
+  .subpath {
+    position: relative;
+    left: -150px;
+    pointer-events: none;
+  }
 }
+
 
 .scoreBars {
   margin-left: 0px;

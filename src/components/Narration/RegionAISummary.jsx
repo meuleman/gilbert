@@ -40,7 +40,6 @@ Summary:
 
 const RegionAISummary = ({
   narration = null,
-  height = 320,
 } = {}) => {
   const [query, setQuery] = useState("")
   const [showPromptEditor, setShowPromptEditor] = useState(false)
@@ -50,8 +49,9 @@ const RegionAISummary = ({
   const [generated, setGenerated] = useState("")
   const [articles, setArticles] = useState([])
   // const url = "https://enjalot--pubmed-query-transformermodel-rag-generate.modal.run"
+  // const url_feedback = "https://enjalot--pubmed-query-transformermodel-feedback.modal.run"
   const url = "https://explore.altius.org:5001/api/pubmedSummary/pubmed_summary"
-  const url_feedback = "https://enjalot--pubmed-query-transformermodel-feedback.modal.run"
+  const url_feedback = "https://explore.altius.org:5001/api/pubmedSummary/feedback"
   // const url = "https://enjalot--pubmed-query-transformermodel-rag-generate-dev.modal.run"
   // const url_feedback = "https://enjalot--pubmed-query-transformermodel-feedback-dev.modal.run"
 
@@ -97,7 +97,17 @@ const RegionAISummary = ({
   }, [query])
 
   const feedback = useCallback((feedback) => {
-    fetch(`${url_feedback}?request_id=${request_id}&feedback=${feedback}`)
+    // fetch(`${url_feedback}?request_id=${request_id}&feedback=${feedback}`)
+    fetch(`${url_feedback}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        request_id: request_id,
+        feedback: feedback,
+      })
+    })
       .then(res => res.json())
       .then(data => {
         console.log("feedback", data)
@@ -131,27 +141,27 @@ const RegionAISummary = ({
         prefix = "CS"
       } else if (d.layer?.datasetName?.toLowerCase().includes("repeat")) {
         prefix = "REPEAT"
-      } else if (d.layer?.datasetName?.toLowerCase().includes("gwas")) {
+      } else if (d.layer?.datasetName?.toLowerCase().includes("ukbb")) {
         prefix = "GWAS"
       }
       let enrocc = ""
       if(d.layer?.datasetName?.toLowerCase().includes("enr")) {
-        enrocc = "enrichment"
+        enrocc = "domain"
       } else if(d.layer?.datasetName?.toLowerCase().includes("occ")) {
         enrocc = "occurrence"
       }
       
       // Format with resolution if available
-      const resolution = `@ ${showKbOrder(d.order)}`
+      const resolution = `@ ${showKbOrder(d.order)}`.replace(",", "")
       return `${d.field?.field} ${prefix} ${enrocc} ${resolution}`
     })
   
-    let genes = narration.genes.map(d => `GENE ${d.name}`)
+    let genes = narration.genes.map(d => d.in_gene ? `GENE_OVL ${d.name}` : `GENE_ADJ ${d.name}`)
     
     let genesets = narration.genesets
-      ?.filter(d => d.p < 1)
-      .sort((a,b) => a.p - b.p)
-      .slice(0, 3)
+      // ?.filter(d => d.p < 1)  // geneset membership
+      // .sort((a,b) => a.p - b.p)
+      ?.slice(0, 3)
       .map(d => {
         const term = d.geneset.split('_').slice(1).join(' ')
         return `GO ${term.toUpperCase()}`

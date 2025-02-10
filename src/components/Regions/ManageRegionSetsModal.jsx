@@ -7,6 +7,9 @@ import {Tooltip} from 'react-tooltip';
 import { download, parseBED } from '../../lib/regionsets'
 import RegionsContext from './RegionsContext'
 import FiltersContext from '../ComboLock/FiltersContext'
+import { fetchFilteringWithoutOrder } from '../../lib/dataFiltering';
+import { fromIndex } from '../../lib/regions'
+import FactorSearch from '../FactorSearch'
 
 import './ManageRegionSetsModal.css'
 
@@ -52,6 +55,25 @@ const ManageRegionSetModal = ({
     }
   }, [saveSet, setFilters]);
 
+  const handleSelectFactor = useCallback((selected) => {
+    if (!selected) return
+    console.log("selected", selected)
+    let range = []
+    // console.log("gencode", gencode)
+    if(selected.factor) {
+      // query for the paths for the factor
+      let f = selected.factor
+      fetchFilteringWithoutOrder([{factor: f.index, dataset: f.layer.datasetName}], null)
+        .then((response) => {
+          console.log("FILTERING WITHOUT ORDER", response)
+          let regions = response.regions.map(r => {
+            return {...fromIndex(r.chromosome, r.i, r.order), score: r.score}
+          })
+          saveSet(selected.factor.label, regions, { activate: true, type: "search", factor: selected.factor })
+        })
+    } 
+  }, [saveSet])
+
   return (
     <div className={`manage-regionsets-modal ${show ? 'show' : ''}`}>
       <div className={`control-buttons`}>
@@ -63,6 +85,7 @@ const ManageRegionSetModal = ({
           {/* <label></label> */}
           <input type="file" onChange={handleFileChange} />
         </div>
+        { !activeSet && <FactorSearch onSelect={handleSelectFactor} /> }
         <div className="region-sets">
           <table>
             <tbody>

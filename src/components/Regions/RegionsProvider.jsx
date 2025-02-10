@@ -12,9 +12,11 @@ import { fetchPartialPathsForRegions } from '../../lib/csn';
 
 // import { v4 as uuidv4 } from 'uuid';
 
-import Domain20kbRegions from '../ExampleRegions/domains.samples_3517.20kb.strict_max_mi.non_overlapping.gte_HBG2.qualifyingDHS_maxMI_sorted.CT20231212.json'
-import Domain1kbRegions from '../ExampleRegions/domains.samples_3517.1kb.strict_max_mi.non_overlapping.gte_92.2per.maxMI_meanMI_sorted.CT20231212.json'
-import HBG2DHSMaskedRegions from '../ExampleRegions/top_100_HBG2_DHS_masked_regions_across_biosamples_CT20240126.json'
+import CSNExamples from '../ExampleRegions/Nice_CSN_Examples.json'
+import dbp from '../ExampleRegions/Diastolic_blood_pressure_Variants_UKBB_94_Traits.json'
+import ec from '../ExampleRegions/Eosinophil_count_Variants_UKBB_94_Traits.json'
+import tc from '../ExampleRegions/Total_cholesterol_Variants_UKBB_94_Traits.json'
+import knownLCRs from '../ExampleRegions/known_LCRs.json'
 import OneMbRegions from '../ExampleRegions/1mb_regions.json'
 import { range } from 'd3-array';
 
@@ -80,10 +82,12 @@ const RegionsProvider = ({ children }) => {
   useEffect(() => {
     const exampleDate = "2024-01-01"
     const exampleSets = [
-      {"id": "example-1", type: "example", "name": "Domain 20kb", "regions": convertExamples(Domain20kbRegions), createdAt: new Date(exampleDate).toISOString(), example: true},
-      {"id": "example-2", type: "example", "name": "Domain 1kb", "regions": convertExamples(Domain1kbRegions), createdAt: new Date(exampleDate).toISOString(), example: true},
-      {"id": "example-3", type: "example", "name": "HBG2 DHS Distance Masked", "regions": convertExamples(HBG2DHSMaskedRegions), createdAt: new Date(exampleDate).toISOString(), example:true},
-      {"id": "example-4", type: "example", "name": "1MB Top paths", "regions": convertExamples(OneMbRegions), createdAt: new Date(exampleDate).toISOString(), example:true}
+      {"id": "example-1", type: "example", "name": "CSN Examples", "regions": convertExamples(CSNExamples), createdAt: new Date(exampleDate).toISOString(), example:true},
+      {"id": "example-2", type: "example", "name": "Diastolic Blood Pressure Variants", "regions": convertExamples(dbp), createdAt: new Date(exampleDate).toISOString(), example:true},
+      {"id": "example-3", type: "example", "name": "Eosinophil Count Variants", "regions": convertExamples(ec), createdAt: new Date(exampleDate).toISOString(), example:true},
+      {"id": "example-4", type: "example", "name": "Total Cholesterol Variants", "regions": convertExamples(tc), createdAt: new Date(exampleDate).toISOString(), example:true},
+      {"id": "example-5", type: "example", "name": "Known Locus Control Regions (LCRs)", "regions": convertExamples(knownLCRs), createdAt: new Date(exampleDate).toISOString(), example:true},
+      {"id": "example-6", type: "example", "name": "1MB Top paths", "regions": convertExamples(OneMbRegions), createdAt: new Date(exampleDate).toISOString(), example:true}
     ]
     setSets(exampleSets)
   }, []);
@@ -155,6 +159,16 @@ const RegionsProvider = ({ children }) => {
     // }
   }, []);
 
+  const resetFilteredActiveRegions = useCallback(() => {
+    if(activeRegions?.length) {
+      setFilteredActiveRegions(activeRegions.slice(0,100))
+      setFilteredRegionsLoading(false)
+    } else {
+      setFilteredActiveRegions(null)
+      setFilteredRegionsLoading(false)
+    }
+  }, [activeRegions, setFilteredActiveRegions, setFilteredRegionsLoading])
+
   // Filtering regions
   useEffect(() => {
     if(activeFilters.length && activeRegions?.length) {
@@ -176,20 +190,15 @@ const RegionsProvider = ({ children }) => {
         }
         setFilteredRegionsLoading(false)
       })
+    } else {
+      resetFilteredActiveRegions()
     }
   }, [activeFilters])
-
 
   useEffect(() => {
     // clear active filters any time active regions change
     setActiveFilters([])
-    if(activeRegions?.length) {
-      setFilteredActiveRegions(activeRegions.slice(0,100))
-      setFilteredRegionsLoading(false)
-    } else {
-      setFilteredActiveRegions(null)
-      setFilteredRegionsLoading(false)
-    }
+    resetFilteredActiveRegions()
   }, [activeRegions])
 
 

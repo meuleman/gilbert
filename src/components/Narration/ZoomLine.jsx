@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { scaleLinear } from 'd3-scale';
 import { range } from 'd3-array';
-import { showFloat, showKb } from '../../lib/display';
+import { showFloat, showKb} from '../../lib/display';
 import { variantChooser } from '../../lib/csn';
 import './Line.css';
 
@@ -46,6 +46,7 @@ export default function ZoomLine({
   showScore=true,
   width = 50,
   height = 400,
+  fontSize = 9,
   offsetX = 0,
   scoreHeight = 20,
   tipOrientation="left",
@@ -114,6 +115,8 @@ export default function ZoomLine({
       let x = rect.x + xoff + offsetX
       let y = rect.y + my + 1.5
       tooltipRef.current.show({...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score, GWAS: p.GWAS}, p.layer, x, y)
+    } else {
+      tooltipRef.current.hide()
     }
     // tooltipRef.current.show(tooltipRef.current, csn)
   }, [csn, path, yScale, rw, offsetX, onHover])
@@ -209,18 +212,17 @@ export default function ZoomLine({
             let bp = showKb(Math.pow(4, 14 - o))
             return <g key={o} onMouseMove={(e) => handleHover(e, o)} onMouseLeave={() => handleLeave()}>
               <text
-                y={yScale(o) + 2*rw/3}
-                x={width / 2}
-                textAnchor="middle"
+                y={yScale(o) + rw/2 + fontSize/2}
                 fontFamily="Courier"
-                fontSize={9}
+                fontSize={fontSize}
                 // stroke="#333"
                 fill="#111"
                 paintOrder="stroke"
                 fontWeight={highlightOrders.indexOf(o) >= 0 ? "bold" : "normal"}
                 pointerEvents="none"
                 >
-                {bp}
+                <tspan x={width / 2} dy="-0.6em" textAnchor="middle">{bp[0]}</tspan>
+                <tspan x={width / 2} dy="1.2em" textAnchor="middle">{bp[1]}</tspan>
               </text>
             </g>
           })}
