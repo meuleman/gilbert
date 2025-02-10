@@ -79,11 +79,11 @@ const HeaderRegionSetModal = ({
             {totalCounts.num ? <span> Total {totalCounts.num} regions, representing {showInt(totalCounts.tbp)} basepairs, or {totalCounts.percent.toFixed(2)}% of the genome</span> : null}
           </Tooltip>
         </div>: null } */}
-        {!activeSet ? <FactorSearch onSelect={handleSelectFactor} /> : 
+        {/* {!activeSet ? <FactorSearch onSelect={handleSelectFactor} /> : 
           <div>
             {activeSet.name}
           </div>
-        }
+        } */}
       </div>
       <div className={`controls`}>
         {activeRegions?.length ? 
@@ -104,7 +104,7 @@ const HeaderRegionSetModal = ({
             />
           </label> */}
 
-          <button data-tooltip-id="header-download-regions"
+          {/* <button data-tooltip-id="header-download-regions"
             onClick={handleDownload}
           >
             ⬇️
@@ -116,7 +116,7 @@ const HeaderRegionSetModal = ({
           <button data-tooltip-id={`header-active-deselect`} onClick={handleDeselect}>❌</button>
           <Tooltip id={`header-active-deselect`}>
             Clear active region set
-          </Tooltip>
+          </Tooltip> */}
 
         </div> : null }
       </div>
