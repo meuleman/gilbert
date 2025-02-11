@@ -104,9 +104,10 @@ region: [{chromosome, start, end}, ...]
 N: number of paths to return per region
 
 Returns:
-{ regions: [{ chromosome: chromosome, start: start, end: end, top_scores: [], top_positions: [], dehydrated_paths: [] }, ...] }
+{ regions: [{ chromosome, start, end, top_scores, top_positions, dehydrated_paths }, ...] }
 */
 function fetchTopPathsForRegions(regions, N) {
+  if(regions.length === 0) return Promise.resolve({regions: []})
   const url = "https://explore.altius.org:5001/api/csns/top_paths_for_regions"
   const postBody = {regions, N}
   // console.log("TOP PATHS POST BODY", postBody)

@@ -3,12 +3,11 @@ import RegionsContext from './RegionsContext';
 import FiltersContext from '../ComboLock/FiltersContext';
 import { fromPosition, toPosition, fromIndex } from '../../lib/regions';
 import { fetchFilterSegments, fetchBackfillFiltering } from '../../lib/dataFiltering';
-import { fetchTopPathsForRegions, rehydrateCSN, rehydratePartialCSN } from '../../lib/csn'
+import { fetchTopPathsForRegions, rehydrateCSN, rehydratePartialCSN, fetchPartialPathsForRegions } from '../../lib/csn'
 import { fetchGenesetEnrichment } from '../../lib/genesetEnrichment';
 import { csnLayers, variantLayers, makeField, csnLayerList } from '../../layers'
 import { fetchRegionSetEnrichments } from '../../lib/regionSetEnrichments';
 import { fetchGenes } from '../../lib/genesForRegions';
-import { fetchPartialPathsForRegions } from '../../lib/csn';
 import { generateQuery } from '../Narration/RegionAISummary';
 
 // import { v4 as uuidv4 } from 'uuid';
@@ -212,11 +211,11 @@ const RegionsProvider = ({ children }) => {
     return paths.flatMap((r,ri) => r.dehydrated_paths.map((dp,i) => {
       return {
         ...r,
-        i: r.top_positions[0], // hydrating assumes order 14 position
+        // i: r.top_positions[0], // hydrating assumes order 14 position
         factors: r.top_factor_scores[0],
-        score: r.top_path_scores[0],
+        // score: r.top_path_scores[0],  // no longer using path scores
         genes: r.genes[0]?.genes,
-        scoreType: "full",
+        // scoreType: "full",
         path: dp,
         region: regions[ri] // the activeSet region
       }
@@ -292,9 +291,19 @@ const RegionsProvider = ({ children }) => {
     if(filteredActiveRegions?.length) {
       // if subregion exists, use for narration
       let narrationRegions = filteredActiveRegions.map(d => d.subregion ? {...d, ...d.subregion} : d)
-      fetchPartialPathsForRegions(narrationRegions)
-      .then((response) => {
-        let rehydrated = response.regions.map(d => rehydratePartialCSN(d, csnLayerList))
+      let O14Regions = narrationRegions.filter(d => d.order === 14)
+      let notO14Regions = narrationRegions.filter(d => d.order !== 14)
+      let promises = [
+        fetchPartialPathsForRegions(notO14Regions),
+        fetchTopPathsForRegions(O14Regions, 1)
+      ]
+      Promise.all(promises).then((responses) => {
+        const notO14Rehydrated = responses[0].regions.length ? responses[0].regions.map(d => rehydratePartialCSN(d, csnLayerList)) : []
+        const O14Rehydrated = responses[1].regions?.length ? getDehydrated(O14Regions, responses[1].regions).map(d => rehydrateCSN(d, csnLayerList)) : []
+        let rehydrated = [ ...notO14Rehydrated, ...O14Rehydrated ].sort((a, b) => b.score[0] - a.score[0])
+        return rehydrated
+      })
+      .then((rehydrated) => {
         setTopNarrations(rehydrated)
       })
       .catch((e) => {
