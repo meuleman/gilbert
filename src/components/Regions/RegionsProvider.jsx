@@ -331,8 +331,11 @@ const RegionsProvider = ({ children }) => {
   const [regionSetQuery, setRegionSetQuery] = useState("")
   useEffect(() => {
     if (topNarrations.length) {
-      let topNarrationQuery = topNarrations.map(d => generateQuery(d)).slice(0, 5).join(" | ")
-      setRegionSetQuery(topNarrationQuery)
+      let factorCount = {}
+      topNarrations.forEach(d => generateQuery(d).split("; ").forEach(q => factorCount[q] = (factorCount[q] || 0) + 1))
+      let topFactors = Object.keys(factorCount).sort((a, b) => factorCount[b] - factorCount[a]).slice(0, 10)  // top 10 factors
+      let query = topFactors.map(d => `${d}: ${(factorCount[d] / topNarrations.length * 100).toFixed(0)}%`).join("; ")
+      setRegionSetQuery(query)
     } else {
       setRegionSetQuery("")
     }
