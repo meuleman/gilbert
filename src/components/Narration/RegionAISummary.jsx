@@ -38,6 +38,62 @@ Query: {{ query}}
 Summary:
 `
 
+// generate query from narration for summary
+export const generateQuery = (narration) => {
+  let fields = narration.path.filter(d => {
+    if(d.layer?.datasetName?.indexOf("occ") > -1) {
+      return d.field?.value > 0.75
+    } else if(d.layer?.datasetName?.indexOf("gwas") > -1 || d.layer?.datasetName?.indexOf("ukbb_94") > -1) {
+      return true
+    } else {
+      // return d.field?.value > 2
+      return d.field?.value > 0.25
+    }
+  }).sort((a,b) => b.field?.value - a.field?.value)
+  .map(d => {
+    // Determine the data type based on layer name
+    let prefix = ""
+    if (d.layer?.datasetName?.toLowerCase().includes("tf_")) {
+      prefix = "MOTIF"
+    } else if (d.layer?.datasetName?.toLowerCase().includes("dhs_")) {
+      prefix = "DHS"
+    } else if (d.layer?.datasetName?.toLowerCase().includes("cs_")) {
+      prefix = "CS"
+    } else if (d.layer?.datasetName?.toLowerCase().includes("repeat")) {
+      prefix = "REPEAT"
+    } else if (d.layer?.datasetName?.toLowerCase().includes("ukbb")) {
+      prefix = "GWAS"
+    }
+    let enrocc = ""
+    if(d.layer?.datasetName?.toLowerCase().includes("enr")) {
+      enrocc = "domain"
+    } else if(d.layer?.datasetName?.toLowerCase().includes("occ")) {
+      enrocc = "occurrence"
+    }
+    
+    // Format with resolution if available
+    const resolution = `@ ${showKbOrder(d.order)}`.replace(",", "")
+    return `${d.field?.field} ${prefix} ${enrocc} ${resolution}`
+  })
+
+  let genes = narration.genes ? narration.genes.map(d => d.in_gene ? `GENE_OVL ${d.name}` : `GENE_ADJ ${d.name}`) : []
+  
+  let genesets = narration.genesets
+    // ?.filter(d => d.p < 1)  // geneset membership
+    // .sort((a,b) => a.p - b.p)
+    ?.slice(0, 3)
+    .map(d => {
+      const term = d.geneset.split('_').slice(1).join(' ')
+      return `GO ${term.toUpperCase()}`
+    })
+
+  // Combine all parts with semicolons
+  let query = [...fields, ...genes, ...(genesets || [])].join("; ")
+
+  return query
+}
+
+
 const RegionAISummary = ({
   narration = null,
 } = {}) => {
@@ -119,56 +175,7 @@ const RegionAISummary = ({
 
 
   useEffect(() => {
-    // console.log("NARRATION", narration)
-    let fields = narration.path.filter(d => {
-      if(d.layer?.datasetName?.indexOf("occ") > -1) {
-        return d.field?.value > 0.75
-      } else if(d.layer?.datasetName?.indexOf("gwas") > -1 || d.layer?.datasetName?.indexOf("ukbb_94") > -1) {
-        return true
-      } else {
-        // return d.field?.value > 2
-        return d.field?.value > 0.25
-      }
-    }).sort((a,b) => b.field?.value - a.field?.value)
-    .map(d => {
-      // Determine the data type based on layer name
-      let prefix = ""
-      if (d.layer?.datasetName?.toLowerCase().includes("tf_")) {
-        prefix = "MOTIF"
-      } else if (d.layer?.datasetName?.toLowerCase().includes("dhs_")) {
-        prefix = "DHS"
-      } else if (d.layer?.datasetName?.toLowerCase().includes("cs_")) {
-        prefix = "CS"
-      } else if (d.layer?.datasetName?.toLowerCase().includes("repeat")) {
-        prefix = "REPEAT"
-      } else if (d.layer?.datasetName?.toLowerCase().includes("ukbb")) {
-        prefix = "GWAS"
-      }
-      let enrocc = ""
-      if(d.layer?.datasetName?.toLowerCase().includes("enr")) {
-        enrocc = "domain"
-      } else if(d.layer?.datasetName?.toLowerCase().includes("occ")) {
-        enrocc = "occurrence"
-      }
-      
-      // Format with resolution if available
-      const resolution = `@ ${showKbOrder(d.order)}`.replace(",", "")
-      return `${d.field?.field} ${prefix} ${enrocc} ${resolution}`
-    })
-  
-    let genes = narration.genes.map(d => d.in_gene ? `GENE_OVL ${d.name}` : `GENE_ADJ ${d.name}`)
-    
-    let genesets = narration.genesets
-      // ?.filter(d => d.p < 1)  // geneset membership
-      // .sort((a,b) => a.p - b.p)
-      ?.slice(0, 3)
-      .map(d => {
-        const term = d.geneset.split('_').slice(1).join(' ')
-        return `GO ${term.toUpperCase()}`
-      })
-  
-    // Combine all parts with semicolons
-    let query = [...fields, ...genes, ...(genesets || [])].join("; ")
+    let query = generateQuery(narration)
     setQuery(query)
     
   }, [narration, narration?.genesets])

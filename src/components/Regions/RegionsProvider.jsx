@@ -3,12 +3,13 @@ import RegionsContext from './RegionsContext';
 import FiltersContext from '../ComboLock/FiltersContext';
 import { fromPosition, toPosition, fromIndex } from '../../lib/regions';
 import { fetchFilterSegments, fetchBackfillFiltering } from '../../lib/dataFiltering';
-import { fetchTopPathsForRegions, rehydrateCSN } from '../../lib/csn'
+import { fetchTopPathsForRegions, rehydrateCSN, rehydratePartialCSN } from '../../lib/csn'
 import { fetchGenesetEnrichment } from '../../lib/genesetEnrichment';
-import { csnLayers, variantLayers, makeField } from '../../layers'
+import { csnLayers, variantLayers, makeField, csnLayerList } from '../../layers'
 import { fetchRegionSetEnrichments } from '../../lib/regionSetEnrichments';
 import { fetchGenes } from '../../lib/genesForRegions';
 import { fetchPartialPathsForRegions } from '../../lib/csn';
+import { generateQuery } from '../Narration/RegionAISummary';
 
 // import { v4 as uuidv4 } from 'uuid';
 
@@ -288,11 +289,12 @@ const RegionsProvider = ({ children }) => {
   // collecting full data for top regions
   const [topNarrations, setTopNarrations] = useState([])
   useEffect(() => {
-    if(activeRegions?.length) {
-      let regions = activeRegions.slice(0,100)  // numTopRegions
-      fetchPartialPathsForRegions(regions)
+    if(filteredActiveRegions?.length) {
+      // let regions = activeRegions.slice(0,100)  // numTopRegions
+      fetchPartialPathsForRegions(filteredActiveRegions)  // uses core region, not subregion
       .then((response) => {
-        setTopNarrations(response.regions)
+        let rehydrated = response.regions.map(d => rehydratePartialCSN(d, csnLayerList))
+        setTopNarrations(rehydrated)
       })
       .catch((e) => {
         console.log("error fetching partial paths", e)
@@ -300,8 +302,52 @@ const RegionsProvider = ({ children }) => {
     } else {
       setTopNarrations([])
     }
-  }, [activeRegions])
+  }, [filteredActiveRegions])
   // console.log("TOP NARRATIONS", topNarrations)
+
+  const [regionSetNarration, setRegionSetNarration] = useState("")
+  const [regionSetNarrationLoading, setRegionSetNarrationLoading] = useState(false)
+  const [regionSetArticles, setRegionSetArticles] = useState([])
+  const generateRegionSetNarration = useCallback((query) => {
+    const url = "https://explore.altius.org:5001/api/pubmedSummary/pubmed_region_set_summary"
+    fetch(`${url}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        query: query,
+      })
+    }).then(res => res.json())
+    .then((data) => {
+      setRegionSetNarration(data.summary)
+      setRegionSetArticles(data.articles)
+      setRegionSetNarrationLoading(false)
+      console.log("REGION SET NARRATION:", data.summary)
+    }) 
+  }, [])
+
+  const [regionSetQuery, setRegionSetQuery] = useState("")
+  useEffect(() => {
+    if (topNarrations.length) {
+      let topNarrationQuery = topNarrations.map(d => generateQuery(d)).slice(0, 5).join(" | ")
+      setRegionSetQuery(topNarrationQuery)
+    } else {
+      setRegionSetQuery("")
+    }
+
+  }, [topNarrations])
+
+  useEffect(() => {
+    if(regionSetQuery !== "") {
+      setRegionSetNarrationLoading(true)
+      generateRegionSetNarration(regionSetQuery)
+    } else {
+      setRegionSetNarration("")
+      setRegionSetArticles([])
+      setRegionSetNarrationLoading(false)
+    }
+  }, [regionSetQuery])
 
   return (
     <RegionsContext.Provider value={{ 

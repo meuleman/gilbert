@@ -1,6 +1,6 @@
 import { max } from 'd3-array';
 import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome';
-import { fetchPartialPathsForRegions } from '../lib/csn';
+import { fetchPartialPathsForRegions, rehydratePartialCSN } from '../lib/csn';
 import { rehydrate, csnLayerList } from '../layers';
 
 // TreeNode class to create path segments
@@ -168,38 +168,6 @@ const getTopFactors = function(factorData, maxPerOrder = 5) {
     })
 
     return factorData.filter(d => d.topSegment).sort((a, b) => b.topSegment.score - a.topSegment.score)
-}
-
-
-// rehydrate a partial csn path
-function rehydratePartialCSN(r, layers) {
-    const hydrated = r?.path_factors.map((d, i) => {
-        let segmentOrder = 4 + i
-        const l = rehydrate(d, layers)
-        const hilbert = new HilbertChromosome(segmentOrder)
-        const pos = hilbertPosToOrder(r.i, {from: r.order, to: segmentOrder})
-        const region = hilbert.fromRange(r.chromosome, pos, pos+1)[0]
-        let field = null
-        if(l) {
-            field = {
-                field: l.fieldName,
-                index: l.fieldIndex,
-                color: l.layer.fieldColor(l.fieldName),
-                value: r.factor_scores[i]
-            }
-            region.field = field
-        }
-        return {
-            field,
-            layer: l?.layer,
-            order: segmentOrder,
-            region
-        }
-    })
-    return {
-        ...r,
-        path: hydrated,
-    }
 }
 
 // fetches partial paths for factor segments up to the factor segment order
