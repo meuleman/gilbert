@@ -290,8 +290,9 @@ const RegionsProvider = ({ children }) => {
   const [topNarrations, setTopNarrations] = useState([])
   useEffect(() => {
     if(filteredActiveRegions?.length) {
-      // let regions = activeRegions.slice(0,100)  // numTopRegions
-      fetchPartialPathsForRegions(filteredActiveRegions)  // uses core region, not subregion
+      // if subregion exists, use for narration
+      let narrationRegions = filteredActiveRegions.map(d => d.subregion ? {...d, ...d.subregion} : d)
+      fetchPartialPathsForRegions(narrationRegions)
       .then((response) => {
         let rehydrated = response.regions.map(d => rehydratePartialCSN(d, csnLayerList))
         setTopNarrations(rehydrated)
