@@ -681,7 +681,7 @@ function Home() {
             findSubpaths(region, factorExclusion)
           })
       } else {
-        fetchTopPathsForRegions([toPosition(region)], 1)
+        fetchTopPathsForRegions([region], 1)
         .then((response) => {
           if(!response) { 
             // setRegionCSNS([])

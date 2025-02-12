@@ -203,9 +203,7 @@ const RegionsProvider = ({ children }) => {
 
 
   // ACTIVE PATH logic
-  const [genesInRegions, setGenesInRegions] = useState([])
   const pathsRequestRef = useRef("")
-
 
   function getDehydrated(regions, paths) {
     return paths.flatMap((r,ri) => r.dehydrated_paths.map((dp,i) => {
@@ -222,37 +220,7 @@ const RegionsProvider = ({ children }) => {
     }))
   }
 
-  // collect genes for top active regions
-  useEffect(() => {
-    if (filteredActiveRegions?.length) {
-      fetchGenes(filteredActiveRegions)
-      .then((response) => {
-        setGenesInRegions(response.flatMap(d => d).map(d => d.name))
-      }).catch((e) => {
-        console.log("error fetching genes", e)
-      })
-    }
-  }, [filteredActiveRegions])
-
-  const [activeGenesetEnrichment, setActiveGenesetEnrichment] = useState(null)
-
-  // calculate geneset enrichment for genes in paths
-  useEffect(() => {
-    if(genesInRegions.length) {
-      fetchGenesetEnrichment(genesInRegions, false)
-      .then((response) => {
-        setActiveGenesetEnrichment(response)
-      }).catch((e) => {
-        console.log("error calculating geneset enrichments", e)
-      })
-    } else {
-      setActiveGenesetEnrichment([])
-    }
-  }, [genesInRegions])
-
-  const [selectedGenesetMembership, setSelectedGenesetMembership] = useState([])
-
-  // region set enrichment
+  // region set factor enrichments
   const [regionSetEnrichments, setRegionSetEnrichments] = useState([])
   const [regionSetEnrichmentsLoading, setRegionSetEnrichmentsLoading] = useState(false)
   useEffect(() => {
@@ -285,13 +253,19 @@ const RegionsProvider = ({ children }) => {
   }, [filteredActiveRegions])
   
   
-  // collecting full data for top regions
+  // collecting paths and genes for top regions
   const [topNarrations, setTopNarrations] = useState([])
+  const [genesInRegions, setGenesInRegions] = useState([])
+  const [activeGenesetEnrichment, setActiveGenesetEnrichment] = useState(null)
+  const [selectedGenesetMembership, setSelectedGenesetMembership] = useState([])
   useEffect(() => {
     if(filteredActiveRegions?.length) {
       // if subregion exists, use for narration
       let narrationRegions = filteredActiveRegions.map(d => d.subregion ? {...d, ...d.subregion} : d)
       fetchPartialPathsForRegions(narrationRegions).then((response) => {
+        // set region set genes
+        setGenesInRegions(response.regions.flatMap(d => d.genes)?.map(d => d.name))
+        // rehydrate paths
         let rehydrated = response.regions.map(d => rehydratePartialCSN(d, csnLayerList))
         setTopNarrations(rehydrated)
       })
@@ -302,7 +276,20 @@ const RegionsProvider = ({ children }) => {
       setTopNarrations([])
     }
   }, [filteredActiveRegions])
-  // console.log("TOP NARRATIONS", topNarrations)
+
+  // calculate geneset enrichment for genes in paths
+  useEffect(() => {
+    if(genesInRegions.length) {
+      fetchGenesetEnrichment(genesInRegions, false)
+      .then((response) => {
+        setActiveGenesetEnrichment(response)
+      }).catch((e) => {
+        console.log("error calculating geneset enrichments", e)
+      })
+    } else {
+      setActiveGenesetEnrichment([])
+    }
+  }, [genesInRegions])
 
   const [regionSetNarration, setRegionSetNarration] = useState("")
   const [regionSetNarrationLoading, setRegionSetNarrationLoading] = useState(false)
