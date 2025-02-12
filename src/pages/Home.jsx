@@ -703,36 +703,36 @@ function Home() {
             findSubpaths(region, factorExclusion)
           })
       } else {
-        fetchTopPathsForRegions([toPosition(region)], 1)
-          .then((response) => {
-            if (!response) {
-              // setRegionCSNS([])
-              setSelectedTopCSN(null)
-              setLoadingSelectedCSN(false)
-              setLoadingRegionCSNS(false)
-              return null
-            } else {
-              let dehydrated = getDehydrated([region], response.regions)
-              let hydrated = dehydrated.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
-              hydrated[0].path = hydrated[0].path.filter(d => d.order <= region.order)
-              // setRegionCSNS(hydrated)
-              setSelectedTopCSN(hydrated[0])
-              setLoadingRegionCSNS(false)
-              setLoadingSelectedCSN(false)
-              return response
-            }
-          }).catch((e) => {
-            console.log("error fetching top paths for selected region", e)
+        fetchTopPathsForRegions([region], 1)
+        .then((response) => {
+          if(!response) { 
             // setRegionCSNS([])
-            setSelectedTopCSN(null),
-              setLoadingRegionCSNS(false)
+            setSelectedTopCSN(null)
+            setLoadingSelectedCSN(false)
+            setLoadingRegionCSNS(false)
             return null
-          }).then((response) => {
-            // // subpath query
-            // let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null)
-            // find and set subpaths
-            findSubpaths(null, [])  // there should be no possible subpath at order 14
-          })
+          } else { 
+            let dehydrated = getDehydrated([region], response.regions)
+            let hydrated = dehydrated.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
+            hydrated[0].path = hydrated[0].path.filter(d => d.order <= region.order)
+            // setRegionCSNS(hydrated)
+            setSelectedTopCSN(hydrated[0])
+            setLoadingRegionCSNS(false)
+            setLoadingSelectedCSN(false)
+            return response
+          }
+        }).catch((e) => {
+          console.log("error fetching top paths for selected region", e)
+          // setRegionCSNS([])
+          setSelectedTopCSN(null),
+          setLoadingRegionCSNS(false)
+          return null
+        }).then((response) => {
+          // // subpath query
+          // let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null)
+          // find and set subpaths
+          findSubpaths(null, [])  // there should be no possible subpath at order 14
+        })
       }
     } else {
       // selected is cleared
