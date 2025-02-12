@@ -13,7 +13,7 @@ import { hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { debouncerTimed } from '../lib/debounce'
 
 import { fetchFilteringWithoutOrder } from '../lib/dataFiltering';
-import { fetchTopPathsForRegions, rehydrateCSN, createTopPathsForRegions } from '../lib/csn'
+import { fetchPartialPathsForRegions, rehydratePartialCSN } from '../lib/csn'
 import { calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
 import { gencode, getRangesOverCell } from '../lib/Genes'
 import { range, group } from 'd3-array'
@@ -98,21 +98,6 @@ import UpDownChevronIcon from "@/assets/up-down-chevron.svg?react"
 import UploadIcon from "@/assets/upload.svg?react"
 
 
-// TODO: move this to a shared lib (also in RegionsProvider)
-function getDehydrated(regions, paths) {
-  return paths.flatMap((r, ri) => r.dehydrated_paths.map((dp, i) => {
-    return {
-      ...r,
-      i: r.top_positions[0], // hydrating assumes order 14 position
-      factors: r.top_factor_scores[0],
-      score: r.top_path_scores[0],
-      genes: r.genes[0]?.genes,
-      scoreType: "full",
-      path: dp,
-      region: regions[ri] // the activeSet region
-    }
-  }))
-}
 
 
 // declare globally so it isn't recreated on every render
@@ -674,66 +659,37 @@ function Home() {
       // setLoadingRegionCSNS(true)
       setSelectedTopCSN(null)
       // setRegionCSNS([])
-      if (region.order < 14) {
-        createTopPathsForRegions([region])
-          .then((response) => {
-            if (!response) {
-              // setRegionCSNS([])
-              setSelectedTopCSN(null)
-              setLoadingSelectedCSN(false)
-              setLoadingRegionCSNS(false)
-              return null
-            } else {
-              setSelectedTopCSN(response[0])
-              setLoadingRegionCSNS(false)
-              setLoadingSelectedCSN(false)
-              return response
-            }
-          }).catch((e) => {
-            console.log("error creating top paths for selected region", e)
-            // setRegionCSNS([])
-            setSelectedTopCSN(null),
-              setLoadingRegionCSNS(false)
-            return null
-          })
-          .then((response) => {
-            // subpath query
-            let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null)
-            // find and set subpaths
-            findSubpaths(region, factorExclusion)
-          })
-      } else {
-        fetchTopPathsForRegions([region], 1)
-        .then((response) => {
-          if(!response) { 
-            // setRegionCSNS([])
-            setSelectedTopCSN(null)
-            setLoadingSelectedCSN(false)
-            setLoadingRegionCSNS(false)
-            return null
-          } else { 
-            let dehydrated = getDehydrated([region], response.regions)
-            let hydrated = dehydrated.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]))
-            hydrated[0].path = hydrated[0].path.filter(d => d.order <= region.order)
-            // setRegionCSNS(hydrated)
-            setSelectedTopCSN(hydrated[0])
-            setLoadingRegionCSNS(false)
-            setLoadingSelectedCSN(false)
-            return response
-          }
-        }).catch((e) => {
-          console.log("error fetching top paths for selected region", e)
+      fetchPartialPathsForRegions([region]).then((response) => {
+        if(!response) { 
           // setRegionCSNS([])
-          setSelectedTopCSN(null),
+          setSelectedTopCSN(null)
+          setLoadingSelectedCSN(false)
           setLoadingRegionCSNS(false)
           return null
-        }).then((response) => {
-          // // subpath query
-          // let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null)
-          // find and set subpaths
-          findSubpaths(null, [])  // there should be no possible subpath at order 14
-        })
-      }
+        } else {
+          let responseRegion = response.regions[0]
+          let rehydrated = {
+            path: rehydratePartialCSN(responseRegion, [...csnLayers, ...variantLayers]).path,
+            region, 
+            genes: responseRegion.genes
+          }
+          setSelectedTopCSN(rehydrated)
+          setLoadingRegionCSNS(false)
+          setLoadingSelectedCSN(false)
+          return rehydrated
+        }
+      }).catch((e) => {
+        console.log("error creating top paths for selected region", e)
+        // setRegionCSNS([])
+        setSelectedTopCSN(null),
+        setLoadingRegionCSNS(false)
+        return null
+      }).then((response) => {
+        // subpath query
+        let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null)
+        // find and set subpaths
+        findSubpaths(region, factorExclusion)
+      })
     } else {
       // selected is cleared
       setSelectedGenesetMembership([])
