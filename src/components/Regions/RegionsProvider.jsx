@@ -291,19 +291,8 @@ const RegionsProvider = ({ children }) => {
     if(filteredActiveRegions?.length) {
       // if subregion exists, use for narration
       let narrationRegions = filteredActiveRegions.map(d => d.subregion ? {...d, ...d.subregion} : d)
-      let O14Regions = narrationRegions.filter(d => d.order === 14)
-      let notO14Regions = narrationRegions.filter(d => d.order !== 14)
-      let promises = [
-        fetchPartialPathsForRegions(notO14Regions),
-        fetchTopPathsForRegions(O14Regions, 1)
-      ]
-      Promise.all(promises).then((responses) => {
-        const notO14Rehydrated = responses[0].regions.length ? responses[0].regions.map(d => rehydratePartialCSN(d, csnLayerList)) : []
-        const O14Rehydrated = responses[1].regions?.length ? getDehydrated(O14Regions, responses[1].regions).map(d => rehydrateCSN(d, csnLayerList)) : []
-        let rehydrated = [ ...notO14Rehydrated, ...O14Rehydrated ].sort((a, b) => b.score[0] - a.score[0])
-        return rehydrated
-      })
-      .then((rehydrated) => {
+      fetchPartialPathsForRegions(narrationRegions).then((response) => {
+        let rehydrated = response.regions.map(d => rehydratePartialCSN(d, csnLayerList))
         setTopNarrations(rehydrated)
       })
       .catch((e) => {

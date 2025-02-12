@@ -134,7 +134,7 @@ Returns:
 { regions: [{ chromosome, order, i, path_factors: [], factor_scores: [] }, ...] }
 */
 function fetchPartialPathsForRegions(regions) {
-  const url = "https://explore.altius.org:5001/api/csns/partial_paths_for_regions"
+  const url = "https://explore.altius.org:5001/api/csns/paths_by_order"
   const postBody = {regions}
   console.log("PARTIAL PATHS POST BODY", postBody)
   return axios({
