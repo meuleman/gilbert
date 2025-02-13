@@ -26,7 +26,10 @@ const LeftToolbar = ({
       <div className="top-group">
         <button className={`toolbar-button ${showManageRegionSets ? 'active' : ''}`} data-tooltip-id="region-sets"
           onClick={() => {
-            if(!showManageRegionSets) onActiveRegionSet(false)
+            if(!showManageRegionSets) {
+              onActiveRegionSet(false)
+              onTopFactors(false)
+            }
             onManageRegionSets(!showManageRegionSets)
           }}
         >📚</button>
@@ -34,7 +37,10 @@ const LeftToolbar = ({
         <button className={`toolbar-button ${showActiveRegionSet ? 'active' : ''}`} data-tooltip-id="active-region-set"
           disabled={!activeSet}
           onClick={() => {
-            if(!showActiveRegionSet) onManageRegionSets(false)
+            if(!showActiveRegionSet) {
+              onManageRegionSets(false)
+              onTopFactors(false)
+            }
             onActiveRegionSet(!showActiveRegionSet)
           }}
           style={{
@@ -46,7 +52,11 @@ const LeftToolbar = ({
         <button className={`toolbar-button ${showTopFactors ? 'active' : ''}`} data-tooltip-id="show-topfactors"
           onClick={() => {
             topNarrations?.length && onTopFactors(!showTopFactors)
-            if(!showTopFactors) onSankey(false)
+            if(!showTopFactors) {
+              onSankey(false)
+              onManageRegionSets(false)
+              onActiveRegionSet(false)
+            }
           }}
           disabled={!topNarrations?.length}
           style={{
