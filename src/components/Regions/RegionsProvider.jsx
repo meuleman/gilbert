@@ -321,11 +321,11 @@ const RegionsProvider = ({ children }) => {
     narrations.forEach(narration => {
       narration.path.filter(d => {
         if(d.layer?.datasetName?.indexOf("occ") > -1) {
-          return d.field?.value > 0.75
+          return d.field?.value > 0.2
         } else if(d.layer?.datasetName?.indexOf("gwas") > -1 || d.layer?.datasetName?.indexOf("ukbb_94") > -1) {
           return true
         } else {
-          return d.field?.value > 0.25
+          return d.field?.value > 1
         }
       }).forEach(d => {
         // Determine the data type based on layer name
@@ -355,6 +355,7 @@ const RegionsProvider = ({ children }) => {
         factors[term].count += 1
       })
     })
+    console.log("FACTORS", factors)
     let topFactors = Object.keys(factors)
       .map(d => ({term: d, ...factors[d]})).sort((a, b) => b.count - a.count).slice(0, 10)
       .map(d => {
@@ -386,6 +387,7 @@ const RegionsProvider = ({ children }) => {
     // only generate query if topNarrations and activeGenesetEnrichment are available
     if (topNarrations.length && activeGenesetEnrichment !== null) {
       let query = generateRegionSetQuery(topNarrations)
+      console.log(query)
       setRegionSetQuery(query)
     } else {
       setRegionSetQuery("")
