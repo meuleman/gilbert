@@ -958,7 +958,7 @@ function Home() {
     } else {
       setShowActiveRegionSet(false)
       // setShowSpectrum(false)
-      // setShowTopFactors(false)
+      setShowTopFactors(false)
     }
   }, [activeSet])
 
