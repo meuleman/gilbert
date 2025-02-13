@@ -113,7 +113,7 @@ const ActiveRegionSetModal = ({
             </div>
             <div className="border-t-1 botder-t-separator px-1.5 py-2.75">
               <strong>AI Summary: </strong>
-              <span>Enriched placental and trophoblast DHS at 16kbp co-localizes with significant regulatory motifs and genes such as CLEC11A and GPR32, implicating potential roles in neuronal synaptic plasticity and developmental processes through associated transposable elements.</span>
+              <span>{regionSetNarrationLoading ? "loading..." : regionSetNarration}</span>
             </div>
             <div className="border-t-1 botder-t-separator py-2.75">
               <div className="grid grid-cols-regionSet gap-y-1.5">
