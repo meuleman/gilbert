@@ -35,16 +35,16 @@ const FactorBar = (factor, index) => {
 }
 
 const SummarizePaths = ({
-  topFullCSNS,
+  topNarrations,
   show = false,
   N=5,
 } = {}) => {
-  const [pathSummary, setPathSummary] = useState("")
+  // const [pathSummary, setPathSummary] = useState("")
   const [topFactors, setTopFactors] = useState([])
   useEffect(() => {
-    if(!topFullCSNS || !topFullCSNS.length) return
+    if(!topNarrations || !topNarrations.length) return
     // collect all the factors that are preferentially listed in the top paths
-    let preferentialFactors = topFullCSNS.flatMap(path => 
+    let preferentialFactors = topNarrations.flatMap(path => 
       path.path.filter(d => d.field)
       .map(s => 
         ({field: s.field?.field, value: s.field?.value, layerName: s.layer?.name, order: s.order, color: s.field?.color})
@@ -60,7 +60,7 @@ const SummarizePaths = ({
         let color = values[0].color
         let topOrders = groups(values, d => d.order)
           .sort((a, b) => b[1].length - a[1].length)
-        return { field, layerName, count, color, topOrders, order: topOrders[0][0], total: topFullCSNS.length }
+        return { field, layerName, count, color, topOrders, order: topOrders[0][0], total: topNarrations.length }
       })
       .sort((a, b) => b.count - a.count)
       // .slice(0, N)
@@ -72,7 +72,7 @@ const SummarizePaths = ({
       setTopFactors([])
     }
 
-  }, [topFullCSNS, N])
+  }, [topNarrations, N])
 
   const groupedFactors = useMemo(() => {
     let filtered = topFactors.filter(f => f.count / f.total > 0.10)

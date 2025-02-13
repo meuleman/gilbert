@@ -936,7 +936,7 @@ function Home() {
     } else {
       setShowActiveRegionSet(false)
       // setShowSpectrum(false)
-      // setShowTopFactors(false)
+      setShowTopFactors(false)
     }
   }, [activeSet])
 
@@ -1136,10 +1136,10 @@ function Home() {
             />
           </div>
           <div className="topfactors-container">
-            {/* <SummarizePaths
+            <SummarizePaths
               show={showTopFactors}
-              topFullCSNS={activePaths?.slice(0, numTopRegions)}
-            />  */}
+              topNarrations={topNarrations}
+            /> 
           </div>
 
           

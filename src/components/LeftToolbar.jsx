@@ -19,7 +19,7 @@ const LeftToolbar = ({
   showSankey,
   onSankey = () => {},
 } = {}) => {
-  const { activeSet, activeGenesetEnrichment, activePaths } = useContext(RegionsContext)
+  const { activeSet, activeGenesetEnrichment, activePaths, topNarrations } = useContext(RegionsContext)
 
   return (
     <div className="left-toolbar">
@@ -45,12 +45,12 @@ const LeftToolbar = ({
 
         <button className={`toolbar-button ${showTopFactors ? 'active' : ''}`} data-tooltip-id="show-topfactors"
           onClick={() => {
-            activePaths?.length && onTopFactors(!showTopFactors)
+            topNarrations?.length && onTopFactors(!showTopFactors)
             if(!showTopFactors) onSankey(false)
           }}
-          disabled={!activePaths?.length}
+          disabled={!topNarrations?.length}
           style={{
-            'filter': showTopFactors || !activePaths?.length ? 'grayscale(100%)' : 'none',
+            'filter': showTopFactors || !topNarrations?.length ? 'grayscale(100%)' : 'none',
             'transform': 'rotate(90deg) scaleX(-1)'
           }}
         >📊</button>
