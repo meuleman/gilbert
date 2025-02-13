@@ -268,6 +268,8 @@ function Home() {
     saveSet,
     activeGenesetEnrichment,
     setSelectedGenesetMembership,
+    setRegionSetNarration,
+    setRegionSetArticles,
     topNarrations,
     activeRegions,
     filteredActiveRegions,
@@ -868,6 +870,8 @@ function Home() {
     setSimSearchMethod(null)
     setSelectedTopCSN(null)
     setRegionCSNS([])
+    setRegionSetNarration("")
+    setRegionSetArticles([])
     // setPowerNarration(null)
   }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN])
 

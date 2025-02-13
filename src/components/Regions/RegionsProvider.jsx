@@ -308,7 +308,7 @@ const RegionsProvider = ({ children }) => {
     }).then(res => res.json())
     .then((data) => {
       setRegionSetNarration(data.summary)
-      setRegionSetArticles(data.articles)
+      setRegionSetArticles(data.results)
       setRegionSetNarrationLoading(false)
       console.log("REGION SET NARRATION:", data.summary)
     }) 
@@ -418,6 +418,11 @@ const RegionsProvider = ({ children }) => {
       regionSetEnrichments,
       regionSetEnrichmentsLoading,
       activeGenesetEnrichment,
+      regionSetNarration,
+      setRegionSetNarration,
+      regionSetNarrationLoading,
+      regionSetArticles,
+      setRegionSetArticles,
       selectedGenesetMembership,
       topNarrations,
       numTopRegions,
