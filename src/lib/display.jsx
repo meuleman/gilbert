@@ -66,14 +66,14 @@ function showPosition(d, full = true) {
 
 function getKb(diff) {
   const log2Diff = Math.log2(diff);
-  const scaleSuffix = (log2Diff < 10) ? "bp" :
-    (log2Diff < 20) ? "Kbp" :
-      (log2Diff < 30) ? "Mbp" :
-        "Gbp";
+  const [value, scaleSuffix] = (log2Diff < 10) ? [Math.ceil(diff), "bp"] :
+    (log2Diff < 20) ? [Math.floor(diff / 2 ** 10), "Kbp"] :
+      (log2Diff < 30) ? [Math.floor(diff / 2 ** 20), "Mbp"] :
+        [Math.floor(diff / 2 ** 30), "Gbp"];
 
   return {
-    formattedString: `${log2Diff}${scaleSuffix}`,
-    value: log2Diff,
+    formattedString: `${value}${scaleSuffix}`,
+    value,
     scaleSuffix,
   }
 }
