@@ -33,6 +33,9 @@ const ActiveRegionSetModal = ({
     regionSetEnrichmentsLoading,
     setActiveSet,
     setActiveFilters,
+    regionSetNarration,
+    regionSetNarrationLoading,
+    regionSetArticles,
   } = useContext(RegionsContext)
 
   const [regions, setRegions] = useState([])
@@ -178,7 +181,13 @@ const ActiveRegionSetModal = ({
 
           {activeTab === 'summary' ? (
             <div className={styles['summary-view']}>
-              <p>Summary view placeholder</p>
+              <p>{regionSetNarrationLoading ? "loading..." : regionSetNarration}</p>
+              {!regionSetNarrationLoading && regionSetNarration !== "" ? <div><h3>{regionSetArticles.length} open access PubMed articles found: </h3>
+              <p>
+                {regionSetArticles.map((a,i) => {
+                  return (<span key={a.pmc}> {i+1}) <a href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} target="_blank" rel="noreferrer">{a.full_title}</a><br></br></span>)
+                })}
+              </p> </div> : null }
             </div>
           ) : (
             <div className={styles['table-body-container']} style={{ fontSize: '12px' }}>
