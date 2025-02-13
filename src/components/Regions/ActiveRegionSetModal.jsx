@@ -108,8 +108,7 @@ const ActiveRegionSetModal = ({
         <div className="flex-1 pl-1 py-1.5 min-h-0">
           <div className="pt-1 max-h-full overflow-auto text-xs">
             <div className="px-1.5 pb-2.75">
-              <strong>55 / 1483 base regions </strong>
-              <span className="text-bodyMuted">(141 effective regions)</span>
+              <strong>{filteredActiveRegions?.length} selected regions </strong>
             </div>
             <div className="border-t-1 botder-t-separator px-1.5 py-2.75">
               <strong>AI Summary: </strong>
