@@ -3,7 +3,8 @@ import RegionsContext from './RegionsContext';
 import FiltersContext from '../ComboLock/FiltersContext';
 import { fromPosition, toPosition, fromIndex } from '../../lib/regions';
 import { fetchFilterSegments, fetchBackfillFiltering } from '../../lib/dataFiltering';
-import { fetchTopPathsForRegions, rehydrateCSN, rehydratePartialCSN, fetchPartialPathsForRegions } from '../../lib/csn'
+import { rehydratePartialCSN, fetchPartialPathsForRegions } from '../../lib/csn'
+import { showKbOrder } from '../../lib/display'
 import { fetchGenesetEnrichment } from '../../lib/genesetEnrichment';
 import { csnLayers, variantLayers, makeField, csnLayerList } from '../../layers'
 import { fetchRegionSetEnrichments } from '../../lib/regionSetEnrichments';
@@ -313,19 +314,83 @@ const RegionsProvider = ({ children }) => {
     }) 
   }, [])
 
+  // generates query for region set summary
+  const generateRegionSetQuery = useCallback((narrations) => {
+    // parse factors of top regions
+    let factors = {}
+    narrations.forEach(narration => {
+      narration.path.filter(d => {
+        if(d.layer?.datasetName?.indexOf("occ") > -1) {
+          return d.field?.value > 0.75
+        } else if(d.layer?.datasetName?.indexOf("gwas") > -1 || d.layer?.datasetName?.indexOf("ukbb_94") > -1) {
+          return true
+        } else {
+          return d.field?.value > 0.25
+        }
+      }).forEach(d => {
+        // Determine the data type based on layer name
+        let prefix = ""
+        if (d.layer?.datasetName?.toLowerCase().includes("tf_")) {
+          prefix = "MOTIF"
+        } else if (d.layer?.datasetName?.toLowerCase().includes("dhs_")) {
+          prefix = "DHS"
+        } else if (d.layer?.datasetName?.toLowerCase().includes("cs_")) {
+          prefix = "CS"
+        } else if (d.layer?.datasetName?.toLowerCase().includes("repeat")) {
+          prefix = "REPEAT"
+        } else if (d.layer?.datasetName?.toLowerCase().includes("ukbb")) {
+          prefix = "GWAS"
+        }
+        let enrocc = ""
+        if(d.layer?.datasetName?.toLowerCase().includes("enr")) {
+          enrocc = "domain"
+        } else if(d.layer?.datasetName?.toLowerCase().includes("occ")) {
+          enrocc = "occurrence"
+        }
+        
+        let term = `${d.field?.field} ${prefix} ${enrocc}`
+        if(!factors[term]) factors[term] = { scales: {}, count: 0 }
+        // count the occurrences of each scale
+        factors[term].scales[d.order] = (factors[term].scales[d.order] || 0) + 1
+        factors[term].count += 1
+      })
+    })
+    let topFactors = Object.keys(factors)
+      .map(d => ({term: d, ...factors[d]})).sort((a, b) => b.count - a.count).slice(0, 10)
+      .map(d => {
+        // use the most common scale
+        let scale = Object.keys(d.scales).sort((a, b) => d.scales[b] - d.scales[a])[0]
+        return { term: d.term, frequency: (100 * d.count / narrations.length).toFixed(0), scale: showKbOrder(scale).join("") }
+      })
+    
+    // initialize query
+    let query = topFactors.map(d => `${d.term} @ ${d.scale} ${d.frequency}%`).join("; ")
+    
+    // parse enriched genesets and genes and add to query
+    if(activeGenesetEnrichment?.length) {
+      let genesetsToInclude = activeGenesetEnrichment?.sort((a, b) => a.p - b.p).slice(0, 3)
+      query += "; " + genesetsToInclude.map(d => `GO ${d.geneset.replace(/_/g, " ")}`).join("; ")
+      // collect genes
+      let genesetGenes = genesetsToInclude.flatMap(d => d.genes)
+      let regionGenes = narrations.flatMap(d => d.genes.map(g => ({name: g.name, inGene: g.in_gene})))
+      let genes = regionGenes.filter(gene => genesetGenes.includes(gene.name))
+      let uniqueGenes = {}
+      genes.forEach(d => uniqueGenes[d.name] = uniqueGenes[d.name] || d.inGene)
+      query += "; " + Object.keys(uniqueGenes).map(d => `GENE_${uniqueGenes[d] ? "OVL" : "ADJ"} ${d}`).join("; ")
+    }
+    return query
+  }, [activeGenesetEnrichment])
+
   const [regionSetQuery, setRegionSetQuery] = useState("")
   useEffect(() => {
-    if (topNarrations.length) {
-      let factorCount = {}
-      topNarrations.forEach(d => generateQuery(d).split("; ").forEach(q => factorCount[q] = (factorCount[q] || 0) + 1))
-      let topFactors = Object.keys(factorCount).sort((a, b) => factorCount[b] - factorCount[a]).slice(0, 10)  // top 10 factors
-      let query = topFactors.map(d => `${d}: ${(factorCount[d] / topNarrations.length * 100).toFixed(0)}%`).join("; ")
+    // only generate query if topNarrations and activeGenesetEnrichment are available
+    if (topNarrations.length && activeGenesetEnrichment !== null) {
+      let query = generateRegionSetQuery(topNarrations)
       setRegionSetQuery(query)
     } else {
       setRegionSetQuery("")
     }
-
-  }, [topNarrations])
+  }, [topNarrations, activeGenesetEnrichment])
 
   useEffect(() => {
     if(regionSetQuery !== "") {
