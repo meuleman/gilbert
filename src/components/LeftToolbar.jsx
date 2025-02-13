@@ -60,7 +60,7 @@ const LeftToolbar = ({
           }}
           disabled={!topNarrations?.length}
           style={{
-            'filter': showTopFactors || !topNarrations?.length ? 'grayscale(100%)' : 'none',
+            'filter': !topNarrations?.length ? 'grayscale(100%)' : 'none',
             'transform': 'rotate(90deg) scaleX(-1)'
           }}
         >📊</button>
