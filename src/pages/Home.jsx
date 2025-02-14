@@ -661,7 +661,7 @@ function Home() {
       // setLoadingRegionCSNS(true)
       setSelectedTopCSN(null)
       // setRegionCSNS([])
-      fetchPartialPathsForRegions([region]).then((response) => {
+      fetchPartialPathsForRegions([region], true).then((response) => {
         if(!response) { 
           // setRegionCSNS([])
           setSelectedTopCSN(null)

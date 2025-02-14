@@ -173,7 +173,7 @@ const getTopFactors = function(factorData, maxPerOrder = 5) {
 // fetches partial paths for factor segments up to the factor segment order
 // ensures that the top factor is in the correct location in the path
 const getPathsForRegions = function(topFactors, region) {
-    let rehydratedTopFactors = fetchPartialPathsForRegions(topFactors.map(d => d.topSegment))
+    let rehydratedTopFactors = fetchPartialPathsForRegions(topFactors.map(d => d.topSegment), true)
         .then((response) => {
             // let rehydratedTopFactors = response.regions.map((r, i) => ({...(topFactors[i]), path: rehydratePartialCSN(r, csnLayerList)}))
             let rehydrated = response.regions.map(r => rehydratePartialCSN(r, csnLayerList))
