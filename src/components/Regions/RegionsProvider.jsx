@@ -254,7 +254,7 @@ const RegionsProvider = ({ children }) => {
   }, [filteredActiveRegions])
   
   
-  // collecting paths and genes for top regions
+  // collecting paths, genes, and genesets for top regions
   const [topNarrations, setTopNarrations] = useState([])
   const [genesInRegions, setGenesInRegions] = useState([])
   const [activeGenesetEnrichment, setActiveGenesetEnrichment] = useState(null)

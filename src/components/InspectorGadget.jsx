@@ -44,18 +44,6 @@ const InspectorGadget = ({
   determineFactorExclusion = () => {}
   // Note: Removed unused props (e.g., children, modalPosition, layers, onCSNIndex, onZoom)
 }) => {
-  // Constants for dimensions of the visual components
-  const { activeGenesetEnrichment, setSelectedGenesetMembership } = useContext(RegionsContext);
-
-  // Create a mapping (object) from geneset to its score for quick lookup
-  const genesetScoreMapping = useMemo(() => {
-    return activeGenesetEnrichment
-      ? activeGenesetEnrichment.reduce((acc, g) => {
-          acc[g.geneset] = g.p;
-          return acc;
-        }, {})
-      : {};
-  }, [activeGenesetEnrichment]);
 
   // -----------------------
   // Component State
@@ -114,12 +102,10 @@ const InspectorGadget = ({
   // Called when the "power" data (enriched CSN data) is ready.
   // It updates geneset membership and merges additional data such as GWAS.
   const handlePowerData = useCallback(async (data) => {
-    setSelectedGenesetMembership([]); // Reset geneset membership
 
     // Prepare data fetch promises; if region order is 14 then also fetch GWAS data.
     const promises = [
       retrieveFullDataForCSN(narration),
-      fetchGenesetEnrichment(narration.genes.map(g => g.name), true)
     ];
     if (narration.region.order === 14) {
       promises.push(
@@ -132,8 +118,7 @@ const InspectorGadget = ({
 
     const responses = await Promise.all(promises);
     const fullDataResponse = responses[0];
-    const genesetResponse = responses[1];
-    const gwasResponse = narration.region.order === 14 ? responses[2] : null;
+    const gwasResponse = narration.region.order === 14 ? responses[1] : null;
 
     // Process GWAS data if available and attach to the order 14 segment.
     const csnGWAS = gwasResponse
@@ -148,18 +133,10 @@ const InspectorGadget = ({
       csnOrder14Segment.GWAS = csnGWAS;
     }
 
-    // Process geneset memberships; if a geneset is missing a score then default to 1.
-    const csnGenesets = genesetResponse.map(g => ({
-      geneset: g.geneset,
-      p: genesetScoreMapping[g.geneset] || 1
-    }));
-    fullDataResponse.genesets = csnGenesets;
-    setSelectedGenesetMembership(csnGenesets);
-
     // Set the enriched narration and mark loading as complete.
     setFullNarration(fullDataResponse);
     setLoadingFullNarration(false);
-  }, [narration, genesetScoreMapping, setSelectedGenesetMembership]);
+  }, [narration]);
 
   // Callback to update the narration with a factor's subpath selection.
   const setFactorSelection = useCallback((factor) => {

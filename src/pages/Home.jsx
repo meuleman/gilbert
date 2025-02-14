@@ -623,6 +623,16 @@ function Home() {
   // const [pathDiversity, setPathDiversity] = useState(true)
   const [loadingRegionCSNS, setLoadingRegionCSNS] = useState(false)
   const [loadingSelectedCSN, setLoadingSelectedCSN] = useState(false)
+
+  // Create a mapping from geneset to its score for quick lookup
+  const genesetScoreMapping = useMemo(() => {
+    return activeGenesetEnrichment
+      ? activeGenesetEnrichment.reduce((acc, g) => {
+          acc[g.geneset] = g.p;
+          return acc;
+        }, {})
+      : {};
+  }, [activeGenesetEnrichment]);
   
   useEffect(() => {
     if(selected) {
@@ -645,15 +655,18 @@ function Home() {
           setSelectedTopCSN(null)
           setLoadingSelectedCSN(false)
           setLoadingRegionCSNS(false)
+          setSelectedGenesetMembership([])
           return null
         } else {
           let responseRegion = response.regions[0]
           let rehydrated = {
             path: rehydratePartialCSN(responseRegion, [...csnLayers, ...variantLayers]).path,
             region, 
-            genes: responseRegion.genes
+            genes: responseRegion.genes,
+            genesets: responseRegion.genesets.map(g => ({...g, p: genesetScoreMapping[g.geneset]})),
           }
           setSelectedTopCSN(rehydrated)
+          setSelectedGenesetMembership(rehydrated.genesets)
           setLoadingRegionCSNS(false)
           setLoadingSelectedCSN(false)
           return rehydrated
