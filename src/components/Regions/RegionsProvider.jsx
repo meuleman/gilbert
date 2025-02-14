@@ -263,9 +263,11 @@ const RegionsProvider = ({ children }) => {
     if(filteredActiveRegions?.length) {
       // if subregion exists, use for narration
       let narrationRegions = filteredActiveRegions.map(d => d.subregion ? {...d, ...d.subregion} : d)
-      fetchPartialPathsForRegions(narrationRegions).then((response) => {
+      fetchPartialPathsForRegions(narrationRegions, false).then((response) => {
         // set region set genes
         setGenesInRegions(response.regions.flatMap(d => d.genes)?.map(d => d.name))
+        // set geneset enrichment for region set
+        setActiveGenesetEnrichment(response.genesets)
         // rehydrate paths
         let rehydrated = response.regions.map(d => rehydratePartialCSN(d, csnLayerList))
         setTopNarrations(rehydrated)
@@ -277,20 +279,6 @@ const RegionsProvider = ({ children }) => {
       setTopNarrations([])
     }
   }, [filteredActiveRegions])
-
-  // calculate geneset enrichment for genes in paths
-  useEffect(() => {
-    if(genesInRegions.length) {
-      fetchGenesetEnrichment(genesInRegions, false)
-      .then((response) => {
-        setActiveGenesetEnrichment(response)
-      }).catch((e) => {
-        console.log("error calculating geneset enrichments", e)
-      })
-    } else {
-      setActiveGenesetEnrichment([])
-    }
-  }, [genesInRegions])
 
   const [regionSetNarration, setRegionSetNarration] = useState("")
   const [regionSetNarrationLoading, setRegionSetNarrationLoading] = useState(false)

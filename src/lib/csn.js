@@ -129,13 +129,17 @@ function fetchTopPathsForRegions(regions, N) {
 /*
 Collects the partial path for each region in regions
 region: [{chromosome, order, i}, ...]
+membership (return genesets with regional gene membership): true | false
+threshold (geneset p-value threshold): float (0 < p <= 1)
 
 Returns:
-{ regions: [{ chromosome, order, i, path_factors: [], factor_scores: [] }, ...] }
+{ regions: [{ chromosome, order, i, path_factors: [], factor_scores: [] }, ...], 
+  genesets: [{geneset, p (if not membership), genes (if not membership)}, ...] 
+}
 */
-function fetchPartialPathsForRegions(regions) {
+function fetchPartialPathsForRegions(regions, membership=false, threshold=0.1) {
   const url = "https://explore.altius.org:5001/api/csns/paths_by_order"
-  const postBody = {regions}
+  const postBody = {regions, threshold, membership}
   console.log("PARTIAL PATHS POST BODY", postBody)
   return axios({
     method: 'POST',
