@@ -78,11 +78,11 @@ export const generateQuery = (narration) => {
 
   let genes = narration.genes ? narration.genes.map(d => d.in_gene ? `GENE_OVL ${d.name}` : `GENE_ADJ ${d.name}`) : []
   
-  let genesets = narration.genesets
-    // ?.filter(d => d.p < 1)  // geneset membership
-    // .sort((a,b) => a.p - b.p)
-    ?.slice(0, 3)
-    .map(d => {
+  // Sort genesets by p-value (region set p-values) and take top 3
+  let filteredGenesets = narration.genesets?.filter(d => d.p).sort((a,b) => a.p - b.p)?.slice(0, 3)
+  // If no genesets with p-values, take first 3 genesets
+  let genesets = (filteredGenesets.length > 0 ? filteredGenesets : narration.genesets?.slice(0, 3))
+    ?.map(d => {
       const term = d.geneset.split('_').slice(1).join(' ')
       return `GO ${term.toUpperCase()}`
     })
