@@ -94,117 +94,141 @@ export default function ScoreBars({
   }, [path, onClick])
 
   const handleHover = useCallback((e, o) => {
-    // tooltipRef.current.hide()
-    const svg = e.target.ownerSVGElement
-    const rect = svg.getBoundingClientRect();
+      const rect = e.currentTarget.getBoundingClientRect();
+      const my = e.clientY - rect.top;
+      const or = o + (my) / rw;
+      onHover(or);
+      setOr(or);
 
-    const p = path.find(d => d.order === o)
-    const y = yScale(o)
-    const my = e.clientY - rect.y
-    const or = o + (my - y)/rw
-    onHover(or)
-    setOr(or)
-    // console.log("y", y, my, or)//, p, rect)
-    if(p) {
-
-      const xoff = tipOrientation === "left" ? -5 : width + 3
-      let x = rect.x + xoff
-      let y = rect.y + my + 1.5
-      tooltipRef.current.show({...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score, GWAS: p.GWAS}, p.layer, x, y)
-    } else {
-      tooltipRef.current.hide()
-    }
-    // tooltipRef.current.show(tooltipRef.current, csn)
-  }, [csn, path, yScale, rw, onHover])
+      const p = path.find(d => d.order === o);
+      if (p) {
+        const xoff = tipOrientation === "left" ? -5 : width + 3;
+        let x = rect.left + xoff;
+        let y = rect.top + my + 1.5;
+        tooltipRef.current.show(
+          { ...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score, GWAS: p.GWAS },
+          p.layer, x, y
+        );
+      } else {
+        tooltipRef.current.hide()
+      }
+    }, [csn, path, yScale, rw, onHover, tipOrientation, width])
 
   const handleLeave = useCallback(() => {
     tooltipRef.current.hide()
   }, [])
 
   return (
-    <div className="score-bars" onClick={() => onClick(csn)}>
-      <svg width={width} height={height}  onMouseLeave={() => handleLeave()}>
-        {path.length && yScale ? <g>
-          {range(4, 15).map(o => {
-            let p = path.find(d => d.order == o)
-            let w = 0
-            if(p && p.layer) {
-              w = p.layer.datasetName.indexOf("enr") > -1 ? width * (p.field.value / maxENR) : width * (p.field.value)
+    <div
+      className="score-bars"
+      style={{ position: "relative", width, height }}
+      onClick={() => onClick(csn)}
+    >
+      <div style={{ position: "relative", width, height }}>
+        {path.length && yScale &&
+          range(4, 15).map(o => {
+            const p = path.find(d => d.order === o);
+            let w = 0;
+            if (p && p.layer) {
+              w = p.layer.datasetName.indexOf("enr") > -1
+                ? width * (p.field.value / maxENR)
+                : width * (p.field.value);
             }
-            return <g key={o} onMouseMove={(e) => handleHover(e, o)}>
-              {/* this first rect acts as a mouse catcher */}
-              <rect
-                y={yScale(o)}
-                x={0}
-                height={rw}
-                width={width}
-                fill={ "white"}
-                fillOpacity={0.01}
-              />
-              <rect
-                y={yScale(o)}
-                x={0}
-                height={rw}
-                width={w}
-                fill={ p && p.field ? p.field.color : "white"}
-                fillOpacity={selected ? 0.75 : 0.5}
-                stroke="lightgray"
-                // stroke={highlightOrders.indexOf(o) >= 0 ? "black" : "lightgray"}
-                // strokeWidth={highlightOrders.indexOf(o) >= 0 ? 2 : 1}
-                // stroke={ highlight ? "black" : "lightgray"}
-              />
-            </g>
+            return (
+              <div
+                key={o}
+                onMouseMove={e => handleHover(e, o)}
+                onMouseLeave={handleLeave}
+                style={{
+                  position: "absolute",
+                  top: yScale(o),
+                  left: 0,
+                  width: width,
+                  height: rw,
+                  pointerEvents: "all"
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: width,
+                    height: rw,
+                    backgroundColor: "white",
+                    opacity: 0.01
+                  }}
+                />
+                {w ? <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: w,
+                    height: rw,
+                    backgroundColor: p && p.field ? p.field.color : "white",
+                    opacity: selected ? 0.75 : 0.5,
+                    border: "1px solid lightgray"
+                  }}
+                /> : null}
+              </div>
+            );
           })}
-        </g> : null}
-
-        {showOrderLine ? <line 
-          y1={yScale(or)} 
-          y2={yScale(or)} 
-          x1={0}
-          x2={width}
-          stroke="black"
-          strokeWidth={2}
-          pointerEvents="none"
-          /> : null}
-          
-        {path.length && yScale && text ? <g>
-          {range(4, 15).map(o => {
-            let p = path.find(d => d.order == o)
-            // let bp = showKb(Math.pow(4, 14 - o))
-            return <g key={o} onMouseMove={(e) => handleHover(e, o)}>
-              <text
-                y={yScale(o) + rw/2 + fontSize/2}
-                x={width / 2}
-                textAnchor="middle"
-                fontFamily="Courier"
-                fontSize={fontSize}
-                // stroke="#333"
-                fill="#111"
-                paintOrder="stroke"
-                fontWeight={highlightOrders.indexOf(o) >= 0 ? "bold" : "normal"}
-                >
+        {showOrderLine && (
+          <div
+            style={{
+              position: "absolute",
+              top: yScale(or),
+              left: 0,
+              width: width,
+              height: 2,
+              backgroundColor: "black",
+              pointerEvents: "none"
+            }}
+          />
+        )}
+        {path.length && yScale && text &&
+          range(4, 15).map(o => {
+            const p = path.find(d => d.order === o);
+            return (
+              <div
+                key={o}
+                // onMouseMove={e => handleHover(e, o)}
+                style={{
+                  position: "absolute",
+                  top: yScale(o) + rw / 2 - fontSize / 2,
+                  left: 0,
+                  width: width,
+                  textAlign: "center",
+                  fontFamily: "Courier",
+                  fontSize: fontSize,
+                  fontWeight: highlightOrders.indexOf(o) >= 0 ? "bold" : "normal",
+                  color: "#111",
+                  pointerEvents: "none"
+                }}
+              >
                 {p?.field ? showFloat(p.field.value) : ""}
-              </text>
-            </g>
+              </div>
+            );
           })}
-          {
-            showScore && <text
-              y={h + scoreHeight}
-              x={width / 2}
-              textAnchor="middle"
-              fontFamily="Courier"
-              fontSize={11}
-              fill="#111"
-              paintOrder="stroke"
-              fontWeight={"bold"}
-            >
-              {showFloat(csn.score)}
-            </text>
-          }
-
-        </g> : null}
-
-      </svg>
+        {showScore && (
+          <div
+            style={{
+              position: "absolute",
+              top: h + scoreHeight,
+              left: 0,
+              width: width,
+              textAlign: "center",
+              fontFamily: "Courier",
+              fontSize: 11,
+              fontWeight: "bold",
+              color: "#111"
+            }}
+          >
+            {showFloat(csn.score)}
+          </div>
+        )}
+      </div>
       <Tooltip ref={tooltipRef} orientation={tipOrientation} contentFn={tooltipContent} enforceBounds={false} />
     </div>
   )

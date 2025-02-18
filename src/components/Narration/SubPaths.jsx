@@ -80,18 +80,16 @@ export default function SubPaths({
       facs[o].push({factor: f, score} )
       facs[o].sort((a, b) => b.score - a.score)
     })
-    console.log("factors", factors)
-    console.log("facs", facs)
+    // console.log("factors", factors)
+    // console.log("facs", facs)
     return facs
   }, [factors])
 
   const [path, setPath] = useState([])
   const [chosenFactorOrder, setChosenFactorOrder] = useState(0)
   useEffect(() => {
-    // console.log(csn, order)
     if(csn?.path){
       let mfo = 0 // max factor order
-      // console.log("csn.path",csn)
       let p = csn.path.filter(d => !!d).sort((a, b) => a.order - b.order) 
       if(csn.variants && csn.variants.length) {
         // let v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0]
@@ -123,93 +121,108 @@ export default function SubPaths({
     tooltipRef.current.hide()
   }, [onFactor])
 
-  const handleHover = useCallback((e, f) => {
-    const svg = e.target.ownerSVGElement
-    const rect = svg.getBoundingClientRect();
+  const handleSubpathHover = useCallback((e, f) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const my = e.clientY - rect.y;
+    const xoff = tipOrientation === "left" ? -5 : width + 5;
+    let x = rect.x + xoff + offsetX;
+    let y = rect.y + my + 1.5;
+    tooltipRef.current.show(f, null, x, y);
+  }, [offsetX, tipOrientation, width, rw, yScale])
 
-    const my = e.clientY - rect.y
-    const xoff = tipOrientation === "left" ? -5 : width + 5
-    let x = rect.x + xoff + offsetX
-    let y = rect.y + my + 1.5
-    tooltipRef.current.show(f, null, x, y)
-  }, [offsetX, tipOrientation, width])
+  const handleZoom = useCallback((e, o) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const my = e.clientY - rect.y;
+    const or = o + my/rw;
+    onHover(or);
+  }, [rw])
 
   const handleLeave = useCallback(() => {
     tooltipRef.current.hide()
   }, [])
 
   return (
-    <div className="subpath-container">
-      <svg width={width} height={height} onMouseLeave={() => handleLeave()}>
-        {path.length && yScale ? <g>
-
-          {range(4, 15).map(o => {
-            // let p = path.find(d => d.order == o)
+    <div className="subpath-container" style={{ width, height, position: "absolute" }}>
+      {path.length && yScale
+        ? range(4, 15).map(o => {
             let facs = factorsByOrder[o]
-            if(facs?.length) {  //  || o === chosenFactorOrder
-              // Create a treemap layout for the facs of this order group.
-              const root = hierarchy({ children: facs }).sum(d => d.score);
+            if (facs?.length) {
+              const root = hierarchy({ children: facs }).sum(d => d.score)
               treemap()
                 .size([width, rw])
                 .tile(treemapDice)
-                .padding(2)(root);
+                .padding(2)(root)
               return (
-                <g key={o} transform={`translate(0, ${yScale(o)})`}>
-                  {root.leaves().map((leaf, i) => (
-                    <rect
+                <div
+                  key={o}
+                  onMouseMove={e => handleZoom(e, o)}
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: yScale(o),
+                    width: width,
+                    height: rw,
+                    pointerEvents: "all",
+                  }}
+                >
+                  {root.leaves().map((leaf, i) => {
+                    return (
+                    <div
                       key={`${o}-${i}`}
-                      onClick={(e) => handleClick(e, leaf.data.factor)}
-                      onMouseMove={(e) => handleHover(e, leaf.data.factor)}
-                      x={leaf.x0}
-                      y={leaf.y0}
-                      width={leaf.x1 - leaf.x0}
-                      height={leaf.y1 - leaf.y0}
-                      fill={leaf.data.factor.color}
-                      fillOpacity={0.5}
-                      stroke="none"
-                      style={{ cursor: "pointer", pointerEvents: "auto" }}
+                      onClick={e => handleClick(e, leaf.data.factor)}
+                      onMouseMove={e => handleSubpathHover(e, leaf.data.factor)}
+                      onMouseLeave={handleLeave}
+                      style={{
+                        position: "absolute",
+                        left: leaf.x0,
+                        top: leaf.y0,
+                        width: leaf.x1 - leaf.x0,
+                        height: leaf.y1 - leaf.y0,
+                        backgroundColor: leaf.data.factor.color,
+                        opacity: 0.5,
+                        cursor: "pointer",
+                        border: "1px solid black",
+                      }}
                     />
-                  ))}
-                </g>
-              );
+                  )})}
+                </div>
+              )
             }
-          })}
-        </g> : null}
+            return null
+          })
+        : null}
 
-        {/* {showOrderLine ? <line 
-          y1={yScale(or)} 
-          y2={yScale(or)} 
-          x1={0}
-          x2={width}
-          stroke="black"
-          strokeWidth={2}
-          pointerEvents="none"
-          /> : null} */}
-          
-        {chosenFactorOrder && subpathCollection?.length && (
-          <g>
-            <rect
-              y={yScale(chosenFactorOrder) + rw - 2*fontSize - 4}
-              x={rw * .25 - 4} 
-              height={fontSize + 6}
-              width={fontSize * 8}
-              fill={ "red" }
-              strokeWidth={1}
-              stroke="white"
-              rx={3}
-              fillOpacity={0.1}
-            />
-            <text 
-              onClick={onSubpathBack}
-              x={rw * .25} 
-              y={yScale(chosenFactorOrder) + rw - fontSize - 2}
-              fontSize={fontSize}
-              style={{cursor: "pointer", pointerEvents: "auto"}}
-            >❌ remove pin</text>
-          </g>
-        )}
+      {chosenFactorOrder && subpathCollection?.length ? (
+        <div
+          style={{
+            position: "absolute",
+            left: rw * 0.25 - 4,
+            top: yScale(chosenFactorOrder) + rw - 2 * fontSize - 4,
+            width: fontSize * 8,
+            height: fontSize + 6,
+            backgroundColor: "rgba(255, 0, 0, 0.1)",
+            border: "1px solid white",
+            borderRadius: 3,
+            pointerEvents: "all",
+          }}
+        >
+          <span
+            onClick={onSubpathBack}
+            style={{
+              display: "block",
+              textAlign: "center",
+              fontSize: fontSize,
+              cursor: "pointer",
+              pointerEvents: "auto",
+              lineHeight: `${fontSize + 6}px`,
+              opacity: 1,
+            }}
+          >
+            ❌ remove pin
+          </span>
+        </div>
+      ) : null}
 
-      </svg>
       <Tooltip ref={tooltipRef} orientation={tipOrientation} contentFn={factorTooltipContent} enforceBounds={false} />
     </div>
   )
