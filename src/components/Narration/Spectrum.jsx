@@ -57,7 +57,7 @@ const Tooltip = ({ geneset, x, y, visible }) => {
 
 const Spectrum = ({
   show = false,
-  windowSize = 100,
+  windowSize = 10,
   width = 450,
   height = 100,
   xtickMargin = 20,
