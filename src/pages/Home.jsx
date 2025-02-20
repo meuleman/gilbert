@@ -866,12 +866,25 @@ function Home() {
     // setPowerNarration(null)
   }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN]) 
 
+  const clearSelectedStateRef = useRef({ activeFilters, activeRegions, filteredActiveRegions });
   useEffect(() => {
     // if the filters change from a user interaction we want to clear the selected
     // if(filters.userTriggered) clearSelectedState()
     // if the active filters or active regions change we want to clear the selected
-    clearSelectedState()
-  }, [filters, activeFilters, activeRegions, filteredActiveRegions, clearSelectedState])  // don't need filters anymore?
+    
+    // below is done to prevent clearing on initialization for when initial selected region is provided in URL
+    // is this the best way to solve this problem?
+    const prevValues = clearSelectedStateRef.current;
+    if (
+      (JSON.stringify(prevValues.activeFilters) !== JSON.stringify(activeFilters)) ||
+      (JSON.stringify(prevValues.activeRegions) !== JSON.stringify(activeRegions)) ||
+      (JSON.stringify(prevValues.filteredActiveRegions) !== JSON.stringify(filteredActiveRegions))
+    ) {
+      clearSelectedState()
+    }
+    clearSelectedStateRef.current = { activeFilters, activeRegions, filteredActiveRegions };
+    // filters, activeFilters, activeRegions, filteredActiveRegions, clearSelectedState
+  }, [activeFilters, activeRegions, filteredActiveRegions])
 
   // TODO: consistent clear state
   const handleModalClose = useCallback(() => {
