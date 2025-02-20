@@ -9,6 +9,7 @@ const repeatsColors = [ "#FF0000",  "#FF0000",  "#00FF00",  "#0000FF",  "#0000FF
 export default {
   name: "Repeats (ENR)",
   datasetName: "repeats_enr_max",
+  labelName: "Repeat Domain",
   baseURL: `${constants.baseS3URLPrefix}/20240327`,
   orders: [4,13],
   renderer: "CanvasScaledValue",

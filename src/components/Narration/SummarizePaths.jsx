@@ -47,7 +47,7 @@ const SummarizePaths = ({
     let preferentialFactors = topNarrations.flatMap(path => 
       path.path.filter(d => d.field)
       .map(s => 
-        ({field: s.field?.field, value: s.field?.value, layerName: s.layer?.name, order: s.order, color: s.field?.color})
+        ({field: s.field?.field, value: s.field?.value, layerName: (s.layer?.labelName ? s.layer?.labelName : s.layer?.name), order: s.order, color: s.field?.color})
       )
       // TODO: do we want to filter these "low signal" or not?
       // .filter(d => d.layerName.toLowerCase().indexOf("occ") > -1 ? d.value > 0.5 : d.value > 1)
@@ -86,7 +86,7 @@ const SummarizePaths = ({
         return (
           <div key={"group-" + j}>
             <div className='path-summary-datatype'>
-              {g[0]}
+              {g[0]}s
             </div>
             {g[1].slice(0, N).map(FactorBar)}
           </div>

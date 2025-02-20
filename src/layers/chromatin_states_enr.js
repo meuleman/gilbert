@@ -10,6 +10,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "Chromatin States (ENR, Full)",
   datasetName: "cs_enr",
+  labelName: "Chromatin State Domain",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseS3URLPrefix}/20240327`,
   orders: [4,10],
