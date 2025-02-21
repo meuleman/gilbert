@@ -47,10 +47,17 @@ const SummarizePaths = ({
     let preferentialFactors = topNarrations.flatMap(path => 
       path.path.filter(d => d.field)
       .map(s => 
-        ({field: s.field?.field, value: s.field?.value, layerName: (s.layer?.labelName ? s.layer?.labelName : s.layer?.name), order: s.order, color: s.field?.color})
+        ({
+          field: s.field?.field, 
+          value: s.field?.value, 
+          layerName: (s.layer?.labelName ? s.layer?.labelName : s.layer?.name), 
+          dataType: s.layer?.name.toLowerCase().indexOf("occ") > -1 ? "occ" : s.layer?.name.toLowerCase().indexOf("enr") > -1 ? "enr" : "variant",
+          order: s.order, 
+          color: s.field?.color
+        })
       )
       // TODO: do we want to filter these "low signal" or not?
-      // .filter(d => d.layerName.toLowerCase().indexOf("occ") > -1 ? d.value > 0.5 : d.value > 1)
+      .filter(d => d.dataType === "enr" ? d.value > 1 : d.value > 0.2)
     )
     // count the occurrence of each factor, sort by count, and take the top N
     let topFactors = groups(preferentialFactors, d => d.field + "|" + d.layerName)
