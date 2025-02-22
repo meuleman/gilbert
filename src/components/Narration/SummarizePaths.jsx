@@ -7,6 +7,7 @@ import { showKbOrder } from '../../lib/display'
 import './SummarizePaths.css'
 import RegionsContext from '../Regions/RegionsContext'
 import Loading from '../Loading';
+import FactorSearch from '../FactorSearch';
 
 
 const FactorBar = ({ factor, index, handleFactorSelect, handleFactorDeselect }) => {
@@ -153,6 +154,8 @@ const SummarizePaths = ({
 
   return (
     <div className={'path-summary' + (show ? ' show' : ' hide')}>
+      <h3>Filter</h3>
+      <FactorSearch onSelect={(f) => handleFactorSelect(f.factor)}/>
       {filteredRegionsLoading ? <Loading text="Loading top factors..."/> : !topFactors?.length && <div>No factors found</div>}
       {groupedFactors.map((g, j) => {
         return (
