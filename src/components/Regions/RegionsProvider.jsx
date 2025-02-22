@@ -174,7 +174,11 @@ const RegionsProvider = ({ children }) => {
   useEffect(() => {
     if(activeFilters.length && activeRegions?.length) {
       setFilteredRegionsLoading(true)
-      const filters = activeFilters.map(f => ({factor: f.index, dataset: f.layer.datasetName}))
+      const filters = activeFilters.map(f => ({
+        factor: f.index, 
+        // TODO: more permanent solution for handling TF dataset name differences 
+        dataset: f.layer.datasetName.replace("_top10", "")
+      }))
       fetchBackfillFiltering(activeRegions, filters)
       .then((response) => {
         if (response) {
