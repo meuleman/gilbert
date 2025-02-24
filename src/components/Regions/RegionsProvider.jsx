@@ -239,10 +239,10 @@ const RegionsProvider = ({ children }) => {
       let regionsToUse = filteredActiveRegions.map(d => d.subregion ? d.subregion : d)
       fetchRegionSetEnrichments({
         regions: regionsToUse,
-        N: 10,
+        N: null,
         factorExclusion: [
-          ...(factor ? [{dataset: factor?.layer?.datasetName, factor: factor?.index}] : []), 
-          ...filters.map(d => ({dataset: d.layer.datasetName, factor: d.index}))
+          // ...(factor ? [{dataset: factor?.layer?.datasetName, factor: factor?.index}] : []), 
+          // ...filters.map(d => ({dataset: d.layer.datasetName, factor: d.index}))
         ]
       })
       .then((response) => {

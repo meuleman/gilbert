@@ -28,7 +28,7 @@ const FactorBar = ({ factor, index, handleFactorSelect, handleFactorDeselect }) 
       </div>
       <div className="path-summary-factor-name">
         <span>{factor.field} ({showKbOrder(factor.order)})</span>
-        <span>{Math.round(factor.count / factor.total * 100)}%</span>
+        <span>{factor.score ? `${factor.score?.toFixed(2)}, ` : ""} {Math.round(factor.count / factor.total * 100)}%</span>
       </div>
       {!factor.isBlacklisted && (!factor.isFilter ? 
         <button className="filter-button" onClick={() => handleFactorSelect(factor)}>➕</button> :
@@ -50,7 +50,7 @@ const SummarizePaths = ({
   const [topFactors, setTopFactors] = useState([])
   const { 
     activeFilters, setActiveFilters, filteredRegionsLoading, 
-    topNarrationsLoading, activeSet 
+    topNarrationsLoading, activeSet, regionSetEnrichments
   } = useContext(RegionsContext)
 
   const handleFactorSelect = useCallback((f) => {
@@ -109,10 +109,11 @@ const SummarizePaths = ({
         let index = values[0].index
         let label = `${field} ${layer.name}`
         let id = `${layer.name}:${index}`
+        let score = regionSetEnrichments?.find(e => e.field === field && e.layer.labelName === layer.labelName)?.score
         let topOrders = groups(values, d => d.order)
           .sort((a, b) => b[1].length - a[1].length)
         return { 
-          field, layerName, layer, index, label, 
+          field, layerName, layer, index, label, score,
           id, count, color, topOrders, order: topOrders[0][0], 
           total: topNarrations.length, 
           isFilter: activeFilters.some(filter => 
@@ -148,7 +149,7 @@ const SummarizePaths = ({
       setTopFactors([])
     }
 
-  }, [topNarrations, N, filteredRegionsLoading])
+  }, [topNarrations, N, filteredRegionsLoading, regionSetEnrichments])
 
   const groupedFactors = useMemo(() => {
     let filtered = topFactors.filter(f => f.count / f.total > 0 || f.isFilter)
