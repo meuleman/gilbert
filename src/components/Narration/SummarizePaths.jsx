@@ -48,7 +48,10 @@ const SummarizePaths = ({
 } = {}) => {
   // const [pathSummary, setPathSummary] = useState("")
   const [topFactors, setTopFactors] = useState([])
-  const { activeFilters, setActiveFilters, filteredRegionsLoading, activeSet } = useContext(RegionsContext)
+  const { 
+    activeFilters, setActiveFilters, filteredRegionsLoading, 
+    topNarrationsLoading, activeSet 
+  } = useContext(RegionsContext)
 
   const handleFactorSelect = useCallback((f) => {
     const exists = activeFilters.some(filter => 
@@ -156,7 +159,11 @@ const SummarizePaths = ({
     <div className={'path-summary' + (show ? ' show' : ' hide')}>
       <h3>Filter</h3>
       <FactorSearch onSelect={(f) => handleFactorSelect(f.factor)}/>
-      {filteredRegionsLoading ? <Loading text="Loading top factors..."/> : !topFactors?.length && <div>No factors found</div>}
+      {
+        filteredRegionsLoading ? <Loading text="Loading top regions..."/> : 
+        topNarrationsLoading ? <Loading text="Loading top factors..."/> : 
+        !topFactors?.length && <div>No factors found</div>
+      }
       {groupedFactors.map((g, j) => {
         return (
           <div key={"group-" + j}>

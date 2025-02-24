@@ -161,6 +161,7 @@ const RegionsProvider = ({ children }) => {
   }, []);
 
   const resetFilteredActiveRegions = useCallback(() => {
+    setTopNarrations([])
     if(activeRegions?.length) {
       setFilteredActiveRegions(activeRegions.slice(0,100))
       setFilteredRegionsLoading(false)
@@ -173,6 +174,7 @@ const RegionsProvider = ({ children }) => {
   // Filtering regions
   useEffect(() => {
     if(activeFilters.length && activeRegions?.length) {
+      setTopNarrations([])
       setFilteredRegionsLoading(true)
       const filters = activeFilters.map(f => ({
         factor: f.index, 
@@ -261,11 +263,13 @@ const RegionsProvider = ({ children }) => {
   
   // collecting paths, genes, and genesets for top regions
   const [topNarrations, setTopNarrations] = useState([])
+  const [topNarrationsLoading, setTopNarrationsLoading] = useState(false)
   const [genesInRegions, setGenesInRegions] = useState([])
   const [activeGenesetEnrichment, setActiveGenesetEnrichment] = useState(null)
   const [selectedGenesetMembership, setSelectedGenesetMembership] = useState([])
   useEffect(() => {
     if(filteredActiveRegions?.length) {
+      setTopNarrationsLoading(true)
       // if subregion exists, use for narration
       let narrationRegions = filteredActiveRegions.map(d => d.subregion ? {...d, ...d.subregion} : d)
       fetchPartialPathsForRegions(narrationRegions, false).then((response) => {
@@ -276,12 +280,15 @@ const RegionsProvider = ({ children }) => {
         // rehydrate paths
         let rehydrated = response.regions.map(d => rehydratePartialCSN(d, csnLayerList))
         setTopNarrations(rehydrated)
+        setTopNarrationsLoading(false)
       })
       .catch((e) => {
         console.log("error fetching partial paths", e)
+        setTopNarrationsLoading(false)
       })
     } else {
       setTopNarrations([])
+      setTopNarrationsLoading(false)
     }
   }, [filteredActiveRegions])
 
@@ -408,6 +415,8 @@ const RegionsProvider = ({ children }) => {
       activeFilters,
       filteredRegionsLoading,
       filteredActiveRegions,
+      topNarrationsLoading, 
+      setTopNarrationsLoading,
       regionSetEnrichments,
       regionSetEnrichmentsLoading,
       activeGenesetEnrichment,
