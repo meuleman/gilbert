@@ -636,20 +636,11 @@ function Home() {
   
   useEffect(() => {
     if(selected) {
-      // TODO: check if logic is what we want
-      // if an activeSet we grab the first region (since they are ordered) that falls witin the selected region
-      // if the region is smaller than the activeSet regions, the first one where the selected region is within the activeset region
-      let region = selected
-      if(filteredActiveRegions?.length) {
-        let overlappingRegion = overlaps(selected, filteredActiveRegions)[0] || selected
-        overlappingRegion.subregion ? overlappingRegion = overlappingRegion.subregion : null
-        region = overlappingRegion.order > selected.order ? overlappingRegion : selected
-      } 
       setLoadingSelectedCSN(true)
       // setLoadingRegionCSNS(true)
       setSelectedTopCSN(null)
       // setRegionCSNS([])
-      fetchPartialPathsForRegions([region], true).then((response) => {
+      fetchPartialPathsForRegions([selected], true).then((response) => {
         if(!response) { 
           // setRegionCSNS([])
           setSelectedTopCSN(null)
@@ -661,7 +652,7 @@ function Home() {
           let responseRegion = response.regions[0]
           let rehydrated = {
             path: rehydratePartialCSN(responseRegion, [...csnLayers, ...variantLayers]).path,
-            region, 
+            region: selected, 
             genes: responseRegion.genes,
             genesets: responseRegion.genesets.map(g => ({...g, p: genesetScoreMapping[g.geneset]})),
           }
@@ -681,7 +672,7 @@ function Home() {
         // subpath query
         let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null)
         // find and set subpaths
-        findSubpaths(region, factorExclusion)
+        findSubpaths(selected, factorExclusion)
       })
     } else {
       // selected is cleared
@@ -900,6 +891,12 @@ function Home() {
     setShowFilter(false)
   }, [clearSelectedState, clearFilters, setShowFilter, clearActive])
 
+  // use ref to keep track of the filtered active regions for the click handler
+  const filteredActiveRegionsRef = useRef(filteredActiveRegions);
+  useEffect(() => {
+    filteredActiveRegionsRef.current = filteredActiveRegions;
+  }, [filteredActiveRegions])
+
   const handleClick = useCallback((hit, order, double) => {
     // console.log("app click handler", hit, order, double)
     console.log("HANDLE CLICK", hit, selectedRef.current)
@@ -917,8 +914,19 @@ function Home() {
       // } else {
       //   setSelected(hit)
       // }
-      setSelected(hit)
-      setRegion(hit)
+
+      // TODO: check if logic is what we want
+      // if region set exists, we grab the first region (since they are ordered) that falls within the selected region
+      // use region subpath if it exists
+      // if the selected region is smaller than the overlapping region set region, use the originally selected region
+      let selected = hit
+      if(filteredActiveRegionsRef.current?.length) {
+        let overlappingRegion = overlaps(hit, filteredActiveRegionsRef.current)[0] || hit
+        overlappingRegion.subregion ? overlappingRegion = overlappingRegion.subregion : null
+        selected = overlappingRegion.order > hit.order ? overlappingRegion : hit
+      } 
+      setSelected(selected)
+      setRegion(hit)  // this sets zoom. we should set with selected segment, not implied segment
     }
   }, [setSelected, setRegion, clearSelectedState, filteredActiveRegions])
 
