@@ -110,7 +110,7 @@ const ActiveRegionSetModal = ({
           </div>
         </div> */}
 
-        <div className={styles.section}>
+        {/* <div className={styles.section}>
           <h3>Filter</h3>
           <FactorSearch onSelect={(f) => handleFactorSelect(f.factor)}/>
           
@@ -144,7 +144,7 @@ const ActiveRegionSetModal = ({
               </span>
             </div>
           : null}
-         </div>
+         </div> */}
 
          
         
