@@ -162,8 +162,7 @@ const SummarizePaths = ({
       <FactorSearch onSelect={(f) => handleFactorSelect(f.factor)}/>
       {
         filteredRegionsLoading ? <Loading text="Loading top regions..."/> : 
-        topNarrationsLoading ? <Loading text="Loading top factors..."/> : 
-        !topFactors?.length && <div>No factors found</div>
+        topNarrationsLoading && <Loading text="Loading top factors..."/>
       }
       {groupedFactors.map((g, j) => {
         return (
