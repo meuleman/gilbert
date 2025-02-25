@@ -727,6 +727,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
 
   return (
     <div className="power">
+      {/* TODO: The factor label component is causing a variable width of IG */}
       <div className="factor-label">
         {currentPreferred?.field ? (
           <>
