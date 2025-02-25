@@ -61,6 +61,8 @@ export default function SubPaths({
   onClick = () => {},
   onHover = () => {},
   onFactor= () => {},
+  handleNarrationPreview = () => {},
+  removeNarrationPreview = () => {},
   onSubpathBack= () => {}
 }) {
   const tooltipRef = useRef(null)
@@ -80,8 +82,8 @@ export default function SubPaths({
       facs[o].push({factor: f, score} )
       facs[o].sort((a, b) => b.score - a.score)
     })
-    console.log("factors", factors)
-    console.log("facs", facs)
+    // console.log("factors", factors)
+    // console.log("facs", facs)
     return facs
   }, [factors])
 
@@ -123,7 +125,9 @@ export default function SubPaths({
     tooltipRef.current.hide()
   }, [onFactor])
 
-  const handleHover = useCallback((e, f) => {
+  const handleHover = useCallback((e, f, o) => {
+    handleNarrationPreview(f)
+    
     const svg = e.target.ownerSVGElement
     const rect = svg.getBoundingClientRect();
 
@@ -132,9 +136,13 @@ export default function SubPaths({
     let x = rect.x + xoff + offsetX
     let y = rect.y + my + 1.5
     tooltipRef.current.show(f, null, x, y)
+
+    const or = o + (my - yScale(o))/rw
+    onHover(or)
   }, [offsetX, tipOrientation, width])
 
   const handleLeave = useCallback(() => {
+    removeNarrationPreview()
     tooltipRef.current.hide()
   }, [])
 
@@ -159,7 +167,7 @@ export default function SubPaths({
                     <rect
                       key={`${o}-${i}`}
                       onClick={(e) => handleClick(e, leaf.data.factor)}
-                      onMouseMove={(e) => handleHover(e, leaf.data.factor)}
+                      onMouseMove={(e) => handleHover(e, leaf.data.factor, o)}
                       x={leaf.x0}
                       y={leaf.y0}
                       width={leaf.x1 - leaf.x0}

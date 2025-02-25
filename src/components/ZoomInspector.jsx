@@ -26,6 +26,7 @@ import styles from './InspectorGadget.module.css';
  */
 function ZoomInspector({
   csn,
+  previewCsn,
   order,
   maxPathScore,
   zoomHeight,
@@ -34,6 +35,8 @@ function ZoomInspector({
   factors,
   subpathCollection,
   onFactor,
+  handleNarrationPreview,
+  removeNarrationPreview,
   onSubpathBack,
 }) {
   const tipOrientation = "left"
@@ -42,7 +45,7 @@ function ZoomInspector({
   return (
     <div className={styles.zoomScores}>
       <ZoomLine 
-        csn={csn} 
+        csn={previewCsn ? previewCsn : csn} 
         order={order}
         maxPathScore={maxPathScore}
         highlight={true}
@@ -87,6 +90,8 @@ function ZoomInspector({
           onHover={onHover}
           showScore={false}
           onFactor={onFactor}
+          handleNarrationPreview={handleNarrationPreview}
+          removeNarrationPreview={removeNarrationPreview}
           onSubpathBack={onSubpathBack}
         />
       </div>

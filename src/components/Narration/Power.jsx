@@ -112,7 +112,7 @@ PowerModal.propTypes = {
 };
 
 
-function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder, onPercent }) {
+function PowerModal({ csn, width, height, sheight=30, userOrder, onData, isPreview, onOrder, onPercent }) {
 
   const canvasRef = useRef(null);
   // const canvasRef1D = useRef(null);
@@ -297,9 +297,9 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
   }, [csn])
 
   useEffect(() => {
-    if(data && onData)
+    if(data && onData && !isPreview)
       onData(data)
-  }, [data, onData])
+  }, [data, onData, isPreview])
 
 
   // const [genes, setGenes] = useState([])
