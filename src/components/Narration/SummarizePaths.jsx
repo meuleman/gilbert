@@ -50,7 +50,8 @@ const SummarizePaths = ({
   const [topFactors, setTopFactors] = useState([])
   const { 
     activeFilters, setActiveFilters, filteredRegionsLoading, 
-    topNarrationsLoading, activeSet, regionSetEnrichments
+    topNarrationsLoading, activeSet, regionSetEnrichments, 
+    regionSetNarrationLoading, regionSetNarration, regionSetArticles
   } = useContext(RegionsContext)
 
   const handleFactorSelect = useCallback((f) => {
@@ -156,33 +157,76 @@ const SummarizePaths = ({
     return groups(filtered, d => d.layerName).sort((a, b) => b[1][0].count - a[1][0].count)
   }, [topFactors])
 
+  const [activeTab, setActiveTab] = useState('summary')
+
+  const [showArticles, setShowArticles] = useState(false)
+  const handleShowArticles = () => {
+    setShowArticles(!showArticles)
+  }
+
   return (
     <div className={'path-summary' + (show ? ' show' : ' hide')}>
-      <h3>Filter</h3>
-      <FactorSearch onSelect={(f) => handleFactorSelect(f.factor)}/>
-      {
-        filteredRegionsLoading ? <Loading text="Loading top regions..."/> : 
-        topNarrationsLoading && <Loading text="Loading top factors..."/>
+      <div className={'tabs'}>
+        <button 
+          className={`tab ${activeTab === 'summary' ? 'active' : ''}`}
+          onClick={() => setActiveTab('summary')}
+        >
+          Summary
+        </button>
+        <button 
+          className={`tab ${activeTab === 'factors' ? 'active' : ''}`}
+          onClick={() => setActiveTab('factors')}
+        >
+          Top Factors
+        </button>
+      </div>
+
+      {activeTab === 'factors' ? 
+      <div>
+        <h3>Filter</h3>
+        <FactorSearch onSelect={(f) => handleFactorSelect(f.factor)}/>
+        {
+          filteredRegionsLoading ? <Loading text="Loading top regions..."/> : 
+          topNarrationsLoading && <Loading text="Loading top factors..."/>
+        }
+        {<div className='path-summary-container'>
+          {groupedFactors.map((g, j) => {
+            return (
+              <div key={"group-" + j}>
+                <div className='path-summary-datatype'>
+                  {g[0]}s
+                </div>
+                {/* {g[1].slice(0, N).map(FactorBar)} */}
+                {g[1].slice(0, N + g[1].filter(d => d.isFilter).length).map((factor, index) => (
+                  <FactorBar 
+                    factor={factor} 
+                    index={index} 
+                    handleFactorSelect={handleFactorSelect} 
+                    handleFactorDeselect={handleFactorDeselect}
+                  />
+                ))}
+              </div>
+            )
+          })}
+        </div>
+        }
+      </div> : 
+      <div className='summary-view'>
+        <p>{regionSetNarrationLoading ? "loading..." : regionSetNarration}</p>
+        {!regionSetNarrationLoading && regionSetNarration !== "" &&
+        <div>
+          <button onClick={handleShowArticles}>{showArticles ? "Hide Supporting Articles" : "Show Supporting Articles"}</button>
+          {showArticles && <div>
+            <h3>{regionSetArticles.length} open access PubMed articles found: </h3>
+            <p>
+              {regionSetArticles.map((a,i) => {
+                return (<span key={a.pmc}> {i+1}) <a href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} target="_blank" rel="noreferrer">{a.full_title}</a><br></br></span>)
+              })}
+            </p>
+          </div>}
+        </div>}
+      </div>
       }
-      {groupedFactors.map((g, j) => {
-        return (
-          <div key={"group-" + j}>
-            <div className='path-summary-datatype'>
-              {g[0]}s
-            </div>
-            {/* {g[1].slice(0, N).map(FactorBar)} */}
-            {g[1].slice(0, N + g[1].filter(d => d.isFilter).length).map((factor, index) => (
-              <FactorBar 
-                factor={factor} 
-                index={index} 
-                handleFactorSelect={handleFactorSelect} 
-                handleFactorDeselect={handleFactorDeselect}
-              />
-            ))}
-          </div>
-        )
-      })}
-      {/* {topFactors?.map(FactorBar)} */}
 
     </div>
   )

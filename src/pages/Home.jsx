@@ -956,7 +956,7 @@ function Home() {
 
   const [showLayerLegend, setShowLayerLegend] = useState(true)
   const [showSpectrum, setShowSpectrum] = useState(false)
-  const [showTopFactors, setShowTopFactors] = useState(false)
+  const [showSummary, setShowSummary] = useState(false)
   const [showManageRegionSets, setShowManageRegionSets] = useState(false)
   const [showActiveRegionSet, setShowActiveRegionSet] = useState(false)
   const [loadingSpectrum, setLoadingSpectrum] = useState(false);
@@ -975,11 +975,11 @@ function Home() {
       setShowLayerLegend(false)
       // setShowFilter(true)
       setShowActiveRegionSet(true)
-      // setShowTopFactors(true)
+      // setShowSummary(true)
     } else {
       setShowActiveRegionSet(false)
       // setShowSpectrum(false)
-      setShowTopFactors(false)
+      setShowSummary(false)
     }
   }, [activeSet])
 
@@ -999,9 +999,9 @@ function Home() {
   // useEffect(() => {
   //   activePathsRef.current = activePaths
   //   if(activePaths?.length) {
-  //     setShowTopFactors(true)
+  //     setShowSummary(true)
   //   } else {
-  //     setShowTopFactors(false)
+  //     setShowSummary(false)
   //   }
   // }, [activePaths])
 
@@ -1152,8 +1152,8 @@ function Home() {
             showSpectrum={showSpectrum}
             onSpectrum={setShowSpectrum}
             loadingSpectrum={loadingSpectrum}
-            showTopFactors={showTopFactors}
-            onTopFactors={setShowTopFactors}
+            showSummary={showSummary}
+            onSummary={setShowSummary}
             showManageRegionSets={showManageRegionSets}
             showActiveRegionSet={showActiveRegionSet}
             onManageRegionSets={setShowManageRegionSets}
@@ -1180,7 +1180,7 @@ function Home() {
           </div>
           <div className="topfactors-container">
             <SummarizePaths
-              show={showTopFactors}
+              show={showSummary}
               topNarrations={topNarrations}
             /> 
           </div>
