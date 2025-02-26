@@ -84,6 +84,11 @@ const ActiveRegionSetModal = ({
 
   const [activeTab, setActiveTab] = useState('table')
 
+  const [showArticles, setShowArticles] = useState(false)
+  const handleShowArticles = () => {
+    setShowArticles(!showArticles)
+  }
+
   return (
     <div className={`${styles['active-regionsets-modal']} ${show ? styles.show : ''}`}>
       <div className={styles.content}>
@@ -182,12 +187,18 @@ const ActiveRegionSetModal = ({
           {activeTab === 'summary' ? (
             <div className={styles['summary-view']}>
               <p>{regionSetNarrationLoading ? "loading..." : regionSetNarration}</p>
-              {!regionSetNarrationLoading && regionSetNarration !== "" ? <div><h3>{regionSetArticles.length} open access PubMed articles found: </h3>
-              <p>
-                {regionSetArticles.map((a,i) => {
-                  return (<span key={a.pmc}> {i+1}) <a href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} target="_blank" rel="noreferrer">{a.full_title}</a><br></br></span>)
-                })}
-              </p> </div> : null }
+              {!regionSetNarrationLoading && regionSetNarration !== "" &&
+              <div>
+                <button onClick={handleShowArticles}>{showArticles ? "Hide Supporting Articles" : "Show Supporting Articles"}</button>
+                {showArticles && <div>
+                  <h3>{regionSetArticles.length} open access PubMed articles found: </h3>
+                  <p>
+                    {regionSetArticles.map((a,i) => {
+                      return (<span key={a.pmc}> {i+1}) <a href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} target="_blank" rel="noreferrer">{a.full_title}</a><br></br></span>)
+                    })}
+                  </p>
+                </div>}
+              </div>}
             </div>
           ) : (
             <div className={styles['table-body-container']} style={{ fontSize: '12px' }}>

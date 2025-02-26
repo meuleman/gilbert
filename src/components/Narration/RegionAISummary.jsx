@@ -173,6 +173,10 @@ const RegionAISummary = ({
       })
   }, [request_id])
 
+  const [showArticles, setShowArticles] = useState(false)
+  const handleShowArticles = () => {
+    setShowArticles(!showArticles)
+  }
 
   useEffect(() => {
     let query = generateQuery(narration)
@@ -208,17 +212,24 @@ const RegionAISummary = ({
       </Tooltip>
 
       <p>{loading ? "loading..." : generated}</p>
-      {generated ? <div className={styles.feedbackButtons}>
-        Summary feedback:
-        <button onClick={() => feedback("👍")}>👍</button>
-        <button onClick={() => feedback("👎")}>👎</button>
-      </div>: null}
-      {generated ? <div><h3>{articles.length} open access PubMed articles found: </h3>
-      <p>
-        {articles.map((a,i) => {
-          return (<span key={a.pmc}> {i+1}) <a href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} target="_blank" rel="noreferrer">{a.full_title}</a><br></br></span>)
-        })}
-      </p> </div> : null }
+      {generated && 
+        <div>
+          <div className={styles.feedbackButtons}>
+            Summary feedback:
+            <button onClick={() => feedback("👍")}>👍</button>
+            <button onClick={() => feedback("👎")}>👎</button>
+          </div>
+          <button onClick={handleShowArticles}>{showArticles ? "Hide Supporting Articles" : "Show Supporting Articles"}</button>
+          {showArticles && <div>
+            <h3>{articles.length} open access PubMed articles found: </h3>
+            <p>
+              {articles.map((a,i) => {
+                return (<span key={a.pmc}> {i+1}) <a href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} target="_blank" rel="noreferrer">{a.full_title}</a><br></br></span>)
+              })}
+            </p>
+          </div>}
+        </div>
+      }
       {/* {generated ? <div className={styles.feedbackButtons}>
         Articles:
         <button onClick={() => feedback("👍")}>👍</button>
