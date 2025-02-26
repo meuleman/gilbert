@@ -226,10 +226,10 @@ const RegionAISummary = ({
       </div>: null} */}
 
       {/* <button onClick={generate} disabled={loading}>Generate summary</button> */}
-      <hr></hr>
+      {/* <hr></hr>
       <a href={`https://www.google.com/search?q=${query}`} target="_blank" rel="noreferrer" data-tooltip-id="search-debug">
           Search Google for relevant literature ↗
-      </a>
+      </a> */}
     </div>
   )
 }
