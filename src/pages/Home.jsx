@@ -852,12 +852,15 @@ function Home() {
     setSimSearchMethod(null)
     setSelectedTopCSN(null)
     setRegionCSNS([])
-    setRegionSetNarration("")
-    setRegionSetArticles([])
     // setPowerNarration(null)
   }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN]) 
 
-  const clearSelectedStateRef = useRef({ activeFilters, activeRegions, filteredActiveRegions });
+  const clearRegionSetSummaries = useCallback(() => {
+    setRegionSetNarration("")
+    setRegionSetArticles([])
+  }, [setRegionSetArticles, setRegionSetNarration])
+
+  const regionSetStateRef = useRef({ activeFilters, activeRegions, filteredActiveRegions });
   useEffect(() => {
     // if the filters change from a user interaction we want to clear the selected
     // if(filters.userTriggered) clearSelectedState()
@@ -865,15 +868,16 @@ function Home() {
     
     // below is done to prevent clearing on initialization for when initial selected region is provided in URL
     // is this the best way to solve this problem?
-    const prevValues = clearSelectedStateRef.current;
+    const prevValues = regionSetStateRef.current;
     if (
       (JSON.stringify(prevValues.activeFilters) !== JSON.stringify(activeFilters)) ||
       (JSON.stringify(prevValues.activeRegions) !== JSON.stringify(activeRegions)) ||
       (JSON.stringify(prevValues.filteredActiveRegions) !== JSON.stringify(filteredActiveRegions))
     ) {
       clearSelectedState()
+      clearRegionSetSummaries()
     }
-    clearSelectedStateRef.current = { activeFilters, activeRegions, filteredActiveRegions };
+    regionSetStateRef.current = { activeFilters, activeRegions, filteredActiveRegions };
     // filters, activeFilters, activeRegions, filteredActiveRegions, clearSelectedState
   }, [activeFilters, activeRegions, filteredActiveRegions])
 
@@ -885,11 +889,12 @@ function Home() {
   const handleClear = useCallback(() => {
     console.log("handle clear!")
     clearSelectedState()
+    clearRegionSetSummaries()
     clearFilters()
     clearActive()
     // setActiveSet(null)
     setShowFilter(false)
-  }, [clearSelectedState, clearFilters, setShowFilter, clearActive])
+  }, [clearSelectedState, clearFilters, setShowFilter, clearActive, clearRegionSetSummaries])
 
   // use ref to keep track of the filtered active regions for the click handler
   const filteredActiveRegionsRef = useRef(filteredActiveRegions);
