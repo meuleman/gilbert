@@ -370,7 +370,7 @@ const RegionsProvider = ({ children }) => {
     // parse enriched genesets and genes and add to query
     if(activeGenesetEnrichment?.length) {
       let genesetsToInclude = activeGenesetEnrichment?.sort((a, b) => a.p - b.p).slice(0, 3)
-      query += "; " + genesetsToInclude.map(d => `GO ${d.geneset.split("_").slice(1).join(" ")}`).join("; ")
+      query += "; " + genesetsToInclude.map(d => `GO ${d.geneset.split("_").slice(1).join(" ")} ${d.p.toExponential(2)}`).join("; ")
       // collect genes
       let genesetGenes = genesetsToInclude.flatMap(d => d.genes)
       let regionGenes = narrations.flatMap(d => d.genes.map(g => ({name: g.name, inGene: g.in_gene})))
