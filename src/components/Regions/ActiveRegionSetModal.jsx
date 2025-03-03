@@ -24,6 +24,7 @@ const ActiveRegionSetModal = ({
 } = {}) => {
 
   const { 
+    activeSet,
     activeRegions, 
     activeFilters,
     filteredRegionsLoading,
@@ -85,11 +86,25 @@ const ActiveRegionSetModal = ({
             <div>
               {/* <h3> {filteredActiveRegions?.length} / {activeRegions?.length} regions</h3> */}
               <h3>
-                {`${
-                  filteredActiveRegions?.length
-                } selected ${
-                  filteredActiveRegions?.length === 1 ? "region" : "regions"
-                }${activeFilters?.length > 0 ? ` showing ${activeFilters.map(f => f.field).join(", ")}` : ""}`}
+                {(() => {
+                  // Get region count and text
+                  const regionCount = filteredActiveRegions?.length || 0;
+                  const regionText = regionCount === 1 ? "region" : "regions";
+                  
+                  // Build filter fields list if needed
+                  let filterInfo = "";
+                  if (!!activeSet?.factor || activeFilters?.length > 0) {
+                    // Collect all fields from activeSet and activeFilters
+                    const fields = [];
+                    // Add activeSet factor field if it exists
+                    if (activeSet?.factor?.field) fields.push(activeSet.factor.field)
+                    // Add all fields from activeFilters
+                    fields.push(...activeFilters.map(f => f.field));
+                    filterInfo = ` showing ${fields.join(", ")}`;
+                  }
+                  // Return the full string
+                  return `${regionCount} selected ${regionText}${filterInfo}`;
+                })()}
               </h3>
             </div>
             }
