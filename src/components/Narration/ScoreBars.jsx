@@ -171,9 +171,23 @@ export default function ScoreBars({
           {range(4, 15).map(o => {
             let p = path.find(d => d.order == o)
             // let bp = showKb(Math.pow(4, 14 - o))
+            let y = yScale(o) + rw/2
             return <g key={o} onMouseMove={(e) => handleHover(e, o)}>
               <text
-                y={yScale(o) + rw/2 + fontSize/2}
+                y={y}
+                x={width / 2}
+                textAnchor="middle"
+                fontFamily="Courier"
+                fontSize={fontSize}
+                // stroke="#333"
+                fill="#111"
+                paintOrder="stroke"
+                fontWeight={highlightOrders.indexOf(o) >= 0 ? "bold" : "normal"}
+              >
+                {p?.field?.field ? p.field.field : ""}
+              </text>
+              <text
+                y={y + fontSize}
                 x={width / 2}
                 textAnchor="middle"
                 fontFamily="Courier"
