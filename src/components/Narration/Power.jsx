@@ -728,7 +728,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, isPrevi
   return (
     <div className="power">
       {/* TODO: The factor label component is causing a variable width of IG */}
-      <div className="factor-label">
+      <div className="factor-label" style={{maxWidth: width + "px"}}>
         {currentPreferred?.field ? (
           <>
             <span style={{ color: currentPreferred?.layer?.fieldColor(currentPreferred?.field?.field), marginRight: '4px' }}>⏺</span>

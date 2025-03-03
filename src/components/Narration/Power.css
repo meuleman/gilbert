@@ -10,6 +10,7 @@
   margin-bottom: 8px;
   text-align: center;
   height: 25px;
+  overflow-x: hidden;
 }
 
 .power-container {
