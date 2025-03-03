@@ -24,18 +24,12 @@ const ActiveRegionSetModal = ({
 } = {}) => {
 
   const { 
-    activeSet, 
     activeRegions, 
     activeFilters,
     filteredRegionsLoading,
     filteredActiveRegions,
-    regionSetEnrichments,
-    regionSetEnrichmentsLoading,
     setActiveSet,
     setActiveFilters,
-    regionSetNarration,
-    regionSetNarrationLoading,
-    regionSetArticles,
   } = useContext(RegionsContext)
 
   const [regions, setRegions] = useState([])
@@ -82,77 +76,9 @@ const ActiveRegionSetModal = ({
     })
   }, [])
 
-  const [activeTab, setActiveTab] = useState('table')
-
-  const [showArticles, setShowArticles] = useState(false)
-  const handleShowArticles = () => {
-    setShowArticles(!showArticles)
-  }
-
   return (
     <div className={`${styles['active-regionsets-modal']} ${show ? styles.show : ''}`}>
-      <div className={styles.content}>
-        {/* <div className={styles.manage}>
-          <span className={styles['set-name']}>{activeSet?.name}</span>
-          {filteredActiveRegions ? 
-            <span className={styles['set-count']}>{filteredActiveRegions?.length} / {activeRegions?.length} total regions</span> :
-            <span className={styles['set-count']}>{activeRegions?.length} total regions</span>}
-          
-          <div className={styles.buttons}>
-            <button data-tooltip-id={`active-deselect`} onClick={handleDeselect}>❌</button>
-            <Tooltip id={`active-deselect`}>
-              Deselect active region set
-            </Tooltip>
-            <button data-tooltip-id={`active-download-regions`}
-              onClick={() => handleDownload(activeSet)}
-            >
-              ⬇️
-            </button>
-            <Tooltip id={`active-download-regions`}>
-              Download {activeRegions?.length} regions to BED file
-            </Tooltip>
-
-          </div>
-        </div> */}
-
-        {/* <div className={styles.section}>
-          <h3>Filter</h3>
-          <FactorSearch onSelect={(f) => handleFactorSelect(f.factor)}/>
-          
-          {activeFilters?.length ? <div className={`${styles['active-filters']}`}>
-              <span>Active filters: </span>
-              <span className={styles['active-filters-list']}>
-              {activeFilters.map((f,i) => 
-                <span key={f.label} className={styles['active-filter']} style={{border: `1px solid ${f.color}`}}>
-                  <span className={styles['active-filter-color']} style={{backgroundColor: f.color}}>
-                  </span>
-                  {f.label}
-                <button onClick={() => setActiveFilters(activeFilters.slice(0, i).concat(activeFilters.slice(i+1)))}>❌</button>
-              </span>)}
-              </span>
-            </div>
-          : null}
-
-          {regionSetEnrichmentsLoading ? <div className={`${styles['region-set-enrichments']}`}>
-            <Loading text="Loading suggested filters..."/>
-          </div> : null}
-          {!regionSetEnrichmentsLoading && regionSetEnrichments?.length ? <div className={`${styles['region-set-enrichments']}`}>
-              <span>Suggested filters: </span>
-              <span className={styles['region-set-enrichments-list']}>
-              {regionSetEnrichments.filter(f => !inFilters(activeFilters, f)).map((f,i) => 
-                <span onClick={() => handleFactorSelect(f)} key={"enrichment-" + f.label} className={styles['region-set-enrichment']} style={{border: `1px solid ${f.color}`}}>
-                  <span className={styles['active-filter-color']} style={{backgroundColor: f.color}}>
-                  </span>
-                  {f.label}: {f.score.toFixed(3)}, ~{f.percent.toFixed(0)}%
-                <button>➕</button>
-              </span>)}
-              </span>
-            </div>
-          : null}
-         </div> */}
-
-         
-        
+      <div className={styles.content}>        
         <div className={`${styles.section} ${styles['region-sets']}`}>
           <div className={styles['region-sets-header']}>
             {filteredRegionsLoading ? <h3><Loading text="Loading filtered regions..."/> </h3> :
@@ -168,40 +94,7 @@ const ActiveRegionSetModal = ({
             </div>
             }
           </div>
-
-          <div className={styles.tabs}>
-            <button 
-              className={`${styles.tab} ${activeTab === 'table' ? styles.active : ''}`}
-              onClick={() => setActiveTab('table')}
-            >
-              Table
-            </button>
-            <button 
-              className={`${styles.tab} ${activeTab === 'summary' ? styles.active : ''}`}
-              onClick={() => setActiveTab('summary')}
-            >
-              Summary
-            </button>
-          </div>
-
-          {activeTab === 'summary' ? (
-            <div className={styles['summary-view']}>
-              <p>{regionSetNarrationLoading ? "loading..." : regionSetNarration}</p>
-              {!regionSetNarrationLoading && regionSetNarration !== "" &&
-              <div>
-                <button onClick={handleShowArticles}>{showArticles ? "Hide Supporting Articles" : "Show Supporting Articles"}</button>
-                {showArticles && <div>
-                  <h3>{regionSetArticles.length} open access PubMed articles found: </h3>
-                  <p>
-                    {regionSetArticles.map((a,i) => {
-                      return (<span key={a.pmc}> {i+1}) <a href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} target="_blank" rel="noreferrer">{a.full_title}</a><br></br></span>)
-                    })}
-                  </p>
-                </div>}
-              </div>}
-            </div>
-          ) : (
-            <div className={styles['table-body-container']} style={{ fontSize: '12px' }}>
+          <div className={styles['table-body-container']} style={{ fontSize: '12px' }}>
               <table style={{ width: '100%', tableLayout: 'fixed' }}>
                 <thead>
                   <tr>
@@ -257,7 +150,6 @@ const ActiveRegionSetModal = ({
                 </tbody>
               </table>
             </div>
-          )}
         </div>
       </div>
     </div>
