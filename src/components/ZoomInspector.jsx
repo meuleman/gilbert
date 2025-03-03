@@ -27,6 +27,7 @@ import styles from './InspectorGadget.module.css';
 function ZoomInspector({
   csn,
   previewCsn,
+  slicedPreviewCsn,
   order,
   maxPathScore,
   zoomHeight,
@@ -60,7 +61,7 @@ function ZoomInspector({
         onClick={onClick || ((c) => { console.log("ZoomLine clicked:", c); })}
       />
       <ScoreBars
-        csn={csn} 
+        csn={slicedPreviewCsn ? slicedPreviewCsn : csn} 
         order={order}
         highlight={true}
         selected={true}
@@ -76,6 +77,7 @@ function ZoomInspector({
       <div className={styles.subpath}>
         <SubPaths 
           csn={csn}
+          preview={slicedPreviewCsn}
           factors={factors}
           subpathCollection={subpathCollection}
           order={order}

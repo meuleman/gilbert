@@ -43,6 +43,7 @@ SubPaths.propTypes = {
 
 export default function SubPaths({
   csn,
+  preview,
   factors,
   subpathCollection,
   order,
@@ -154,7 +155,8 @@ export default function SubPaths({
           {range(4, 15).map(o => {
             // let p = path.find(d => d.order == o)
             let facs = factorsByOrder[o]
-            if(facs?.length) {  //  || o === chosenFactorOrder
+            // ensure that preview path is not already showing something for this order
+            if(facs?.length && !preview?.path?.find(p => p?.order === o)) {  //  || o === chosenFactorOrder
               // Create a treemap layout for the facs of this order group.
               const root = hierarchy({ children: facs }).sum(d => d.score);
               treemap()

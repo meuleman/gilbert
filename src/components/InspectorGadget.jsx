@@ -180,6 +180,7 @@ const InspectorGadget = ({
 
   // Callback previewing factor path on subpath hover
   const [narrationPreview, setNarrationPreview] = useState(null);
+  const [slicedNarrationPreview, setSlicedNarrationPreview] = useState(null);
   const narrationPreviewRef = useRef(narrationPreview);
   const handleNarrationPreview = useCallback((factor) => {
     const newNarration = { ...narration };
@@ -188,10 +189,24 @@ const InspectorGadget = ({
       newNarration.path = newPath;
       if (JSON.stringify(newNarration) !== JSON.stringify(narrationPreviewRef.current)) {
         setNarrationPreview(newNarration);
-        narrationPreviewRef.current = newNarration;
       }
     }
   }, [narration, narrationPreview, setNarrationPreview]);
+
+  // Update the ref and sliced version when the preview changes
+  useEffect(() => {
+    // update ref
+    narrationPreviewRef.current = narrationPreview;
+    
+    // update sliced version of the preview (for score bars)
+    if(narrationPreview) {
+      let withSlicedPath = { ...narrationPreview };
+      withSlicedPath.path = narrationPreview.path.slice(0, -1);
+      setSlicedNarrationPreview(withSlicedPath);
+    } else {
+      setSlicedNarrationPreview(narrationPreview);
+    }
+  }, [narrationPreview]);
 
   const removeNarrationPreview = useCallback(() => {
     setNarrationPreview(null);
@@ -290,6 +305,7 @@ const InspectorGadget = ({
                     <ZoomInspector
                       csn={loadingFullNarration ? narration : fullNarration}
                       previewCsn={narrationPreview}
+                      slicedPreviewCsn={slicedNarrationPreview}
                       order={zOrder}
                       maxPathScore={maxPathScore}
                       zoomHeight={mapHeight - 20}
