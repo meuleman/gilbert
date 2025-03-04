@@ -209,8 +209,8 @@ export default function ScoreBars({
                     pointerEvents: "none"
                   }}
                 >
-                </div>
                   {p?.field?.field ? p?.field?.field : ""}
+                </div>
                 <div
                   key={`${o}-score`}
                   // onMouseMove={e => handleHover(e, o)}
