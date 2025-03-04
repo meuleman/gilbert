@@ -194,7 +194,7 @@ export default function ScoreBars({
             return (
               <div>
                 <div
-                  key={o}
+                  key={`${o}-field`}
                   // onMouseMove={e => handleHover(e, o)}
                   style={{
                     position: "absolute",
@@ -212,7 +212,7 @@ export default function ScoreBars({
                 </div>
                   {p?.field?.field ? p?.field?.field : ""}
                 <div
-                  key={o}
+                  key={`${o}-score`}
                   // onMouseMove={e => handleHover(e, o)}
                   style={{
                     position: "absolute",
