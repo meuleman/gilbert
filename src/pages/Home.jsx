@@ -1133,11 +1133,36 @@ function Home() {
       </div>
       <div className="flex-1 flex min-h-0">
         <div className="grow-0">
-          <ActiveRegionSetModal
-            show={activeSet}
-            onSelect={handleSelectActiveRegionSet}
+          <LeftToolbar
+            showLayerLegend={showLayerLegend}
+            onLayerLegend={setShowLayerLegend}
+            showSpectrum={showSpectrum}
+            onSpectrum={setShowSpectrum}
+            loadingSpectrum={loadingSpectrum}
+            showSummary={showSummary}
+            onSummary={setShowSummary}
+            showManageRegionSets={showManageRegionSets}
+            showActiveRegionSet={showActiveRegionSet}
+            onManageRegionSets={setShowManageRegionSets}
+            onActiveRegionSet={setShowActiveRegionSet}
+            showSankey={showSankey}
+            onSankey={setShowSankey}
+            content={{
+              activeRegionSetModal: <ActiveRegionSetModal
+                show={activeSet}
+                onSelect={handleSelectActiveRegionSet}
+              />,
+              regionSetSummary: <SummarizePaths
+                show={showSummary}
+                topNarrations={topNarrations}
+              />
+            }}
           >
-            {selected && (selectedTopCSN || loadingSelectedCSN) && (
+            {/* <ActiveRegionSetModal
+              show={activeSet}
+              onSelect={handleSelectActiveRegionSet}
+            /> */}
+            {/* {selected && (selectedTopCSN || loadingSelectedCSN) && (
               <HilbertGenome
                 orderMin={orderDomain[0]}
                 orderMax={orderDomain[1]}
@@ -1167,8 +1192,8 @@ function Home() {
                 // onLayer={handleLayer}
                 debug={showDebug}
               />
-            )}
-          </ActiveRegionSetModal>
+            )} */}
+          </LeftToolbar>
         </div>
         <div className={showInspectorGadget ? "flex-1" : "grow-0"}>
           {selected && (selectedTopCSN || loadingSelectedCSN) && (
@@ -1364,7 +1389,7 @@ function Home() {
           setLayerLockFromIcon={setLayerLockFromIcon}
         />
 
-        <LeftToolbar
+        {/* <LeftToolbar
           showLayerLegend={showLayerLegend}
           onLayerLegend={setShowLayerLegend}
           showSpectrum={showSpectrum}
@@ -1378,7 +1403,7 @@ function Home() {
           onActiveRegionSet={setShowActiveRegionSet}
           showSankey={showSankey}
           onSankey={setShowSankey}
-        />
+        /> */}
 
         <LayerLegend
           data={data}

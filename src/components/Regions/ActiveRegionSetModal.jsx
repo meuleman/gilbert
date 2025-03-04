@@ -7,8 +7,6 @@ import RegionsContext from './RegionsContext'
 import FactorSearch from '../FactorSearch';
 import Loading from '../Loading';
 import AccordionArrow from '@/assets/accordion-circle-arrow.svg?react';
-import DetailsIcon from "@/assets/details.svg?react";
-import FiltersIcon from "@/assets/filters.svg?react";
 
 import styles from './ActiveRegionSetModal.module.css'
 
@@ -91,89 +89,69 @@ const ActiveRegionSetModal = ({
   }
 
   return (
-    <div className="h-full w-dvw max-w-[26.9375rem] max-h-full flex flex-col overflow-hidden border-r-1 border-r-separator">
-      <div className="flex-1 flex min-h-0">
-        <div className="grow-0 shrink-0 w-[2.4375rem] flex justify-center p-1.5">
-          <div className="w-full h-full bg-separator rounded">
-            <div className="w-full aspect-square rounded flex items-center justify-center bg-primary">
-              <DetailsIcon className="[&_path]:fill-primary-foreground" />
-            </div>
-            <div className="w-full aspect-square rounded flex items-center justify-center">
-              <FiltersIcon />
-            </div>
-          </div>
+    // TODO: remove hardcoded width
+    <div className="flex-1 pl-1 py-1.5 min-h-0 pt-1 max-h-full w-[24.9375rem] overflow-auto text-xs">
+      <div className="pt-1 max-h-full overflow-auto text-xs">
+        <div className="px-1.5 pb-2.75">
+          <strong>{(() => {
+              // Get region count and text
+              const regionCount = filteredActiveRegions?.length || 0;
+              const regionText = regionCount === 1 ? "region" : "regions";
+              
+              // Build filter fields list if needed
+              let filterInfo = "";
+              if (!!activeSet?.factor || activeFilters?.length > 0) {
+                // Collect all fields from activeSet and activeFilters
+                const fields = [];
+                // Add activeSet factor field if it exists
+                if (activeSet?.factor?.field) fields.push(activeSet.factor.field)
+                // Add all fields from activeFilters
+                fields.push(...activeFilters.map(f => f.field));
+                filterInfo = ` showing ${fields.join(", ")}`;
+              }
+              // Return the full string
+              return `${regionCount} selected ${regionText}${filterInfo}`;
+            })()}</strong>
         </div>
-        <div className="flex-1 pl-1 py-1.5 min-h-0">
-          <div className="pt-1 max-h-full overflow-auto text-xs">
-            <div className="px-1.5 pb-2.75">
-              <strong>{(() => {
-                  // Get region count and text
-                  const regionCount = filteredActiveRegions?.length || 0;
-                  const regionText = regionCount === 1 ? "region" : "regions";
-                  
-                  // Build filter fields list if needed
-                  let filterInfo = "";
-                  if (!!activeSet?.factor || activeFilters?.length > 0) {
-                    // Collect all fields from activeSet and activeFilters
-                    const fields = [];
-                    // Add activeSet factor field if it exists
-                    if (activeSet?.factor?.field) fields.push(activeSet.factor.field)
-                    // Add all fields from activeFilters
-                    fields.push(...activeFilters.map(f => f.field));
-                    filterInfo = ` showing ${fields.join(", ")}`;
-                  }
-                  // Return the full string
-                  return `${regionCount} selected ${regionText}${filterInfo}`;
-                })()}</strong>
-            </div>
-            <div className="border-t-1 botder-t-separator px-1.5 py-2.75">
-              <strong>AI Summary: </strong>
-              <span>{regionSetNarrationLoading ? "loading..." : regionSetNarration}</span>
-            </div>
-            <div className="border-t-1 botder-t-separator py-2.75">
-              <div className="grid grid-cols-regionSet gap-y-1.5">
-                <div className='grid grid-cols-subgrid col-start-1 col-end-4 [&>div:last-child]:pr-1.5'>
-                  <div className="col-span-2 px-1.5">
-                    <strong>Position</strong>
-                  </div>
-                  <div className="col-start-3 col-end-4">
-                    <strong>Score</strong>
-                  </div>
-                </div>
-                {regions.map((region) => {
-                  const regionKey = `${region.order}:${region.chromosome}:${region.i}`
-                  // {
-                  //   !!activeFilters.length && filteredActiveRegions?.length > 0 &&
-                  //   <span
-                  //     className={styles['effective-count']}
-                  //     onClick={() => toggleExpand(regionKey)}
-                  //     style={{ cursor: 'pointer' }}
-                  //   >
-                  //     {/* ({region.subregion ? 1 : 0} subregions) */}
-                  //     {/* {expandedRows.has(regionKey) ? ' 🔽' : ' ▶️'} */}
-                  //   </span>
-                  // }
-                  return (
-                    <div className="grid grid-cols-subgrid col-start-1 col-end-4 border-t-separator border-t-1 pt-1.5 gap-y-1.5" key={regionKey}>
-                      <div className="px-1.5 col-span-2 underline">
-                        <a href="#gotoRegion" onClick={(event) => {
-                          event.preventDefault()
-                          onSelect(region, region)
-                        }}>
-                          {showPosition(region)}
-                        </a>
-                      </div>
-                      <div>{region.score?.toFixed(3)}</div>
-                    </div>
-                  )
-                })}
+        <div className="border-t-1 botder-t-separator py-2.75">
+          <div className="grid grid-cols-regionSet gap-y-1.5">
+            <div className='grid grid-cols-subgrid col-start-1 col-end-4 [&>div:last-child]:pr-1.5'>
+              <div className="col-span-2 px-1.5">
+                <strong>Position</strong>
+              </div>
+              <div className="col-start-3 col-end-4">
+                <strong>Score</strong>
               </div>
             </div>
+            {regions.map((region) => {
+              const regionKey = `${region.order}:${region.chromosome}:${region.i}`
+              // {
+              //   !!activeFilters.length && filteredActiveRegions?.length > 0 &&
+              //   <span
+              //     className={styles['effective-count']}
+              //     onClick={() => toggleExpand(regionKey)}
+              //     style={{ cursor: 'pointer' }}
+              //   >
+              //     {/* ({region.subregion ? 1 : 0} subregions) */}
+              //     {/* {expandedRows.has(regionKey) ? ' 🔽' : ' ▶️'} */}
+              //   </span>
+              // }
+              return (
+                <div className="grid grid-cols-subgrid col-start-1 col-end-4 border-t-separator border-t-1 pt-1.5 gap-y-1.5" key={regionKey}>
+                  <div className="px-1.5 col-span-2 underline">
+                    <a href="#gotoRegion" onClick={(event) => {
+                      event.preventDefault()
+                      onSelect(region, region)
+                    }}>
+                      {showPosition(region)}
+                    </a>
+                  </div>
+                  <div>{region.score?.toFixed(3)}</div>
+                </div>
+              )
+            })}
           </div>
         </div>
-      </div>
-      <div className="grow-0">
-        {children}
       </div>
     </div>
   )
