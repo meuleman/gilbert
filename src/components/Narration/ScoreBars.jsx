@@ -195,13 +195,12 @@ export default function ScoreBars({
               <div>
                 <div
                   key={`${o}-field`}
-                  // onMouseMove={e => handleHover(e, o)}
                   style={{
                     position: "absolute",
-                    top: y,
+                    top: y - fontSize,
                     left: 0,
                     width: width,
-                    textAlign: "center",
+                    paddingLeft: 5,
                     fontFamily: "Courier",
                     fontSize: fontSize,
                     fontWeight: highlightOrders.indexOf(o) >= 0 ? "bold" : "normal",
@@ -213,13 +212,12 @@ export default function ScoreBars({
                 </div>
                 <div
                   key={`${o}-score`}
-                  // onMouseMove={e => handleHover(e, o)}
                   style={{
                     position: "absolute",
-                    top: y + fontSize,
+                    top: y,
                     left: 0,
                     width: width,
-                    textAlign: "center",
+                    paddingLeft: 5,
                     fontFamily: "Courier",
                     fontSize: fontSize,
                     fontWeight: highlightOrders.indexOf(o) >= 0 ? "bold" : "normal",
