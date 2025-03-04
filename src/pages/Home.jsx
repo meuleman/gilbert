@@ -1370,8 +1370,8 @@ function Home() {
           showSpectrum={showSpectrum}
           onSpectrum={setShowSpectrum}
           loadingSpectrum={loadingSpectrum}
-          showTopFactors={showTopFactors}
-          onTopFactors={setShowTopFactors}
+          showSummary={showSummary}
+          onSummary={setShowSummary}
           showManageRegionSets={showManageRegionSets}
           showActiveRegionSet={showActiveRegionSet}
           onManageRegionSets={setShowManageRegionSets}
