@@ -4,7 +4,7 @@ import { range } from 'd3-array';
 import { hierarchy, treemap, treemapDice } from 'd3-hierarchy';
 import { variantChooser } from '../../lib/csn';
 import { showKbOrder } from '../../lib/display';
-import './Line.css';
+import './SubPaths.css';
 
 import Tooltip from '../Tooltips/Tooltip';
 
@@ -175,20 +175,17 @@ export default function SubPaths({
                   {root.leaves().map((leaf, i) => {
                     return (
                     <div
+                      className='subpath-rect'
                       key={`${o}-${i}`}
                       onClick={e => handleClick(e, leaf.data.factor)}
                       onMouseMove={e => handleSubpathHover(e, leaf.data.factor)}
                       onMouseLeave={handleLeave}
                       style={{
-                        position: "absolute",
                         left: leaf.x0,
                         top: leaf.y0,
                         width: leaf.x1 - leaf.x0,
                         height: leaf.y1 - leaf.y0,
                         backgroundColor: leaf.data.factor.color,
-                        opacity: 0.5,
-                        cursor: "pointer",
-                        border: "1px solid black",
                       }}
                     />
                   )})}
