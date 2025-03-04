@@ -7,6 +7,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "DHS Components (OCC)",
   datasetName: "dhs_occ",
+  labelName: "DHS Occurrence",
   baseURL: `${constants.baseS3URLPrefix}/20241127`,
   orders: [4,14],
   renderer: "CanvasScaledValue",

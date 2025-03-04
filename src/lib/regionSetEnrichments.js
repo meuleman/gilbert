@@ -8,14 +8,17 @@ import axios from "axios";
 Fetches factor bp coverage log2(obs/exp) enrichments within region set.
 regions: [{chromosome, i, order}, ...]
 N: number of factors to return (defulat 10)
-factorExclusion: list of factors to exclude from the results [{dataset, factor}, ...]
+factorExclusion: list of factors to exclude from the results [{dataset, factor}, ...],
+enrichmentThreshold: minimum enrichment for factor return (float) (default: None)
 
 Returns:
-[{factor, enrichment}, ...]
+[{dataset, factor, enrichment, count}, ...]
 */
-function fetchRegionSetEnrichments({regions, N = 10, factorExclusion = []}) {
+function fetchRegionSetEnrichments({regions, N = null, factorExclusion = [], enrichmentThreshold = null}) {
   const url = "https://explore.altius.org:5001/api/regionSetEnrichment/region_set_enrichment"
-  const postBody = {regions, N, factorExclusion}
+  const postBody = {regions, factor_exclusion: factorExclusion}
+  N && (postBody.N = N)
+  enrichmentThreshold && (postBody.enrichment_threshold = enrichmentThreshold)
   console.log("REGION SET ENRICHMENT POST BODY", postBody)
   return axios({
     method: 'POST',
@@ -42,7 +45,7 @@ Returns:
 */
 function fetchSingleRegionFactorOverlap({region, factorExclusion = []}) {
   const url = "https://explore.altius.org:5001/api/regionSetEnrichment/single_region_factor_query"
-  const postBody = {region, factorExclusion}
+  const postBody = {region, factor_exclusion: factorExclusion}
   console.log("SINGLE REGION FACTOR OVERLAP POST BODY", postBody)
   return axios({
     method: 'POST',

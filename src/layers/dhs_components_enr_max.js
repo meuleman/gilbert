@@ -9,6 +9,7 @@ const dhsColors = ["#ffe500","#fe8102","#ff0000","#07af00","#4c7d14","#414613","
 export default {
   name: "DHS Components (ENR)",
   datasetName: "dhs_enr_max",
+  labelName: "DHS Domain",
   baseURL: `${constants.baseS3URLPrefix}/20240327`,
   orders: [4,12],
   renderer: "CanvasScaledValue",

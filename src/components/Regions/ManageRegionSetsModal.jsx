@@ -7,7 +7,7 @@ import {Tooltip} from 'react-tooltip';
 import { download, parseBED } from '../../lib/regionsets'
 import RegionsContext from './RegionsContext'
 import FiltersContext from '../ComboLock/FiltersContext'
-import { fetchFilteringWithoutOrder } from '../../lib/dataFiltering';
+import { fetchRegionSetFromFactor } from '../../lib/dataFiltering';
 import { fromIndex } from '../../lib/regions'
 import FactorSearch from '../FactorSearch'
 
@@ -63,9 +63,8 @@ const ManageRegionSetModal = ({
     if(selected.factor) {
       // query for the paths for the factor
       let f = selected.factor
-      fetchFilteringWithoutOrder([{factor: f.index, dataset: f.layer.datasetName}], null)
+      fetchRegionSetFromFactor({factor: f.index, dataset: f.layer.datasetName}, null)
         .then((response) => {
-          console.log("FILTERING WITHOUT ORDER", response)
           let regions = response.regions.map(r => {
             return {...fromIndex(r.chromosome, r.i, r.order), score: r.score}
           })

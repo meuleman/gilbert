@@ -43,6 +43,7 @@ SubPaths.propTypes = {
 
 export default function SubPaths({
   csn,
+  preview,
   factors,
   subpathCollection,
   order,
@@ -61,6 +62,8 @@ export default function SubPaths({
   onClick = () => {},
   onHover = () => {},
   onFactor= () => {},
+  handleNarrationPreview = () => {},
+  removeNarrationPreview = () => {},
   onSubpathBack= () => {}
 }) {
   const tooltipRef = useRef(null)
@@ -122,6 +125,7 @@ export default function SubPaths({
   }, [onFactor])
 
   const handleSubpathHover = useCallback((e, f) => {
+    handleNarrationPreview(f)
     const rect = e.currentTarget.getBoundingClientRect();
     const my = e.clientY - rect.y;
     const xoff = tipOrientation === "left" ? -5 : width + 5;
@@ -138,6 +142,7 @@ export default function SubPaths({
   }, [rw])
 
   const handleLeave = useCallback(() => {
+    removeNarrationPreview()
     tooltipRef.current.hide()
   }, [])
 
@@ -146,8 +151,10 @@ export default function SubPaths({
       {path.length && yScale
         ? range(4, 15).map(o => {
             let facs = factorsByOrder[o]
-            if (facs?.length) {
-              const root = hierarchy({ children: facs }).sum(d => d.score)
+            // ensure that preview path is not already showing something for this order
+            if(facs?.length && !preview?.path?.find(p => p?.order === o)) {  //  || o === chosenFactorOrder
+              // Create a treemap layout for the facs of this order group.
+              const root = hierarchy({ children: facs }).sum(d => d.score);
               treemap()
                 .size([width, rw])
                 .tile(treemapDice)

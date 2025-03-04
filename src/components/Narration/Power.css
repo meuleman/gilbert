@@ -4,6 +4,14 @@
   flex-direction: column;
   width: fit-content;
 }
+.factor-label {
+  font-size: 16px;
+  font-weight: normal;
+  margin-bottom: 8px;
+  text-align: center;
+  height: 25px;
+  overflow-x: hidden;
+}
 
 .power-container {
   display: flex;

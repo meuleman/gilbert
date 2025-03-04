@@ -657,21 +657,12 @@ function Home() {
   }, [activeGenesetEnrichment]);
   
   useEffect(() => {
-    if (selected) {
-      // TODO: check if logic is what we want
-      // if an activeSet we grab the first region (since they are ordered) that falls witin the selected region
-      // if the region is smaller than the activeSet regions, the first one where the selected region is within the activeset region
-      let region = selected
-      if (filteredActiveRegions?.length) {
-        let overlappingRegion = overlaps(selected, filteredActiveRegions)[0] || selected
-        overlappingRegion.subregion ? overlappingRegion = overlappingRegion.subregion : null
-        region = overlappingRegion.order > selected.order ? overlappingRegion : selected
-      }
+    if(selected) {
       setLoadingSelectedCSN(true)
       // setLoadingRegionCSNS(true)
       setSelectedTopCSN(null)
       // setRegionCSNS([])
-      fetchPartialPathsForRegions([region], true).then((response) => {
+      fetchPartialPathsForRegions([selected], true).then((response) => {
         if(!response) { 
           // setRegionCSNS([])
           setSelectedTopCSN(null)
@@ -683,7 +674,7 @@ function Home() {
           let responseRegion = response.regions[0]
           let rehydrated = {
             path: rehydratePartialCSN(responseRegion, [...csnLayers, ...variantLayers]).path,
-            region, 
+            region: selected, 
             genes: responseRegion.genes,
             genesets: responseRegion.genesets.map(g => ({...g, p: genesetScoreMapping[g.geneset]})),
           }
@@ -703,7 +694,7 @@ function Home() {
         // subpath query
         let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null)
         // find and set subpaths
-        findSubpaths(region, factorExclusion)
+        findSubpaths(selected, factorExclusion)
       })
     } else {
       // selected is cleared
@@ -888,12 +879,31 @@ function Home() {
     // setPowerNarration(null)
   }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN])
 
+  const clearRegionSetSummaries = useCallback(() => {
+    setRegionSetNarration("")
+    setRegionSetArticles([])
+  }, [setRegionSetArticles, setRegionSetNarration])
+
+  const regionSetStateRef = useRef({ activeFilters, activeRegions, filteredActiveRegions });
   useEffect(() => {
     // if the filters change from a user interaction we want to clear the selected
     // if(filters.userTriggered) clearSelectedState()
     // if the active filters or active regions change we want to clear the selected
-    clearSelectedState()
-  }, [filters, activeFilters, activeRegions, filteredActiveRegions, clearSelectedState])  // don't need filters anymore?
+    
+    // below is done to prevent clearing on initialization for when initial selected region is provided in URL
+    // is this the best way to solve this problem?
+    const prevValues = regionSetStateRef.current;
+    if (
+      (JSON.stringify(prevValues.activeFilters) !== JSON.stringify(activeFilters)) ||
+      (JSON.stringify(prevValues.activeRegions) !== JSON.stringify(activeRegions)) ||
+      (JSON.stringify(prevValues.filteredActiveRegions) !== JSON.stringify(filteredActiveRegions))
+    ) {
+      clearSelectedState()
+      clearRegionSetSummaries()
+    }
+    regionSetStateRef.current = { activeFilters, activeRegions, filteredActiveRegions };
+    // filters, activeFilters, activeRegions, filteredActiveRegions, clearSelectedState
+  }, [activeFilters, activeRegions, filteredActiveRegions])
 
   // TODO: consistent clear state
   const handleModalClose = useCallback(() => {
@@ -903,11 +913,18 @@ function Home() {
   const handleClear = useCallback(() => {
     console.log("handle clear!")
     clearSelectedState()
+    clearRegionSetSummaries()
     clearFilters()
     clearActive()
     // setActiveSet(null)
     setShowFilter(false)
-  }, [clearSelectedState, clearFilters, setShowFilter, clearActive])
+  }, [clearSelectedState, clearFilters, setShowFilter, clearActive, clearRegionSetSummaries])
+
+  // use ref to keep track of the filtered active regions for the click handler
+  const filteredActiveRegionsRef = useRef(filteredActiveRegions);
+  useEffect(() => {
+    filteredActiveRegionsRef.current = filteredActiveRegions;
+  }, [filteredActiveRegions])
 
   const handleClick = useCallback((hit, order, double) => {
     // console.log("app click handler", hit, order, double)
@@ -926,8 +943,19 @@ function Home() {
       // } else {
       //   setSelected(hit)
       // }
-      setSelected(hit)
-      setRegion(hit)
+
+      // TODO: check if logic is what we want
+      // if region set exists, we grab the first region (since they are ordered) that falls within the selected region
+      // use region subpath if it exists
+      // if the selected region is smaller than the overlapping region set region, use the originally selected region
+      let selected = hit
+      if(filteredActiveRegionsRef.current?.length) {
+        let overlappingRegion = overlaps(hit, filteredActiveRegionsRef.current)[0] || hit
+        overlappingRegion.subregion ? overlappingRegion = overlappingRegion.subregion : null
+        selected = overlappingRegion.order > hit.order ? overlappingRegion : hit
+      } 
+      setSelected(selected)
+      setRegion(hit)  // this sets zoom. we should set with selected segment, not implied segment
     }
   }, [setSelected, setRegion, clearSelectedState, filteredActiveRegions])
 
@@ -952,7 +980,7 @@ function Home() {
 
   const [showLayerLegend, setShowLayerLegend] = useState(false)
   const [showSpectrum, setShowSpectrum] = useState(false)
-  const [showTopFactors, setShowTopFactors] = useState(false)
+  const [showSummary, setShowSummary] = useState(false)
   const [showManageRegionSets, setShowManageRegionSets] = useState(false)
   const [showActiveRegionSet, setShowActiveRegionSet] = useState(false)
   const [loadingSpectrum, setLoadingSpectrum] = useState(false);
@@ -971,11 +999,11 @@ function Home() {
       setShowLayerLegend(false)
       // setShowFilter(true)
       setShowActiveRegionSet(true)
-      // setShowTopFactors(true)
+      // setShowSummary(true)
     } else {
       setShowActiveRegionSet(false)
       // setShowSpectrum(false)
-      setShowTopFactors(false)
+      setShowSummary(false)
     }
   }, [activeSet])
 
@@ -995,9 +1023,9 @@ function Home() {
   // useEffect(() => {
   //   activePathsRef.current = activePaths
   //   if(activePaths?.length) {
-  //     setShowTopFactors(true)
+  //     setShowSummary(true)
   //   } else {
-  //     setShowTopFactors(false)
+  //     setShowSummary(false)
   //   }
   // }, [activePaths])
 

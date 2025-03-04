@@ -189,6 +189,34 @@ function fetchFilteringWithoutOrder(filters, regions) {
 
 
 /*
+Get region set for a factor of interest. 
+factor: {factor: factorIndex, dataset}
+maxRegions: max number of regions to return (default 20000)
+
+Returns:
+[{chromosome, i, order, score}, ...]
+*/
+function fetchRegionSetFromFactor(factor, maxRegions=null) {
+  const url = "https://explore.altius.org:5001/api/filteringWithoutOrder/generate_region_set_from_factor"
+  const postBody = {factor}
+  maxRegions && (postBody.max_regions = maxRegions)
+  console.log("REGION SET FROM FACTOR POST BODY", postBody)
+  return axios({
+    method: 'POST',
+    url: url,
+    data: postBody
+  }).then(response => {
+    console.log("REGION SET FROM FACTOR", response.data)
+    return response.data
+  }).catch(error => {
+    console.error(`error:     ${JSON.stringify(error.status)}`);
+    console.error(`post body: ${JSON.stringify(postBody)}`);
+    return null
+  })
+}
+
+
+/*
 Get the top N regions that adhere to filtering criteria. 
 regions: [{chromosome, i, order, score}, ...]
 filters: [{factor, dataset}, ...], where factor is the factorIndex
@@ -219,6 +247,7 @@ function fetchBackfillFiltering(regions, filters, N=100) {
 export {
   fetchFilterSegments,
   fetchFilteringWithoutOrder,
+  fetchRegionSetFromFactor,
   fetchBackfillFiltering,
   fetchFilterPreview,
   fetchOrderPreview,

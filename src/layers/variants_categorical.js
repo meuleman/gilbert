@@ -4,6 +4,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "Variants (Categorical)",
   datasetName: "variants_favor_categorical",
+  labelName: "Categorical Variant",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseS3URLPrefix}/20240325`,
   orders: [14,14],

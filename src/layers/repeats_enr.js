@@ -9,6 +9,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "Repeats (ENR, Full)",
   datasetName: "repeats_enr",
+  labelName: "Repeat Domain",
   baseURL: `${constants.baseS3URLPrefix}/20240327`,
   orders: [4,13],
   filterOrders: [8,13], // super long repeats can happen at order 4

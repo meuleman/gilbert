@@ -190,24 +190,45 @@ export default function ScoreBars({
         {path.length && yScale && text &&
           range(4, 15).map(o => {
             const p = path.find(d => d.order === o);
+            const y = yScale(o) + rw / 2
             return (
-              <div
-                key={o}
-                // onMouseMove={e => handleHover(e, o)}
-                style={{
-                  position: "absolute",
-                  top: yScale(o) + rw / 2 - fontSize / 2,
-                  left: 0,
-                  width: width,
-                  textAlign: "center",
-                  fontFamily: "Courier",
-                  fontSize: fontSize,
-                  fontWeight: highlightOrders.indexOf(o) >= 0 ? "bold" : "normal",
-                  color: "#111",
-                  pointerEvents: "none"
-                }}
-              >
-                {p?.field ? showFloat(p.field.value) : ""}
+              <div>
+                <div
+                  key={o}
+                  // onMouseMove={e => handleHover(e, o)}
+                  style={{
+                    position: "absolute",
+                    top: y,
+                    left: 0,
+                    width: width,
+                    textAlign: "center",
+                    fontFamily: "Courier",
+                    fontSize: fontSize,
+                    fontWeight: highlightOrders.indexOf(o) >= 0 ? "bold" : "normal",
+                    color: "#111",
+                    pointerEvents: "none"
+                  }}
+                >
+                </div>
+                  {p?.field?.field ? p?.field?.field : ""}
+                <div
+                  key={o}
+                  // onMouseMove={e => handleHover(e, o)}
+                  style={{
+                    position: "absolute",
+                    top: y + fontSize,
+                    left: 0,
+                    width: width,
+                    textAlign: "center",
+                    fontFamily: "Courier",
+                    fontSize: fontSize,
+                    fontWeight: highlightOrders.indexOf(o) >= 0 ? "bold" : "normal",
+                    color: "#111",
+                    pointerEvents: "none"
+                  }}
+                >
+                  {p?.field ? showFloat(p.field.value) : ""}
+                </div>
               </div>
             );
           })}

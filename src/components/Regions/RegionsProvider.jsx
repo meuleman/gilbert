@@ -161,6 +161,7 @@ const RegionsProvider = ({ children }) => {
   }, []);
 
   const resetFilteredActiveRegions = useCallback(() => {
+    setTopNarrations([])
     if(activeRegions?.length) {
       setFilteredActiveRegions(activeRegions.slice(0,100))
       setFilteredRegionsLoading(false)
@@ -173,8 +174,13 @@ const RegionsProvider = ({ children }) => {
   // Filtering regions
   useEffect(() => {
     if(activeFilters.length && activeRegions?.length) {
+      setTopNarrations([])
       setFilteredRegionsLoading(true)
-      const filters = activeFilters.map(f => ({factor: f.index, dataset: f.layer.datasetName}))
+      const filters = activeFilters.map(f => ({
+        factor: f.index, 
+        // TODO: more permanent solution for handling TF dataset name differences 
+        dataset: f.layer.datasetName.replace("_top10", "")
+      }))
       fetchBackfillFiltering(activeRegions, filters)
       .then((response) => {
         if (response) {
@@ -233,9 +239,10 @@ const RegionsProvider = ({ children }) => {
       let regionsToUse = filteredActiveRegions.map(d => d.subregion ? d.subregion : d)
       fetchRegionSetEnrichments({
         regions: regionsToUse,
+        N: null,
         factorExclusion: [
-          ...(factor ? [{dataset: factor?.layer?.datasetName, factor: factor?.index}] : []), 
-          ...filters.map(d => ({dataset: d.layer.datasetName, factor: d.index}))
+          // ...(factor ? [{dataset: factor?.layer?.datasetName, factor: factor?.index}] : []), 
+          // ...filters.map(d => ({dataset: d.layer.datasetName, factor: d.index}))
         ]
       })
       .then((response) => {
@@ -256,11 +263,13 @@ const RegionsProvider = ({ children }) => {
   
   // collecting paths, genes, and genesets for top regions
   const [topNarrations, setTopNarrations] = useState([])
+  const [topNarrationsLoading, setTopNarrationsLoading] = useState(false)
   const [genesInRegions, setGenesInRegions] = useState([])
   const [activeGenesetEnrichment, setActiveGenesetEnrichment] = useState(null)
   const [selectedGenesetMembership, setSelectedGenesetMembership] = useState([])
   useEffect(() => {
     if(filteredActiveRegions?.length) {
+      setTopNarrationsLoading(true)
       // if subregion exists, use for narration
       let narrationRegions = filteredActiveRegions.map(d => d.subregion ? {...d, ...d.subregion} : d)
       fetchPartialPathsForRegions(narrationRegions, false).then((response) => {
@@ -271,12 +280,15 @@ const RegionsProvider = ({ children }) => {
         // rehydrate paths
         let rehydrated = response.regions.map(d => rehydratePartialCSN(d, csnLayerList))
         setTopNarrations(rehydrated)
+        setTopNarrationsLoading(false)
       })
       .catch((e) => {
         console.log("error fetching partial paths", e)
+        setTopNarrationsLoading(false)
       })
     } else {
       setTopNarrations([])
+      setTopNarrationsLoading(false)
     }
   }, [filteredActiveRegions])
 
@@ -358,7 +370,7 @@ const RegionsProvider = ({ children }) => {
     // parse enriched genesets and genes and add to query
     if(activeGenesetEnrichment?.length) {
       let genesetsToInclude = activeGenesetEnrichment?.sort((a, b) => a.p - b.p).slice(0, 3)
-      query += "; " + genesetsToInclude.map(d => `GO ${d.geneset.replace(/_/g, " ")}`).join("; ")
+      query += "; " + genesetsToInclude.map(d => `GO ${d.geneset.split("_").slice(1).join(" ")} ${d.p.toExponential(2)}`).join("; ")
       // collect genes
       let genesetGenes = genesetsToInclude.flatMap(d => d.genes)
       let regionGenes = narrations.flatMap(d => d.genes.map(g => ({name: g.name, inGene: g.in_gene})))
@@ -403,6 +415,8 @@ const RegionsProvider = ({ children }) => {
       activeFilters,
       filteredRegionsLoading,
       filteredActiveRegions,
+      topNarrationsLoading, 
+      setTopNarrationsLoading,
       regionSetEnrichments,
       regionSetEnrichmentsLoading,
       activeGenesetEnrichment,

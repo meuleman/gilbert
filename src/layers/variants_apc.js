@@ -4,6 +4,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "Variants (aPC)",
   datasetName: "variants_favor_apc",
+  labelName: "aPC Variant",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseS3URLPrefix}/20240321`,
   orders: [14,14],

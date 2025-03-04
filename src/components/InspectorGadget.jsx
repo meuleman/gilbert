@@ -147,6 +147,9 @@ const InspectorGadget = ({
     let newPath = factor.path.path;
 
     if (newNarration?.path?.length && newPath?.length) {
+      // clear preview if it exists
+      setNarrationPreview(null)
+
       // add previously collected fullData and counts to segments of the new path
       newNarration.path.forEach(d => {
         let correspondingSegment = newPath.filter(e => e.order === d.order)
@@ -174,6 +177,40 @@ const InspectorGadget = ({
     setSubpathCollection,
     setNarration
   ]);
+
+  // Callback previewing factor path on subpath hover
+  const [narrationPreview, setNarrationPreview] = useState(null);
+  const [slicedNarrationPreview, setSlicedNarrationPreview] = useState(null);
+  const narrationPreviewRef = useRef(narrationPreview);
+  const handleNarrationPreview = useCallback((factor) => {
+    const newNarration = { ...narration };
+    let newPath = factor.path.path;
+    if (newNarration?.path?.length && newPath?.length) {
+      newNarration.path = newPath;
+      if (JSON.stringify(newNarration) !== JSON.stringify(narrationPreviewRef.current)) {
+        setNarrationPreview(newNarration);
+      }
+    }
+  }, [narration, narrationPreview, setNarrationPreview]);
+
+  // Update the ref and sliced version when the preview changes
+  useEffect(() => {
+    // update ref
+    narrationPreviewRef.current = narrationPreview;
+    
+    // update sliced version of the preview (for score bars)
+    if(narrationPreview) {
+      let withSlicedPath = { ...narrationPreview };
+      withSlicedPath.path = narrationPreview.path.slice(0, -1);
+      setSlicedNarrationPreview(withSlicedPath);
+    } else {
+      setSlicedNarrationPreview(narrationPreview);
+    }
+  }, [narrationPreview]);
+
+  const removeNarrationPreview = useCallback(() => {
+    setNarrationPreview(null);
+  }, []);
 
   // Callback to revert the most recent factor subpath selection.
   const subpathGoBack = useCallback(() => {
@@ -315,10 +352,11 @@ const InspectorGadget = ({
                   </div>
                   <div className={styles.powerContainer} ref={powerContainerRef}>
                     <Power
-                      csn={loadingFullNarration ? narration : fullNarration}
+                      csn={narrationPreview ? narrationPreview : loadingFullNarration ? narration : fullNarration}
                       width={powerWidth}
                       height={powerWidth}
                       userOrder={zOrder}
+                      isPreview={!!narrationPreview}
                       onOrder={handleZoom}
                       onData={handlePowerData}
                     />
@@ -326,6 +364,8 @@ const InspectorGadget = ({
                   <div className={styles.zoomInspectorContainer}>
                     <ZoomInspector
                       csn={loadingFullNarration ? narration : fullNarration}
+                      previewCsn={narrationPreview}
+                      slicedPreviewCsn={slicedNarrationPreview}
                       order={zOrder}
                       maxPathScore={maxPathScore}
                       zoomHeight={mapHeight - 20}
@@ -334,6 +374,8 @@ const InspectorGadget = ({
                       factors={topFactors}
                       subpathCollection={subpathCollection}
                       onFactor={setFactorSelection}
+                      handleNarrationPreview={handleNarrationPreview}
+                      removeNarrationPreview={removeNarrationPreview}
                       onSubpathBack={subpathGoBack}
                     />
                   </div>

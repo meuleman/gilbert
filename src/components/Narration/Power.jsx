@@ -112,7 +112,7 @@ PowerModal.propTypes = {
 };
 
 
-function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder, onPercent }) {
+function PowerModal({ csn, width, height, sheight=30, userOrder, onData, isPreview, onOrder, onPercent }) {
 
   const canvasRef = useRef(null);
   // const canvasRef1D = useRef(null);
@@ -133,6 +133,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
   const [order, setOrder] = useState(userOrder ? userOrder : 4)
 
   const [data, setData] = useState(null)
+  const [currentPreferred, setCurrentPreferred] = useState(null)
 
   const radius = 3 // # of steps to take in each direction ()
   const scaler = .75
@@ -296,9 +297,9 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
   }, [csn])
 
   useEffect(() => {
-    if(data && onData)
+    if(data && onData && !isPreview)
       onData(data)
-  }, [data, onData])
+  }, [data, onData, isPreview])
 
 
   // const [genes, setGenes] = useState([])
@@ -364,6 +365,8 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
       const d = data.find(d => d.order === o)
       // if(!region) console.log("no region", d)
       if(d) {
+        // set the current preferred factor
+        setCurrentPreferred(d.p)
         // interpolate between last order and next. or - o goes from 0 to 1
         const r = d.region
         let transform;
@@ -724,6 +727,15 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, onOrder
 
   return (
     <div className="power">
+      {/* TODO: The factor label component is causing a variable width of IG */}
+      <div className="factor-label" style={{maxWidth: width + "px"}}>
+        {currentPreferred?.field ? (
+          <>
+            <span style={{ color: currentPreferred?.layer?.fieldColor(currentPreferred?.field?.field), marginRight: '4px' }}>⏺</span>
+            {currentPreferred?.field?.field} {currentPreferred?.layer?.labelName}
+          </>
+        ) : null}
+      </div>
       <div className="power-container">
         {loading ? <div className="power-loading">
           <Loading text={"📊 Loading"} />

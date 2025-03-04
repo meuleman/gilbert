@@ -10,8 +10,8 @@ const LeftToolbar = ({
   showSpectrum,
   onSpectrum = () => {},
   loadingSpectrum = false,
-  showTopFactors,
-  onTopFactors = () => {},
+  showSummary,
+  onSummary = () => {},
   showManageRegionSets,
   onManageRegionSets = () => {},
   showActiveRegionSet,
@@ -28,7 +28,7 @@ const LeftToolbar = ({
           onClick={() => {
             if(!showManageRegionSets) {
               onActiveRegionSet(false)
-              onTopFactors(false)
+              onSummary(false)
             }
             onManageRegionSets(!showManageRegionSets)
           }}
@@ -39,7 +39,7 @@ const LeftToolbar = ({
           onClick={() => {
             if(!showActiveRegionSet) {
               onManageRegionSets(false)
-              onTopFactors(false)
+              onSummary(false)
             }
             onActiveRegionSet(!showActiveRegionSet)
           }}
@@ -49,10 +49,10 @@ const LeftToolbar = ({
         >📘</button>
         <Tooltip id="active-region-set">Active Region Set</Tooltip>
 
-        <button className={`toolbar-button ${showTopFactors ? 'active' : ''}`} data-tooltip-id="show-topfactors"
+        <button className={`toolbar-button ${showSummary ? 'active' : ''}`} data-tooltip-id="show-summary"
           onClick={() => {
-            topNarrations?.length && onTopFactors(!showTopFactors)
-            if(!showTopFactors) {
+            topNarrations?.length && onSummary(!showSummary)
+            if(!showSummary) {
               onSankey(false)
               onManageRegionSets(false)
               onActiveRegionSet(false)
@@ -64,12 +64,12 @@ const LeftToolbar = ({
             'transform': 'rotate(90deg) scaleX(-1)'
           }}
         >📊</button>
-        <Tooltip id="show-topfactors">{showTopFactors ? "Hide Top Factors" : "Show Top Factors"}</Tooltip>
+        <Tooltip id="show-summary">{showSummary ? "Hide Region Set Summary" : "Show Region Set Summary"}</Tooltip>
 
         <button className={`toolbar-button ${showSankey ? 'active' : ''}`} data-tooltip-id="show-sankey"
           onClick={() => {
             activePaths?.length && onSankey(!showSankey)
-            if(!showSankey) onTopFactors(false)
+            if(!showSankey) onSummary(false)
           }}
           disabled={!activePaths?.length}
           style={{

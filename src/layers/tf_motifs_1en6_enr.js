@@ -10,6 +10,7 @@ const tfColors = ["#23171b","#362357","#433087","#433087","#493dac","#493dac","#
 export default {
   name: "TF Motifs (ENR, Full)",
   datasetName: "tf_1en6_enr",
+  labelName: "TF Motif Domain",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseS3URLPrefix}/20240621`,
   orders: [4,13],

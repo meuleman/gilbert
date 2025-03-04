@@ -27,14 +27,12 @@ const ActiveRegionSetModal = ({
   onSelect = () => { },
 } = {}) => {
 
-  const {
+  const { 
     activeSet,
-    activeRegions,
+    activeRegions, 
     activeFilters,
     filteredRegionsLoading,
     filteredActiveRegions,
-    regionSetEnrichments,
-    regionSetEnrichmentsLoading,
     setActiveSet,
     setActiveFilters,
     regionSetNarration,
@@ -108,7 +106,25 @@ const ActiveRegionSetModal = ({
         <div className="flex-1 pl-1 py-1.5 min-h-0">
           <div className="pt-1 max-h-full overflow-auto text-xs">
             <div className="px-1.5 pb-2.75">
-              <strong>{filteredActiveRegions?.length} selected regions </strong>
+              <strong>{(() => {
+                  // Get region count and text
+                  const regionCount = filteredActiveRegions?.length || 0;
+                  const regionText = regionCount === 1 ? "region" : "regions";
+                  
+                  // Build filter fields list if needed
+                  let filterInfo = "";
+                  if (!!activeSet?.factor || activeFilters?.length > 0) {
+                    // Collect all fields from activeSet and activeFilters
+                    const fields = [];
+                    // Add activeSet factor field if it exists
+                    if (activeSet?.factor?.field) fields.push(activeSet.factor.field)
+                    // Add all fields from activeFilters
+                    fields.push(...activeFilters.map(f => f.field));
+                    filterInfo = ` showing ${fields.join(", ")}`;
+                  }
+                  // Return the full string
+                  return `${regionCount} selected ${regionText}${filterInfo}`;
+                })()}</strong>
             </div>
             <div className="border-t-1 botder-t-separator px-1.5 py-2.75">
               <strong>AI Summary: </strong>
@@ -324,7 +340,6 @@ const ActiveRegionSetModal = ({
                 </tbody>
               </table>
             </div>
-          )}
         </div>
       </div>
     </div>

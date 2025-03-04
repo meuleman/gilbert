@@ -6,6 +6,7 @@ let ukbb_94_fields = ["Adult height", "Age at menarche", "Age at menopause", "Al
 export default {
   name: "Variants (UKBB, 94 Traits)",
   datasetName: "ukbb_94_traits",
+  labelName: "UKBB Variant",
   baseURL: `${constants.baseS3URLPrefix}/20241021`,
   orders: [14,14],
   renderer: "CanvasSimpleValue",

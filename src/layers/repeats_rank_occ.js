@@ -8,6 +8,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "Repeats (OCC, Ranked)",
   datasetName: "repeats_rank_occ",
+  labelName: "Repeat Occurrence",
   baseURL: `${constants.baseS3URLPrefix}/20241204`,
   orders: [4,14],
   renderer: "CanvasScaledValue",
