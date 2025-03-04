@@ -21,8 +21,8 @@
 .hilbert-genome-svg {
   .hg-background-rect {
     fill: none;
-    stroke: gray;
-    stroke-width: 2px;
+    /* stroke: gray; */
+    /* stroke-width: 2px; */
   }
 }
 
