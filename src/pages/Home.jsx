@@ -49,6 +49,7 @@ import FilterSelects from '../components/ComboLock/FilterSelects'
 
 import RegionsContext from '../components/Regions/RegionsContext';
 import RegionSetModalStatesStore from '../states/RegionSetModalStates'
+import SelectedStatesStore from '../states/SelectedStates'
 
 import SankeyModal from '../components/Narration/SankeyModal';
 import HeaderRegionSetModal from '../components/Regions/HeaderRegionSetModal';
@@ -245,9 +246,14 @@ function Home() {
 
 
 
+  // store
+  const { setShowActiveRegionSet, setShowSummary } = RegionSetModalStatesStore()
+  const { selected, setSelected } = SelectedStatesStore()
   // selected powers the sidebar modal and the 1D track
-  const [selected, setSelected] = useState(jsonify(initialSelectedRegion))
-  const [selectedOrder, setSelectedOrder] = useState(selected?.order)
+  useEffect(() => {
+    // only on initial mount
+    setSelected(jsonify(initialSelectedRegion))
+  }, [])
 
   const { filters, setFilters, clearFilters, hasFilters } = useContext(FiltersContext);
   const initialUpdateRef = useRef(true);
@@ -277,8 +283,7 @@ function Home() {
     activeFilters
   } = useContext(RegionsContext)
 
-  // store
-  const { showActiveRegionSet, showSummary, setShowActiveRegionSet, setShowSummary } = RegionSetModalStatesStore()
+  
 
   const regions = useMemo(() => {
     // console.log("REGIONS MEMO", filteredActiveRegions, activeRegions)
@@ -870,7 +875,6 @@ function Home() {
     console.log("CLEARING STATE")
     setRegion(null)
     setSelected(null)
-    setSelectedOrder(null)
     setSimSearch(null)
     setSearchByFactorInds([])
     setSimilarRegions([])
@@ -880,8 +884,7 @@ function Home() {
     setRegionCSNS([])
     setRegionSetNarration("")
     setRegionSetArticles([])
-    // setPowerNarration(null)
-  }, [setRegion, setSelected, setSelectedOrder, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN])
+  }, [setRegion, setSelected, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN])
 
   const clearRegionSetSummaries = useCallback(() => {
     setRegionSetNarration("")
@@ -1104,9 +1107,7 @@ function Home() {
             </div>
           </div>
           <div className="grow-0 border-separator border-r-1">
-            <HeaderRegionSetModal
-              selectedRegion={selected}
-            />
+            <HeaderRegionSetModal />
           </div>
           <div className="flex-1 border-separator border-r-1 bg-gray-100">
             <GeneSearch
@@ -1177,7 +1178,6 @@ function Home() {
         <div className={showInspectorGadget ? "flex-1" : "grow-0"}>
           {selected && (selectedTopCSN || loadingSelectedCSN) && (
             <InspectorGadget
-              selected={selected}
               subpaths={subpaths}
               zoomOrder={powerOrder}
               narration={selectedTopCSN}

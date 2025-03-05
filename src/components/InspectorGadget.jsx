@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useContext, useMemo, useRef } from 'react'
 import FiltersContext from './ComboLock/FiltersContext'
+import SelectedStatesStore from '../states/SelectedStates'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
 import { getPositionText, showKbOrder, showPosition } from '../lib/display'
@@ -29,7 +30,6 @@ import styles from './InspectorGadget.module.css'
 */
 
 const InspectorGadget = ({
-  selected = null,
   subpaths = null,
   narration = null,
   zoomOrder,
@@ -45,6 +45,8 @@ const InspectorGadget = ({
   // Note: Removed unused props (e.g., children, modalPosition, layers, onCSNIndex, onZoom)
 }) => {
 
+  const { selected } = SelectedStatesStore()
+  
   // -----------------------
   // Component State
   // -----------------------
