@@ -5,6 +5,7 @@ import { groups } from 'd3-array'
 import {Tooltip} from 'react-tooltip';
 import { showKbOrder } from '../../lib/display'
 import RegionsContext from '../Regions/RegionsContext'
+import RegionSetModalStatesStore from '../../states/RegionSetModalStates'
 import Loading from '../Loading';
 import FactorSearch from '../FactorSearch';
 
@@ -42,8 +43,6 @@ const FactorBar = ({ factor, index, handleFactorSelect, handleFactorDeselect }) 
 }
 
 const SummarizePaths = ({
-  topNarrations,
-  show = false,
   N=5,
 } = {}) => {
   // const [pathSummary, setPathSummary] = useState("")
@@ -51,8 +50,11 @@ const SummarizePaths = ({
   const { 
     activeFilters, setActiveFilters, filteredRegionsLoading, 
     topNarrationsLoading, activeSet, regionSetEnrichments, 
-    regionSetNarrationLoading, regionSetNarration, regionSetArticles
+    regionSetNarrationLoading, regionSetNarration, regionSetArticles,
+    topNarrations
   } = useContext(RegionsContext)
+
+  const { showSummary } = RegionSetModalStatesStore()
 
   const handleFactorSelect = useCallback((f) => {
     const exists = activeFilters.some(filter => 
@@ -163,7 +165,7 @@ const SummarizePaths = ({
 
   return (
     // TODO: remove hardcoded width
-    <div className={`h-full w-[24.9375rem] flex-1 overflow-hidden ${show ? 'flex flex-col' : 'hidden'}`}>
+    <div className={`h-full w-[24.9375rem] flex-1 overflow-hidden ${showSummary ? 'flex flex-col' : 'hidden'}`}>
       <div className="flex border-b border-separator">
         <button 
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'summary' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}

@@ -4,6 +4,7 @@ import { showPosition, showKbOrder } from '../../lib/display'
 import { Tooltip } from 'react-tooltip';
 import { download } from '../../lib/regionsets'
 import RegionsContext from './RegionsContext'
+import RegionSetModalStatesStore from '../../states/RegionSetModalStates'
 import FactorSearch from '../FactorSearch';
 import Loading from '../Loading';
 import AccordionArrow from '@/assets/accordion-circle-arrow.svg?react';
@@ -20,8 +21,6 @@ function inFilters(filters, f) {
 }
 
 const ActiveRegionSetModal = ({
-  children,
-  show = false,
   onSelect = () => { },
 } = {}) => {
 
@@ -37,6 +36,8 @@ const ActiveRegionSetModal = ({
     regionSetNarrationLoading,
     regionSetArticles,
   } = useContext(RegionsContext)
+  
+  const { showActiveRegionSet } = RegionSetModalStatesStore()
 
   const [regions, setRegions] = useState([])
   useEffect(() => {
@@ -84,7 +85,7 @@ const ActiveRegionSetModal = ({
 
   const [activeTab, setActiveTab] = useState('table')
 
-  if (!show) {
+  if (!showActiveRegionSet) {
     return null
   }
 

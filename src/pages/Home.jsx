@@ -48,6 +48,7 @@ import SelectFactorPreview from '../components/ComboLock/SelectFactorPreview'
 import FilterSelects from '../components/ComboLock/FilterSelects'
 
 import RegionsContext from '../components/Regions/RegionsContext';
+import RegionSetModalStatesStore from '../states/RegionSetModalStates'
 
 import SankeyModal from '../components/Narration/SankeyModal';
 import HeaderRegionSetModal from '../components/Regions/HeaderRegionSetModal';
@@ -275,6 +276,9 @@ function Home() {
     filteredActiveRegions,
     activeFilters
   } = useContext(RegionsContext)
+
+  // store
+  const { showActiveRegionSet, showSummary, setShowActiveRegionSet, setShowSummary } = RegionSetModalStatesStore()
 
   const regions = useMemo(() => {
     // console.log("REGIONS MEMO", filteredActiveRegions, activeRegions)
@@ -980,9 +984,7 @@ function Home() {
 
   const [showLayerLegend, setShowLayerLegend] = useState(false)
   const [showSpectrum, setShowSpectrum] = useState(false)
-  const [showSummary, setShowSummary] = useState(false)
   const [showManageRegionSets, setShowManageRegionSets] = useState(false)
-  const [showActiveRegionSet, setShowActiveRegionSet] = useState(false)
   const [loadingSpectrum, setLoadingSpectrum] = useState(false);
 
   // useEffect(() => {
@@ -1134,34 +1136,11 @@ function Home() {
       <div className="flex-1 flex min-h-0">
         <div className="grow-0">
           <LeftToolbar
-            showLayerLegend={showLayerLegend}
-            onLayerLegend={setShowLayerLegend}
-            showSpectrum={showSpectrum}
-            onSpectrum={setShowSpectrum}
-            loadingSpectrum={loadingSpectrum}
-            showSummary={showSummary}
-            onSummary={setShowSummary}
-            showManageRegionSets={showManageRegionSets}
-            showActiveRegionSet={showActiveRegionSet}
-            onManageRegionSets={setShowManageRegionSets}
-            onActiveRegionSet={setShowActiveRegionSet}
-            showSankey={showSankey}
-            onSankey={setShowSankey}
             content={{
-              activeRegionSetModal: <ActiveRegionSetModal
-                show={activeSet}
-                onSelect={handleSelectActiveRegionSet}
-              />,
-              regionSetSummary: <SummarizePaths
-                show={showSummary}
-                topNarrations={topNarrations}
-              />
+              activeRegionSetModal: <ActiveRegionSetModal onSelect={handleSelectActiveRegionSet} />,
+              regionSetSummary: <SummarizePaths />
             }}
           >
-            {/* <ActiveRegionSetModal
-              show={activeSet}
-              onSelect={handleSelectActiveRegionSet}
-            /> */}
             {/* {selected && (selectedTopCSN || loadingSelectedCSN) && (
               <HilbertGenome
                 orderMin={orderDomain[0]}
@@ -1389,22 +1368,6 @@ function Home() {
           setLayerLockFromIcon={setLayerLockFromIcon}
         />
 
-        {/* <LeftToolbar
-          showLayerLegend={showLayerLegend}
-          onLayerLegend={setShowLayerLegend}
-          showSpectrum={showSpectrum}
-          onSpectrum={setShowSpectrum}
-          loadingSpectrum={loadingSpectrum}
-          showSummary={showSummary}
-          onSummary={setShowSummary}
-          showManageRegionSets={showManageRegionSets}
-          showActiveRegionSet={showActiveRegionSet}
-          onManageRegionSets={setShowManageRegionSets}
-          onActiveRegionSet={setShowActiveRegionSet}
-          showSankey={showSankey}
-          onSankey={setShowSankey}
-        /> */}
-
         <LayerLegend
           data={data}
           hover={hover}
@@ -1417,16 +1380,6 @@ function Home() {
 
         <ManageRegionSetsModal
           show={showManageRegionSets}
-        />
-
-        <ActiveRegionSetModal
-          show={showActiveRegionSet}
-          onSelect={handleSelectActiveRegionSet}
-        // selectedRegion={selected}
-        // queryRegions={filteredSegments} 
-        // queryRegionsCount={filteredSegmentsCount}
-        // queryRegionOrder={filterOrder}
-        // queryLoading={filterLoading}
         />
 
         <SankeyModal
