@@ -5,6 +5,7 @@ import { Tooltip } from 'react-tooltip';
 import { download } from '../../lib/regionsets'
 import RegionsContext from './RegionsContext'
 import RegionSetModalStatesStore from '../../states/RegionSetModalStates'
+import SelectedStatesStore from '../../states/SelectedStates'
 import FactorSearch from '../FactorSearch';
 import Loading from '../Loading';
 import AccordionArrow from '@/assets/accordion-circle-arrow.svg?react';
@@ -20,9 +21,7 @@ function inFilters(filters, f) {
   return filters.some(filter => filterMatch(filter, f))
 }
 
-const ActiveRegionSetModal = ({
-  onSelect = () => { },
-} = {}) => {
+const ActiveRegionSetModal = () => {
 
   const { 
     activeSet,
@@ -38,6 +37,12 @@ const ActiveRegionSetModal = ({
   } = useContext(RegionsContext)
   
   const { showActiveRegionSet } = RegionSetModalStatesStore()
+  const { setSelected, setRegion } = SelectedStatesStore()
+
+  const handleSelectActiveRegionSet = useCallback((region) => {
+    setSelected(region)
+    setRegion(region)
+  }, [setSelected, setRegion])
 
   const [regions, setRegions] = useState([])
   useEffect(() => {
@@ -142,7 +147,7 @@ const ActiveRegionSetModal = ({
                   <div className="px-1.5 col-span-2 underline">
                     <a href="#gotoRegion" onClick={(event) => {
                       event.preventDefault()
-                      onSelect(region, region)
+                      handleSelectActiveRegionSet(region)
                     }}>
                       {showPosition(region)}
                     </a>
@@ -296,7 +301,7 @@ const ActiveRegionSetModal = ({
                           </td>
                           {regions?.[0]?.score && <td style={{ width: '10%' }}>{region.score?.toFixed(3)}</td>}
                           <td style={{ width: '10%' }}>
-                            <button onClick={() => onSelect(region, region)}>🔍</button>
+                            <button onClick={() => handleSelectActiveRegionSet(region, region)}>🔍</button>
                           </td>
                         </tr>
                         {/* {expandedRows.has(regionKey) && [region.subregion].map((subregion, subregionIndex) => (
@@ -309,7 +314,7 @@ const ActiveRegionSetModal = ({
                           </td>
                           {<td style={{ width: '10%' }}>{region.score?.toFixed(3)}</td>}
                           <td style={{ width: '10%' }}>
-                            <button onClick={() => onSelect(subregion, region)}>🔍</button>
+                            <button onClick={() => handleSelectActiveRegionSet(subregion, region)}>🔍</button>
                           </td>
                         </tr>
                       ))} */}

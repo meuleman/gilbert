@@ -30,33 +30,25 @@ import styles from './InspectorGadget.module.css'
 */
 
 const InspectorGadget = ({
-  subpaths = null,
-  narration = null,
-  zoomOrder,
-  maxPathScore,
-  loadingCSN = false,
   mapWidth,
   mapHeight,
   onClose = () => { },
-  setNarration = () => { },
-  setSubpaths = () => { },
-  findSubpaths = () => { },
   determineFactorExclusion = () => { }
   // Note: Removed unused props (e.g., children, modalPosition, layers, onCSNIndex, onZoom)
 }) => {
 
-  const { selected } = SelectedStatesStore()
+  const { 
+    selected, findSubpaths, subpaths, setSubpaths, selectedNarration, setSelectedNarration,
+    loadingSelectedCSN, fullNarration, setFullNarration, loadingFullNarration, setLoadingFullNarration,
+    narrationPreview, setNarrationPreview, slicedNarrationPreview, setSlicedNarrationPreview,
+  } = SelectedStatesStore()
   
   // -----------------------
   // Component State
   // -----------------------
 
   // Controls the current zoom order (numeric display level)
-  const [zOrder, setZoomOrder] = useState(zoomOrder);
-
-  // State for holding enriched narration (full data) and its loading status.
-  const [fullNarration, setFullNarration] = useState(null);
-  const [loadingFullNarration, setLoadingFullNarration] = useState(false);
+  const [zOrder, setZoomOrder] = useState(4 + 0.5);
 
   // State used for managing subpaths triggered by factor selections.
   const [topFactors, setTopFactors] = useState(null);
@@ -75,17 +67,17 @@ const InspectorGadget = ({
   // When narration data updates, recalc the zoom order.
   // (The narration region's order is increased by 0.5; but it is at least 4.)
   useEffect(() => {
-    if (!narration) return;
-    let newZoom = narration.region.order + 0.5;
+    if (!selectedNarration) return;
+    let newZoom = selectedNarration.region.order + 0.5;
     if (newZoom < 4) newZoom = 4;
     setZoomOrder(newZoom);
-  }, [narration]);
+  }, [selectedNarration]);
 
   // When narration changes, reset the enriched narration data while new data loads.
   useEffect(() => {
-    setFullNarration(narration);
+    setFullNarration(selectedNarration);
     setLoadingFullNarration(true);
-  }, [narration]);
+  }, [selectedNarration]);
 
   // Update the top factors (from subpaths) whenever the subpaths prop changes.
   useEffect(() => {
@@ -107,20 +99,20 @@ const InspectorGadget = ({
 
     // Prepare data fetch promises; if region order is 14 then also fetch GWAS data.
     const promises = [
-      retrieveFullDataForCSN(narration),
+      retrieveFullDataForCSN(selectedNarration),
     ];
-    if (narration.region.order === 14) {
+    if (selectedNarration.region.order === 14) {
       promises.push(
         fetchGWASforPositions([{
-          chromosome: narration.region.chromosome,
-          index: narration.region.i
+          chromosome: selectedNarration.region.chromosome,
+          index: selectedNarration.region.i
         }])
       );
     }
 
     const responses = await Promise.all(promises);
     const fullDataResponse = responses[0];
-    const gwasResponse = narration.region.order === 14 ? responses[1] : null;
+    const gwasResponse = selectedNarration.region.order === 14 ? responses[1] : null;
 
     // Process GWAS data if available and attach to the order 14 segment.
     const csnGWAS = gwasResponse
@@ -138,14 +130,14 @@ const InspectorGadget = ({
     // Set the enriched narration and mark loading as complete.
     setFullNarration(fullDataResponse);
     setLoadingFullNarration(false);
-  }, [narration]);
+  }, [selectedNarration]);
 
   // Callback to update the narration with a factor's subpath selection.
   const setFactorSelection = useCallback((factor) => {
     // Save current narration to collection.
-    setNarrationCollection(prev => [...prev, narration]);
+    setNarrationCollection(prev => [...prev, selectedNarration]);
 
-    const newNarration = { ...narration };
+    const newNarration = { ...selectedNarration };
     let newPath = factor.path.path;
 
     if (newNarration?.path?.length && newPath?.length) {
@@ -163,7 +155,7 @@ const InspectorGadget = ({
       newNarration.path = newPath;
 
       setSubpathCollection(prev => [...prev, subpaths]);
-      setNarration(newNarration);
+      setSelectedNarration(newNarration);
 
       // Determine which factors to exclude based on the updated narration,
       // and then search for new subpaths from the latest region.
@@ -171,21 +163,19 @@ const InspectorGadget = ({
       findSubpaths(newNarration.path.slice(-1)[0].region, factorExclusion);
     }
   }, [
-    narration,
+    selectedNarration,
     subpaths,
     determineFactorExclusion,
     findSubpaths,
     setNarrationCollection,
     setSubpathCollection,
-    setNarration
+    setSelectedNarration
   ]);
 
   // Callback previewing factor path on subpath hover
-  const [narrationPreview, setNarrationPreview] = useState(null);
-  const [slicedNarrationPreview, setSlicedNarrationPreview] = useState(null);
   const narrationPreviewRef = useRef(narrationPreview);
   const handleNarrationPreview = useCallback((factor) => {
-    const newNarration = { ...narration };
+    const newNarration = { ...selectedNarration };
     let newPath = factor.path.path;
     if (newNarration?.path?.length && newPath?.length) {
       newNarration.path = newPath;
@@ -193,7 +183,7 @@ const InspectorGadget = ({
         setNarrationPreview(newNarration);
       }
     }
-  }, [narration, narrationPreview, setNarrationPreview]);
+  }, [selectedNarration, narrationPreview, setNarrationPreview]);
 
   // Update the ref and sliced version when the preview changes
   useEffect(() => {
@@ -218,7 +208,7 @@ const InspectorGadget = ({
   const subpathGoBack = useCallback(() => {
     if (narrationCollection?.length) {
       const newNarration = narrationCollection.slice(-1)[0];
-      setNarration(newNarration);
+      setSelectedNarration(newNarration);
       setNarrationCollection(prev => prev.slice(0, -1));
 
       // Restore previous factor subpaths and update subpaths collections.
@@ -232,7 +222,7 @@ const InspectorGadget = ({
     subpathCollection,
     setSubpaths,
     setSubpathCollection,
-    setNarration,
+    setSelectedNarration,
     setNarrationCollection,
   ]);
 
@@ -252,14 +242,14 @@ const InspectorGadget = ({
     observer.observe(powerContainerRef.current);
 
     return () => observer.disconnect();
-  }, [narration]);
+  }, [selectedNarration]);
 
   // return (
   //   <div className="min-h-full pl-3 pr-6 py-2.5 border-r-separator border-r-1 w-dvw max-w-100 overflow-auto text-sm flex flex-col gap-6">
   //     <div>
   //       <p><strong className="text-bodyMuted">Region:</strong></p>
   //       <p className="font-mono">
-  //         {narration?.region && getPositionText(narration.region, true, false)}
+  //         {selectedNarration?.region && getPositionText(selectedNarration.region, true, false)}
   //       </p>
   //     </div>
   //     <div>
@@ -332,29 +322,29 @@ const InspectorGadget = ({
         >
 
           <div className={styles.content}>
-            {loadingCSN ? (
+            {loadingSelectedCSN ? (
               <div style={{ height: `${powerWidth}px` }}>
                 <Loading text="Loading CSN..." />
               </div>
             ) : (
-              selected && narration && (
+              selected && selectedNarration && (
                 <div className={styles.csn}>
                   <div className={styles.summaryContainer}>
 
                     <div className={styles.header}>
                       <div className={styles.powerModalSelected}>
-                        {narration?.region && showPosition(narration.region)}
+                        {selectedNarration?.region && showPosition(selectedNarration.region)}
                       </div>
                       <div className={styles.headerButtons}>
                         <div className={styles.close} onClick={onClose}>x</div>
                       </div>
                     </div>
 
-                    <RegionAISummary narration={narration} />
+                    <RegionAISummary narration={selectedNarration} />
                   </div>
                   <div className={styles.powerContainer} ref={powerContainerRef}>
                     <Power
-                      csn={narrationPreview ? narrationPreview : loadingFullNarration ? narration : fullNarration}
+                      csn={narrationPreview ? narrationPreview : loadingFullNarration ? selectedNarration : fullNarration}
                       width={powerWidth}
                       height={powerWidth}
                       userOrder={zOrder}
@@ -365,11 +355,10 @@ const InspectorGadget = ({
                   </div>
                   <div className={styles.zoomInspectorContainer}>
                     <ZoomInspector
-                      csn={loadingFullNarration ? narration : fullNarration}
+                      csn={loadingFullNarration ? selectedNarration : fullNarration}
                       previewCsn={narrationPreview}
                       slicedPreviewCsn={slicedNarrationPreview}
                       order={zOrder}
-                      maxPathScore={maxPathScore}
                       zoomHeight={mapHeight - 20}
                       onHover={handleZoom}
                       onClick={(c) => { console.log("narration", c); }}

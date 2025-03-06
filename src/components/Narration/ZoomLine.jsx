@@ -131,6 +131,7 @@ export default function ZoomLine({
       const xoff = tipOrientation === "left" ? -5 : width + 5;
       const tooltipX = containerRect.left + xoff;
       const tooltipY = containerRect.top + scoreHeight - (scoreHeight * (csn.score / maxPathScore)) / 2;
+      console.log(maxPathScore, tooltipY)
       scoreTooltipRef.current && scoreTooltipRef.current.show(csn.score, null, tooltipX, tooltipY);
     }, [csn, maxPathScore, scoreHeight, tipOrientation, width])
 

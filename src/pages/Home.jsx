@@ -244,15 +244,19 @@ function Home() {
 
   const [showSankey, setShowSankey] = useState(false)
 
-
-
   // store
   const { setShowActiveRegionSet, setShowSummary } = RegionSetModalStatesStore()
-  const { selected, setSelected } = SelectedStatesStore()
-  // selected powers the sidebar modal and the 1D track
+  const { 
+    selected, setSelected, region, setRegion, 
+    loadingSelectedCSN, selectedNarration, setSelectedNarration, 
+    collectPathsForSelected
+  } = SelectedStatesStore()
+  // only on initial mount
   useEffect(() => {
-    // only on initial mount
+    // selected powers the sidebar modal and the 1D track
     setSelected(jsonify(initialSelectedRegion))
+    // changing the region changes the zoom and will also highlight on the map
+    setRegion(jsonify(initialSelectedRegion))
   }, [])
 
   const { filters, setFilters, clearFilters, hasFilters } = useContext(FiltersContext);
@@ -274,7 +278,6 @@ function Home() {
     clearActive,
     saveSet,
     activeGenesetEnrichment,
-    setSelectedGenesetMembership,
     setRegionSetNarration,
     setRegionSetArticles,
     topNarrations,
@@ -282,8 +285,6 @@ function Home() {
     filteredActiveRegions,
     activeFilters
   } = useContext(RegionsContext)
-
-  
 
   const regions = useMemo(() => {
     // console.log("REGIONS MEMO", filteredActiveRegions, activeRegions)
@@ -315,8 +316,6 @@ function Home() {
     }
   }, [filters, showFilter, layerOrderNatural, regions])
 
-
-
   const handleZoom = useCallback((newZoom) => {
     // if(zoomRef.current.order !== newZoom.order && !layerLockRef.current) {
     //   setLayer(layerOrderRef.current[newZoom.order])
@@ -328,7 +327,6 @@ function Home() {
     // }
     // setZoom(newZoom)
   }, [setZoom, setLayer, showFilter, filters])
-
 
   const [scales, setScales] = useState(null)
   const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 })
@@ -384,7 +382,6 @@ function Home() {
   const [similarRegions, setSimilarRegions] = useState([])
   // const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(null)
   const [simSearchMethod, setSimSearchMethod] = useState(null)
-  const [selectedNarration, setSelectedNarration] = useState(null)
   const [crossScaleNarration, setCrossScaleNarration] = useState(new Array(1).fill({ 'path': [] }))
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
   const [csnMethod, setCsnMethod] = useState("sum")
@@ -408,9 +405,6 @@ function Home() {
   const [lastHover, setLastHover] = useState(null)
   // for when a region is hovered in the similar region list
   const [similarRegionListHover, setSimilarRegionListHover] = useState(null)
-
-  // changing the region changes the zoom and will also highlight on the map
-  const [region, setRegion] = useState(jsonify(initialSelectedRegion))
 
   const [data, setData] = useState(null)
   const dataRef = useRef(data)
@@ -484,7 +478,6 @@ function Home() {
       if (simSearchMethod != "Region") {
         SimSearchByFactor(newSearchByFactorInds, order, layer).then((SBFResult) => {
           setSelected(null)
-          setSelectedNarration(null)
           processSimSearchResults(order, SBFResult)
           setSimSearchMethod("SBF")
         })
@@ -499,7 +492,7 @@ function Home() {
       processSimSearchResults(order, { simSearch: null, factors: null, method: null, layer: null })
       setSimSearchMethod(null)
     }
-  }, [selected, order, setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, setSelectedNarration, layer])  // setGenesetEnrichment
+  }, [selected, order, setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, layer])  // setGenesetEnrichment
 
 
   const [showHilbert, setShowHilbert] = useState(false)
@@ -611,10 +604,6 @@ function Home() {
     // });
   }, [setData])
 
-
-  const [powerOrder, setPowerOrder] = useState(order + 0.5)
-
-
   const orderSums = useMemo(() => {
     // return calculateOrderSums()
     let os = calculateSegmentOrderSums()
@@ -629,7 +618,6 @@ function Home() {
   const [numPaths, setNumPaths] = useState(100)
   const [topFullCSNS, setTopFullCSNS] = useState([])
   const [topFactorCSNS, setTopFactorCSNS] = useState([])
-  const [selectedTopCSN, setSelectedTopCSN] = useState(null)
   const [csnLoading, setCSNLoading] = useState("")
   const [filterLoading, setFilterLoading] = useState("")
   const [hoveredTopCSN, setHoveredTopCSN] = useState(null)
@@ -650,11 +638,6 @@ function Home() {
   //   }
   // }, [activePaths, numTopRegions])
 
-
-  // const [pathDiversity, setPathDiversity] = useState(true)
-  const [loadingRegionCSNS, setLoadingRegionCSNS] = useState(false)
-  const [loadingSelectedCSN, setLoadingSelectedCSN] = useState(false)
-
   // Create a mapping from geneset to its score for quick lookup
   const genesetScoreMapping = useMemo(() => {
     return activeGenesetEnrichment
@@ -666,51 +649,8 @@ function Home() {
   }, [activeGenesetEnrichment]);
   
   useEffect(() => {
-    if(selected) {
-      setLoadingSelectedCSN(true)
-      // setLoadingRegionCSNS(true)
-      setSelectedTopCSN(null)
-      // setRegionCSNS([])
-      fetchPartialPathsForRegions([selected], true).then((response) => {
-        if(!response) { 
-          // setRegionCSNS([])
-          setSelectedTopCSN(null)
-          setLoadingSelectedCSN(false)
-          setLoadingRegionCSNS(false)
-          setSelectedGenesetMembership([])
-          return null
-        } else {
-          let responseRegion = response.regions[0]
-          let rehydrated = {
-            path: rehydratePartialCSN(responseRegion, [...csnLayers, ...variantLayers]).path,
-            region: selected, 
-            genes: responseRegion.genes,
-            genesets: responseRegion.genesets.map(g => ({...g, p: genesetScoreMapping[g.geneset]})),
-          }
-          setSelectedTopCSN(rehydrated)
-          setSelectedGenesetMembership(rehydrated.genesets)
-          setLoadingRegionCSNS(false)
-          setLoadingSelectedCSN(false)
-          return rehydrated
-        }
-      }).catch((e) => {
-        console.log("error creating top paths for selected region", e)
-        // setRegionCSNS([])
-        setSelectedTopCSN(null),
-        setLoadingRegionCSNS(false)
-        return null
-      }).then((response) => {
-        // subpath query
-        let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null)
-        // find and set subpaths
-        findSubpaths(selected, factorExclusion)
-      })
-    } else {
-      // selected is cleared
-      setSelectedGenesetMembership([])
-      findSubpaths(null, [])
-    }
-  }, [selected, filteredActiveRegions])
+    collectPathsForSelected(selected, genesetScoreMapping, determineFactorExclusion)
+  }, [selected])
 
   const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
 
@@ -878,13 +818,12 @@ function Home() {
     setSimSearch(null)
     setSearchByFactorInds([])
     setSimilarRegions([])
-    setSelectedNarration(null)
     setSimSearchMethod(null)
-    setSelectedTopCSN(null)
+    setSelectedNarration(null)
     setRegionCSNS([])
     setRegionSetNarration("")
     setRegionSetArticles([])
-  }, [setRegion, setSelected, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSelectedNarration, setSimSearchMethod, setSelectedTopCSN])
+  }, [setRegion, setSelected, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSimSearchMethod, setSelectedNarration])
 
   const clearRegionSetSummaries = useCallback(() => {
     setRegionSetNarration("")
@@ -988,15 +927,6 @@ function Home() {
   const [showLayerLegend, setShowLayerLegend] = useState(false)
   const [showSpectrum, setShowSpectrum] = useState(false)
   const [showManageRegionSets, setShowManageRegionSets] = useState(false)
-  const [loadingSpectrum, setLoadingSpectrum] = useState(false);
-
-  // useEffect(() => {
-  //   if(regions?.length && activeGenesetEnrichment === null) {
-  //     setLoadingSpectrum(true)
-  //   } else {
-  //     setLoadingSpectrum(false)
-  //   }
-  // }, [activeGenesetEnrichment, regions])
 
   useEffect(() => {
     if (activeSet) {
@@ -1012,8 +942,6 @@ function Home() {
     }
   }, [activeSet])
 
-  // console.log(showSpectrum, activeGenesetEnrichment)
-
   useEffect(() => {
     if (!activeSet) {
       setShowSpectrum(false)
@@ -1021,50 +949,7 @@ function Home() {
       // console.log("FIRING FROM HERE!!!", activeGenesetEnrichment?.length)
       activeGenesetEnrichment?.length > 0 ? setShowSpectrum(true) : setShowSpectrum(false)
     }
-
   }, [activeSet, activeGenesetEnrichment])
-
-  // const activePathsRef = useRef(activePaths)
-  // useEffect(() => {
-  //   activePathsRef.current = activePaths
-  //   if(activePaths?.length) {
-  //     setShowSummary(true)
-  //   } else {
-  //     setShowSummary(false)
-  //   }
-  // }, [activePaths])
-
-  // useEffect(() => {
-  //   if(showManageRegionSets) {
-  //     setShowActiveRegionSet(false)
-  //   } else if(showActiveRegionSet) {
-  //     setShowManageRegionSets(false)
-  //   }
-  // }, [showManageRegionSets, showActiveRegionSet])
-
-
-  // factor enrichments for selected region
-  const [subpaths, setSubpaths] = useState(null)
-  // find the subpaths for region
-  const findSubpaths = useCallback((region, factorExclusion) => {
-    setSubpaths(null)
-    if (region) {
-      fetchSingleRegionFactorOverlap({ region: region, factorExclusion: factorExclusion })
-        .then((response) => {
-          let topSubregionFactors = response.map(f => {
-            let layer = layers.find(d => d.datasetName == f.dataset)
-            let factorName = layer.fieldColor.domain()[f.factor]
-            return { ...f, factorName, color: layer.fieldColor(factorName), layer }
-          })
-          // look at the below surface segments and create subregion paths
-          createSubregionPaths(topSubregionFactors, region)
-            .then((subpathResponse) => {
-              setSubpaths(subpathResponse)
-            })
-        })
-    }
-  }, [])
-
 
   // determine factor exclusion for subpath query
   const determineFactorExclusion = useCallback((narration) => {
@@ -1090,12 +975,7 @@ function Home() {
     return uniqueFactors
   }, [activeSet, activeFilters])
 
-  const handleSelectActiveRegionSet = useCallback((effective, base) => {
-    setSelected(effective)
-    setRegion(base)
-  }, [setSelected, setRegion])
-
-  const showInspectorGadget = selected && (selectedTopCSN || loadingSelectedCSN)
+  const showInspectorGadget = selected && (selectedNarration || loadingSelectedCSN)
 
   return (
     <div className="w-dvw h-dvh overflow-hidden flex flex-col">
@@ -1138,11 +1018,11 @@ function Home() {
         <div className="grow-0">
           <LeftToolbar
             content={{
-              activeRegionSetModal: <ActiveRegionSetModal onSelect={handleSelectActiveRegionSet} />,
+              activeRegionSetModal: <ActiveRegionSetModal />,
               regionSetSummary: <SummarizePaths />
             }}
           >
-            {/* {selected && (selectedTopCSN || loadingSelectedCSN) && (
+            {/* {selected && (selectedNarration || loadingSelectedCSN) && (
               <HilbertGenome
                 orderMin={orderDomain[0]}
                 orderMax={orderDomain[1]}
@@ -1176,21 +1056,12 @@ function Home() {
           </LeftToolbar>
         </div>
         <div className={showInspectorGadget ? "flex-1" : "grow-0"}>
-          {selected && (selectedTopCSN || loadingSelectedCSN) && (
+          {selected && (selectedNarration || loadingSelectedCSN) && (
             <InspectorGadget
-              subpaths={subpaths}
-              zoomOrder={powerOrder}
-              narration={selectedTopCSN}
-              setNarration={setSelectedTopCSN}
-              layers={csnLayers}
-              loadingCSN={loadingSelectedCSN}
               mapWidth={width}
               mapHeight={height}
-              modalPosition={modalPosition}
               onClose={handleModalClose}
-              setSubpaths={setSubpaths}
-              findSubpaths={findSubpaths}
-              determineFacto rExclusion={determineFactorExclusion}
+              determineFactorExclusion={determineFactorExclusion}
             />
           )}
         </div>

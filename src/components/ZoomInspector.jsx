@@ -29,7 +29,7 @@ function ZoomInspector({
   previewCsn,
   slicedPreviewCsn,
   order,
-  maxPathScore,
+  maxPathScore,  // no longer used?
   zoomHeight,
   onHover,
   onClick, // used for both ZoomLine and ScoreBars, for example click events
