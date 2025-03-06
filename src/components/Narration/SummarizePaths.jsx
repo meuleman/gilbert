@@ -27,7 +27,7 @@ const FactorBar = ({ factor, index, handleFactorSelect, handleFactorDeselect }) 
           }}>
         </div>
         <div className="absolute inset-0 flex flex-row justify-between px-1 py-0.5 text-xs">
-          <span className="truncate pr-6 flex-1">{factor.field} ({showKbOrder(factor.order)})</span>
+          <span className="truncate pr-6 flex-1">{factor.field}{factor.count ? ` (${showKbOrder(factor.order).join("")})` : ""}</span>
           <span className="whitespace-nowrap pr-6">{factor.score ? `${factor.score?.toFixed(2)}, ` : ""} {Math.round(factor.count / factor.total * 100)}%</span>
         </div>
         {!factor.isBlacklisted && (!factor.isFilter ? 
@@ -126,12 +126,17 @@ const SummarizePaths = ({
       // .slice(0, N)
 
     // add any active filters that are no longer in the top factors
-    let extraFilters = activeFilters.filter(f =>
-      !topFactors.some(d => d.field === f.field && d.layer.labelName === f.layer.labelName)
-    )
-    extraFilters.forEach(f => {
-      f.isFilter = true,  // ensure isFilter is true
-      f.count = 0  // count is now 0 by definition, but need to reset
+    let extraFilters = activeFilters
+    .filter(f =>!topFactors.some(d => d.field === f.field && d.layer.labelName === f.layer.labelName))
+    .map(f => {
+      return {
+        ...f,
+        isFilter: true,  // ensure isFilter is true
+        count: 0,  // count is now 0 by definition, but need to reset
+        layerName: f.layer.labelName ? f.layer.labelName : f.layer.name,
+        total: topNarrations.length,
+        score: regionSetEnrichments?.find(e => e.field === f.field && e.layer.labelName === f.layer.labelName)?.score,
+      }
     })
     // sort by whether it is a filter, then by count
     topFactors = topFactors.concat(extraFilters).sort((a, b) => {
