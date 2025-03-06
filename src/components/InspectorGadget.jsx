@@ -37,10 +37,17 @@ const InspectorGadget = ({
   // Note: Removed unused props (e.g., children, modalPosition, layers, onCSNIndex, onZoom)
 }) => {
 
+  const {
+    activeSet,
+    activeFilters
+  } = useContext(RegionsContext)
+
   const { 
     selected, findSubpaths, subpaths, setSubpaths, selectedNarration, setSelectedNarration,
     loadingSelectedCSN, fullNarration, setFullNarration, loadingFullNarration, setLoadingFullNarration,
-    narrationPreview, setNarrationPreview, slicedNarrationPreview, setSlicedNarrationPreview,
+    narrationPreview, slicedNarrationPreview, setSlicedNarrationPreview, handleNarrationPreview,
+    removeNarrationPreview, subpathCollection, setSubpathCollection, narrationCollection, setNarrationCollection,
+    subpathGoBack, setFactorSelection
   } = SelectedStatesStore()
   
   // -----------------------
@@ -49,11 +56,6 @@ const InspectorGadget = ({
 
   // Controls the current zoom order (numeric display level)
   const [zOrder, setZoomOrder] = useState(4 + 0.5);
-
-  // State used for managing subpaths triggered by factor selections.
-  const [topFactors, setTopFactors] = useState(null);
-  const [subpathCollection, setSubpathCollection] = useState([]);
-  const [narrationCollection, setNarrationCollection] = useState([]);
 
   // Add a ref for the power container
   const powerContainerRef = useRef(null);
@@ -78,11 +80,6 @@ const InspectorGadget = ({
     setFullNarration(selectedNarration);
     setLoadingFullNarration(true);
   }, [selectedNarration]);
-
-  // Update the top factors (from subpaths) whenever the subpaths prop changes.
-  useEffect(() => {
-    setTopFactors(subpaths?.topFactors ?? null);
-  }, [subpaths]);
 
   // Callback to update the zoom order.
   // Ensures the order never goes below 4.
@@ -131,100 +128,6 @@ const InspectorGadget = ({
     setFullNarration(fullDataResponse);
     setLoadingFullNarration(false);
   }, [selectedNarration]);
-
-  // Callback to update the narration with a factor's subpath selection.
-  const setFactorSelection = useCallback((factor) => {
-    // Save current narration to collection.
-    setNarrationCollection(prev => [...prev, selectedNarration]);
-
-    const newNarration = { ...selectedNarration };
-    let newPath = factor.path.path;
-
-    if (newNarration?.path?.length && newPath?.length) {
-      // clear preview if it exists
-      setNarrationPreview(null)
-
-      // add previously collected fullData and counts to segments of the new path
-      newNarration.path.forEach(d => {
-        let correspondingSegment = newPath.filter(e => e.order === d.order)
-        if (correspondingSegment.length === 1) {
-          d.fullData ? correspondingSegment[0]["fullData"] = d.fullData : null;
-          d.counts ? correspondingSegment[0]["counts"] = d.counts : null;
-        }
-      })
-      newNarration.path = newPath;
-
-      setSubpathCollection(prev => [...prev, subpaths]);
-      setSelectedNarration(newNarration);
-
-      // Determine which factors to exclude based on the updated narration,
-      // and then search for new subpaths from the latest region.
-      const factorExclusion = determineFactorExclusion(newNarration);
-      findSubpaths(newNarration.path.slice(-1)[0].region, factorExclusion);
-    }
-  }, [
-    selectedNarration,
-    subpaths,
-    determineFactorExclusion,
-    findSubpaths,
-    setNarrationCollection,
-    setSubpathCollection,
-    setSelectedNarration
-  ]);
-
-  // Callback previewing factor path on subpath hover
-  const narrationPreviewRef = useRef(narrationPreview);
-  const handleNarrationPreview = useCallback((factor) => {
-    const newNarration = { ...selectedNarration };
-    let newPath = factor.path.path;
-    if (newNarration?.path?.length && newPath?.length) {
-      newNarration.path = newPath;
-      if (JSON.stringify(newNarration) !== JSON.stringify(narrationPreviewRef.current)) {
-        setNarrationPreview(newNarration);
-      }
-    }
-  }, [selectedNarration, narrationPreview, setNarrationPreview]);
-
-  // Update the ref and sliced version when the preview changes
-  useEffect(() => {
-    // update ref
-    narrationPreviewRef.current = narrationPreview;
-    
-    // update sliced version of the preview (for score bars)
-    if(narrationPreview) {
-      let withSlicedPath = { ...narrationPreview };
-      withSlicedPath.path = narrationPreview.path.slice(0, -1);
-      setSlicedNarrationPreview(withSlicedPath);
-    } else {
-      setSlicedNarrationPreview(narrationPreview);
-    }
-  }, [narrationPreview]);
-
-  const removeNarrationPreview = useCallback(() => {
-    setNarrationPreview(null);
-  }, []);
-
-  // Callback to revert the most recent factor subpath selection.
-  const subpathGoBack = useCallback(() => {
-    if (narrationCollection?.length) {
-      const newNarration = narrationCollection.slice(-1)[0];
-      setSelectedNarration(newNarration);
-      setNarrationCollection(prev => prev.slice(0, -1));
-
-      // Restore previous factor subpaths and update subpaths collections.
-      setSubpaths(
-        subpathCollection.length ? subpathCollection.slice(-1)[0] : null
-      );
-      setSubpathCollection(prev => prev.slice(0, -1));
-    }
-  }, [
-    narrationCollection,
-    subpathCollection,
-    setSubpaths,
-    setSubpathCollection,
-    setSelectedNarration,
-    setNarrationCollection,
-  ]);
 
   // Add useEffect to update power width when container size changes
   useEffect(() => {
@@ -355,19 +258,9 @@ const InspectorGadget = ({
                   </div>
                   <div className={styles.zoomInspectorContainer}>
                     <ZoomInspector
-                      csn={loadingFullNarration ? selectedNarration : fullNarration}
-                      previewCsn={narrationPreview}
-                      slicedPreviewCsn={slicedNarrationPreview}
                       order={zOrder}
                       zoomHeight={mapHeight - 20}
                       onHover={handleZoom}
-                      onClick={(c) => { console.log("narration", c); }}
-                      factors={topFactors}
-                      subpathCollection={subpathCollection}
-                      onFactor={setFactorSelection}
-                      handleNarrationPreview={handleNarrationPreview}
-                      removeNarrationPreview={removeNarrationPreview}
-                      onSubpathBack={subpathGoBack}
                     />
                   </div>
                 </div>

@@ -4,6 +4,7 @@ import { range } from 'd3-array';
 import { hierarchy, treemap, treemapDice } from 'd3-hierarchy';
 import { variantChooser } from '../../lib/csn';
 import { showKbOrder } from '../../lib/display';
+import SelectedStatesStore from '../../states/SelectedStates'
 import './SubPaths.css';
 
 import Tooltip from '../Tooltips/Tooltip';
@@ -44,8 +45,6 @@ SubPaths.propTypes = {
 export default function SubPaths({
   csn,
   preview,
-  factors,
-  subpathCollection,
   order,
   highlight=false,
   selected=false,
@@ -61,17 +60,26 @@ export default function SubPaths({
   tipOrientation="left",
   onClick = () => {},
   onHover = () => {},
-  onFactor= () => {},
-  handleNarrationPreview = () => {},
-  removeNarrationPreview = () => {},
-  onSubpathBack= () => {}
 }) {
+
+  const { 
+    subpathGoBack: onSubpathBack, setFactorSelection: onFactor, subpathCollection,
+    subpaths, removeNarrationPreview, handleNarrationPreview,
+  } = SelectedStatesStore()
+  
   const tooltipRef = useRef(null)
   
   const [or, setOr] = useState(order)
   useEffect(() => {
     setOr(order)
   }, [order])
+
+  
+  // Update the top factors (from subpaths) whenever the subpaths prop changes.
+  const [factors, setFactors] = useState(null);
+  useEffect(() => {
+    setFactors(subpaths?.topFactors ?? null);
+  }, [subpaths]);
 
   const factorsByOrder = useMemo(() => {
     let facs = {}
@@ -83,8 +91,6 @@ export default function SubPaths({
       facs[o].push({factor: f, score} )
       facs[o].sort((a, b) => b.score - a.score)
     })
-    // console.log("factors", factors)
-    // console.log("facs", facs)
     return facs
   }, [factors])
 

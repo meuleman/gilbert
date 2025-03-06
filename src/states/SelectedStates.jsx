@@ -4,33 +4,8 @@ import { createSubregionPaths } from '../lib/subregionPaths'
 import { fullList as layers, csnLayers, variantLayers } from '../layers'
 import { fetchPartialPathsForRegions, rehydratePartialCSN } from '../lib/csn'
 
-const SelectedStatesStore = create((set, get) => ({
-  selected: null,
-  setSelected: (selected) => set({ selected: selected }),
-  region: null,
-  setRegion: (region) => set({ region: region }),
-  subpaths: null,
-  setSubpaths: (subpaths) => set({ subpaths: subpaths }),
-  loadingSelectedCSN: false,
-  setLoadingSelectedCSN: (loading) => set({ loadingSelectedCSN: loading }),
-  selectedNarration: null,
-  setSelectedNarration: (narration) => set({ selectedNarration: narration }),
-  // State for holding enriched narration (full data) and its loading status.
-  fullNarration: null,
-  setFullNarration: (fullNarration) => set({ fullNarration: fullNarration }),
-  loadingFullNarration: false,
-  setLoadingFullNarration: (loading) => set({ loadingFullNarration: loading }),
-  narrationPreview: null,
-  setNarrationPreview: (preview) => set({ narrationPreview: preview }),
-  slicedNarrationPreview: null,
-  setSlicedNarrationPreview: (preview) => set({ slicedNarrationPreview: preview }),
-  loadingRegionCSNS: false,
-  setLoadingRegionCSNS: (loading) => set({ loadingRegionCSNS: loading }),
-  selectedGenesetMembership: [],
-  setSelectedGenesetMembership: (genesets) => set({ selectedGenesetMembership: genesets }),
-
-  // find the subpaths for region
-  findSubpaths: (region, factorExclusion) => {
+const SelectedStatesStore = create((set, get) => {
+  const findSubpaths = (region, factorExclusion) => {
     set({ subpaths: null });
     if (region) {
       fetchSingleRegionFactorOverlap({ region, factorExclusion })
@@ -47,10 +22,9 @@ const SelectedStatesStore = create((set, get) => ({
             });
         });
     };
-  },
+  };
 
-  // collect information for single region
-  collectPathsForSelected: (selected, genesetScoreMapping, determineFactorExclusion) => {
+  const collectPathsForSelected = (selected, genesetScoreMapping, determineFactorExclusion, activeSet, activeFilters) => {
     if(selected) {
       set({ loadingSelectedCSN: true });
       set({ selectedNarration: null });
@@ -82,7 +56,7 @@ const SelectedStatesStore = create((set, get) => ({
         return null
       }).then((response) => {
         // subpath query
-        let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null)
+        let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null, activeSet, activeFilters)
         // find and set subpaths
         get().findSubpaths(selected, factorExclusion)
       })
@@ -91,7 +65,150 @@ const SelectedStatesStore = create((set, get) => ({
       set({ selectedGenesetMembership: [] })
       get().findSubpaths(null, [])
     }
+  };
+
+  const handleNarrationPreview = (factor) => {
+    const newNarration = { ...get().selectedNarration };
+    let newPath = factor.path.path;
+    if (newNarration?.path?.length && newPath?.length) {
+      newNarration.path = newPath;
+      if (JSON.stringify(newNarration) !== JSON.stringify(get().narrationPreview)) {
+        set({ narrationPreview: newNarration });
+        get().handleSlicedNarrationPreview(newNarration)
+      }
+    }
+  };
+
+  const handleSlicedNarrationPreview = (narrationPreview) => {
+    if(narrationPreview) {
+      let withSlicedPath = { ...narrationPreview };
+      withSlicedPath.path = narrationPreview.path.slice(0, -1);
+      set({slicedNarrationPreview: withSlicedPath});
+    } else {
+      set({slicedNarrationPreview: narrationPreview})
+    }
+  };
+
+  // determines factor exclusion for subpath query
+  const determineFactorExclusion = (narration, activeSet = null, activeFilters = []) => {
+    let originalFactor = activeSet?.factor
+    let factorExclusion = [
+      ...(originalFactor ? [{ dataset: originalFactor?.layer?.datasetName, factor: originalFactor?.index }] : []),
+      ...activeFilters.map(d => ({ dataset: d.layer.datasetName, factor: d.index })),
+      ...(narration ? narration.path.map(d => ({ dataset: d.layer?.datasetName, factor: d.field?.index })) : [])
+    ]
+
+    // reduce factor list to unique set
+    const uniqueFactors = []
+    const seen = new Set()
+
+    factorExclusion.forEach(d => {
+      const factorString = `${d.dataset?.replace("_top10", "")},${d.factor}`  // convert top10 TF dataset name
+      if (d.factor && d.dataset && !seen.has(factorString)) {
+        seen.add(factorString)
+        uniqueFactors.push(d)
+      }
+    })
+
+    return uniqueFactors
   }
-}))
+
+  // reverts the most recent factor subpath selection.
+  const subpathGoBack = () => {
+    let narrationCollection = get().narrationCollection;
+    let subpathCollection = get().subpathCollection;
+    if (narrationCollection?.length) {
+      // Restore previous factor subpaths and update subpaths collections.
+      set({
+        selectedNarration: narrationCollection.slice(-1)[0],
+        narrationCollection: narrationCollection.slice(0, -1),
+        subpaths: subpathCollection.length ? subpathCollection.slice(-1)[0] : null,
+        subpathCollection: subpathCollection.slice(0, -1)
+      })
+    }
+  };
+
+  // updates the narration with a factor's subpath selection.
+  const setFactorSelection = (factor, activeSet = null, activeFilters = []) => {
+
+    let selectedNarration = get().selectedNarration;
+    if (!selectedNarration || !factor?.path?.path) return;
+    
+    let subpaths = get().subpaths;
+    let narrationCollection = get().narrationCollection;
+    let subpathCollection = get().subpathCollection;
+
+    // Save current narration to collection.
+    set({ narrationCollection: [...narrationCollection, selectedNarration] });
+
+    const newNarration = { ...selectedNarration };
+    let newPath = factor.path.path;
+
+    if (newNarration?.path?.length && newPath?.length) {
+      // clear preview if it exists
+      get().removeNarrationPreview();
+
+      // add previously collected fullData and counts to segments of the new path
+      newNarration.path.forEach(d => {
+        let correspondingSegment = newPath.find(e => e.order === d.order);
+        if (correspondingSegment.length === 1) {
+          d.fullData ? correspondingSegment[0]["fullData"] = d.fullData : null;
+          d.counts ? correspondingSegment[0]["counts"] = d.counts : null;
+        };
+      });
+      newNarration.path = newPath;
+      set({ 
+        subpathCollection: [...subpathCollection, subpaths], 
+        selectedNarration: newNarration 
+      });
+
+      // Determine which factors to exclude based on the updated narration,
+      // and then search for new subpaths from the latest region.
+      const factorExclusion = get().determineFactorExclusion(newNarration, activeSet, activeFilters);
+      get().findSubpaths(newNarration.path.slice(-1)[0].region, factorExclusion);
+    }
+  };
+
+  return {
+    selected: null,
+    setSelected: (selected) => set({ selected: selected }),
+    region: null,
+    setRegion: (region) => set({ region: region }),
+    subpaths: null,
+    setSubpaths: (subpaths) => set({ subpaths: subpaths }),
+    loadingSelectedCSN: false,
+    setLoadingSelectedCSN: (loading) => set({ loadingSelectedCSN: loading }),
+    selectedNarration: null,
+    setSelectedNarration: (narration) => set({ selectedNarration: narration }),
+    subpathCollection: [],
+    setSubpathCollection: (subpathCollection) => set({ subpathCollection: subpathCollection }),
+    narrationCollection: [],
+    setNarrationCollection: (narrationCollection) => set({ narrationCollection: narrationCollection }),
+    // State for holding enriched narration (full data) and its loading status.
+    fullNarration: null,
+    setFullNarration: (fullNarration) => set({ fullNarration: fullNarration }),
+    loadingFullNarration: false,
+    setLoadingFullNarration: (loading) => set({ loadingFullNarration: loading }),
+    narrationPreview: null,
+    setNarrationPreview: (preview) => set({ narrationPreview: preview }),
+    removeNarrationPreview: () => set({ narrationPreview: null, slicedNarrationPreview: null }),
+    handleNarrationPreview,
+    slicedNarrationPreview: null,
+    setSlicedNarrationPreview: (preview) => set({ slicedNarrationPreview: preview }),
+    handleSlicedNarrationPreview: handleSlicedNarrationPreview,
+    loadingRegionCSNS: false,
+    setLoadingRegionCSNS: (loading) => set({ loadingRegionCSNS: loading }),
+    selectedGenesetMembership: [],
+    setSelectedGenesetMembership: (genesets) => set({ selectedGenesetMembership: genesets }),
+
+    // subpaths
+    findSubpaths,
+    subpathGoBack,
+
+    // collect information for single region
+    determineFactorExclusion,
+    setFactorSelection,
+    collectPathsForSelected,
+}})
 
 export default SelectedStatesStore;

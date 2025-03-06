@@ -249,7 +249,7 @@ function Home() {
   const { 
     selected, setSelected, region, setRegion, 
     loadingSelectedCSN, selectedNarration, setSelectedNarration, 
-    collectPathsForSelected
+    collectPathsForSelected, determineFactorExclusion
   } = SelectedStatesStore()
   // only on initial mount
   useEffect(() => {
@@ -649,7 +649,7 @@ function Home() {
   }, [activeGenesetEnrichment]);
   
   useEffect(() => {
-    collectPathsForSelected(selected, genesetScoreMapping, determineFactorExclusion)
+    collectPathsForSelected(selected, genesetScoreMapping, determineFactorExclusion, activeSet, activeFilters)
   }, [selected])
 
   const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
@@ -951,29 +951,29 @@ function Home() {
     }
   }, [activeSet, activeGenesetEnrichment])
 
-  // determine factor exclusion for subpath query
-  const determineFactorExclusion = useCallback((narration) => {
-    let originalFactor = activeSet?.factor
-    let factorExclusion = [
-      ...(originalFactor ? [{ dataset: originalFactor?.layer?.datasetName, factor: originalFactor?.index }] : []),
-      ...activeFilters.map(d => ({ dataset: d.layer.datasetName, factor: d.index })),
-      ...(narration ? narration.path.map(d => ({ dataset: d.layer?.datasetName, factor: d.field?.index })) : [])
-    ]
+  // // determine factor exclusion for subpath query
+  // const determineFactorExclusion = useCallback((narration) => {
+  //   let originalFactor = activeSet?.factor
+  //   let factorExclusion = [
+  //     ...(originalFactor ? [{ dataset: originalFactor?.layer?.datasetName, factor: originalFactor?.index }] : []),
+  //     ...activeFilters.map(d => ({ dataset: d.layer.datasetName, factor: d.index })),
+  //     ...(narration ? narration.path.map(d => ({ dataset: d.layer?.datasetName, factor: d.field?.index })) : [])
+  //   ]
 
-    // reduce factor list to unique set
-    const uniqueFactors = []
-    const seen = new Set()
+  //   // reduce factor list to unique set
+  //   const uniqueFactors = []
+  //   const seen = new Set()
 
-    factorExclusion.forEach(d => {
-      const factorString = `${d.dataset?.replace("_top10", "")},${d.factor}`  // convert top10 TF dataset name
-      if (d.factor && d.dataset && !seen.has(factorString)) {
-        seen.add(factorString)
-        uniqueFactors.push(d)
-      }
-    })
+  //   factorExclusion.forEach(d => {
+  //     const factorString = `${d.dataset?.replace("_top10", "")},${d.factor}`  // convert top10 TF dataset name
+  //     if (d.factor && d.dataset && !seen.has(factorString)) {
+  //       seen.add(factorString)
+  //       uniqueFactors.push(d)
+  //     }
+  //   })
 
-    return uniqueFactors
-  }, [activeSet, activeFilters])
+  //   return uniqueFactors
+  // }, [activeSet, activeFilters])
 
   const showInspectorGadget = selected && (selectedNarration || loadingSelectedCSN)
 
