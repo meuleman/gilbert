@@ -61,12 +61,6 @@ const InspectorGadget = ({
     setZoomOrder(newZoom);
   }, [selectedNarration]);
 
-  // When narration changes, reset the enriched narration data while new data loads.
-  useEffect(() => {
-    setFullNarration(selectedNarration);
-    setLoadingFullNarration(true);
-  }, [selectedNarration]);
-
   // Add useEffect to update power width when container size changes
   useEffect(() => {
     if (!powerContainerRef.current) return;

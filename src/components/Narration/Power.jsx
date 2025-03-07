@@ -315,10 +315,10 @@ function PowerModal({ width, height, sheight=30, onPercent }) {
     }
   }, [csn])
 
-  useEffect(() => {
-    if(data && onData && !isPreview)
-      onData(data)
-  }, [data, onData, isPreview])
+  // useEffect(() => {
+  //   if(data && onData && !isPreview)
+  //     onData(data)
+  // }, [data, onData, isPreview])
 
 
   // const [genes, setGenes] = useState([])

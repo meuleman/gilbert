@@ -33,7 +33,8 @@ function ZoomInspector({
 
   const { 
     selectedNarration, fullNarration, loadingFullNarration,
-    narrationPreview, slicedNarrationPreview,
+    narrationPreview, slicedNarrationPreview, collectFullData, 
+    setFullNarration, setLoadingFullNarration
   } = SelectedStatesStore()
 
   const [csn, setCsn] = useState(selectedNarration)
@@ -41,11 +42,18 @@ function ZoomInspector({
     setCsn(loadingFullNarration ? selectedNarration : fullNarration)
   }, [loadingFullNarration, selectedNarration, fullNarration])
 
+  // When narration changes, reset the enriched narration data while new data loads.
+  useEffect(() => {
+    setFullNarration(selectedNarration);
+    collectFullData(selectedNarration)
+    setLoadingFullNarration(true);
+  }, [selectedNarration]);
+
   const tipOrientation = "left"
   const sidebarWidth = 30
   const scoreBarWidth = 150
   return (
-    <div className={styles.zoomScores}>
+    <div className='flex h-full flex-row gap-0'>
       <ZoomLine 
         csn={narrationPreview ? narrationPreview : csn} 
         order={order}
@@ -75,7 +83,7 @@ function ZoomInspector({
         showScore={false}
         onClick={onClick || ((c) => { console.log("ScoreBars clicked:", c); })}
       />
-      <div className={styles.subpath}>
+      <div className='relative -left-[150px] pointer-events-none'>
         <SubPaths 
           csn={csn}
           preview={slicedNarrationPreview}

@@ -56,6 +56,7 @@ import HeaderRegionSetModal from '../components/Regions/HeaderRegionSetModal';
 import ManageRegionSetsModal from '../components/Regions/ManageRegionSetsModal'
 import ActiveRegionSetModal from '../components/Regions/ActiveRegionSetModal'
 import SummarizePaths from '../components/Narration/SummarizePaths'
+import ZoomInspector from '../components/ZoomInspector'
 
 import Spectrum from '../components/Narration/Spectrum';
 
@@ -1122,26 +1123,29 @@ function Home() {
             </div>
           </div>
           <div className="grow-0 shrink-0 col-start-2 row-start-2 row-end-3 flex">
-            <ZoomLegend
-              k={transform.k}
-              height={height}
-              effectiveOrder={order}
-              zoomExtent={zoomExtent}
-              orderDomain={orderDomain}
-              layerOrder={layerOrder}
-              layer={layer}
-              layerLock={layerLock}
-              lensHovering={lensHovering}
-              selected={selected}
-              hovered={hover}
-              // crossScaleNarration={csn}
-              onZoom={(region) => {
-                setRegion(null);
-                const hit = fromPosition(region.chromosome, region.start, region.end)
-                setRegion(hit)
-                // setSelected(hit)
-              }}
-            />
+            {selectedNarration ? 
+              <ZoomInspector zoomHeight={height} /> : 
+              <ZoomLegend
+                k={transform.k}
+                height={height}
+                effectiveOrder={order}
+                zoomExtent={zoomExtent}
+                orderDomain={orderDomain}
+                layerOrder={layerOrder}
+                layer={layer}
+                layerLock={layerLock}
+                lensHovering={lensHovering}
+                selected={selected}
+                hovered={hover}
+                // crossScaleNarration={csn}
+                onZoom={(region) => {
+                  setRegion(null);
+                  const hit = fromPosition(region.chromosome, region.start, region.end)
+                  setRegion(hit)
+                  // setSelected(hit)
+                }}
+              />
+            }
           </div>
         </div>
       </div>

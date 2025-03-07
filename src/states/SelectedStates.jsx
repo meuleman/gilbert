@@ -173,7 +173,7 @@ const SelectedStatesStore = create((set, get) => {
 
   // Called when the "power" data (enriched CSN data) is ready.
   // It updates geneset membership and merges additional data such as GWAS.
-  const collectFullData = async (data) => {
+  const collectFullData = async () => {
 
     let selectedNarration = get().selectedNarration;
 
