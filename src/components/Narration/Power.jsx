@@ -18,6 +18,8 @@ import order_14 from '../../layers/order_14';
 import Loading from '../Loading';
 import { Renderer as CanvasRenderer } from '../Canvas/Renderer';
 
+import { useZoom } from '../../contexts/ZoomContext'
+import SelectedStatesStore from '../../states/SelectedStates'
 
 import Tooltip from '../Tooltips/Tooltip';
 
@@ -100,7 +102,7 @@ function renderPipes(ctx, points, t, o, scales, stroke, sizeMultiple=1) {
 import PropTypes from 'prop-types';
 
 PowerModal.propTypes = {
-  csn: PropTypes.object.isRequired,
+  // csn: PropTypes.object.isRequired,
   width: PropTypes.number.isRequired,
   height: PropTypes.number.isRequired,
   sheight: PropTypes.number,
@@ -112,13 +114,30 @@ PowerModal.propTypes = {
 };
 
 
-function PowerModal({ csn, width, height, sheight=30, userOrder, onData, isPreview, onOrder, onPercent }) {
+function PowerModal({ width, height, sheight=30, onPercent }) {
 
   const canvasRef = useRef(null);
   // const canvasRef1D = useRef(null);
   const canvasRefStrip = useRef(null);
   const canvasRefGenes = useRef(null);
   const tooltipRef = useRef(null)
+
+  const { handleSelectedZoom: onOrder, selectedZoomOrder: userOrder } = useZoom()
+  const { 
+    collectFullData: onData, narrationPreview, loadingFullNarration, 
+    selectedNarration, fullNarration 
+  } = SelectedStatesStore()
+
+  // determine if we are in preview mode
+  const [isPreview, setIsPreview] = useState(false)
+  useEffect(() => {
+    setIsPreview(!!narrationPreview)
+  }, [narrationPreview])
+
+  const [csn, setCsn] = useState(selectedNarration)
+  useEffect(() => {
+    setCsn(narrationPreview ? narrationPreview : loadingFullNarration ? selectedNarration : fullNarration)
+  }, [narrationPreview, loadingFullNarration, selectedNarration, fullNarration])
 
   const [loading, setLoading] = useState(false)
 

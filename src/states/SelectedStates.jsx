@@ -3,6 +3,8 @@ import { fetchSingleRegionFactorOverlap } from '../lib/regionSetEnrichments';
 import { createSubregionPaths } from '../lib/subregionPaths'
 import { fullList as layers, csnLayers, variantLayers } from '../layers'
 import { fetchPartialPathsForRegions, rehydratePartialCSN } from '../lib/csn'
+import { fetchGWASforPositions } from '../lib/gwas'
+import { retrieveFullDataForCSN } from '../lib/csn'
 
 const SelectedStatesStore = create((set, get) => {
   const findSubpaths = (region, factorExclusion) => {
@@ -169,6 +171,47 @@ const SelectedStatesStore = create((set, get) => {
     }
   };
 
+  // Called when the "power" data (enriched CSN data) is ready.
+  // It updates geneset membership and merges additional data such as GWAS.
+  const collectFullData = async (data) => {
+
+    let selectedNarration = get().selectedNarration;
+
+    // Prepare data fetch promises; if region order is 14 then also fetch GWAS data.
+    const promises = [
+      retrieveFullDataForCSN(selectedNarration),
+    ];
+    if (selectedNarration.region.order === 14) {
+      promises.push(
+        fetchGWASforPositions([{
+          chromosome: selectedNarration.region.chromosome,
+          index: selectedNarration.region.i
+        }])
+      );
+    }
+
+    const responses = await Promise.all(promises);
+    const fullDataResponse = responses[0];
+    const gwasResponse = selectedNarration.region.order === 14 ? responses[1] : null;
+
+    // Process GWAS data if available and attach to the order 14 segment.
+    const csnGWAS = gwasResponse
+      ? gwasResponse[0].trait_names.map((trait, i) => ({
+        trait,
+        score: gwasResponse[0].scores[i],
+        layer: gwasResponse[0].layer
+      })).sort((a, b) => b.score - a.score)
+      : null;
+    const csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14);
+    if (csnOrder14Segment) {
+      csnOrder14Segment.GWAS = csnGWAS;
+    }
+
+    // Set the enriched narration and mark loading as complete.
+    set({ fullNarration: fullDataResponse });
+    set({ loadingFullNarration: false });
+  };
+
   return {
     selected: null,
     setSelected: (selected) => set({ selected: selected }),
@@ -209,6 +252,9 @@ const SelectedStatesStore = create((set, get) => {
     determineFactorExclusion,
     setFactorSelection,
     collectPathsForSelected,
+
+    // collect full data
+    collectFullData,
 }})
 
 export default SelectedStatesStore;

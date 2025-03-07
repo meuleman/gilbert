@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Tooltip } from 'react-tooltip'
 import { showKbOrder } from '../../lib/display'
+import SelectedStatesStore from '../../states/SelectedStates'
 
 import styles from './RegionAISummary.module.css'
 
@@ -94,9 +95,7 @@ export const generateQuery = (narration) => {
 }
 
 
-const RegionAISummary = ({
-  narration = null,
-} = {}) => {
+const RegionAISummary = ({} = {}) => {
   const [query, setQuery] = useState("")
   const [showPromptEditor, setShowPromptEditor] = useState(false)
 
@@ -111,6 +110,7 @@ const RegionAISummary = ({
   // const url = "https://enjalot--pubmed-query-transformermodel-rag-generate-dev.modal.run"
   // const url_feedback = "https://enjalot--pubmed-query-transformermodel-feedback-dev.modal.run"
 
+  const { selectedNarration: narration } = SelectedStatesStore()
 
   const [prompt, setPrompt] = useState(defaultPrompt)
 

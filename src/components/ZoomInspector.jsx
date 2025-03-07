@@ -4,6 +4,7 @@ import ScoreBars from './Narration/ScoreBars';
 import SubPaths from './Narration/SubPaths';
 import styles from './InspectorGadget.module.css';
 import SelectedStatesStore from '../states/SelectedStates'
+import { useZoom } from '../contexts/ZoomContext'
 
 /**
  * ZoomInspector consolidates the ZoomLine, ScoreBars, and SubPaths
@@ -22,13 +23,14 @@ import SelectedStatesStore from '../states/SelectedStates'
  *   - onClick:              (Optional) Function callback for click events.
  */
 function ZoomInspector({
-  order,
   maxPathScore,  // no longer used?
   zoomHeight,
-  onHover,
   onClick = (c) => { console.log("narration", c); }, // used for both ZoomLine and ScoreBars, for example click events
 }) {
   
+  // zoom order
+  const { selectedZoomOrder: order, handleSelectedZoom: onHover } = useZoom()
+
   const { 
     selectedNarration, fullNarration, loadingFullNarration,
     narrationPreview, slicedNarrationPreview,
@@ -36,7 +38,7 @@ function ZoomInspector({
 
   const [csn, setCsn] = useState(selectedNarration)
   useEffect(() => {
-    loadingFullNarration ? setCsn(selectedNarration) : setCsn(fullNarration)
+    setCsn(loadingFullNarration ? selectedNarration : fullNarration)
   }, [loadingFullNarration, selectedNarration, fullNarration])
 
   const tipOrientation = "left"
