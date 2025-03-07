@@ -16,7 +16,7 @@ ScoreBars.propTypes = {
   highlight: PropTypes.bool,
   selected: PropTypes.bool,
   width: PropTypes.number,
-  height: PropTypes.number,
+  height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   tipOrientation: PropTypes.string,
   onHover: PropTypes.func,
   onClick: PropTypes.func
@@ -31,7 +31,7 @@ export default function ScoreBars({
   highlightOrders=[],
   text=true,
   width = 50,
-  height = 400,
+  height = '100%',
   fontSize = 9,
   scoreHeight = 20,
   showScore=true,
@@ -39,7 +39,27 @@ export default function ScoreBars({
   onHover = () => {},
   onClick = () => {}
 }) {
-  const tooltipRef = useRef(null)
+  const tooltipRef = useRef(null);
+  const containerRef = useRef(null);
+  const [containerHeight, setContainerHeight] = useState(0);
+  
+  // Measure container height when it's mounted or when height prop changes
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        setContainerHeight(entry.contentRect.height);
+      }
+    });
+    
+    resizeObserver.observe(containerRef.current);
+    setContainerHeight(containerRef.current.clientHeight);
+    
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
   
   const [or, setOr] = useState(order)
   useEffect(() => {
@@ -49,10 +69,8 @@ export default function ScoreBars({
   const [path, setPath] = useState([])
   const [maxENR, setMaxENR] = useState(0)
   useEffect(() => {
-    // console.log(csn, order)
     let maxenr = 0
     if(csn?.path){
-      // console.log("csn.path",csn)
       let p = csn.path.filter(d => !!d).sort((a, b) => a.order - b.order) 
       p.forEach(d => {
         if(d.layer && d.layer.datasetName.indexOf("enr") > -1) {
@@ -62,29 +80,29 @@ export default function ScoreBars({
         }
       })
       if(csn.variants && csn.variants.length) {
-        // let v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0]
         let v = variantChooser(csn.variants)
-        // console.log("top variant line ",v)
         p = p.filter(d => d.order !== 14);
         p.push({field: v.topField, layer: v.layer, order: 14, region: v})
-        // console.log("p", p)
       }
       setPath(p)
       setMaxENR(maxenr)
     }
   }, [csn, order])
 
-
-  // we create an extra space for the score bar
-  // we create an extra space for the score bar
+  // Calculate scale based on container height
   const depth = (showScore ? 15 : 14) - 4
-  if(!showScore) scoreHeight = -5
-  let scoreOffset = scoreHeight
-  if(!showScore) scoreOffset = -scoreHeight
-  const spacing = (height - scoreHeight)/(depth + 1)
-  const h = height - spacing - 1 
-  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([ 5 + scoreHeight, h + 3 - scoreOffset]), [h, scoreOffset, scoreHeight])
-  const rw = useMemo(() => yScale(5) - yScale(4) - 2, [yScale])
+  const effectiveScoreHeight = !showScore ? -5 : scoreHeight
+  const scoreOffset = !showScore ? -effectiveScoreHeight : effectiveScoreHeight
+  
+  const h = containerHeight - ((containerHeight - effectiveScoreHeight) / (depth + 1)) - 1
+  const yScale = useMemo(() => 
+    scaleLinear()
+      .domain([4, 14])
+      .range([5 + effectiveScoreHeight, h - scoreOffset + 2]), 
+    [h, scoreOffset, effectiveScoreHeight, containerHeight]
+  );
+  
+  const rw = useMemo(() => yScale(5) - yScale(4) - 2, [yScale]);
 
   const handleClick = useCallback((e, o) => {
     // const p = path.find(d => d.order === o)
@@ -120,134 +138,110 @@ export default function ScoreBars({
 
   return (
     <div
-      className="score-bars"
-      style={{ position: "relative", width, height }}
+      ref={containerRef}
+      className="relative w-full h-full"
+      style={{ width }}
       onClick={() => onClick(csn)}
     >
-      <div style={{ position: "relative", width, height }}>
-        {path.length && yScale &&
-          range(4, 15).map(o => {
-            const p = path.find(d => d.order === o);
-            let w = 0;
-            if (p && p.layer) {
-              w = p.layer.datasetName.indexOf("enr") > -1
-                ? width * (p.field.value / maxENR)
-                : width * (p.field.value);
-            }
-            return (
+      {path.length && yScale && containerHeight > 0 &&
+        range(4, 15).map(o => {
+          const p = path.find(d => d.order === o);
+          let w = 0;
+          if (p && p.layer) {
+            w = p.layer.datasetName.indexOf("enr") > -1
+              ? width * (p.field.value / maxENR)
+              : width * (p.field.value);
+          }
+          return (
+            <div
+              key={o}
+              className="absolute left-0 pointer-events-auto"
+              style={{
+                top: yScale(o),
+                width,
+                height: rw
+              }}
+              onMouseMove={e => handleHover(e, o)}
+              onMouseLeave={handleLeave}
+            >
               <div
-                key={o}
-                onMouseMove={e => handleHover(e, o)}
-                onMouseLeave={handleLeave}
+                className="absolute top-0 left-0 opacity-[0.01] bg-white"
                 style={{
-                  position: "absolute",
-                  top: yScale(o),
-                  left: 0,
-                  width: width,
-                  height: rw,
-                  pointerEvents: "all"
+                  width,
+                  height: rw
                 }}
-              >
+              />
+              {w ? (
                 <div
+                  className={`absolute top-0 left-0 border border-gray-300 ${selected ? 'opacity-75' : 'opacity-50'}`}
                   style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: width,
-                    height: rw,
-                    backgroundColor: "white",
-                    opacity: 0.01
-                  }}
-                />
-                {w ? <div
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
                     width: w,
                     height: rw,
-                    backgroundColor: p && p.field ? p.field.color : "white",
-                    opacity: selected ? 0.75 : 0.5,
-                    border: "1px solid lightgray"
+                    backgroundColor: p && p.field ? p.field.color : "white"
                   }}
-                /> : null}
+                />
+              ) : null}
+            </div>
+          );
+        })}
+
+      {showOrderLine && containerHeight > 0 && (
+        <div 
+          className="absolute left-0 bg-black pointer-events-none"
+          style={{
+            top: yScale(or),
+            width,
+            height: 2
+          }}
+        />
+      )}
+
+      {path.length && yScale && text && containerHeight > 0 &&
+        range(4, 15).map(o => {
+          const p = path.find(d => d.order === o);
+          const y = yScale(o) + rw / 2
+          return (
+            <div key={`${o}-container`}>
+              <div
+                key={`${o}-field`}
+                className="absolute left-0 pl-1.5 font-mono pointer-events-none text-gray-900"
+                style={{
+                  top: y - fontSize,
+                  width,
+                  fontSize,
+                  fontWeight: highlightOrders.indexOf(o) >= 0 ? "bold" : "normal"
+                }}
+              >
+                {p?.field?.field ? p?.field?.field : ""}
               </div>
-            );
-          })}
-        {showOrderLine && (
-          <div
-            style={{
-              position: "absolute",
-              top: yScale(or),
-              left: 0,
-              width: width,
-              height: 2,
-              backgroundColor: "black",
-              pointerEvents: "none"
-            }}
-          />
-        )}
-        {path.length && yScale && text &&
-          range(4, 15).map(o => {
-            const p = path.find(d => d.order === o);
-            const y = yScale(o) + rw / 2
-            return (
-              <div>
-                <div
-                  key={`${o}-field`}
-                  style={{
-                    position: "absolute",
-                    top: y - fontSize,
-                    left: 0,
-                    width: width,
-                    paddingLeft: 5,
-                    fontFamily: "Courier",
-                    fontSize: fontSize,
-                    fontWeight: highlightOrders.indexOf(o) >= 0 ? "bold" : "normal",
-                    color: "#111",
-                    pointerEvents: "none"
-                  }}
-                >
-                  {p?.field?.field ? p?.field?.field : ""}
-                </div>
-                <div
-                  key={`${o}-score`}
-                  style={{
-                    position: "absolute",
-                    top: y,
-                    left: 0,
-                    width: width,
-                    paddingLeft: 5,
-                    fontFamily: "Courier",
-                    fontSize: fontSize,
-                    fontWeight: highlightOrders.indexOf(o) >= 0 ? "bold" : "normal",
-                    color: "#111",
-                    pointerEvents: "none"
-                  }}
-                >
-                  {p?.field ? showFloat(p.field.value) : ""}
-                </div>
+              <div
+                key={`${o}-score`}
+                className="absolute left-0 pl-1.5 font-mono pointer-events-none text-gray-900"
+                style={{
+                  top: y,
+                  width,
+                  fontSize,
+                  fontWeight: highlightOrders.indexOf(o) >= 0 ? "bold" : "normal"
+                }}
+              >
+                {p?.field ? showFloat(p.field.value) : ""}
               </div>
-            );
-          })}
-        {showScore && (
-          <div
-            style={{
-              position: "absolute",
-              top: h + scoreHeight,
-              left: 0,
-              width: width,
-              textAlign: "center",
-              fontFamily: "Courier",
-              fontSize: 11,
-              fontWeight: "bold",
-              color: "#111"
-            }}
-          >
-            {showFloat(csn.score)}
-          </div>
-        )}
-      </div>
+            </div>
+          );
+        })}
+
+      {showScore && containerHeight > 0 && (
+        <div
+          className="absolute left-0 w-full text-center font-mono font-bold text-gray-900"
+          style={{
+            top: h + scoreHeight,
+            fontSize: 11
+          }}
+        >
+          {showFloat(csn.score)}
+        </div>
+      )}
+      
       <Tooltip ref={tooltipRef} orientation={tipOrientation} contentFn={tooltipContent} enforceBounds={false} />
     </div>
   )

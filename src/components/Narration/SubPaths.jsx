@@ -11,12 +11,11 @@ import Tooltip from '../Tooltips/Tooltip';
 
 import PropTypes from 'prop-types';
 
-
 function factorTooltipContent(factor) {
   return (
-    <div style={{display: 'flex', flexDirection: 'column', borderColor: factor.color, gap: 2}}>
+    <div className="flex flex-col gap-0.5" style={{borderColor: factor.color}}>
        <span>
-        <span style={{ display: 'inline-block', width: 10, height: 10, marginRight: 4, backgroundColor: factor.color }}></span>
+        <span className="inline-block w-2.5 h-2.5 mr-1" style={{ backgroundColor: factor.color }}></span>
         <span>{factor.factorName} ({factor.topSegment.score.toFixed(2)})</span>
        </span>
        <span>{showKbOrder(factor.topSegment.order)}</span>
@@ -33,7 +32,7 @@ SubPaths.propTypes = {
   highlight: PropTypes.bool,
   selected: PropTypes.bool,
   width: PropTypes.number,
-  height: PropTypes.number,
+  height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   tipOrientation: PropTypes.string,
   showScore: PropTypes.bool,
   onHover: PropTypes.func,
@@ -53,7 +52,7 @@ export default function SubPaths({
   text=true,
   showScore=true,
   width = 50,
-  height = 400,
+  height = '100%', // Changed to support percentage
   fontSize = 9,
   offsetX = 0,
   scoreHeight = 20,
@@ -61,6 +60,26 @@ export default function SubPaths({
   onClick = () => {},
   onHover = () => {},
 }) {
+  const containerRef = useRef(null);
+  const [containerHeight, setContainerHeight] = useState(0);
+  
+  // Measure container height when it's mounted or when height prop changes
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        setContainerHeight(entry.contentRect.height);
+      }
+    });
+    
+    resizeObserver.observe(containerRef.current);
+    setContainerHeight(containerRef.current.clientHeight);
+    
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   const { 
     subpathGoBack: onSubpathBack, setFactorSelection: onFactor, subpathCollection,
@@ -101,9 +120,7 @@ export default function SubPaths({
       let mfo = 0 // max factor order
       let p = csn.path.filter(d => !!d).sort((a, b) => a.order - b.order) 
       if(csn.variants && csn.variants.length) {
-        // let v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0]
         let v = variantChooser(csn.variants)
-        // console.log("top variant line ",v)
         p = p.filter(d => d.order !== 14);
         p.push({field: v.topField, layer: v.layer, order: 14, region: v})
       }
@@ -115,15 +132,20 @@ export default function SubPaths({
     }
   }, [csn, order])
 
-  // we create an extra space for the score bar
+  // Calculate scale based on container height
   const depth = (showScore ? 15 : 14) - 4
-  if(!showScore) scoreHeight = -5
-  let scoreOffset = scoreHeight
-  if(!showScore) scoreOffset = -scoreHeight
-  const spacing = (height - scoreHeight)/(depth + 1)
-  const h = height - spacing - 1 
-  const yScale = useMemo(() => scaleLinear().domain([4, 14]).range([ 5 + scoreHeight, h + 3 - scoreOffset]), [h, scoreOffset, scoreHeight])
-  const rw = useMemo(() => yScale(5) - yScale(4) - 2, [yScale])
+  const effectiveScoreHeight = !showScore ? -5 : scoreHeight
+  const scoreOffset = !showScore ? -effectiveScoreHeight : effectiveScoreHeight
+  
+  const h = containerHeight - ((containerHeight - effectiveScoreHeight) / (depth + 1)) - 1
+  const yScale = useMemo(() => 
+    scaleLinear()
+      .domain([4, 14])
+      .range([5 + effectiveScoreHeight, h - scoreOffset + 2]), 
+    [h, scoreOffset, effectiveScoreHeight, containerHeight]
+  );
+  
+  const rw = useMemo(() => yScale(5) - yScale(4) - 2, [yScale]);
 
   const handleClick = useCallback((e, f) => {
     onFactor(f)
@@ -138,27 +160,31 @@ export default function SubPaths({
     let x = rect.x + xoff + offsetX;
     let y = rect.y + my + 1.5;
     tooltipRef.current.show(f, null, x, y);
-  }, [offsetX, tipOrientation, width, rw, yScale])
+  }, [offsetX, tipOrientation, width, handleNarrationPreview])
 
   const handleZoom = useCallback((e, o) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const my = e.clientY - rect.y;
     const or = o + my/rw;
     onHover(or);
-  }, [rw])
+  }, [rw, onHover])
 
   const handleLeave = useCallback(() => {
     removeNarrationPreview()
     tooltipRef.current.hide()
-  }, [])
+  }, [removeNarrationPreview])
 
   return (
-    <div className="subpath-container" style={{ width, height, position: "absolute" }}>
-      {path.length && yScale
-        ? range(4, 15).map(o => {
+    <div 
+      ref={containerRef}
+      className="absolute w-full h-full" 
+      style={{ width }}
+    >
+      {path.length && yScale && containerHeight > 0 &&
+        range(4, 15).map(o => {
             let facs = factorsByOrder[o]
             // ensure that preview path is not already showing something for this order
-            if(facs?.length && !preview?.path?.find(p => p?.order === o)) {  //  || o === chosenFactorOrder
+            if(facs?.length && !preview?.path?.find(p => p?.order === o)) {
               // Create a treemap layout for the facs of this order group.
               const root = hierarchy({ children: facs }).sum(d => d.score);
               treemap()
@@ -168,24 +194,19 @@ export default function SubPaths({
               return (
                 <div
                   key={o}
-                  onMouseMove={e => handleZoom(e, o)}
+                  className="absolute left-0 pointer-events-auto"
                   style={{
-                    position: "absolute",
-                    left: 0,
                     top: yScale(o),
                     width: width,
-                    height: rw,
-                    pointerEvents: "all",
+                    height: rw
                   }}
+                  onMouseMove={e => handleZoom(e, o)}
                 >
                   {root.leaves().map((leaf, i) => {
                     return (
                     <div
-                      className='subpath-rect'
+                      className="subpath-rect absolute"
                       key={`${o}-${i}`}
-                      onClick={e => handleClick(e, leaf.data.factor)}
-                      onMouseMove={e => handleSubpathHover(e, leaf.data.factor)}
-                      onMouseLeave={handleLeave}
                       style={{
                         left: leaf.x0,
                         top: leaf.y0,
@@ -193,6 +214,9 @@ export default function SubPaths({
                         height: leaf.y1 - leaf.y0,
                         backgroundColor: leaf.data.factor.color,
                       }}
+                      onClick={e => handleClick(e, leaf.data.factor)}
+                      onMouseMove={e => handleSubpathHover(e, leaf.data.factor)}
+                      onMouseLeave={handleLeave}
                     />
                   )})}
                 </div>
@@ -200,33 +224,26 @@ export default function SubPaths({
             }
             return null
           })
-        : null}
+      }
 
-      {chosenFactorOrder && subpathCollection?.length ? (
+      {chosenFactorOrder && subpathCollection?.length && containerHeight > 0 ? (
         <div
+          className="absolute pointer-events-auto rounded border border-white"
           style={{
-            position: "absolute",
             left: rw * 0.25 - 4,
             top: yScale(chosenFactorOrder) + rw - 2 * fontSize - 4,
             width: fontSize * 8,
             height: fontSize + 6,
             backgroundColor: "rgba(255, 0, 0, 0.1)",
-            border: "1px solid white",
-            borderRadius: 3,
-            pointerEvents: "all",
           }}
         >
           <span
-            onClick={onSubpathBack}
+            className="block text-center cursor-pointer pointer-events-auto opacity-100"
             style={{
-              display: "block",
-              textAlign: "center",
               fontSize: fontSize,
-              cursor: "pointer",
-              pointerEvents: "auto",
               lineHeight: `${fontSize + 6}px`,
-              opacity: 1,
             }}
+            onClick={onSubpathBack}
           >
             ❌ remove pin
           </span>
