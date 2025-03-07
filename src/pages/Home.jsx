@@ -822,8 +822,6 @@ function Home() {
     setSimSearchMethod(null)
     setSelectedNarration(null)
     setRegionCSNS([])
-    setRegionSetNarration("")
-    setRegionSetArticles([])
   }, [setRegion, setSelected, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSimSearchMethod, setSelectedNarration])
 
   const clearRegionSetSummaries = useCallback(() => {
