@@ -154,13 +154,16 @@ const RegionAISummary = ({} = {}) => {
       ${taskSection}`
     
     setPrompt(newPrompt)
+    generate(newPrompt)
   }
 
 
-  const generate = useCallback(() => {
+  const generate = useCallback((providedPrompt = null) => {
     setGenerated("")
     setArticles([])
+    let p = providedPrompt || prompt
     if(query !== "") {
+      // console.log("THIS IS THE PROMPT WE ARE USING:", p)
       setLoading(true)
       fetch(`${url}`, {
         method: "POST",
@@ -170,7 +173,7 @@ const RegionAISummary = ({} = {}) => {
         body: JSON.stringify({
           query: query,
           narration: narration,
-          prompt: prompt
+          prompt: p
         })
       }).then(res => res.json())
         .then(data => {
@@ -237,9 +240,9 @@ const RegionAISummary = ({} = {}) => {
           {articlesIncluded ? 'Articles Included' : 'Articles Not Included'}
         </Checkbox>
       </div>
-      <button className={styles.controls} onClick={generate} disabled={loading}>
+      {/* <button className={styles.controls} onClick={generate} disabled={loading}>
         Regenerate Summary
-      </button>
+      </button> */}
 
       {showPromptEditor && (
         <div className={styles.promptEditor}>
@@ -249,9 +252,9 @@ const RegionAISummary = ({} = {}) => {
             rows={10}
             style={{ width: '100%' }}
           />
-          {/* <button onClick={generate} disabled={loading}>
+          <button onClick={generate} disabled={loading}>
             Regenerate with New Prompt
-          </button> */}
+          </button>
         </div>
       )}
 
