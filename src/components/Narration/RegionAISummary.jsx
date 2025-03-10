@@ -125,6 +125,7 @@ export const generateQuery = (narration) => {
 
 const RegionAISummary = ({} = {}) => {
   const [query, setQuery] = useState("")
+  const [showQuery, setShowQuery] = useState(false)
   const [showPromptEditor, setShowPromptEditor] = useState(false)
 
   const [loading, setLoading] = useState(false)
@@ -243,6 +244,9 @@ const RegionAISummary = ({} = {}) => {
       {/* <button className={styles.controls} onClick={generate} disabled={loading}>
         Regenerate Summary
       </button> */}
+      <button className={styles.controls} onClick={() => setShowQuery(!showQuery)} disabled={loading}>
+        {showQuery ? "Hide Query" : "Show Query"}
+      </button>
 
       {showPromptEditor && (
         <div className={styles.promptEditor}>
@@ -255,6 +259,12 @@ const RegionAISummary = ({} = {}) => {
           <button onClick={generate} disabled={loading}>
             Regenerate with New Prompt
           </button>
+        </div>
+      )}
+      
+      {showQuery && (
+        <div style={{ paddingBottom: '20px' }}>
+          Query: {query}
         </div>
       )}
 
