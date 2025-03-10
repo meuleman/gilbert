@@ -724,7 +724,7 @@ function PowerModal({ width, height, sheight=30, onPercent }) {
 
     let start = interpXScale.invert(x)
 
-    const dataregions = data.find(d => d.order == order)
+    const dataregions = data?.find(d => d.order == order)
     // console.log("DATA REGIONS", dataregions)
     // console.log("domain", interpXScale.domain(), "range", interpXScale.range(), x, start)
     const d = dataregions.data.find(d => {
