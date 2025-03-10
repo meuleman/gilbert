@@ -181,18 +181,19 @@ const SelectedStatesStore = create((set, get) => {
     const promises = [
       retrieveFullDataForCSN(selectedNarration),
     ];
-    if (selectedNarration.region.order === 14) {
+    let impliedRegion = selectedNarration?.region?.subregion || selectedNarration?.region;
+    if (impliedRegion?.order === 14) {
       promises.push(
         fetchGWASforPositions([{
-          chromosome: selectedNarration.region.chromosome,
-          index: selectedNarration.region.i
+          chromosome: impliedRegion.chromosome,
+          index: impliedRegion.i
         }])
       );
     }
 
     const responses = await Promise.all(promises);
     const fullDataResponse = responses[0];
-    const gwasResponse = selectedNarration.region.order === 14 ? responses[1] : null;
+    const gwasResponse = impliedRegion?.order === 14 ? responses[1] : null;
 
     // Process GWAS data if available and attach to the order 14 segment.
     const csnGWAS = gwasResponse

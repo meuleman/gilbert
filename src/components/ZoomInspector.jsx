@@ -3,7 +3,7 @@ import ZoomLine from './Narration/ZoomLine';
 import ScoreBars from './Narration/ScoreBars';
 import SubPaths from './Narration/SubPaths';
 import SelectedStatesStore from '../states/SelectedStates';
-import { useZoom } from '../contexts/ZoomContext';
+import { useZoom } from '../contexts/zoomContext';
 
 /**
  * ZoomInspector consolidates the ZoomLine, ScoreBars, and SubPaths
