@@ -1042,7 +1042,7 @@ function Home() {
         <div className="flex-1 flex">
           <div className="flex-1 flex flex-col">
             <div className="grow-0">
-              {data && (
+              {data && activeGenesetEnrichment && (
                 <div className="relative h-28 border-t-1 border-separator">
                   <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
                     <Spectrum
