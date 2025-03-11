@@ -1083,8 +1083,8 @@ function Home() {
                   orderMax={orderDomain[1]}
                   zoomMin={zoomExtent[0]}
                   zoomMax={zoomExtent[1]}
-                  width={width + 1}  // not permanent fix
-                  height={height + 1}  // not permanent fix
+                  width={width}
+                  height={height}
                   zoomToRegion={region}
                   activeLayer={layer}
                   selected={selected}
