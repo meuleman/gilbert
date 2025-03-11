@@ -57,6 +57,7 @@ import ManageRegionSetsModal from '../components/Regions/ManageRegionSetsModal'
 import ActiveRegionSetModal from '../components/Regions/ActiveRegionSetModal'
 import SummarizePaths from '../components/Narration/SummarizePaths'
 import ZoomInspector from '../components/ZoomInspector'
+import Power from '../components/Narration/Power'
 
 import Spectrum from '../components/Narration/Spectrum';
 
@@ -81,6 +82,7 @@ import useCanvasAnnotationRegions from '../components/Canvas/Annotation';
 import { getSet } from '../components/Regions/localstorage'
 import SelectedModal from '../components/SelectedModal'
 import InspectorGadget from '../components/InspectorGadget'
+import SelectedRegionSummary from '../components/SelectedRegionSummary'
 import SimSearchResultList from '../components/SimSearch/ResultList'
 import { fetchSingleRegionFactorOverlap } from '../lib/regionSetEnrichments';
 
@@ -1030,7 +1032,7 @@ function Home() {
             )} */}
           </LeftToolbar>
         </div>
-        <div className={showInspectorGadget ? "flex-1" : "grow-0"}>
+        {/* <div className={showInspectorGadget ? "flex-1" : "grow-0"}>
           {selected && (selectedNarration || loadingSelectedCSN) && (
             <InspectorGadget
               mapWidth={width}
@@ -1038,8 +1040,20 @@ function Home() {
               onClose={handleModalClose}
             />
           )}
-        </div>
+        </div> */}
         <div className="flex-1 flex">
+          {selectedNarration ? 
+          <div className="flex-1 flex flex-row">
+            <div className="relative flex-1 max-w-[400px]">
+              <SelectedRegionSummary onClose={handleModalClose}/>
+            </div>
+            <div className="relative flex-1">
+              <div className="absolute top-0 left-0 w-full h-full overflow-hidden p-2">
+                <Power/>
+              </div>
+            </div>
+          </div>
+          : 
           <div className="flex-1 flex flex-col">
             <div className="grow-0">
               {data && activeGenesetEnrichment && (
@@ -1069,8 +1083,8 @@ function Home() {
                   orderMax={orderDomain[1]}
                   zoomMin={zoomExtent[0]}
                   zoomMax={zoomExtent[1]}
-                  width={width}
-                  height={height}
+                  width={width + 1}  // not permanent fix
+                  height={height + 1}  // not permanent fix
                   zoomToRegion={region}
                   activeLayer={layer}
                   selected={selected}
@@ -1119,7 +1133,7 @@ function Home() {
                 </div>
               )}
             </div>
-          </div>
+          </div>}
           <div className="grow-0 shrink-0 col-start-2 row-start-2 row-end-3 flex">
             {selectedNarration ? 
               <ZoomInspector zoomHeight={height} /> : 

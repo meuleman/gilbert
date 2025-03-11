@@ -124,21 +124,20 @@ export const generateQuery = (narration) => {
 
 
 const RegionAISummary = ({} = {}) => {
-  const [query, setQuery] = useState("")
-  const [showQuery, setShowQuery] = useState(false)
-  const [showPromptEditor, setShowPromptEditor] = useState(false)
-
-  const [loading, setLoading] = useState(false)
-  const [request_id, setRequest_id] = useState(null)
-  const [generated, setGenerated] = useState("")
-  const [articles, setArticles] = useState([])
   const url = "https://explore.altius.org:5001/api/pubmedSummary/pubmed_summary"
   const url_feedback = "https://explore.altius.org:5001/api/pubmedSummary/feedback"
 
-  const { selectedNarration: narration } = SelectedStatesStore()
+  const { 
+    selectedNarration: narration, query, setQuery, showQuery, setShowQuery,
+    showPromptEditor, setShowPromptEditor, summaryLoading: loading, setSummaryLoading: setLoading,
+    request_id, setRequest_id, generated, setGenerated, articles, setArticles, prompt, setPrompt, 
+    articlesIncluded, setArticlesIncluded
+  } = SelectedStatesStore()
 
-  const [prompt, setPrompt] = useState(defaultPrompt)
-  const [articlesIncluded, setArticlesIncluded] = useState(true)
+  useEffect(() => {
+    setPrompt(defaultPrompt)
+  }, [])
+
   const toggleIncludeArticles = (include) => {
     setArticlesIncluded(include)
     let newPrompt = include ? 
@@ -231,77 +230,89 @@ const RegionAISummary = ({} = {}) => {
   }, [narration, narration?.genesets])
 
   return (
-    <div className={styles.regionAISummary}>
-      <div className={styles.controls}>
-        
-        <button onClick={() => setShowPromptEditor(!showPromptEditor)}>
+    <div className="p-4 bg-white rounded-md">
+      <div className="flex flex-wrap gap-2 mb-4 items-center">
+        <button 
+          className="px-3 py-1 hover:bg-blue-100 rounded text-sm border"
+          onClick={() => setShowPromptEditor(!showPromptEditor)}>
           {showPromptEditor ? 'Hide Prompt Editor' : 'Show Prompt Editor'}
         </button>
         <Checkbox onClick={() => toggleIncludeArticles(!articlesIncluded)} checked={articlesIncluded}>
           {articlesIncluded ? 'Articles Included' : 'Articles Not Included'}
         </Checkbox>
       </div>
-      {/* <button className={styles.controls} onClick={generate} disabled={loading}>
-        Regenerate Summary
-      </button> */}
-      <button className={styles.controls} onClick={() => setShowQuery(!showQuery)} disabled={loading}>
+      <button 
+        className="px-3 py-1 mb-4 hover:bg-blue-100 rounded text-sm border"
+        onClick={() => setShowQuery(!showQuery)} 
+        disabled={loading}>
         {showQuery ? "Hide Query" : "Show Query"}
       </button>
-
+  
       {showPromptEditor && (
-        <div className={styles.promptEditor}>
+        <div className="mt-4 mb-4 p-2 border border-gray-200 rounded-md">
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             rows={10}
-            style={{ width: '100%' }}
+            className="w-full p-2 border border-gray-200 rounded"
           />
-          <button onClick={generate} disabled={loading}>
+          <button 
+            className="px-3 py-1 hover:bg-blue-100 rounded text-sm border"
+            onClick={() => generate()} 
+            disabled={loading}>
             Regenerate with New Prompt
           </button>
         </div>
       )}
       
       {showQuery && (
-        <div style={{ paddingBottom: '20px' }}>
+        <div className="pb-5">
           Query: {query}
         </div>
       )}
-
+  
       <Tooltip id="search-debug">
-        <p style={{ fontSize: '10px' }}>search debug: {query}</p>
+        <p className="text-xs">search debug: {query}</p>
       </Tooltip>
-
-      <p>{loading ? "loading..." : generated}</p>
+  
+      <p className="mt-4 mb-4">{loading ? "loading..." : generated}</p>
       {generated && 
-        <div>
-          <div className={styles.feedbackButtons}>
+        <div className="mt-4">
+          <div className="flex items-center gap-2 mb-4">
             Summary feedback:
-            <button onClick={() => feedback("👍")}>👍</button>
-            <button onClick={() => feedback("👎")}>👎</button>
+            <button 
+              className="p-1 hover:bg-gray-100 rounded" 
+              onClick={() => feedback("👍")}>👍</button>
+            <button 
+              className="p-1 hover:bg-gray-100 rounded" 
+              onClick={() => feedback("👎")}>👎</button>
           </div>
-          <button onClick={handleShowArticles}>{showArticles ? "Hide Supporting Articles" : "Show Supporting Articles"}</button>
-          {showArticles && <div>
-            <h3>{articles.length} open access PubMed articles found: </h3>
-            <p>
+          <button 
+            className="px-3 py-1 bg-blue-50 hover:bg-blue-100 rounded text-sm border"
+            onClick={handleShowArticles}>
+            {showArticles ? "Hide Supporting Articles" : "Show Supporting Articles"}
+          </button>
+          {showArticles && <div className="mt-4">
+            <h3 className="text-lg font-medium mb-2">{articles.length} open access PubMed articles found: </h3>
+            <p className="text-sm">
               {articles.map((a,i) => {
-                return (<span key={a.pmc}> {i+1}) <a href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} target="_blank" rel="noreferrer">{a.full_title}</a><br></br></span>)
+                return (
+                  <span className="block mb-2" key={a.pmc}> 
+                    {i+1}) <a 
+                      className="text-blue-600 hover:underline" 
+                      href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} 
+                      target="_blank" 
+                      rel="noreferrer"
+                    >
+                      {a.full_title}
+                    </a>
+                  </span>
+                )
               })}
             </p>
           </div>}
         </div>
       }
-      {/* {generated ? <div className={styles.feedbackButtons}>
-        Articles:
-        <button onClick={() => feedback("👍")}>👍</button>
-        <button onClick={() => feedback("👎")}>👎</button>
-      </div>: null} */}
-
-      {/* <button onClick={generate} disabled={loading}>Generate summary</button> */}
-      {/* <hr></hr>
-      <a href={`https://www.google.com/search?q=${query}`} target="_blank" rel="noreferrer" data-tooltip-id="search-debug">
-          Search Google for relevant literature ↗
-      </a> */}
     </div>
   )
 }

@@ -256,6 +256,26 @@ const SelectedStatesStore = create((set, get) => {
 
     // collect full data
     collectFullData,
+
+    // summary
+    query: "",
+    setQuery: (query) => set({ query: query }),
+    showQuery: false,
+    setShowQuery: (show) => set({ showQuery: show }),
+    showPromptEditor: false,
+    setShowPromptEditor: (show) => set({ showPromptEditor: show }),
+    summaryLoading: false,
+    setSummaryLoading: (loading) => set({ summaryLoading: loading }),
+    request_id: null,
+    setRequest_id: (id) => set({ request_id: id }),
+    generated: "",
+    setGenerated: (generated) => set({ generated: generated }),
+    articles: [],
+    setArticles: (articles) => set({ articles: articles }),
+    prompt: "",
+    setPrompt: (prompt) => set({ prompt: prompt }),
+    articlesIncluded: true,
+    setArticlesIncluded: (included) => set({ articlesIncluded: included }),
 }})
 
 export default SelectedStatesStore;

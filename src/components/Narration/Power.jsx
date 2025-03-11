@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback, useLayoutEffect } from 'react';
 import { scaleLinear, scaleLog, scalePow } from 'd3-scale';
 import { zoomIdentity } from 'd3-zoom';
 import { range, extent } from 'd3-array';
@@ -103,8 +103,8 @@ import PropTypes from 'prop-types';
 
 PowerModal.propTypes = {
   // csn: PropTypes.object.isRequired,
-  width: PropTypes.number.isRequired,
-  height: PropTypes.number.isRequired,
+  width: PropTypes.number,
+  height: PropTypes.number,
   sheight: PropTypes.number,
   userOrder: PropTypes.number,
   onData: PropTypes.func,
@@ -114,13 +114,44 @@ PowerModal.propTypes = {
 };
 
 
-function PowerModal({ width, height, sheight=30, onPercent }) {
+function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeight = 64, onPercent }) {
 
+  // Add container ref and size state
+  const containerRef = useRef(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  
+  // Keep existing refs
   const canvasRef = useRef(null);
-  // const canvasRef1D = useRef(null);
   const canvasRefStrip = useRef(null);
   const canvasRefGenes = useRef(null);
-  const tooltipRef = useRef(null)
+  const tooltipRef = useRef(null);
+  
+  // Calculate actual dimensions to use (props or measured container)
+  const width = propWidth || containerSize.width;
+  const height = propHeight || (containerSize.height - sheight - geneHeight - 50); // Account for strip height, gene height, and badge height (TODO: remove magic number for badge)
+
+  // Add resize observer to measure container
+  useLayoutEffect(() => {
+    
+    const resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        setContainerSize({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height
+        });
+      }
+    });
+    
+    resizeObserver.observe(containerRef.current);
+    
+    // Initial measurement
+    setContainerSize({
+      width: containerRef.current.clientWidth,
+      height: containerRef.current.clientHeight
+    });
+    
+    return () => resizeObserver.disconnect();
+  }, []);
 
   const { handleSelectedZoom: onOrder, selectedZoomOrder: userOrder } = useZoom()
   const { 
@@ -156,8 +187,6 @@ function PowerModal({ width, height, sheight=30, onPercent }) {
 
   const radius = 3 // # of steps to take in each direction ()
   const scaler = .75
-
-  const geneHeight = 64
 
   // hard coded, should probably hard code these in the HilbertGenome component anyway
   const orderMin = 4
@@ -745,7 +774,7 @@ function PowerModal({ width, height, sheight=30, onPercent }) {
   }, [])
 
   return (
-    <div className="power">
+    <div ref={containerRef} className="power w-full h-full">
       {/* TODO: The factor label component is causing a variable width of IG */}
       <div className="factor-label" style={{maxWidth: width + "px"}}>
         {currentPreferred?.field ? (
@@ -761,52 +790,16 @@ function PowerModal({ width, height, sheight=30, onPercent }) {
         </div> : null}
         <canvas 
           className="power-canvas"
-          width={width + "px"}
-          height={height + "px"}
+          width={width}
+          height={height}
           style={{width: width + "px", height: height + "px"}}
           ref={canvasRef}
         />
-        {/* <div className="power-scroll" style={{width: 350 + "px", height: height + "px"}}>
-          {data && data.map((d) => {
-            const or = percentScale(percent)
-            const o = Math.floor(or)
-            const t = scrollScale(or - o)
-            const tn = nextScrollScale(or - o)
-            let offset = 0;
-            if(d.order == o) {
-              offset = -t * 100 // TODO: this is a magic number based on height of info we show
-
-            } else if(d.order == o + 1) {
-              offset = tn * height
-
-            } else if(d.order < o) {
-              offset = -height
-
-            } else if(d.order > o + 1) {
-              offset = height
-
-            }
-            let field = d.p?.field
-            return (<div className="power-order" key={d.order} style={{top: offset + "px"}}>
-              {showPosition(d.region)}<br/>
-              Order {d.order} <br/> 
-              {d.layer?.name}<br/>
-              <span style={{color: field?.color}}>{field?.field} </span>
-            </div>)
-          })}
-        </div> */}
-        {/* <canvas 
-          className="power-canvas-1d"
-          width={width + "px"}
-          height={height + "px"}
-          style={{width: width + "px", height: height + "px"}}
-          ref={canvasRef1D}
-        /> */}
       </div>
       <canvas 
           className="power-canvas-strip"
-          width={width + "px"}
-          height={sheight + "px"}
+          width={width}
+          height={sheight}
           style={{width: width + "px", height: sheight + "px"}}
           ref={canvasRefStrip}
           onMouseMove={handleMouseMove}
@@ -814,20 +807,13 @@ function PowerModal({ width, height, sheight=30, onPercent }) {
         />
       <canvas 
         className="power-canvas-genes"
-        width={width + "px"}
-        height={geneHeight + "px"}
+        width={width}
+        height={geneHeight}
         style={{width: width + "px", height: geneHeight + "px"}}
         ref={canvasRefGenes}
         // onMouseMove={handleMouseMove}
         // onMouseLeave={handleMouseLeave}
       />
-      {/* <label>
-        extent {extent(data?.find(d => d.order === order)?.points || [], d => d.start).join(", ")}
-      </label> */}
-      {/* <label>
-        <input style={{width: (width*1) + "px"}} type="range" min={1} max={100} value={percent} onChange={(e) => setPercent(e.target.value)}></input>
-        {order}
-      </label> */}
       <Tooltip ref={tooltipRef} orientation="bottom" enforceBounds={false} />
     </div>
   );

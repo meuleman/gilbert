@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useContext, useMemo, useRef } from 'react'
 import FiltersContext from './ComboLock/FiltersContext'
-import { useZoom } from '../contexts/ZoomContext'
+import { useZoom } from '../contexts/zoomContext'
 import SelectedStatesStore from '../states/SelectedStates'
 import { Link } from 'react-router-dom'
 import { urlify } from '../lib/regions'
