@@ -999,165 +999,130 @@ function Home() {
               regionSetSummary: <SummarizePaths />
             }}
           >
-            {/* {selected && (selectedNarration || loadingSelectedCSN) && (
-              <HilbertGenome
-                orderMin={orderDomain[0]}
-                orderMax={orderDomain[1]}
-                zoomMin={zoomExtent[0]}
-                zoomMax={zoomExtent[1]}
-                width={430}
-                height={242}
-                zoomToRegion={region}
-                activeLayer={layer}
-                selected={selected}
-                zoomDuration={duration}
-                CanvasRenderers={canvasRenderers}
-                HoverRenderers={hoverRenderers}
-                SVGRenderers={[
-                  SVGChromosomeNames({}),
-                  showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5 }),
-                  SVGSelected({ hit: hover, dataOrder: order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
-                  showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25 }),
-                ]}
-                onZoom={handleZoom}
-                onHover={handleHover}
-                onClick={handleClick}
-                onData={onData}
-                onScales={setScales}
-                onZooming={(d) => setIsZooming(d.zooming)}
-                onLoading={setMapLoading}
-                // onLayer={handleLayer}
-                debug={showDebug}
-              />
-            )} */}
           </LeftToolbar>
         </div>
-        {/* <div className={showInspectorGadget ? "flex-1" : "grow-0"}>
-          {selected && (selectedNarration || loadingSelectedCSN) && (
-            <InspectorGadget
-              mapWidth={width}
-              mapHeight={height}
-              onClose={handleModalClose}
-            />
-          )}
-        </div> */}
-        <div className="flex-1 flex">
-          {selectedNarration ? 
+        <div className="flex-1 flex" >
           <div className="flex-1 flex flex-row">
-            <div className="relative flex-1 max-w-[400px]">
-              <SelectedRegionSummary onClose={handleModalClose}/>
-            </div>
-            <div className="relative flex-1">
-              <div className="absolute top-0 left-0 w-full h-full overflow-hidden p-2">
-                <Power/>
+            <div className="flex-1 flex flex-col" ref={containerRef}>
+              <div className="grow-0">
+                {activeGenesetEnrichment && (
+                  <div className="relative h-28 border-t-1 border-separator">
+                    <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+                      <Spectrum
+                        show
+                        width={width - 24}
+                        height={90}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
-          : 
-          <div className="flex-1 flex flex-col">
-            <div className="grow-0">
-              {data && activeGenesetEnrichment && (
-                <div className="relative h-28 border-t-1 border-separator">
-                  <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-                    <Spectrum
-                      show
-                      width={width - 24}
-                      height={90}
-                    />
+              {selectedNarration ? 
+              <div className="flex-1 flex flex-row">
+                <div className="relative flex-1 max-w-[400px]">
+                  <SelectedRegionSummary onClose={handleModalClose}/>
+                </div>
+                <div className="relative flex-1">
+                  <div className="absolute top-0 left-0 w-full h-full overflow-hidden p-2">
+                    <Power/>
                   </div>
                 </div>
-              )}
-            </div>
-            <div className="relative flex-1">
-              <div ref={containerRef} className="absolute top-0 left-0 w-full h-full overflow-hidden">
-                <LayerLegend
-                  data={data}
-                  hover={hover}
-                  selected={selected}
-                  show={showLayerLegend}
-                  handleFactorClick={handleFactorClick}
-                  searchByFactorInds={searchByFactorInds}
-                />
-                <HilbertGenome
-                  orderMin={orderDomain[0]}
-                  orderMax={orderDomain[1]}
-                  zoomMin={zoomExtent[0]}
-                  zoomMax={zoomExtent[1]}
-                  width={width}
-                  height={height}
-                  zoomToRegion={region}
-                  activeLayer={layer}
-                  selected={selected}
-                  zoomDuration={duration}
-                  CanvasRenderers={canvasRenderers}
-                  HoverRenderers={hoverRenderers}
-                  SVGRenderers={[
-                    SVGChromosomeNames({}),
-                    showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5 }),
-                    SVGSelected({ hit: hover, dataOrder: order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
-                    showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25 }),
-                  ]}
-                  onZoom={handleZoom}
-                  onHover={handleHover}
-                  onClick={handleClick}
-                  onData={onData}
-                  onScales={setScales}
-                  onZooming={(d) => setIsZooming(d.zooming)}
-                  onLoading={setMapLoading}
-                  // onLayer={handleLayer}
-                  debug={showDebug}
-                />
               </div>
-            </div>
-            <div className="grow-0">
-              {data && (
-                <div className="relative h-24 border-t-1 border-separator">
-                  <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-                    <LinearGenome
-                      // center={data?.center} 
-                      data={data?.data}
-                      dataOrder={data?.dataOrder}
-                      activeRegions={filteredRegionsByCurrentOrder}
-                      layer={data?.layer}
-                      width={width}
-                      height={96}
-                      mapWidth={width}
-                      mapHeight={height}
+              : 
+              <div className="flex-1 flex flex-col">
+                <div className="relative flex-1">
+                  {/*  ref={containerRef}  */}
+                  <div className="absolute top-0 left-0 w-full h-full overflow-hidden"> 
+                    <LayerLegend
+                      data={data}
                       hover={hover}
+                      selected={selected}
+                      show={showLayerLegend}
+                      handleFactorClick={handleFactorClick}
+                      searchByFactorInds={searchByFactorInds}
+                    />
+                    <HilbertGenome
+                      orderMin={orderDomain[0]}
+                      orderMax={orderDomain[1]}
+                      zoomMin={zoomExtent[0]}
+                      zoomMax={zoomExtent[1]}
+                      width={width}
+                      height={height}
+                      zoomToRegion={region}
+                      activeLayer={layer}
+                      selected={selected}
+                      zoomDuration={duration}
+                      CanvasRenderers={canvasRenderers}
+                      HoverRenderers={hoverRenderers}
+                      SVGRenderers={[
+                        SVGChromosomeNames({}),
+                        showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5 }),
+                        SVGSelected({ hit: hover, dataOrder: order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
+                        showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25 }),
+                      ]}
+                      onZoom={handleZoom}
                       onHover={handleHover}
-                      onClick={(hit) => {
-                        setRegion(hit)
-                      }}
+                      onClick={handleClick}
+                      onData={onData}
+                      onScales={setScales}
+                      onZooming={(d) => setIsZooming(d.zooming)}
+                      onLoading={setMapLoading}
+                      // onLayer={handleLayer}
+                      debug={showDebug}
                     />
                   </div>
                 </div>
-              )}
+                <div className="grow-0">
+                  {data && (
+                    <div className="relative h-24 border-t-1 border-separator">
+                      <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+                        <LinearGenome
+                          // center={data?.center} 
+                          data={data?.data}
+                          dataOrder={data?.dataOrder}
+                          activeRegions={filteredRegionsByCurrentOrder}
+                          layer={data?.layer}
+                          width={width}
+                          height={96}
+                          mapWidth={width}
+                          mapHeight={height}
+                          hover={hover}
+                          onHover={handleHover}
+                          onClick={(hit) => {
+                            setRegion(hit)
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>}
             </div>
-          </div>}
-          <div className="grow-0 shrink-0 col-start-2 row-start-2 row-end-3 flex">
-            {selectedNarration ? 
-              <ZoomInspector zoomHeight={height} /> : 
-              <ZoomLegend
-                k={transform.k}
-                height={height}
-                effectiveOrder={order}
-                zoomExtent={zoomExtent}
-                orderDomain={orderDomain}
-                layerOrder={layerOrder}
-                layer={layer}
-                layerLock={layerLock}
-                lensHovering={lensHovering}
-                selected={selected}
-                hovered={hover}
-                // crossScaleNarration={csn}
-                onZoom={(region) => {
-                  setRegion(null);
-                  const hit = fromPosition(region.chromosome, region.start, region.end)
-                  setRegion(hit)
-                  // setSelected(hit)
-                }}
-              />
-            }
+            <div className="grow-0 shrink-0 col-start-2 row-start-2 row-end-3 flex">
+              {selectedNarration ? 
+                <ZoomInspector zoomHeight={height} /> : 
+                <ZoomLegend
+                  k={transform.k}
+                  height={height}
+                  effectiveOrder={order}
+                  zoomExtent={zoomExtent}
+                  orderDomain={orderDomain}
+                  layerOrder={layerOrder}
+                  layer={layer}
+                  layerLock={layerLock}
+                  lensHovering={lensHovering}
+                  selected={selected}
+                  hovered={hover}
+                  // crossScaleNarration={csn}
+                  onZoom={(region) => {
+                    setRegion(null);
+                    const hit = fromPosition(region.chromosome, region.start, region.end)
+                    setRegion(hit)
+                    // setSelected(hit)
+                  }}
+                />
+              }
+            </div>
           </div>
         </div>
       </div>
