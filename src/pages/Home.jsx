@@ -150,7 +150,7 @@ function Home() {
   const [width, height] = useWindowSize()
 
   function useWindowSize() {
-    const [size, setSize] = useState([0, 0]);
+    const [size, setSize] = useState([1, 1]);  // helps with initial render
 
     useEffect(() => {
       const container = containerRef.current;
