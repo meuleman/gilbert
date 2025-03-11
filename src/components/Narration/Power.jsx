@@ -7,6 +7,7 @@ import { interpolateObject, interpolateNumber } from 'd3-interpolate';
 
 import { HilbertChromosome } from '../../lib/HilbertChromosome';
 import Data from '../../lib/data';
+import { debouncer } from '../../lib/debounce'
 import { showKb, showPosition } from '../../lib/display'
 import scaleCanvas from '../../lib/canvas'
 import { getOffsets } from "../../lib/segments"
@@ -113,6 +114,7 @@ PowerModal.propTypes = {
   // percent: PropTypes.number
 };
 
+const dataDebounce = debouncer()
 
 function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeight = 64, onPercent }) {
 
@@ -232,9 +234,11 @@ function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeig
 
 
   useEffect(() => {
-    // pre-fetch the data for each path in the CSN (if it exists)
-    const dataClient = new Data()
-    if(csn && csn.path && csn.path.length) {
+    if (!csn || !csn.path || !csn.path.length) return;
+
+    const fetchData = async () => {
+      // pre-fetch the data for each path in the CSN (if it exists)
+      const dataClient = new Data()
       let lastRegion = null
       const orderPoints = range(4, 15).map((o) => {
         let p = csn.path.find(d => d.order === o)
@@ -305,11 +309,9 @@ function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeig
           p,
           points
         }
-      })
-      // console.log("in power", csn)
-      // console.log("order points", orderPoints)
-      setLoading(true)
-      Promise.all(orderPoints.map(p => {
+      });
+
+      const responses = await Promise.all(orderPoints.map(p => {
         if(p.layer?.layers){ 
           return Promise.all(p.layer.layers.map(l => dataClient.fetchData(l, p.order, p.points)))
         } else {
@@ -317,31 +319,39 @@ function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeig
           return dataClient.fetchData(p.layer, p.order, p.points)
         }
       }))
-        .then((responses) => {
-          setData(responses.map((d,i) => {
-            const order = orderPoints[i].order
-            const layer = orderPoints[i].layer
-            const region = orderPoints[i].region
-            // console.log("set data", order, layer)
-            if(order == 14) {
-                // combine the data
-                d = layer.combiner(d)
-                // for now we need to calculate the topField
-                // let topField = layer.fieldChoice(d.find(r => r.chromosome === region.chromosome && r.i == region.i))
-                // region.topField = topField
-            }
-            return {
-              order,
-              layer,
-              points: orderPoints[i].points,
-              region,
-              p: orderPoints[i].p,
-              data: d
-            }
-          }))
-          setLoading(false)
-        })
-    }
+      
+      return { responses, orderPoints };
+    };
+    
+    setLoading(true)
+    dataDebounce(
+      fetchData, 
+      ({ responses, orderPoints }) => {
+        setData(responses.map((d,i) => {
+          const order = orderPoints[i].order
+          const layer = orderPoints[i].layer
+          const region = orderPoints[i].region
+          // console.log("set data", order, layer)
+          if(order == 14) {
+              // combine the data
+              d = layer.combiner(d)
+              // for now we need to calculate the topField
+              // let topField = layer.fieldChoice(d.find(r => r.chromosome === region.chromosome && r.i == region.i))
+              // region.topField = topField
+          }
+          return {
+            order,
+            layer,
+            points: orderPoints[i].points,
+            region,
+            p: orderPoints[i].p,
+            data: d
+          }
+        }))
+        setLoading(false)
+      },
+      150
+    )
   }, [csn])
 
   // useEffect(() => {
@@ -814,6 +824,22 @@ function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeig
         // onMouseMove={handleMouseMove}
         // onMouseLeave={handleMouseLeave}
       />
+      {/* <LinearGenome
+        // center={data?.center} 
+        data={data?.data}
+        dataOrder={data?.dataOrder}
+        activeRegions={filteredRegionsByCurrentOrder}
+        layer={data?.layer}
+        width={width}
+        height={96}
+        mapWidth={width}
+        mapHeight={height}
+        hover={hover}
+        onHover={handleHover}
+        onClick={(hit) => {
+          setRegion(hit)
+        }}
+      /> */}
       <Tooltip ref={tooltipRef} orientation="bottom" enforceBounds={false} />
     </div>
   );
