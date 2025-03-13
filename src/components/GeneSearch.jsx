@@ -17,15 +17,15 @@ const geneLabel = (g) => {
         {g.hgnc}
       </div>
       <div style={{ fontSize: '0.8em', color: '#888' }}>
-      {`${g.chromosome}:${g.start}-${g.end} (${g.posneg})`}
+        {`${g.chromosome}:${g.start}-${g.end} (${g.posneg})`}
       </div>
-    </div>  
+    </div>
   )
 }
 
 
 const GeneSearch = memo(({
-  onSelect = () => {},
+  onSelect = () => { },
 }) => {
 
   const [searchValue, setSearchValue] = useState('');
@@ -86,11 +86,11 @@ const GeneSearch = memo(({
   };
 
   const handleSelect = (value) => {
-    if(genomicPositionRegex.test(value)) {
+    if (genomicPositionRegex.test(value)) {
       onSelect({
         value: value,
-        chromosome: value.split(':')[0], 
-        start: +value.split(':')[1].split('-')[0], 
+        chromosome: value.split(':')[0],
+        start: +value.split(':')[1].split('-')[0],
         end: +value.split(':')[1].split('-')[1]
       });
       setInputValue(value);
@@ -120,8 +120,8 @@ const GeneSearch = memo(({
   const autocompleteRef = useRef(null)
   useEffect(() => {
     function handleKeyDown(e) {
-      if(e.key == "/") {
-        if(autocompleteRef.current) {
+      if (e.key == "/") {
+        if (autocompleteRef.current) {
           autocompleteRef.current.focus()
           e.preventDefault()
         }
@@ -135,17 +135,16 @@ const GeneSearch = memo(({
 
 
   return (
-    <div>
-      <AutoComplete
-        options={filteredOptions}
-        value={inputValue}
-        onSearch={handleSearch}
-        onSelect={handleSelect}
-        placeholder="Search for a gene or genomic coordinate"
-        style={{ width: '400px' }}
-        ref={autocompleteRef}
-      />
-    </div>
+    <AutoComplete
+      options={filteredOptions}
+      value={inputValue}
+      onSearch={handleSearch}
+      onSelect={handleSelect}
+      placeholder="Search for a gene or genomic coordinate"
+      className="[&_input]:text-xs w-full h-full"
+      variant="borderless"
+      ref={autocompleteRef}
+    />
   )
 })
 GeneSearch.displayName = 'GeneSearch';

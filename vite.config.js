@@ -1,8 +1,10 @@
-import { defineConfig } from 'vite'
+import path from "path";
+import { defineConfig } from "vite";
 import topLevelAwait from "vite-plugin-top-level-await";
-import react from '@vitejs/plugin-react-swc'
+import react from "@vitejs/plugin-react-swc";
 import svgr from "vite-plugin-svgr";
-import fixReactVirtualized from 'esbuild-plugin-react-virtualized'
+import fixReactVirtualized from "esbuild-plugin-react-virtualized";
+import viteTailwindPlugin from "vite-plugin-tailwind";
 
 // import wasm from 'vite-plugin-wasm'
 
@@ -13,22 +15,29 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          worker: ['./src/lib/csnWorker.js']
-        }
-      }
-    }
+          worker: ["./src/lib/csnWorker.js"],
+        },
+      },
+    },
   },
   plugins: [
     topLevelAwait({
       // The export name of top-level await promise for each chunk module
       promiseExportName: "__tla",
       // The function to generate import names of top-level await promise in each chunk module
-      promiseImportName: i => `__tla_${i}`
+      promiseImportName: (i) => `__tla_${i}`,
     }),
-    svgr(), 
-    react()
+    svgr(),
+    react(),
+    viteTailwindPlugin,
   ],
-  assetsInclude: ['**/*.csv'],
+  resolve: {
+    alias: {
+      // eslint-disable-next-line no-undef
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  assetsInclude: ["**/*.csv"],
   optimizeDeps: {
     esbuildOptions: {
       plugins: [fixReactVirtualized],
@@ -37,4 +46,4 @@ export default defineConfig({
   // optimizeDeps: {
   //   include: ['parquet-wasm'] // Add the library name here
   // },
-})
+});

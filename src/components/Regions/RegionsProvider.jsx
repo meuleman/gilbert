@@ -266,7 +266,6 @@ const RegionsProvider = ({ children }) => {
   const [topNarrationsLoading, setTopNarrationsLoading] = useState(false)
   const [genesInRegions, setGenesInRegions] = useState([])
   const [activeGenesetEnrichment, setActiveGenesetEnrichment] = useState(null)
-  const [selectedGenesetMembership, setSelectedGenesetMembership] = useState([])
   useEffect(() => {
     if(filteredActiveRegions?.length) {
       setTopNarrationsLoading(true)
@@ -425,7 +424,6 @@ const RegionsProvider = ({ children }) => {
       regionSetNarrationLoading,
       regionSetArticles,
       setRegionSetArticles,
-      selectedGenesetMembership,
       topNarrations,
       numTopRegions,
       setNumTopRegions,
@@ -434,7 +432,6 @@ const RegionsProvider = ({ children }) => {
       setActiveSet,
       clearActive,
       setActiveFilters,
-      setSelectedGenesetMembership
     }}>
       {children}
     </RegionsContext.Provider>

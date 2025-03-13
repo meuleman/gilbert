@@ -81,6 +81,19 @@ export function ZoomProvider({ children}) {
   //   console.log("transform has updated", transform)
   // }, [transform])
 
+
+  // Controls the current zoom order (numeric display level) for selected region in IG
+  const [selectedZoomOrder, setSelectedZoomOrder] = useState(orderMin + 0.5);
+
+  // Callback to update the zoom order.
+  // Ensures the order never goes below 4.
+  const handleSelectedZoom = useCallback((order) => {
+    if (order < 4) {
+      order = 4;
+    }
+    setSelectedZoomOrder(order);
+  }, []);
+
   const value = {
     transform,
     setTransform,
@@ -100,7 +113,10 @@ export function ZoomProvider({ children}) {
     orderMax,
     zoomMin,
     zoomMax,
-    easeZoom
+    easeZoom,
+    selectedZoomOrder,
+    setSelectedZoomOrder,
+    handleSelectedZoom,
   };
 
   return <ZoomContext.Provider value={value}>{children}</ZoomContext.Provider>;

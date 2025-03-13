@@ -3,18 +3,33 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Tooltip } from 'react-tooltip'
 import { showKbOrder } from '../../lib/display'
+import SelectedStatesStore from '../../states/SelectedStates'
 
 import styles from './RegionAISummary.module.css'
+import Checkbox from 'antd/es/checkbox/Checkbox'
 
-const defaultPrompt = `You are a genomics researcher who is an expert in the field of genomics, tasked with narrating genomic regions such that a short sentence captures most of the standout information.							
-You are given a query consisting of an term-wise description of a certain region in the human genome, that may include things like transcription factor motif hits (MOTIF), chromatin state calls (CS), DNaseI Hypersensitive Site component annotations (DHS), interspersed repeats and low complexity DNA sequences (REPEAT), and associated GWAS traits (GWAS).							
-All item types are observed at a certain genomic scale, ranging from single basepair (1bp) to Mega basepair (1Mbp), and are listed in the query in descending order of prominance, so make sure take that into account.							
-Furthermore, items may refer to single instances ("occurrence"), or a local increase in the number of occurrences ("enrichment"). This is important information to use.
-Additionally, you are provided information on any overlapping or nearby genes (GENE), and associated Gene Ontology genesets (GO), which may constitute important information.							
-You also have access to titles and abstracts of research articles that may be relevant to the query, so make sure to use these for additional context and writing style.							
-Your task is to generate a helpful one-sentence summary of the query, essentially providing a useful narrative of the genomic region.							
-If any of the provided terms do not seem relevant according to literature or otherwise, feel free to skip them in the narrative.							
+const termsSection = `You are an expert genomics researcher, tasked with narrating genomic regions such that a single short sentence captures the most important information.
+You are given a query consisting of a term-wise description of a certain region of interest in the human genome.
 
+These terms may include things like chromatin state calls (CS), DNase I Hypersensitive Site annotations (DHS), transcription factor motif hits (MOTIF), interspersed repeats and low complexity DNA sequences (REPEAT), and Genome-Wide Association Study traits (GWAS).
+All such terms are observed at a certain genomic scale, ranging from a single basepair (1bp) to a million basepair (1Mbp).
+They are listed in the query in descending order of prominence, so make sure to take that into account in prioritizing the information to use in your narration.
+Furthermore, the genomic region of interest may directly overlap an observed term ('occurrence'), or may overlap a larger region with an abundance of that term ('domain') in which there is not necessarily a direct overlap with a single instance of the term. This is an important distinction.
+
+Additionally, you are provided information on any genes that directly overlap (GENE_OVL) or are adjacent to (GENE_ADJ) the region.
+To aid in functional narration, you are also provided with Gene Ontology genesets (GO) associated with the region, which may constitute important information in combination with all of the above.
+`
+
+const articlesAccess = `
+You also have access to titles and abstracts of research articles that may be relevant to the query, so make sure to use these for additional context and writing style.
+`
+
+const tastSection = `
+Your task is to generate a helpful one-sentence summary of the query, providing a useful narrative of the genomic region.
+If any of the provided terms do not seem relevant according to literature or otherwise, feel free to skip them in the narrative.	
+`
+
+const examplesSection = `
 Examples
 --------
 Query: "EWSR1/FLI1 MOTIF enrichment @ 16kbp; Stromal B DHS enrichment @ 1Mbp; Atrial fibrillation GWAS occurrence @ 1bp; Musculoskeletal DHS enrichment @ 64kbp; Cardiac DHS enrichment @ 256kbp; Quiescent/Low CS occurrence @ 256bp; NTMT2 GENE; GORAB GENE; N TERMINAL PROTEIN AMINO ACID MODIFICATION GO; EPIDERMIS MORPHOGENESIS GO; POSITIVE REGULATION OF SMOOTHENED SIGNALING PATHWAY GO.",
@@ -23,7 +38,9 @@ Query: "PLAG1 MOTIF enrichment @ 64kbp; Satellite REPEAT enrichment @ 1Mbp; HINF
 Summary: "A likely causal red blood cell GWAS variant, found inside a myeloid/erythroid DHS contained in an active enhancer element."
 Query: "Lymphoid DHS enrichment @ 16kbp; IRF/2 MOTIF enrichment @ 4kbp; NRF1 MOTIF enrichment @ 1Mbp; ZNF320 MOTIF enrichment @ 256kbp; SREBF1 MOTIF enrichment @ 64kbp; MECP2 motif occurrence @ 1bp; TFAP2/1 MOTIF occurrence @ 16bp; KLF/SP/2 MOTIF enrichment @ 1kbp; CCDC22 GENE; FOXP3 GENE; NEGATIVE REGULATION OF NF KAPPAB TRANSCRIPTION FACTOR ACTIVITY GO; NEGATIVE REGULATION OF DNA BINDING TRANSCRIPTION FACTOR ACTIVITY GO; REGULATION OF DNA BINDING TRANSCRIPTION FACTOR ACTIVITY GO",
 Summary: "Weak enhancer element harboring an AP-2 transcription factor motif, residing in a larger domain of interferon-regulatory factor (IRF) protein binding sites and lymphoid DHSs. Co-located with the FOXP3 gene, an important immune system regulator."
+`
 
+const abstractsSection = `
 Abstracts
 --------
 {% for abstract in abstracts %}
@@ -31,11 +48,23 @@ Title: {{ abstract.full_title }}
 Abstract: {{ abstract.abstract }}
 
 {% endfor %}
+`
+
+const taskSection = `
 Task
 --------
 
 Query: {{ query}}
 Summary:
+`
+
+
+const defaultPrompt = `${termsSection}
+${articlesAccess}
+${tastSection}
+${examplesSection}
+${abstractsSection}
+${taskSection}
 `
 
 // generate query from narration for summary
@@ -94,31 +123,47 @@ export const generateQuery = (narration) => {
 }
 
 
-const RegionAISummary = ({
-  narration = null,
-} = {}) => {
-  const [query, setQuery] = useState("")
-  const [showPromptEditor, setShowPromptEditor] = useState(false)
-
-  const [loading, setLoading] = useState(false)
-  const [request_id, setRequest_id] = useState(null)
-  const [generated, setGenerated] = useState("")
-  const [articles, setArticles] = useState([])
-  // const url = "https://enjalot--pubmed-query-transformermodel-rag-generate.modal.run"
-  // const url_feedback = "https://enjalot--pubmed-query-transformermodel-feedback.modal.run"
+const RegionAISummary = ({} = {}) => {
   const url = "https://explore.altius.org:5001/api/pubmedSummary/pubmed_summary"
   const url_feedback = "https://explore.altius.org:5001/api/pubmedSummary/feedback"
-  // const url = "https://enjalot--pubmed-query-transformermodel-rag-generate-dev.modal.run"
-  // const url_feedback = "https://enjalot--pubmed-query-transformermodel-feedback-dev.modal.run"
+
+  const { 
+    selectedNarration: narration, query, setQuery, showQuery, setShowQuery,
+    showPromptEditor, setShowPromptEditor, summaryLoading: loading, setSummaryLoading: setLoading,
+    request_id, setRequest_id, generated, setGenerated, articles, setArticles, prompt, setPrompt, 
+    articlesIncluded, setArticlesIncluded
+  } = SelectedStatesStore()
+
+  useEffect(() => {
+    setPrompt(defaultPrompt)
+  }, [])
+
+  const toggleIncludeArticles = (include) => {
+    setArticlesIncluded(include)
+    let newPrompt = include ? 
+      `${termsSection}
+      ${articlesAccess}
+      ${tastSection}
+      ${examplesSection}
+      ${abstractsSection}
+      ${taskSection}`
+    : 
+    `${termsSection}
+      ${tastSection}
+      ${examplesSection}
+      ${taskSection}`
+    
+    setPrompt(newPrompt)
+    generate(newPrompt)
+  }
 
 
-  const [prompt, setPrompt] = useState(defaultPrompt)
-
-
-  const generate = useCallback(() => {
+  const generate = useCallback((providedPrompt = null) => {
     setGenerated("")
     setArticles([])
+    let p = providedPrompt || prompt
     if(query !== "") {
+      // console.log("THIS IS THE PROMPT WE ARE USING:", p)
       setLoading(true)
       fetch(`${url}`, {
         method: "POST",
@@ -128,12 +173,12 @@ const RegionAISummary = ({
         body: JSON.stringify({
           query: query,
           narration: narration,
-          prompt: prompt
+          prompt: p
         })
       }).then(res => res.json())
         .then(data => {
           console.log("generate", data)
-          setGenerated(data.summary)
+          setGenerated(data.summary.replace(/^"(.*)"$/, '$1'))
           setArticles(data.results)
           setRequest_id(data.request_id)
           setLoading(false)
@@ -185,62 +230,89 @@ const RegionAISummary = ({
   }, [narration, narration?.genesets])
 
   return (
-    <div className={styles.regionAISummary}>
-      <div className={styles.controls}>
-        
-        <button onClick={() => setShowPromptEditor(!showPromptEditor)}>
+    <div className="p-4 bg-white rounded-md">
+      <div className="flex flex-wrap gap-2 mb-4 items-center">
+        <button 
+          className="px-3 py-1 hover:bg-blue-100 rounded text-sm border"
+          onClick={() => setShowPromptEditor(!showPromptEditor)}>
           {showPromptEditor ? 'Hide Prompt Editor' : 'Show Prompt Editor'}
         </button>
+        <Checkbox onClick={() => toggleIncludeArticles(!articlesIncluded)} checked={articlesIncluded}>
+          {articlesIncluded ? 'Articles Included' : 'Articles Not Included'}
+        </Checkbox>
       </div>
-
+      <button 
+        className="px-3 py-1 mb-4 hover:bg-blue-100 rounded text-sm border"
+        onClick={() => setShowQuery(!showQuery)} 
+        disabled={loading}>
+        {showQuery ? "Hide Query" : "Show Query"}
+      </button>
+  
       {showPromptEditor && (
-        <div className={styles.promptEditor}>
+        <div className="mt-4 mb-4 p-2 border border-gray-200 rounded-md">
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             rows={10}
-            style={{ width: '100%' }}
+            className="w-full p-2 border border-gray-200 rounded"
           />
-          <button onClick={generate} disabled={loading}>
+          <button 
+            className="px-3 py-1 hover:bg-blue-100 rounded text-sm border"
+            onClick={() => generate()} 
+            disabled={loading}>
             Regenerate with New Prompt
           </button>
         </div>
       )}
-
+      
+      {showQuery && (
+        <div className="pb-5">
+          Query: {query}
+        </div>
+      )}
+  
       <Tooltip id="search-debug">
-        <p style={{ fontSize: '10px' }}>search debug: {query}</p>
+        <p className="text-xs">search debug: {query}</p>
       </Tooltip>
-
-      <p>{loading ? "loading..." : generated}</p>
+  
+      <p className="mt-4 mb-4">{loading ? "loading..." : generated}</p>
       {generated && 
-        <div>
-          <div className={styles.feedbackButtons}>
+        <div className="mt-4">
+          <div className="flex items-center gap-2 mb-4">
             Summary feedback:
-            <button onClick={() => feedback("👍")}>👍</button>
-            <button onClick={() => feedback("👎")}>👎</button>
+            <button 
+              className="p-1 hover:bg-gray-100 rounded" 
+              onClick={() => feedback("👍")}>👍</button>
+            <button 
+              className="p-1 hover:bg-gray-100 rounded" 
+              onClick={() => feedback("👎")}>👎</button>
           </div>
-          <button onClick={handleShowArticles}>{showArticles ? "Hide Supporting Articles" : "Show Supporting Articles"}</button>
-          {showArticles && <div>
-            <h3>{articles.length} open access PubMed articles found: </h3>
-            <p>
+          <button 
+            className="px-3 py-1 bg-blue-50 hover:bg-blue-100 rounded text-sm border"
+            onClick={handleShowArticles}>
+            {showArticles ? "Hide Supporting Articles" : "Show Supporting Articles"}
+          </button>
+          {showArticles && <div className="mt-4">
+            <h3 className="text-lg font-medium mb-2">{articles.length} open access PubMed articles found: </h3>
+            <p className="text-sm">
               {articles.map((a,i) => {
-                return (<span key={a.pmc}> {i+1}) <a href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} target="_blank" rel="noreferrer">{a.full_title}</a><br></br></span>)
+                return (
+                  <span className="block mb-2" key={a.pmc}> 
+                    {i+1}) <a 
+                      className="text-blue-600 hover:underline" 
+                      href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} 
+                      target="_blank" 
+                      rel="noreferrer"
+                    >
+                      {a.full_title}
+                    </a>
+                  </span>
+                )
               })}
             </p>
           </div>}
         </div>
       }
-      {/* {generated ? <div className={styles.feedbackButtons}>
-        Articles:
-        <button onClick={() => feedback("👍")}>👍</button>
-        <button onClick={() => feedback("👎")}>👎</button>
-      </div>: null} */}
-
-      {/* <button onClick={generate} disabled={loading}>Generate summary</button> */}
-      {/* <hr></hr>
-      <a href={`https://www.google.com/search?q=${query}`} target="_blank" rel="noreferrer" data-tooltip-id="search-debug">
-          Search Google for relevant literature ↗
-      </a> */}
     </div>
   )
 }

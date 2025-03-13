@@ -6,6 +6,7 @@ import labels from '../../data/spectrumLabels.json';
 import Loading from '../Loading';
 import * as d3 from 'd3'
 import RegionsContext from '../Regions/RegionsContext';
+import SelectedStatesStore from '../../states/SelectedStates'
 import scaleCanvas from '../../lib/canvas'
 // import Tooltip from './Tooltips/Tooltip';
 
@@ -57,7 +58,7 @@ const Tooltip = ({ geneset, x, y, visible }) => {
 
 const Spectrum = ({
   show = false,
-  windowSize = 100,
+  windowSize = 10,
   width = 450,
   height = 100,
   xtickMargin = 20,
@@ -155,8 +156,8 @@ const Spectrum = ({
 
   }
 
-  const { activeGenesetEnrichment, selectedGenesetMembership } = useContext(RegionsContext)
-  // console.log("activeGenesetEnrichment", activeGenesetEnrichment)
+  const { activeGenesetEnrichment } = useContext(RegionsContext)
+  const { selectedGenesetMembership } = SelectedStatesStore()
 
   const [enrichments, setEnrichments] = useState(new Array(genesetOrder.length).fill(0));
   const [smoothData, setSmoothData] = useState(new Array(genesetOrder.length).fill(0));

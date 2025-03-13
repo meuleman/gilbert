@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback, useLayoutEffect } from 'react';
 import { scaleLinear, scaleLog, scalePow } from 'd3-scale';
 import { zoomIdentity } from 'd3-zoom';
 import { range, extent } from 'd3-array';
@@ -7,6 +7,7 @@ import { interpolateObject, interpolateNumber } from 'd3-interpolate';
 
 import { HilbertChromosome } from '../../lib/HilbertChromosome';
 import Data from '../../lib/data';
+import { debouncer } from '../../lib/debounce'
 import { showKb, showPosition } from '../../lib/display'
 import scaleCanvas from '../../lib/canvas'
 import { getOffsets } from "../../lib/segments"
@@ -18,6 +19,8 @@ import order_14 from '../../layers/order_14';
 import Loading from '../Loading';
 import { Renderer as CanvasRenderer } from '../Canvas/Renderer';
 
+import { useZoom } from '../../contexts/zoomContext'
+import SelectedStatesStore from '../../states/SelectedStates'
 
 import Tooltip from '../Tooltips/Tooltip';
 
@@ -100,9 +103,9 @@ function renderPipes(ctx, points, t, o, scales, stroke, sizeMultiple=1) {
 import PropTypes from 'prop-types';
 
 PowerModal.propTypes = {
-  csn: PropTypes.object.isRequired,
-  width: PropTypes.number.isRequired,
-  height: PropTypes.number.isRequired,
+  // csn: PropTypes.object.isRequired,
+  width: PropTypes.number,
+  height: PropTypes.number,
   sheight: PropTypes.number,
   userOrder: PropTypes.number,
   onData: PropTypes.func,
@@ -111,14 +114,63 @@ PowerModal.propTypes = {
   // percent: PropTypes.number
 };
 
+const dataDebounce = debouncer()
 
-function PowerModal({ csn, width, height, sheight=30, userOrder, onData, isPreview, onOrder, onPercent }) {
+function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeight = 64, onPercent }) {
 
+  // Add container ref and size state
+  const containerRef = useRef(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  
+  // Keep existing refs
   const canvasRef = useRef(null);
-  // const canvasRef1D = useRef(null);
   const canvasRefStrip = useRef(null);
   const canvasRefGenes = useRef(null);
-  const tooltipRef = useRef(null)
+  const tooltipRef = useRef(null);
+  
+  // Calculate actual dimensions to use (props or measured container)
+  const width = propWidth || containerSize.width;
+  const height = propHeight || (containerSize.height - sheight - geneHeight - 50); // Account for strip height, gene height, and badge height (TODO: remove magic number for badge)
+
+  // Add resize observer to measure container
+  useLayoutEffect(() => {
+    
+    const resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        setContainerSize({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height
+        });
+      }
+    });
+    
+    resizeObserver.observe(containerRef.current);
+    
+    // Initial measurement
+    setContainerSize({
+      width: containerRef.current.clientWidth,
+      height: containerRef.current.clientHeight
+    });
+    
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  const { handleSelectedZoom: onOrder, selectedZoomOrder: userOrder } = useZoom()
+  const { 
+    collectFullData: onData, narrationPreview, loadingFullNarration, 
+    selectedNarration, fullNarration 
+  } = SelectedStatesStore()
+
+  // determine if we are in preview mode
+  const [isPreview, setIsPreview] = useState(false)
+  useEffect(() => {
+    setIsPreview(!!narrationPreview)
+  }, [narrationPreview])
+
+  const [csn, setCsn] = useState(selectedNarration)
+  useEffect(() => {
+    setCsn(narrationPreview ? narrationPreview : loadingFullNarration ? selectedNarration : fullNarration)
+  }, [narrationPreview, loadingFullNarration, selectedNarration, fullNarration])
 
   const [loading, setLoading] = useState(false)
 
@@ -137,8 +189,6 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, isPrevi
 
   const radius = 3 // # of steps to take in each direction ()
   const scaler = .75
-
-  const geneHeight = 64
 
   // hard coded, should probably hard code these in the HilbertGenome component anyway
   const orderMin = 4
@@ -184,9 +234,11 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, isPrevi
 
 
   useEffect(() => {
-    // pre-fetch the data for each path in the CSN (if it exists)
-    const dataClient = new Data()
-    if(csn && csn.path && csn.path.length) {
+    if (!csn || !csn.path || !csn.path.length) return;
+
+    const fetchData = async () => {
+      // pre-fetch the data for each path in the CSN (if it exists)
+      const dataClient = new Data()
       let lastRegion = null
       const orderPoints = range(4, 15).map((o) => {
         let p = csn.path.find(d => d.order === o)
@@ -257,11 +309,9 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, isPrevi
           p,
           points
         }
-      })
-      // console.log("in power", csn)
-      // console.log("order points", orderPoints)
-      setLoading(true)
-      Promise.all(orderPoints.map(p => {
+      });
+
+      const responses = await Promise.all(orderPoints.map(p => {
         if(p.layer?.layers){ 
           return Promise.all(p.layer.layers.map(l => dataClient.fetchData(l, p.order, p.points)))
         } else {
@@ -269,37 +319,45 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, isPrevi
           return dataClient.fetchData(p.layer, p.order, p.points)
         }
       }))
-        .then((responses) => {
-          setData(responses.map((d,i) => {
-            const order = orderPoints[i].order
-            const layer = orderPoints[i].layer
-            const region = orderPoints[i].region
-            // console.log("set data", order, layer)
-            if(order == 14) {
-                // combine the data
-                d = layer.combiner(d)
-                // for now we need to calculate the topField
-                // let topField = layer.fieldChoice(d.find(r => r.chromosome === region.chromosome && r.i == region.i))
-                // region.topField = topField
-            }
-            return {
-              order,
-              layer,
-              points: orderPoints[i].points,
-              region,
-              p: orderPoints[i].p,
-              data: d
-            }
-          }))
-          setLoading(false)
-        })
-    }
+      
+      return { responses, orderPoints };
+    };
+    
+    setLoading(true)
+    dataDebounce(
+      fetchData, 
+      ({ responses, orderPoints }) => {
+        setData(responses.map((d,i) => {
+          const order = orderPoints[i].order
+          const layer = orderPoints[i].layer
+          const region = orderPoints[i].region
+          // console.log("set data", order, layer)
+          if(order == 14) {
+              // combine the data
+              d = layer.combiner(d)
+              // for now we need to calculate the topField
+              // let topField = layer.fieldChoice(d.find(r => r.chromosome === region.chromosome && r.i == region.i))
+              // region.topField = topField
+          }
+          return {
+            order,
+            layer,
+            points: orderPoints[i].points,
+            region,
+            p: orderPoints[i].p,
+            data: d
+          }
+        }))
+        setLoading(false)
+      },
+      150
+    )
   }, [csn])
 
-  useEffect(() => {
-    if(data && onData && !isPreview)
-      onData(data)
-  }, [data, onData, isPreview])
+  // useEffect(() => {
+  //   if(data && onData && !isPreview)
+  //     onData(data)
+  // }, [data, onData, isPreview])
 
 
   // const [genes, setGenes] = useState([])
@@ -705,7 +763,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, isPrevi
 
     let start = interpXScale.invert(x)
 
-    const dataregions = data.find(d => d.order == order)
+    const dataregions = data?.find(d => d.order == order)
     // console.log("DATA REGIONS", dataregions)
     // console.log("domain", interpXScale.domain(), "range", interpXScale.range(), x, start)
     const d = dataregions.data.find(d => {
@@ -726,7 +784,7 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, isPrevi
   }, [])
 
   return (
-    <div className="power">
+    <div ref={containerRef} className="power w-full h-full">
       {/* TODO: The factor label component is causing a variable width of IG */}
       <div className="factor-label" style={{maxWidth: width + "px"}}>
         {currentPreferred?.field ? (
@@ -742,52 +800,16 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, isPrevi
         </div> : null}
         <canvas 
           className="power-canvas"
-          width={width + "px"}
-          height={height + "px"}
+          width={width}
+          height={height}
           style={{width: width + "px", height: height + "px"}}
           ref={canvasRef}
         />
-        {/* <div className="power-scroll" style={{width: 350 + "px", height: height + "px"}}>
-          {data && data.map((d) => {
-            const or = percentScale(percent)
-            const o = Math.floor(or)
-            const t = scrollScale(or - o)
-            const tn = nextScrollScale(or - o)
-            let offset = 0;
-            if(d.order == o) {
-              offset = -t * 100 // TODO: this is a magic number based on height of info we show
-
-            } else if(d.order == o + 1) {
-              offset = tn * height
-
-            } else if(d.order < o) {
-              offset = -height
-
-            } else if(d.order > o + 1) {
-              offset = height
-
-            }
-            let field = d.p?.field
-            return (<div className="power-order" key={d.order} style={{top: offset + "px"}}>
-              {showPosition(d.region)}<br/>
-              Order {d.order} <br/> 
-              {d.layer?.name}<br/>
-              <span style={{color: field?.color}}>{field?.field} </span>
-            </div>)
-          })}
-        </div> */}
-        {/* <canvas 
-          className="power-canvas-1d"
-          width={width + "px"}
-          height={height + "px"}
-          style={{width: width + "px", height: height + "px"}}
-          ref={canvasRef1D}
-        /> */}
       </div>
       <canvas 
           className="power-canvas-strip"
-          width={width + "px"}
-          height={sheight + "px"}
+          width={width}
+          height={sheight}
           style={{width: width + "px", height: sheight + "px"}}
           ref={canvasRefStrip}
           onMouseMove={handleMouseMove}
@@ -795,20 +817,29 @@ function PowerModal({ csn, width, height, sheight=30, userOrder, onData, isPrevi
         />
       <canvas 
         className="power-canvas-genes"
-        width={width + "px"}
-        height={geneHeight + "px"}
+        width={width}
+        height={geneHeight}
         style={{width: width + "px", height: geneHeight + "px"}}
         ref={canvasRefGenes}
         // onMouseMove={handleMouseMove}
         // onMouseLeave={handleMouseLeave}
       />
-      {/* <label>
-        extent {extent(data?.find(d => d.order === order)?.points || [], d => d.start).join(", ")}
-      </label> */}
-      {/* <label>
-        <input style={{width: (width*1) + "px"}} type="range" min={1} max={100} value={percent} onChange={(e) => setPercent(e.target.value)}></input>
-        {order}
-      </label> */}
+      {/* <LinearGenome
+        // center={data?.center} 
+        data={data?.data}
+        dataOrder={data?.dataOrder}
+        activeRegions={filteredRegionsByCurrentOrder}
+        layer={data?.layer}
+        width={width}
+        height={96}
+        mapWidth={width}
+        mapHeight={height}
+        hover={hover}
+        onHover={handleHover}
+        onClick={(hit) => {
+          setRegion(hit)
+        }}
+      /> */}
       <Tooltip ref={tooltipRef} orientation="bottom" enforceBounds={false} />
     </div>
   );

@@ -15,8 +15,10 @@
     "@duckdb/duckdb-wasm": "^1.28.1-dev106.0",
     "@observablehq/plot": "^0.6.7",
     "antd": "^5.21.3",
+    "autoprefixer": "^10.4.20",
     "axios": "^1.4.0",
     "chroma-js": "^2.4.2",
+    "clsx": "^2.1.1",
     "d3-array": "^3.2.3",
     "d3-fetch": "^3.0.1",
     "d3-format": "^3.1.0",
@@ -31,6 +33,7 @@
     "d3-zoom": "^3.0.0",
     "esbuild-plugin-react-virtualized": "^1.0.4",
     "lodash.debounce": "^4.0.8",
+    "postcss": "^8.5.1",
     "react": "^18.2.0",
     "react-debounce-input": "^3.3.0",
     "react-dom": "^18.2.0",
@@ -41,8 +44,12 @@
     "react-tooltip": "^5.26.4",
     "react-window": "^1.8.10",
     "regl-scatterplot": "^1.8.5",
+    "tailwind-merge": "^3.0.1",
+    "tailwindcss": "^3.4.17",
+    "tailwindcss-animate": "^1.0.7",
     "vite-plugin-svgr": "^4.2.0",
-    "vite-plugin-top-level-await": "^1.4.4"
+    "vite-plugin-top-level-await": "^1.4.4",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",
@@ -52,6 +59,7 @@
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.3.4",
-    "vite": "^4.3.2"
+    "vite": "^4.3.2",
+    "vite-plugin-tailwind": "^0.0.4"
   }
 }

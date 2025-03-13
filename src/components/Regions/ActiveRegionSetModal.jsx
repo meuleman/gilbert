@@ -1,11 +1,14 @@
 import { useState, useCallback, useEffect, useContext, memo } from 'react'
 
 import { showPosition, showKbOrder } from '../../lib/display'
-import {Tooltip} from 'react-tooltip';
+import { Tooltip } from 'react-tooltip';
 import { download } from '../../lib/regionsets'
 import RegionsContext from './RegionsContext'
+import RegionSetModalStatesStore from '../../states/RegionSetModalStates'
+import SelectedStatesStore from '../../states/SelectedStates'
 import FactorSearch from '../FactorSearch';
 import Loading from '../Loading';
+import AccordionArrow from '@/assets/accordion-circle-arrow.svg?react';
 
 import styles from './ActiveRegionSetModal.module.css'
 
@@ -18,10 +21,7 @@ function inFilters(filters, f) {
   return filters.some(filter => filterMatch(filter, f))
 }
 
-const ActiveRegionSetModal = ({
-  show = false,
-  onSelect = () => {},
-} = {}) => {
+const ActiveRegionSetModal = () => {
 
   const { 
     activeSet,
@@ -31,14 +31,25 @@ const ActiveRegionSetModal = ({
     filteredActiveRegions,
     setActiveSet,
     setActiveFilters,
+    regionSetNarration,
+    regionSetNarrationLoading,
+    regionSetArticles,
   } = useContext(RegionsContext)
+  
+  const { showActiveRegionSet } = RegionSetModalStatesStore()
+  const { setSelected, setRegion } = SelectedStatesStore()
+
+  const handleSelectActiveRegionSet = useCallback((region) => {
+    setSelected(region?.subregion || region)  // set selected with implied region
+    setRegion(region)  // set region (zoom) with original region
+  }, [setSelected, setRegion])
 
   const [regions, setRegions] = useState([])
   useEffect(() => {
-    if(filteredActiveRegions) {
+    if (filteredActiveRegions) {
       setRegions(filteredActiveRegions)
-    // } else if (activeRegions) {
-    //   setRegions(activeRegions)
+      // } else if (activeRegions) {
+      //   setRegions(activeRegions)
     } else {
       setRegions([])
     }
@@ -54,8 +65,8 @@ const ActiveRegionSetModal = ({
   }, [activeRegions])
 
   const handleFactorSelect = useCallback((f) => {
-    const exists = activeFilters.some(filter => 
-      filter.index === f.index && 
+    const exists = activeFilters.some(filter =>
+      filter.index === f.index &&
       filter.layer.datasetName === f.layer.datasetName
     )
     if (!exists) {
@@ -77,39 +88,187 @@ const ActiveRegionSetModal = ({
     })
   }, [])
 
+  const [activeTab, setActiveTab] = useState('table')
+
+  if (!showActiveRegionSet) {
+    return null
+  }
+
   return (
-    <div className={`${styles['active-regionsets-modal']} ${show ? styles.show : ''}`}>
-      <div className={styles.content}>        
+    // TODO: remove hardcoded width
+    <div className="flex-1 pl-1 py-1.5 min-h-0 pt-1 max-h-full w-[24.9375rem] overflow-auto text-xs">
+      <div className="pt-1 max-h-full overflow-auto text-xs">
+        <div className="px-1.5 pb-2.75">
+          <strong>{(() => {
+              // Get region count and text
+              const regionCount = filteredActiveRegions?.length || 0;
+              const regionText = regionCount === 1 ? "region" : "regions";
+              
+              // Build filter fields list if needed
+              let filterInfo = "";
+              if (!!activeSet?.factor || activeFilters?.length > 0) {
+                // Collect all fields from activeSet and activeFilters
+                const fields = [];
+                // Add activeSet factor field if it exists
+                if (activeSet?.factor?.field) fields.push(activeSet.factor.field)
+                // Add all fields from activeFilters
+                fields.push(...activeFilters.map(f => f.field));
+                filterInfo = ` showing ${fields.join(", ")}`;
+              }
+              // Return the full string
+              return `${regionCount} selected ${regionText}${filterInfo}`;
+            })()}</strong>
+        </div>
+        <div className="border-t-1 botder-t-separator py-2.75">
+          <div className="grid grid-cols-regionSet gap-y-1.5">
+            <div className='grid grid-cols-subgrid col-start-1 col-end-4 [&>div:last-child]:pr-1.5'>
+              <div className="col-span-2 px-1.5">
+                <strong>Position</strong>
+              </div>
+              <div className="col-start-3 col-end-4">
+                <strong>Score</strong>
+              </div>
+            </div>
+            {regions.map((region) => {
+              const regionKey = `${region.order}:${region.chromosome}:${region.i}`
+              // {
+              //   !!activeFilters.length && filteredActiveRegions?.length > 0 &&
+              //   <span
+              //     className={styles['effective-count']}
+              //     onClick={() => toggleExpand(regionKey)}
+              //     style={{ cursor: 'pointer' }}
+              //   >
+              //     {/* ({region.subregion ? 1 : 0} subregions) */}
+              //     {/* {expandedRows.has(regionKey) ? ' 🔽' : ' ▶️'} */}
+              //   </span>
+              // }
+              return (
+                <div className="grid grid-cols-subgrid col-start-1 col-end-4 border-t-separator border-t-1 pt-1.5 gap-y-1.5" key={regionKey}>
+                  <div className="px-1.5 col-span-2 underline">
+                    <a href="#gotoRegion" onClick={(event) => {
+                      event.preventDefault()
+                      handleSelectActiveRegionSet(region)
+                    }}>
+                      {showPosition(region)}
+                    </a>
+                  </div>
+                  <div>{region.score?.toFixed(3)}</div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+
+  // eslint-disable-next-line no-unreachable
+  return (
+    <div className="w-full max-w-[26.9375rem] max-h-full overflow-auto">
+      <div className={styles.content}>
+        {/* <div className={styles.manage}>
+          <span className={styles['set-name']}>{activeSet?.name}</span>
+          {filteredActiveRegions ? 
+            <span className={styles['set-count']}>{filteredActiveRegions?.length} / {activeRegions?.length} total regions</span> :
+            <span className={styles['set-count']}>{activeRegions?.length} total regions</span>}
+          
+          <div className={styles.buttons}>
+            <button data-tooltip-id={`active-deselect`} onClick={handleDeselect}>❌</button>
+            <Tooltip id={`active-deselect`}>
+              Deselect active region set
+            </Tooltip>
+            <button data-tooltip-id={`active-download-regions`}
+              onClick={() => handleDownload(activeSet)}
+            >
+              ⬇️
+            </button>
+            <Tooltip id={`active-download-regions`}>
+              Download {activeRegions?.length} regions to BED file
+            </Tooltip>
+
+          </div>
+        </div> */}
+
+        <div className={styles.section}>
+          <h3>Filter</h3>
+          <FactorSearch onSelect={(f) => handleFactorSelect(f.factor)} />
+
+          {activeFilters?.length ? <div className={`${styles['active-filters']}`}>
+            <span>Active filters: </span>
+            <span className={styles['active-filters-list']}>
+              {activeFilters.map((f, i) =>
+                <span key={f.label} className={styles['active-filter']} style={{ border: `1px solid ${f.color}` }}>
+                  <span className={styles['active-filter-color']} style={{ backgroundColor: f.color }}>
+                  </span>
+                  {f.label}
+                  <button onClick={() => setActiveFilters(activeFilters.slice(0, i).concat(activeFilters.slice(i + 1)))}>❌</button>
+                </span>)}
+            </span>
+          </div>
+            : null}
+
+          {regionSetEnrichmentsLoading ? <div className={`${styles['region-set-enrichments']}`}>
+            <Loading text="Loading suggested filters..." />
+          </div> : null}
+          {!regionSetEnrichmentsLoading && regionSetEnrichments?.length ? <div className={`${styles['region-set-enrichments']}`}>
+            <span>Suggested filters: </span>
+            <span className={styles['region-set-enrichments-list']}>
+              {regionSetEnrichments.filter(f => !inFilters(activeFilters, f)).map((f, i) =>
+                <span onClick={() => handleFactorSelect(f)} key={"enrichment-" + f.label} className={styles['region-set-enrichment']} style={{ border: `1px solid ${f.color}` }}>
+                  <span className={styles['active-filter-color']} style={{ backgroundColor: f.color }}>
+                  </span>
+                  {f.label}: {f.score.toFixed(3)}, ~{f.percent.toFixed(0)}%
+                  <button>➕</button>
+                </span>)}
+            </span>
+          </div>
+            : null}
+        </div>
+
+
+
         <div className={`${styles.section} ${styles['region-sets']}`}>
           <div className={styles['region-sets-header']}>
-            {filteredRegionsLoading ? <h3><Loading text="Loading filtered regions..."/> </h3> :
-            <div>
-              {/* <h3> {filteredActiveRegions?.length} / {activeRegions?.length} regions</h3> */}
-              <h3>
-                {(() => {
-                  // Get region count and text
-                  const regionCount = filteredActiveRegions?.length || 0;
-                  const regionText = regionCount === 1 ? "region" : "regions";
-                  
-                  // Build filter fields list if needed
-                  let filterInfo = "";
-                  if (!!activeSet?.factor || activeFilters?.length > 0) {
-                    // Collect all fields from activeSet and activeFilters
-                    const fields = [];
-                    // Add activeSet factor field if it exists
-                    if (activeSet?.factor?.field) fields.push(activeSet.factor.field)
-                    // Add all fields from activeFilters
-                    fields.push(...activeFilters.map(f => f.field));
-                    filterInfo = ` showing ${fields.join(", ")}`;
-                  }
-                  // Return the full string
-                  return `${regionCount} selected ${regionText}${filterInfo}`;
-                })()}
-              </h3>
-            </div>
+            {filteredRegionsLoading ? <h3><Loading text="Loading filtered regions..." /> </h3> :
+              <div>
+                {/* <h3> {filteredActiveRegions?.length} / {activeRegions?.length} regions</h3> */}
+                <h3>
+                  {`${filteredActiveRegions?.length
+                    } selected ${filteredActiveRegions?.length === 1 ? "region" : "regions"
+                    }${activeFilters?.length > 0 ? ` showing ${activeFilters.map(f => f.field).join(", ")}` : ""}`}
+                </h3>
+              </div>
             }
           </div>
-          <div className={styles['table-body-container']} style={{ fontSize: '12px' }}>
+
+          <div className={styles.tabs}>
+            <button
+              className={`${styles.tab} ${activeTab === 'table' ? styles.active : ''}`}
+              onClick={() => setActiveTab('table')}
+            >
+              Table
+            </button>
+            <button
+              className={`${styles.tab} ${activeTab === 'summary' ? styles.active : ''}`}
+              onClick={() => setActiveTab('summary')}
+            >
+              Summary
+            </button>
+          </div>
+
+          {activeTab === 'summary' ? (
+            <div className={styles['summary-view']}>
+              <p>{regionSetNarrationLoading ? "loading..." : regionSetNarration}</p>
+              {!regionSetNarrationLoading && regionSetNarration !== "" ? <div><h3>{regionSetArticles.length} open access PubMed articles found: </h3>
+              <p>
+                {regionSetArticles.map((a,i) => {
+                  return (<span key={a.pmc}> {i+1}) <a href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} target="_blank" rel="noreferrer">{a.full_title}</a><br></br></span>)
+                })}
+              </p> </div> : null }
+            </div>
+          ) : (
+            <div className={styles['table-body-container']} style={{ fontSize: '12px' }}>
               <table style={{ width: '100%', tableLayout: 'fixed' }}>
                 <thead>
                   <tr>
@@ -120,32 +279,32 @@ const ActiveRegionSetModal = ({
                   </tr>
                 </thead>
                 <tbody>
-                {regions.map((region, index) => {
-                  const regionKey = `${region.order}:${region.chromosome}:${region.i}`
-                  // const effectiveRegions = []  // can get rid of
-    
-                  return (
-                    <>
-                      <tr key={index}>
-                        <td style={{ width: '80%' }}>
-                          {showPosition(region)} 
-                          {!!activeFilters.length && filteredActiveRegions?.length > 0 && 
-                            <span 
-                              className={styles['effective-count']}
-                              onClick={() => toggleExpand(regionKey)}
-                              style={{ cursor: 'pointer' }}
-                            >
-                              {/* ({region.subregion ? 1 : 0} subregions) */}
-                              {/* {expandedRows.has(regionKey) ? ' 🔽' : ' ▶️'} */}
-                            </span>
-                          }
-                        </td>
-                        {regions?.[0]?.score && <td style={{ width: '10%' }}>{region.score?.toFixed(3)}</td>}
-                        <td style={{ width: '10%' }}>
-                          <button onClick={() => onSelect(region, region)}>🔍</button>
-                        </td>
-                      </tr>
-                      {/* {expandedRows.has(regionKey) && [region.subregion].map((subregion, subregionIndex) => (
+                  {regions.map((region, index) => {
+                    const regionKey = `${region.order}:${region.chromosome}:${region.i}`
+                    // const effectiveRegions = []  // can get rid of
+
+                    return (
+                      <>
+                        <tr key={index}>
+                          <td style={{ width: '80%' }}>
+                            {showPosition(region)}
+                            {!!activeFilters.length && filteredActiveRegions?.length > 0 &&
+                              <span
+                                className={styles['effective-count']}
+                                onClick={() => toggleExpand(regionKey)}
+                                style={{ cursor: 'pointer' }}
+                              >
+                                {/* ({region.subregion ? 1 : 0} subregions) */}
+                                {/* {expandedRows.has(regionKey) ? ' 🔽' : ' ▶️'} */}
+                              </span>
+                            }
+                          </td>
+                          {regions?.[0]?.score && <td style={{ width: '10%' }}>{region.score?.toFixed(3)}</td>}
+                          <td style={{ width: '10%' }}>
+                            <button onClick={() => handleSelectActiveRegionSet(region, region)}>🔍</button>
+                          </td>
+                        </tr>
+                        {/* {expandedRows.has(regionKey) && [region.subregion].map((subregion, subregionIndex) => (
                         <tr 
                           key={`${regionKey}-effective-${subregionIndex}`}
                           className={styles['effective-row']}
@@ -155,17 +314,17 @@ const ActiveRegionSetModal = ({
                           </td>
                           {<td style={{ width: '10%' }}>{region.score?.toFixed(3)}</td>}
                           <td style={{ width: '10%' }}>
-                            <button onClick={() => onSelect(subregion, region)}>🔍</button>
+                            <button onClick={() => handleSelectActiveRegionSet(subregion, region)}>🔍</button>
                           </td>
                         </tr>
                       ))} */}
-                    </>
-                  )
-                })}
+                      </>
+                    )
+                  })}
                 </tbody>
               </table>
-            </div>
-        </div>
+            </div>)}
+          </div>
       </div>
     </div>
   )

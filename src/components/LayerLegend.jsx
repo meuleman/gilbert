@@ -1,5 +1,3 @@
-import './LayerLegend.css'
-import * as d3 from 'd3'
 import { useEffect, useMemo, useState } from 'react'
 import SimSearchFactors from './SimSearch/SimSearchFactors.json'
 
@@ -8,10 +6,10 @@ const LayerLegend = ({
   hover,
   selected,
   show = true,
-  onShow = () => {},
+  onShow = () => { },
   handleFactorClick,
   searchByFactorInds,
-  maxNumFactors=25,
+  maxNumFactors = 25,
 } = {}) => {
   const [factorsToShow, setFactorsToShow] = useState([]);
   const [factorsToHighlight, setFactorsToHighlight] = useState([]);
@@ -24,29 +22,29 @@ const LayerLegend = ({
     let layerName = data?.layer.name;
     let SBFFactors = null;
 
-    if(layerName === 'DHS Components') SBFFactors = SimSearchFactors['DHS'];
-    else if(layerName === 'Chromatin States') SBFFactors = SimSearchFactors['Chromatin States'];
+    if (layerName === 'DHS Components') SBFFactors = SimSearchFactors['DHS'];
+    else if (layerName === 'Chromatin States') SBFFactors = SimSearchFactors['Chromatin States'];
 
-    if(SBFFactors) {
+    if (SBFFactors) {
       setSBFFactors(SBFFactors);
       setSBFFactorNames(SBFFactors.map(f => f.fullName));
       setSBFFactorInds(SBFFactors.map(f => f.ind));
     }
 
-    if(data) {
+    if (data) {
       let meta = data.meta;
-      if(meta) {
+      if (meta) {
         fullFactorList = (
           (meta.fields.length === 2) && (meta.fields[0] === "max_field") && (meta.fields[1] === "max_value")
         ) ? meta['full_fields'] : meta['fields'];
       }
     }
 
-    if(fullFactorList && (fullFactorList.length <= maxNumFactors)) {
+    if (fullFactorList && (fullFactorList.length <= maxNumFactors)) {
       setFactorsToShow(fullFactorList);
     } else {
       let dataToShow = selected?.data || hover?.data;
-      if(dataToShow) {
+      if (dataToShow) {
         let dataToShowFactors = Object.keys(dataToShow);
         let dataToShowValues = Object.values(dataToShow);
 
@@ -60,8 +58,8 @@ const LayerLegend = ({
           dataToShowValues = Object.values(dataToShow);
         }
 
-        if(
-          (dataToShowFactors.length > 0) && 
+        if (
+          (dataToShowFactors.length > 0) &&
           (dataToShowFactors.filter(f => fullFactorList?.includes(f)).length === dataToShowFactors.length)
         ) {
           let factorValues = dataToShowValues.map((v, i) => {
@@ -74,23 +72,23 @@ const LayerLegend = ({
       }
     }
 
-    if(hover?.data) {
+    if (hover?.data) {
       let hoverData = hover.data;
       let hoverKeys = Object.keys(hoverData);
       if ((hoverKeys.length === 2) && (hoverKeys[0] === "max_field") && (hoverKeys[1] === "max_value") && fullFactorList) {
         let factorName = fullFactorList[hover.data?.max_field];
-        hoverData = {[factorName]: hover.data.max_value};
+        hoverData = { [factorName]: hover.data.max_value };
       }
       setFactorsToHighlight(fullFactorList?.filter((f) => hoverData[f] > 0));
     }
   }, [data, hover, selected, maxNumFactors]);
 
   const handleClick = (factor) => {
-    if(SBFFactors) {
+    if (SBFFactors) {
       const factorInd = SBFFactorNames.indexOf(factor);
       const SBFFactorInd = SBFFactors[factorInd].ind;
       let newSBFIndices = searchByFactorInds;
-      if(newSBFIndices.includes(SBFFactorInd)) {
+      if (newSBFIndices.includes(SBFFactorInd)) {
         newSBFIndices = newSBFIndices.filter((ind) => ind !== SBFFactorInd);
       } else {
         newSBFIndices.push(SBFFactorInd);
@@ -101,30 +99,32 @@ const LayerLegend = ({
     }
   }
 
+  if (!show || factorsToShow.length === 0) {
+    return null;
+  }
+
   return (
-    <>
-      {show && (
-        <div className="legend-box" id="legend-box">
-          <span className='legend-label'>Factors</span>
-          <ul id='factor-list' className='factor-list' style={{'margin': '0px'}}>
-            {factorsToShow.map((f) => (
-              <li 
-                key={f} 
-                className='factor-item' 
-                onClick={() => handleClick(f)}
-                style={{
-                  '--bullet-color': data.layer.fieldColor(f),
-                  textShadow: factorsToHighlight.includes(f) ? '1px 0px 0px black' : 'none',
-                  '--checkmark': SBFFactorNames.includes(f) && searchByFactorInds.includes(SBFFactorInds[SBFFactorNames.indexOf(f)]) ? `'\\2713'` : 'none'
-                }}
-              >
-                {f}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </>
+    <div className="absolute z-10 left-2.5 bottom-2.5 bg-white border border-primary rounded-lg flex flex-col justify-center p-2.5">
+      <div>
+        <strong>Factor Legend</strong>
+      </div>
+      <ul className="[&>li]:mt-2.5">
+        {factorsToShow.map((f) => (
+          <li key={f}
+            className="relative grid grid-cols-[max-content_minmax(0,max-content)] gap-y-3.5 gap-x-2 items-center"
+            onClick={() => handleClick(f)}
+          >
+            <span
+              className="inline-block size-3 border"
+              style={{
+                backgroundColor: data.layer.fieldColor(f)
+              }}
+            />
+            <span>{f}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 

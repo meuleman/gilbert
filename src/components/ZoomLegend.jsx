@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { scaleLinear } from 'd3-scale';
 import { group, range } from 'd3-array';
+import { cn } from "@/lib/utils"
 
 import { debounceNamed, debouncerTimed } from '../lib/debounce'
 import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import Data from '../lib/data'
+import { getKb, showKb } from '../lib/display'
 import { showKbHTML } from '../lib/display'
 
 import './ZoomLegend.css';
@@ -24,9 +26,9 @@ const ZoomLegend = ({
   layerLock,
   lensHovering,
   crossScaleNarration,
-  onZoom=()=>{},
-  setLayer=()=>{},
-  setLayerOrder=()=>{}
+  onZoom = () => { },
+  setLayer = () => { },
+  setLayerOrder = () => { }
 } = {}) => {
 
   const [CSNView, setCSNView] = useState(false)
@@ -46,7 +48,7 @@ const ZoomLegend = ({
   const [stations, setStations] = useState([])
   // this debounced function fetches the data and updates the state
   const fetchLayerData = useMemo(() => {
-    const dataClient = Data({ 
+    const dataClient = Data({
       debug: false
     })
     return (layer, order, bbox, key, setter) => {
@@ -54,26 +56,26 @@ const ZoomLegend = ({
       if (order < layer.orders[0] || order > layer.orders[1]) return;
 
       let hilbert = HilbertChromosome(order, { padding: 2 })
-      let points = hilbert.fromBbox(bbox) 
+      let points = hilbert.fromBbox(bbox)
 
       let myPromise = dataClient.fetchData(layer, order, points)
       let myCallback = (data) => {
         // console.log("got data", data, order)
-        if(data) {
-          setter({ data, layer, order})
+        if (data) {
+          setter({ data, layer, order })
         }
       }
       // debounce a function call with a name to make sure no collisions
       // collision would be accidentally debouncing a different data call because we reuse this function
-      debounceNamed(myPromise, myCallback, 50, key+":"+layer.name+":"+order) // layer.name + order makes unique call 
+      debounceNamed(myPromise, myCallback, 50, key + ":" + layer.name + ":" + order) // layer.name + order makes unique call 
     }
   }, []);
 
   // When data or selected changes, we want to update the zoom legend
   let updateStations = useCallback((hit) => {
     // console.log("updating stations", hit)
-    if(!hit || !layerOrder) return
-    debounceTimed(() => { 
+    if (!hit || !layerOrder) return
+    debounceTimed(() => {
       // console.log("actually updating", layerLockRef.current, layerRef.current)
       let promises = range(4, hit.order).map(order => {
         return new Promise((resolve) => {
@@ -83,10 +85,10 @@ const ZoomLegend = ({
           let hilbert = HilbertChromosome(order, { padding: 2 })
           let step = hilbert.step
           let bbox = {
-            x: hit.x - step/2,
-            y: hit.y - step/2,
-            width: step*2,
-            height: step*2
+            x: hit.x - step / 2,
+            y: hit.y - step / 2,
+            width: step * 2,
+            height: step * 2
           }
           // console.log("bbox", bbox)
           fetchLayerData(orderLayer, order, bbox, "station", (response) => {
@@ -108,10 +110,10 @@ const ZoomLegend = ({
 
   useEffect(() => {
     // console.log("sup use effect?", selected)
-    if(selected) {
+    if (selected) {
       setCSNView(true)
       updateStations(selected)
-    } else if(hovered) {
+    } else if (hovered) {
       setCSNView(false)
       updateStations(hovered)
     } else {
@@ -120,78 +122,21 @@ const ZoomLegend = ({
     }
   }, [selected, hovered, updateStations, setStations, setCSNView])
 
-  // useEffect(() => {
-  //   if(selected) {
-  //     setLayerOrder(internalLayerOrder)
-  //   }
-  // }, [selected, internalLayerOrder, setLayerOrder])
-
-
-  // const setWithCSN = useCallback((newLayerOrder) => {
-  //   // setNaturalLayerOrder(Object.assign({}, layerOrder))
-  //   crossScaleNarration.forEach(d => {
-  //     newLayerOrder[d?.order] = d?.layer
-  //   })
-  //   setLayerOrder(newLayerOrder)
-  //   return newLayerOrder
-  // }, [crossScaleNarration, setLayerOrder])
-
-  // const setWithNatural = useCallback(() => {
-  //   let newLayerOrder = Object.assign({}, naturalLayerOrder)
-  //   // setLayerOrder(Object.assign({}, naturalLayerOrder))
-  //   return newLayerOrder
-  // }, [naturalLayerOrder, setLayerOrder])
-
-  // const naturalCSNSwitch = useCallback(() => {
-  //   let newLayerOrder = Object.assign({}, layerOrder)
-  //   if(!CSNView) {
-  //     setNaturalLayerOrder(Object.assign({}, layerOrder))
-  //     newLayerOrder = setWithCSN(newLayerOrder)
-  //   } else {
-  //     newLayerOrder = setWithNatural()
-  //   }
-  //   setLayer(newLayerOrder[effectiveOrder])
-  //   setCSNView(!CSNView)
-  // }, [CSNView, layerOrder, setLayer, setWithCSN, setWithNatural, effectiveOrder])
-
-  // const cycleCSN = useCallback(() => {
-  //   if(CSNView) {
-  //     console.log("cycle csn")
-  //     let newLayerOrder = Object.assign({}, layerOrder)
-  //     newLayerOrder = setWithCSN(newLayerOrder)
-  //     setLayer(newLayerOrder[effectiveOrder])
-  //   }
-  // }, [CSNView, layerOrder, setLayer, setWithCSN, effectiveOrder])
-
-  // useEffect(() => {
-  //   if(crossScaleNarration.filter(n => n !== null).length > 0){
-  //     cycleCSN()
-  //   } else if(naturalLayerOrder !== null) {
-  //     let newLayerOrder = setWithNatural()
-  //     setLayer(newLayerOrder[effectiveOrder])
-  //     setCSNView(false)
-  //   }
-  // }, [crossScaleNarration, cycleCSN, naturalLayerOrder, setLayer, setWithNatural, effectiveOrder])
-
-  // const handleCSNClick = useCallback(() => {
-  //   naturalCSNSwitch()
-  // }, [naturalCSNSwitch])
-
   // zoom to cross-scale narration region and change layer
-  const handleSelectStation = useCallback((d) => { 
+  const handleSelectStation = useCallback((d) => {
     const regions = crossScaleNarration?.path?.filter(n => n?.order == d.order)
-    if(regions.length == 1) {
+    if (regions.length == 1) {
       const orderRegion = regions[0]
       const region = orderRegion.region
-      onZoom({chromosome: region.chromosome, start: region.start, end: region.start + 4 ** (14 - region.order)})
+      onZoom({ chromosome: region.chromosome, start: region.start, end: region.start + 4 ** (14 - region.order) })
     }
   }, [crossScaleNarration, onZoom])
 
   let orderZoomScale = useMemo(() => {
     return scaleLinear()
-    .domain(zoomExtent)
-    // we pad out the maximum so we scroll to the end of the last order
-    .range([1, Math.pow(2, orderDomain[1] - orderDomain[0] + 0.999)]); 
+      .domain(zoomExtent)
+      // we pad out the maximum so we scroll to the end of the last order
+      .range([1, Math.pow(2, orderDomain[1] - orderDomain[0] + 0.999)]);
   }, [zoomExtent, orderDomain])
 
 
@@ -215,78 +160,143 @@ const ZoomLegend = ({
     // console.log("stations map", stationsMap, CSNView)
     let ords = [];
     let lastOrder = 0;
-      let or, o;
-      for(let z = zoomExtent[0]; z <= zoomExtent[1]; z+= 0.1) {
-        or = orderDomain[0] + Math.log2(orderZoomScale(z));
-        o = Math.floor(or);
-        if(o > lastOrder) {
-          ords.push({
-            z,
-            order: o
-          })
-          lastOrder = o
+    let or, o;
+    for (let z = zoomExtent[0]; z <= zoomExtent[1]; z += 0.1) {
+      or = orderDomain[0] + Math.log2(orderZoomScale(z));
+      o = Math.floor(or);
+      if (o > lastOrder) {
+        ords.push({
+          z,
+          order: o
+        })
+        lastOrder = o
+      }
+    }
+    ords.forEach((o, i) => {
+      if (i > 0)
+        ords[i - 1].z2 = o.z
+      if (i == ords.length - 1) o.z2 = zoomExtent[1]
+      if (!CSNView) {
+        let station = stationsMap.get(o.order)
+        // console.log(station)
+        if (station && station[0]) {
+          o.station = station[0].station
+          o.layer = station[0].layer
+          o.field = o.layer.fieldChoice(o.station)
+          o.color = o.layer.fieldColor(o.field.field)
+          // console.log("ORDER", o)
+        }
+        let hit = selected || hovered
+        if (o.order == order && activeLayer && hit && hit.data && Object.keys(hit?.data).length) {
+          o.layer = activeLayer
+          o.station = hit
+          o.field = o.layer.fieldChoice(o.station)
+          o.color = o.layer.fieldColor(o.field.field)
+        }
+      } else {
+        const scaleNarration = crossScaleNarration?.path.filter(n => n?.order == o.order)
+        if (scaleNarration?.length == 1) {
+          o.layer = scaleNarration[0].layer
+          o.field = scaleNarration[0].field
+          o.color = o.field?.color
         }
       }
-      ords.forEach((o,i) => {
-        if(i > 0)
-          ords[i - 1].z2 = o.z
-        if(i == ords.length - 1) o.z2 = zoomExtent[1]
-        if (!CSNView) {
-          let station = stationsMap.get(o.order)
-          // console.log(station)
-          if(station && station[0]) {
-            o.station = station[0].station
-            o.layer = station[0].layer
-            o.field = o.layer.fieldChoice(o.station)
-            o.color = o.layer.fieldColor(o.field.field)
-            // console.log("ORDER", o)
-          }
-          let hit = selected || hovered
-          if(o.order == order && activeLayer && hit && hit.data && Object.keys(hit?.data).length) {
-            o.layer = activeLayer
-            o.station = hit 
-            o.field = o.layer.fieldChoice(o.station)
-            o.color = o.layer.fieldColor(o.field.field)
-          }
-        } else {
-          const scaleNarration = crossScaleNarration?.path.filter(n => n?.order == o.order)
-          if(scaleNarration?.length == 1) {
-            o.layer = scaleNarration[0].layer
-            o.field = scaleNarration[0].field
-            o.color = o.field?.color
-          }
-        }
-      })
-      // console.log("set orders2")
+    })
+    // console.log("set orders2")
     setOrders(ords)
-  }, [order, zoomExtent, orderDomain, orderZoomScale, stations, CSNView, crossScaleNarration, activeLayer, selected, hovered ])
+  }, [order, zoomExtent, orderDomain, orderZoomScale, stations, CSNView, crossScaleNarration, activeLayer, selected, hovered])
 
   // console.log("station map", stationsMap)
   // console.log("ORDERS", orders)
 
 
   const orderHeight = useMemo(() => {
-    return height/(orderDomain[1] - orderDomain[0] + 1)
-  }, [height, orderDomain])
+    return 100 / (orderDomain[1] - orderDomain[0] + 1)
+  }, [orderDomain])
 
   const [csnPerOrder, setCSNPerOrder] = useState({})
   useEffect(() => {
-    if(crossScaleNarration){
+    if (crossScaleNarration) {
       let csnf = crossScaleNarration.path?.filter(n => n !== null)
       let csnp = {}
-      if(csnf?.length > 0) {
+      if (csnf?.length > 0) {
         csnf.forEach(n => csnp[n.order] = n)
       }
       setCSNPerOrder(csnp)
     }
   }, [crossScaleNarration, setCSNPerOrder])
 
+  const orderHeightPercent = 100 / (orderDomain[1] - orderDomain[0] + 1)
+  const minPercent = (order - orderDomain[0]) * orderHeightPercent
+  const orderPercent = orderHeightPercent * (orderRaw - order)
+  const markerPosition = minPercent + orderPercent
+
   return (
-    <div className="zoom-legend">
+    <div className="w-[12.5rem] overflow-hidden">
+      <div className="h-full relative w-[12.5rem] grid grid-cols-1">
+        <div
+          className="absolute z-50 h-px bg-black w-full"
+          style={{ top: `${markerPosition}%` }}
+        >
+          <div className="absolute left-0 w-[1px] h-[5px] -top-[2px] bg-black" />
+          <div className="absolute left-px w-[1px] h-[3px] -top-[1px] bg-black" />
+        </div>
+        {orders && orders.map(d => {
+          const { value, scaleSuffix } = getKb(4 ** (14 - d.order))
+
+          return (
+            <div
+              key={d.order}
+              className={cn(
+                "relative z-0 border-t-separator border-t-1",
+                d.order == order && "bg-activeOrder",
+              )}
+            >
+              <div className="absolute w-full h-full top-0 left-0 flex items-center">
+                <div className={cn(
+                  "grow-0 h-full w-9 flex flex-col justify-center border-l-separator border-l-1 text-center font-mono",
+                  d.order == order && "font-bold",
+                )}>
+                  <p className="text-sm">{value}</p>
+                  <p className="text-2xs">{scaleSuffix}</p>
+                </div>
+                <div className={cn(
+                  "flex-1 h-full border-l-separator border-l-1 py-1.5 px-2.5 text-2xs",
+                  d.order == order && "font-bold"
+                )}>
+                  <div>
+                    {(layerLock && !lensHovering) ? layer?.name : layerOrder && layerOrder[d.order]?.name}
+                  </div>
+                  <div className="station">
+                    <div
+                      onClick={() => CSNView && handleSelectStation(d)}
+                      style={{
+                        backgroundColor: d.color,
+                        marginRight: "5px",
+                        width: "10px",
+                        height: "10px",
+                        display: "inline-block",
+                        cursor: `${CSNView ? "pointer" : "default"}`
+                      }}
+                    >
+                      {d.field && d.field.field}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+
+  // eslint-disable-next-line no-unreachable
+  return (
+    <div>
       <div className="zoom-indicator-arrow" style={{
         position: "relative",
         display: "block",
-        width: "30px",
         height: "1px",
         borderBottom: "2px solid black",
         top: `${orderHeight * (orderRaw - orderDomain[0]) - 1.5}px`,
@@ -297,7 +307,7 @@ const ZoomLegend = ({
         marginTop: "-3px"
       }}>
         {orders && orders.map(d => {
-          return <div key={"order"+d.order} className="zoom-legend-order" style={{
+          return <div key={"order" + d.order} className="zoom-legend-order" style={{
             width: "100%",
             height: `${orderHeight}px`,
             display: "flex",
@@ -345,7 +355,7 @@ const ZoomLegend = ({
               >
                 {(layerLock && !lensHovering) ? layer?.name : layerOrder && layerOrder[d.order]?.name}
               </div>
-              
+
               <div className="station" style={{
                 // color: d.color
               }}>
@@ -353,12 +363,12 @@ const ZoomLegend = ({
                   backgroundColor: d.color,
                   marginRight: "5px",
                   width: "10px",
-                  height:"10px",
+                  height: "10px",
                   display: "inline-block",
                   // border: "1px solid gray"
                   cursor: `${CSNView ? "pointer" : "default"}`
                 }}></div>
-                {d.field && d.field.field} 
+                {d.field && d.field.field}
                 {/* {d.field && d.field.value} */}
               </div>
               {/* <div className='cross-scale-narration-layer'>{crossScaleNarrationPerOrder[d.order]?.layer}</div>
@@ -376,7 +386,7 @@ const ZoomLegend = ({
           </div>
         })}
       </div>
-      
+
     </div>
   )
 };
