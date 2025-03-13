@@ -17,7 +17,7 @@ const factorLabel = (f) => {
       }} />
       <span>{f.field}</span>
       <div style={{ fontSize: '0.8em', color: '#888' }}>
-        {f.layer.name}
+        {f.layer.labelName}s
       </div>
     </div>
   )
