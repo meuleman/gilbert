@@ -59,10 +59,10 @@ const SelectedRegionSummary = ({
                       </div>
                       <div className="flex items-center">
                         <button 
-                          className="rounded-full h-6 w-6 flex items-center justify-center border hover:bg-gray-100" 
+                          className="rounded-md flex items-center justify-center border border-gray-400 hover:bg-gray-100 text-red-500 px-1 py-1 text-sm" 
                           onClick={onClose}
                         >
-                          x
+                          Close X
                         </button>
                       </div>
                     </div>
