@@ -54,7 +54,7 @@ export default function ZoomLine({
   onFactor= () => {}
 }) {
   const tooltipRef = useRef(null);
-  const scoreTooltipRef = useRef(null);
+  // const scoreTooltipRef = useRef(null);
   const containerRef = useRef(null);
   
   const [or, setOr] = useState(order);
@@ -118,12 +118,19 @@ export default function ZoomLine({
   }, [path, onFactor]);
 
   const handleHover = useCallback((e, o) => {
-    const containerRect = e.currentTarget.getBoundingClientRect();
-    const p = path.find(d => d.order === o);
-    const my = e.clientY - containerRect.top;
-    const or = o + my / rw;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const rectTop = yScale(o);
+    const relativeY = e.clientY - containerRect.top - rectTop;
+    const or = o + relativeY / rw;
     onHover(or);
     setOr(or);
+  }, [csn, path, yScale, rw, offsetX, onHover, tipOrientation, width]);
+
+  const handleMoreInfoHover = useCallback((e, o) => {
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const p = path.find(d => d.order === o);
+    const my = e.clientY - containerRect.top;
+    handleHover(e, o);
     if (p) {
       const xoff = tipOrientation === "left" ? -5 : width + 5;
       const tooltipX = containerRect.left + xoff + offsetX;
@@ -149,12 +156,12 @@ export default function ZoomLine({
     const xoff = tipOrientation === "left" ? -5 : width + 5;
     const tooltipX = containerRect.left + xoff;
     const tooltipY = containerRect.top + scoreHeight - (scoreHeight * (csn.score / maxPathScore)) / 2;
-    scoreTooltipRef.current && scoreTooltipRef.current.show(csn.score, null, tooltipX, tooltipY);
+    // scoreTooltipRef.current && scoreTooltipRef.current.show(csn.score, null, tooltipX, tooltipY);
   }, [csn, maxPathScore, scoreHeight, tipOrientation, width]);
 
-  const handleScoreLeave = useCallback(() => {
-    scoreTooltipRef.current.hide();
-  }, []);
+  // const handleScoreLeave = useCallback(() => {
+  //   scoreTooltipRef.current.hide();
+  // }, []);
 
   return (
     <div 
@@ -206,8 +213,6 @@ export default function ZoomLine({
               height: rw
             }}
             onMouseMove={(e) => handleHover(e, o)}
-            onMouseLeave={handleLeave}
-            onClick={(e) => handleClick(e, o)}
           >
             <div
               className="absolute top-0 left-0 opacity-10 bg-white"
@@ -241,22 +246,44 @@ export default function ZoomLine({
       )}
 
       {path.length && yScale && text && containerHeight > 0 && range(4, 15).map(o => {
+        let p = path.find(d => d.order === o);
         let bp = showKb(Math.pow(4, 14 - o));
         return (
-          <div
-            key={o}
-            className="absolute left-0 text-center font-mono pointer-events-none"
-            style={{
-              top: yScale(o) + rw / 2,
-              width,
-              fontSize,
-              fontWeight: highlightOrders.indexOf(o) >= 0 ? "bold" : "normal",
-              color: "#111",
-              transform: "translateY(-50%)"
-            }}
-          >
-            <div>{bp[0]}</div>
-            <div>{bp[1]}</div>
+          <div>
+            <div
+              key={o}
+              className="absolute left-0 text-center font-mono pointer-events-none"
+              style={{
+                top: yScale(o) + rw / 2,
+                width,
+                fontSize,
+                fontWeight: highlightOrders.indexOf(o) >= 0 ? "bold" : "normal",
+                color: "#111",
+                transform: "translateY(-50%)"
+              }}
+            >
+              <div>{bp[0]}</div>
+              <div>{bp[1]}</div>
+            </div>
+            {p ? 
+              <div
+                className="absolute font-mono cursor-pointer text-center pointer-events-none left-1/2 -translate-x-1/2"
+                style={{
+                  top: yScale(o) + rw - 15,
+                  fontSize: fontSize
+                }}
+              >
+                <span
+                  className="pointer-events-auto"
+                  onMouseMove={(e) => handleMoreInfoHover(e, o)}
+                  onMouseLeave={handleLeave}
+                  onClick={(e) => handleClick(e, o)}
+                >
+                  ?
+                </span>
+              </div> 
+              : null
+            }
           </div>
         );
       })}
@@ -275,7 +302,7 @@ export default function ZoomLine({
       )}
       
       <Tooltip ref={tooltipRef} orientation={tipOrientation} contentFn={tooltipContent} enforceBounds={false} />
-      <Tooltip ref={scoreTooltipRef} orientation={tipOrientation} contentFn={scoreTooltipContent} enforceBounds={false} />
+      {/* <Tooltip ref={scoreTooltipRef} orientation={tipOrientation} contentFn={scoreTooltipContent} enforceBounds={false} /> */}
     </div>
   );
 }
