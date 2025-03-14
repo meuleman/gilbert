@@ -1022,7 +1022,7 @@ function Home() {
                 <div className="relative flex-[1]">
                   <SelectedRegionSummary onClose={handleModalClose}/>
                 </div>
-                <div className="relative flex-[3]">
+                <div className="relative flex-[4]">
                   <div className="absolute top-0 left-0 w-full h-full overflow-hidden p-2">
                     <Power/>
                   </div>

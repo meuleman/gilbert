@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Tooltip } from 'react-tooltip'
-import { showKbOrder } from '../../lib/display'
+import { showKbOrder, showPosition } from '../../lib/display'
 import SelectedStatesStore from '../../states/SelectedStates'
 
 import styles from './RegionAISummary.module.css'
@@ -231,10 +231,11 @@ const RegionAISummary = ({} = {}) => {
 
   return (
     <div className="bg-white rounded-md">
-      <h3 className="text-sm text-gray-500">
+      {/* <h3 className="text-sm text-gray-500">
         AI Summary:
-      </h3>
-      <p className="mb-4 text-sm text-black font-medium">
+      </h3> */}
+      {showPosition(narration.region)}
+      <p className="mb-5 text-sm text-black font-medium">
         {loading ? "loading..." : generated}
       </p>
 
