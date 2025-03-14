@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useContext, memo } from 'react'
+import { useState, useCallback, useEffect, useContext, memo, useRef } from 'react'
 
 import { showPosition, showKbOrder } from '../../lib/display'
 import { Tooltip } from 'react-tooltip';
@@ -9,6 +9,7 @@ import SelectedStatesStore from '../../states/SelectedStates'
 import FactorSearch from '../FactorSearch';
 import Loading from '../Loading';
 import AccordionArrow from '@/assets/accordion-circle-arrow.svg?react';
+import Spectrum from '../../components/Narration/Spectrum';
 
 import styles from './ActiveRegionSetModal.module.css'
 
@@ -20,6 +21,36 @@ function filterMatch(f1, f2) {
 function inFilters(filters, f) {
   return filters.some(filter => filterMatch(filter, f))
 }
+
+function useContainerSize(containerRef, dependencies) {
+  const [size, setSize] = useState([0, 0]);  // helps with initial render
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Create a new ResizeObserver instance
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        // The contentRect provides the new dimensions
+        const { width, height } = entry.contentRect;
+        setSize([width, height]);
+      }
+    });
+
+    // Start observing the container element
+    resizeObserver.observe(container);
+
+    // Cleanup: unobserve the element and disconnect the observer when component unmounts
+    return () => {
+      resizeObserver.unobserve(container);
+      resizeObserver.disconnect();
+    };
+  }, [containerRef, ...dependencies]);
+
+  return size;
+}
+
 
 const ActiveRegionSetModal = () => {
 
@@ -34,10 +65,13 @@ const ActiveRegionSetModal = () => {
     regionSetNarration,
     regionSetNarrationLoading,
     regionSetArticles,
+    activeGenesetEnrichment
   } = useContext(RegionsContext)
   
   const { showActiveRegionSet } = RegionSetModalStatesStore()
   const { setSelected, setRegion } = SelectedStatesStore()
+  const containerRef = useRef(null)
+  const [width, height] = useContainerSize(containerRef, [activeGenesetEnrichment]);
 
   const handleSelectActiveRegionSet = useCallback((region) => {
     setSelected(region?.subregion || region)  // set selected with implied region
@@ -96,8 +130,30 @@ const ActiveRegionSetModal = () => {
 
   return (
     // TODO: remove hardcoded width
-    <div className="flex-1 pl-1 py-1.5 min-h-0 pt-1 max-h-full w-[24.9375rem] overflow-auto text-xs">
-      <div className="pt-1 max-h-full overflow-auto text-xs">
+    <div className="flex-1 pl-1 min-h-0 max-h-full w-[24rem] text-xs overflow-hidden flex flex-col" ref={containerRef}>
+      <div className="pt-4">
+      <h3 className="text-sm text-gray-500">
+        AI Summary:
+      </h3>
+      <p className="mb-4 text-sm text-black font-medium">
+        {regionSetNarrationLoading ? "loading..." : regionSetNarration}
+      </p>
+      </div>
+      <div className="grow-0">
+        {activeGenesetEnrichment && (
+          <div className="relative h-28">
+            <div className="absolute top-0 left-0 w-full overflow-hidden">
+              <Spectrum
+                show
+                width={width - 24}
+                height={90}
+                windowSize={30}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="pt-1 flex-1 text-xs flex flex-col overflow-hidden">
         <div className="px-1.5 pb-2.75">
           <strong>{(() => {
               // Get region count and text
@@ -119,8 +175,8 @@ const ActiveRegionSetModal = () => {
               return `${regionCount} selected ${regionText}${filterInfo}`;
             })()}</strong>
         </div>
-        <div className="border-t-1 botder-t-separator py-2.75">
-          <div className="grid grid-cols-regionSet gap-y-1.5">
+        <div className="border-t-1 border-t-separator flex-1 flex flex-col overflow-hidden">
+          <div className="grid grid-cols-regionSet gap-y-1.5 py-2.75">
             <div className='grid grid-cols-subgrid col-start-1 col-end-4 [&>div:last-child]:pr-1.5'>
               <div className="col-span-2 px-1.5">
                 <strong>Position</strong>
@@ -129,19 +185,11 @@ const ActiveRegionSetModal = () => {
                 <strong>Score</strong>
               </div>
             </div>
+          </div>
+          <div className="flex-1 overflow-auto">
+            <div className="grid grid-cols-regionSet gap-y-1.5">
             {regions.map((region) => {
               const regionKey = `${region.order}:${region.chromosome}:${region.i}`
-              // {
-              //   !!activeFilters.length && filteredActiveRegions?.length > 0 &&
-              //   <span
-              //     className={styles['effective-count']}
-              //     onClick={() => toggleExpand(regionKey)}
-              //     style={{ cursor: 'pointer' }}
-              //   >
-              //     {/* ({region.subregion ? 1 : 0} subregions) */}
-              //     {/* {expandedRows.has(regionKey) ? ' 🔽' : ' ▶️'} */}
-              //   </span>
-              // }
               return (
                 <div className="grid grid-cols-subgrid col-start-1 col-end-4 border-t-separator border-t-1 pt-1.5 gap-y-1.5" key={regionKey}>
                   <div className="px-1.5 col-span-2 underline">
@@ -156,6 +204,7 @@ const ActiveRegionSetModal = () => {
                 </div>
               )
             })}
+            </div>
           </div>
         </div>
       </div>
