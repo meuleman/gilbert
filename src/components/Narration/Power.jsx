@@ -211,15 +211,37 @@ function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeig
 
   const [interpXScale, setInterpXScale] = useState(() => scaleLinear())
 
+  // const zoomToBox = useCallback((x0,y0,x1,y1,order,scaleMultiplier=1) => {
+  //   let tw = sizeScale(x1 - x0)
+  //   let scale = Math.pow(2, order)  * scaleMultiplier
+  //   let offset = tw * 1.25 * 2
+  //   let tx = xScale(x0) - offset / scaleMultiplier
+  //   let ty = yScale(y0) - offset / scaleMultiplier
+  //   let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
+  //   return transform
+  // }, [xScale, yScale, sizeScale])
+
   const zoomToBox = useCallback((x0,y0,x1,y1,order,scaleMultiplier=1) => {
-    let tw = sizeScale(x1 - x0)
-    let scale = Math.pow(2, order)  * scaleMultiplier
-    let offset = tw * 1.25 * 2
-    let tx = xScale(x0) - offset / scaleMultiplier
-    let ty = yScale(y0) - offset / scaleMultiplier
+    // Calculate the box center in data coordinates
+    let centerX = (x0 + x1) / 2
+    let centerY = (y0 + y1) / 2
+    
+    // Convert to screen coordinates
+    let screenCenterX = xScale(centerX)
+    let screenCenterY = yScale(centerY)
+    
+    // Calculate the scale
+    let scale = Math.pow(2, order) * scaleMultiplier
+    
+    // Calculate translations needed to center the box
+    // This centers the box by positioning the data center at the screen center
+    let tx = screenCenterX - width / 2 / scale
+    let ty = screenCenterY - height / 2 / scale
+    
+    // Create the centered transform
     let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
     return transform
-  }, [xScale, yScale, sizeScale])
+}, [xScale, yScale, width, height])
 
   useEffect(() => {
     scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
@@ -785,6 +807,11 @@ function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeig
 
   return (
     <div ref={containerRef} className="power w-full h-full">
+      <div className="segment-coordinates" style={{maxWidth: width + "px"}}>
+        <div className="text-sm">
+          {currentPreferred?.region && showPosition(currentPreferred.region)}
+        </div>
+      </div>
       {/* TODO: The factor label component is causing a variable width of IG */}
       <div className="factor-label" style={{maxWidth: width + "px"}}>
         {currentPreferred?.field ? (

@@ -39,44 +39,42 @@ const SelectedRegionSummary = ({
   }, [selectedNarration]);
 
   return (
-    <>
-      {selected && (
-        <div
-          className="absolute inset-0 bg-white bg-opacity-90 flex flex-col"
-        >
-          <div className="w-full h-full overflow-auto p-4">
-            {loadingSelectedCSN ? (
-              <div style={{ height: `${powerWidth}px` }}>
-                <Loading text="Loading CSN..." />
+  <>
+    {selected && selectedNarration && (
+      <div className="absolute inset-0 bg-white bg-opacity-90">
+        {/* Header with close button */}
+        <div className="absolute top-0 right-0 p-4 z-10">
+          <button 
+            className="rounded-md flex items-center justify-center border border-gray-400 bg-white hover:bg-gray-100 text-red-500 px-1.5 py-1 text-sm" 
+            onClick={onClose}
+          >
+            Close X
+          </button>
+        </div>
+        
+        {/* Content with two columns */}
+        <div className="w-full h-full p-4 flex">
+          {/* First column - AI Summary */}
+          <div className="w-1/2 pr-2 overflow-auto">
+            <RegionAISummary />
+          </div>
+          
+          {/* Second column - Region position */}
+          <div className="w-1/2 pl-2">
+            <div className="mb-3 pb-2">
+              <h3 className="text-sm text-gray-500">
+                Region:
+              </h3>
+              <div className="text-sm">
+                {showPosition(selectedNarration.region)}
               </div>
-            ) : (
-              selected && selectedNarration && (
-                <div className="w-full flex flex-col">
-                  <div className="w-full mb-4">
-                    <div className="flex justify-between items-center mb-3 border-b pb-2">
-                      <div className="font-medium text-md">
-                        {selectedNarration?.region && showPosition(selectedNarration.region)}
-                      </div>
-                      <div className="flex items-center">
-                        <button 
-                          className="rounded-md flex items-center justify-center border border-gray-400 hover:bg-gray-100 text-red-500 px-1 py-1 text-sm" 
-                          onClick={onClose}
-                        >
-                          Close X
-                        </button>
-                      </div>
-                    </div>
-
-                    <RegionAISummary />
-                  </div>
-                </div>
-              )
-            )}
+            </div>
           </div>
         </div>
-      )}
-    </>
-  );
+      </div>
+    )}
+  </>
+);
 };
 
 export default SelectedRegionSummary;

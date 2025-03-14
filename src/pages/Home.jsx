@@ -1004,7 +1004,7 @@ function Home() {
         <div className="flex-1 flex" >
           <div className="flex-1 flex flex-row">
             <div className="flex-1 flex flex-col" ref={containerRef}>
-              <div className="grow-0">
+              {/* <div className="grow-0">
                 {activeGenesetEnrichment && (
                   <div className="relative h-28 border-t-1 border-separator">
                     <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
@@ -1016,13 +1016,13 @@ function Home() {
                     </div>
                   </div>
                 )}
-              </div>
+              </div> */}
               {selectedNarration ? 
-              <div className="flex-1 flex flex-row">
-                <div className="relative flex-1 max-w-[400px]">
+              <div className="w-full flex-1 flex flex-col">
+                <div className="relative flex-[1]">
                   <SelectedRegionSummary onClose={handleModalClose}/>
                 </div>
-                <div className="relative flex-1">
+                <div className="relative flex-[3]">
                   <div className="absolute top-0 left-0 w-full h-full overflow-hidden p-2">
                     <Power/>
                   </div>
@@ -1041,6 +1041,19 @@ function Home() {
                       handleFactorClick={handleFactorClick}
                       searchByFactorInds={searchByFactorInds}
                     />
+                    <div className="grow-0">
+                      {activeGenesetEnrichment && (
+                        <div className="relative h-28 border-t-1 border-separator">
+                          <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+                            <Spectrum
+                              show
+                              width={width - 24}
+                              height={90}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <HilbertGenome
                       orderMin={orderDomain[0]}
                       orderMax={orderDomain[1]}

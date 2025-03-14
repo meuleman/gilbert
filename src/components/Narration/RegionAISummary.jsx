@@ -230,10 +230,17 @@ const RegionAISummary = ({} = {}) => {
   }, [narration, narration?.genesets])
 
   return (
-    <div className="p-4 bg-white rounded-md">
+    <div className="bg-white rounded-md">
+      <h3 className="text-sm text-gray-500">
+        AI Summary:
+      </h3>
+      <p className="mb-4 text-sm text-black font-medium">
+        {loading ? "loading..." : generated}
+      </p>
+
       <div className="flex flex-wrap gap-2 mb-4 items-center">
         <button 
-          className="px-3 py-1 hover:bg-blue-100 rounded text-sm border"
+          className="px-3 py-1 text-sm border rounded hover:bg-blue-100"
           onClick={() => setShowPromptEditor(!showPromptEditor)}>
           {showPromptEditor ? 'Hide Prompt Editor' : 'Show Prompt Editor'}
         </button>
@@ -241,15 +248,16 @@ const RegionAISummary = ({} = {}) => {
           {articlesIncluded ? 'Articles Included' : 'Articles Not Included'}
         </Checkbox>
       </div>
+  
       <button 
-        className="px-3 py-1 mb-4 hover:bg-blue-100 rounded text-sm border"
+        className="px-3 py-1 text-sm border rounded hover:bg-blue-100 mb-4"
         onClick={() => setShowQuery(!showQuery)} 
         disabled={loading}>
         {showQuery ? "Hide Query" : "Show Query"}
       </button>
-  
+
       {showPromptEditor && (
-        <div className="mt-4 mb-4 p-2 border border-gray-200 rounded-md">
+        <div className="border border-gray-200 rounded-md p-2 mb-4">
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
@@ -257,7 +265,7 @@ const RegionAISummary = ({} = {}) => {
             className="w-full p-2 border border-gray-200 rounded"
           />
           <button 
-            className="px-3 py-1 hover:bg-blue-100 rounded text-sm border"
+            className="px-3 py-1 text-sm border rounded hover:bg-blue-100 mt-2"
             onClick={() => generate()} 
             disabled={loading}>
             Regenerate with New Prompt
@@ -270,33 +278,35 @@ const RegionAISummary = ({} = {}) => {
           Query: {query}
         </div>
       )}
-  
+
       <Tooltip id="search-debug">
         <p className="text-xs">search debug: {query}</p>
       </Tooltip>
   
-      <p className="mt-4 mb-4">{loading ? "loading..." : generated}</p>
-      {generated && 
-        <div className="mt-4">
+      
+      
+      {/* Results Section */}
+      {generated && (
+        <div className="mt-2">
           <div className="flex items-center gap-2 mb-4">
             Summary feedback:
-            <button 
-              className="p-1 hover:bg-gray-100 rounded" 
-              onClick={() => feedback("👍")}>👍</button>
-            <button 
-              className="p-1 hover:bg-gray-100 rounded" 
-              onClick={() => feedback("👎")}>👎</button>
+            <button className="p-1 hover:bg-gray-100 rounded" onClick={() => feedback("👍")}>👍</button>
+            <button className="p-1 hover:bg-gray-100 rounded" onClick={() => feedback("👎")}>👎</button>
           </div>
+          
           <button 
-            className="px-3 py-1 bg-blue-50 hover:bg-blue-100 rounded text-sm border"
+            className="px-3 py-1 text-sm border rounded bg-white hover:bg-blue-100"
             onClick={handleShowArticles}>
             {showArticles ? "Hide Supporting Articles" : "Show Supporting Articles"}
           </button>
-          {showArticles && <div className="mt-4">
-            <h3 className="text-lg font-medium mb-2">{articles.length} open access PubMed articles found: </h3>
-            <p className="text-sm">
-              {articles.map((a,i) => {
-                return (
+          
+          {showArticles && (
+            <div className="mt-4">
+              <h3 className="text-lg font-medium mb-2">
+                {articles.length} open access PubMed articles found:
+              </h3>
+              <div className="text-sm">
+                {articles.map((a, i) => (
                   <span className="block mb-2" key={a.pmc}> 
                     {i+1}) <a 
                       className="text-blue-600 hover:underline" 
@@ -307,13 +317,13 @@ const RegionAISummary = ({} = {}) => {
                       {a.full_title}
                     </a>
                   </span>
-                )
-              })}
-            </p>
-          </div>}
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      }
+      )}
     </div>
-  )
+  );
 }
 export default RegionAISummary

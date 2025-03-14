@@ -112,25 +112,26 @@ export default function ScoreBars({
   }, [path, onClick])
 
   const handleHover = useCallback((e, o) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const my = e.clientY - rect.top;
-      const or = o + (my) / rw;
-      onHover(or);
-      setOr(or);
+    const rect = e.currentTarget.getBoundingClientRect();
+    const my = e.clientY - rect.top;
+    const or = o + (my) / rw;
+    onHover(or);
+    setOr(or);
 
-      const p = path.find(d => d.order === o);
-      if (p) {
-        const xoff = tipOrientation === "left" ? -5 : width + 3;
-        let x = rect.left + xoff;
-        let y = rect.top + my + 1.5;
-        tooltipRef.current.show(
-          { ...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score, GWAS: p.GWAS },
-          p.layer, x, y
-        );
-      } else {
-        tooltipRef.current.hide()
-      }
-    }, [csn, path, yScale, rw, onHover, tipOrientation, width])
+    const p = path.find(d => d.order === o);
+    if (p) {
+      const xoff = tipOrientation === "left" ? -5 : width + 3;
+      let x = rect.left + xoff;
+      let y = rect.top + my + 1.5;
+      // tooltipRef.current.show(
+      //   { ...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score, GWAS: p.GWAS },
+      //   p.layer, x, y
+      // );
+      tooltipRef.current.hide()  // temperary hide
+    } else {
+      tooltipRef.current.hide()
+    }
+  }, [csn, path, yScale, rw, onHover, tipOrientation, width])
 
   const handleLeave = useCallback(() => {
     tooltipRef.current.hide()
