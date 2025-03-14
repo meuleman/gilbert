@@ -245,7 +245,7 @@ const Spectrum = ({
 
     // add items to canvas
     SpectrumBar({ data: smoothData, ctx, xScale, y: plotYStop, height: spectrumBarHeight, colorbarX });
-    Curve({ data: smoothData, ctx, xScale, yScale, height: plotYStop, color: "#000" });
+    Curve({ data: smoothData, ctx, xScale, yScale, height: plotYStop, color: selectedGenesetMembership?.length ? "#555" : "#000" });
     Membership({ membership: selectedGenesetMembership, genesetOrder, data: smoothData, ctx, xScale, yScale, height: plotYStop, barWidth: 10, color: "#F00" });
     Labels({ labels, ctx, xScale });
 
@@ -283,7 +283,7 @@ const Spectrum = ({
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [smoothData, xScale, yScale, plotYStop, spectrumBarHeight, colorbarX, labels]);
+  }, [smoothData, xScale, yScale, plotYStop, spectrumBarHeight, colorbarX, labels, selectedGenesetMembership]);
 
   // determines if mouse hovering over spectrum color bar
   const isHoveringSpectrumBar = (x, y) => {
