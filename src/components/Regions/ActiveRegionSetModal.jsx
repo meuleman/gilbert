@@ -69,7 +69,7 @@ const ActiveRegionSetModal = () => {
   } = useContext(RegionsContext)
   
   const { showActiveRegionSet } = RegionSetModalStatesStore()
-  const { setSelected, setRegion } = SelectedStatesStore()
+  const { selected, setSelected, setRegion } = SelectedStatesStore()
   const containerRef = useRef(null)
   const [width, height] = useContainerSize(containerRef, [activeGenesetEnrichment]);
 
@@ -140,7 +140,7 @@ const ActiveRegionSetModal = () => {
       </p>
       </div>
       <div className="grow-0">
-        {activeGenesetEnrichment && (
+        {selected && activeGenesetEnrichment && (
           <div className="relative h-28">
             <div className="absolute top-0 left-0 w-full overflow-hidden">
               <Spectrum
