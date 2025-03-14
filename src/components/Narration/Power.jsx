@@ -821,10 +821,12 @@ function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeig
           </>
         ) : null}
       </div>
-      <div className="power-container">
-        {loading ? <div className="power-loading">
-          <Loading text={"📊 Loading"} />
-        </div> : null}
+      <div className="relative">
+        {loading ? 
+          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60 transform scale-[1.75]">
+            <Loading />
+          </div> : null
+        }
         <canvas 
           className="power-canvas"
           width={width}
