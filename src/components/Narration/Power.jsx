@@ -462,7 +462,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
           const nt = zoomToBox(nr.x, nr.y, nr.x + nstep, nr.y + nstep, no, 0.5)  // previously 0.75
           transform = interpolateObject(t, nt)(or - o)
         } else {
-          const scaler = .675 + (or - o) // TODO: magic number for order 14...
+          const scaler = .5 + (or - o) // TODO: magic number for order 14..., was 0.675
           transform = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, scaler)
         }
 
