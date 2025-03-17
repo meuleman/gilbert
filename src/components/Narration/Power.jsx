@@ -187,7 +187,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
   const [data, setData] = useState(null)
   const [currentPreferred, setCurrentPreferred] = useState(null)
 
-  const radius = 5 // # of steps to take in each direction (), previously 3
+  const radius = 9 // # of steps to take in each direction (), previously 3
   const scaler = .75
 
   // hard coded, should probably hard code these in the HilbertGenome component anyway
@@ -458,11 +458,11 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
         const nd = data.find(d => d.order === no)
         if(nd) {
           const nr = nd.region
-          const t = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, 0.5)  // previously 0.75
-          const nt = zoomToBox(nr.x, nr.y, nr.x + nstep, nr.y + nstep, no, 0.5)  // previously 0.75
+          const t = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, 0.25)  // previously 0.75
+          const nt = zoomToBox(nr.x, nr.y, nr.x + nstep, nr.y + nstep, no, 0.25)  // previously 0.75
           transform = interpolateObject(t, nt)(or - o)
         } else {
-          const scaler = .5 + (or - o) // TODO: magic number for order 14..., was 0.675
+          const scaler = .25 + (or - o) // TODO: magic number for order 14..., was 0.675
           transform = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, scaler)
         }
 
