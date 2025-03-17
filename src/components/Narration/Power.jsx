@@ -116,7 +116,7 @@ PowerModal.propTypes = {
 
 const dataDebounce = debouncer()
 
-function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeight = 64, onPercent }) {
+function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHeight = 64, badgeHeight = 50, onPercent }) {
 
   // Add container ref and size state
   const containerRef = useRef(null);
@@ -130,7 +130,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeig
   
   // Calculate actual dimensions to use (props or measured container)
   const width = propWidth || containerSize.width;
-  const height = propHeight || (containerSize.height - sheight - geneHeight - 50); // Account for strip height, gene height, and badge height (TODO: remove magic number for badge)
+  const height = propHeight || (containerSize.height - sheight - geneHeight - badgeHeight); // Account for strip height, gene height, and badge height
 
   // Add resize observer to measure container
   useLayoutEffect(() => {
@@ -187,7 +187,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeig
   const [data, setData] = useState(null)
   const [currentPreferred, setCurrentPreferred] = useState(null)
 
-  const radius = 3 // # of steps to take in each direction ()
+  const radius = 5 // # of steps to take in each direction (), previously 3
   const scaler = .75
 
   // hard coded, should probably hard code these in the HilbertGenome component anyway
@@ -458,8 +458,8 @@ function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeig
         const nd = data.find(d => d.order === no)
         if(nd) {
           const nr = nd.region
-          const t = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, 0.75)
-          const nt = zoomToBox(nr.x, nr.y, nr.x + nstep, nr.y + nstep, no, 0.75)
+          const t = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, 0.5)  // previously 0.75
+          const nt = zoomToBox(nr.x, nr.y, nr.x + nstep, nr.y + nstep, no, 0.5)  // previously 0.75
           transform = interpolateObject(t, nt)(or - o)
         } else {
           const scaler = .675 + (or - o) // TODO: magic number for order 14...
@@ -807,19 +807,21 @@ function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeig
 
   return (
     <div ref={containerRef} className="power w-full h-full">
-      <div className="min-h-[20px] text-center" style={{maxWidth: width + "px"}}>
-        <div className="text-xl">
-          {currentPreferred?.region && showPosition(currentPreferred.region)}
+      <div className={`max-h-[${badgeHeight}px] flex flex-col`}>
+        <div className="min-h-[25px] text-center" style={{maxWidth: width + "px"}}>
+          <div className="text-xl">
+            {currentPreferred?.region && showPosition(currentPreferred.region)}
+          </div>
         </div>
-      </div>
-      {/* TODO: The factor label component is causing a variable width of IG */}
-      <div className="text-xl min-h-[20px] text-center mb-2" style={{maxWidth: width + "px"}}>
-        {currentPreferred?.field ? (
-          <>
-            <span style={{ color: currentPreferred?.layer?.fieldColor(currentPreferred?.field?.field), marginRight: '4px' }}>⏺</span>
-            {currentPreferred?.field?.field} {currentPreferred?.layer?.labelName}
-          </>
-        ) : null}
+        {/* TODO: The factor label component is causing a variable width of IG */}
+        <div className="text-xl min-h-[25px] text-center mb-2" style={{maxWidth: width + "px"}}>
+          {currentPreferred?.field ? (
+            <>
+              <span style={{ color: currentPreferred?.layer?.fieldColor(currentPreferred?.field?.field), marginRight: '4px' }}>⏺</span>
+              {currentPreferred?.field?.field} {currentPreferred?.layer?.labelName}
+            </>
+          ) : null}
+        </div>
       </div>
       <div className="relative">
         {loading ? 
