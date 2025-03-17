@@ -140,7 +140,7 @@ const ActiveRegionSetModal = () => {
       </p>
       </div>
       <div className="grow-0">
-        {selected && activeGenesetEnrichment && (
+        {activeGenesetEnrichment && (
           <div className="relative h-28">
             <div className="absolute top-0 left-0 w-full overflow-hidden">
               <Spectrum

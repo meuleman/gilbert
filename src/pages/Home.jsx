@@ -1041,7 +1041,7 @@ function Home() {
                       handleFactorClick={handleFactorClick}
                       searchByFactorInds={searchByFactorInds}
                     />
-                    <div className="grow-0">
+                    {/* <div className="grow-0">
                       {activeGenesetEnrichment && (
                         <div className="relative h-28 border-t-1 border-separator">
                           <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
@@ -1053,7 +1053,7 @@ function Home() {
                           </div>
                         </div>
                       )}
-                    </div>
+                    </div> */}
                     <HilbertGenome
                       orderMin={orderDomain[0]}
                       orderMax={orderDomain[1]}
