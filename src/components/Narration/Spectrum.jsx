@@ -145,7 +145,7 @@ const Spectrum = ({
   }
 
   const Labels = ({ labels, ctx, xScale }) => {
-    ctx.font = '9px Arial';
+    ctx.font = '7px Arial';
     ctx.fillStyle = '#000';
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
