@@ -807,13 +807,13 @@ function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeig
 
   return (
     <div ref={containerRef} className="power w-full h-full">
-      <div className="segment-coordinates" style={{maxWidth: width + "px"}}>
-        <div className="text-sm">
+      <div className="min-h-[20px] text-center" style={{maxWidth: width + "px"}}>
+        <div className="text-xl">
           {currentPreferred?.region && showPosition(currentPreferred.region)}
         </div>
       </div>
       {/* TODO: The factor label component is causing a variable width of IG */}
-      <div className="factor-label" style={{maxWidth: width + "px"}}>
+      <div className="text-xl min-h-[20px] text-center mb-2" style={{maxWidth: width + "px"}}>
         {currentPreferred?.field ? (
           <>
             <span style={{ color: currentPreferred?.layer?.fieldColor(currentPreferred?.field?.field), marginRight: '4px' }}>⏺</span>
@@ -834,25 +834,25 @@ function PowerModal({ width: propWidth, height: propHeight, sheight=30, geneHeig
           style={{width: width + "px", height: height + "px"}}
           ref={canvasRef}
         />
-      </div>
-      <canvas 
-          className="power-canvas-strip"
+        <canvas 
+            className="power-canvas-strip"
+            width={width}
+            height={sheight}
+            style={{width: width + "px", height: sheight + "px"}}
+            ref={canvasRefStrip}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          />
+        <canvas 
+          className="power-canvas-genes"
           width={width}
-          height={sheight}
-          style={{width: width + "px", height: sheight + "px"}}
-          ref={canvasRefStrip}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
+          height={geneHeight}
+          style={{width: width + "px", height: geneHeight + "px"}}
+          ref={canvasRefGenes}
+          // onMouseMove={handleMouseMove}
+          // onMouseLeave={handleMouseLeave}
         />
-      <canvas 
-        className="power-canvas-genes"
-        width={width}
-        height={geneHeight}
-        style={{width: width + "px", height: geneHeight + "px"}}
-        ref={canvasRefGenes}
-        // onMouseMove={handleMouseMove}
-        // onMouseLeave={handleMouseLeave}
-      />
+      </div>
       {/* <LinearGenome
         // center={data?.center} 
         data={data?.data}

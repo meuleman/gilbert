@@ -234,8 +234,10 @@ const RegionAISummary = ({} = {}) => {
       {/* <h3 className="text-sm text-gray-500">
         AI Summary:
       </h3> */}
-      {showPosition(narration.region)}
-      <p className="mb-5 text-sm text-black font-medium">
+      <div className="text-lg">
+        {showPosition(narration.region)}
+      </div>
+      <p className="mb-5 text-md text-black font-medium">
         {loading ? "loading..." : generated}
       </p>
 
