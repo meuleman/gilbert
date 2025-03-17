@@ -60,6 +60,31 @@ export default function ZoomLine({
   const [or, setOr] = useState(order);
   const [containerHeight, setContainerHeight] = useState(0);
   
+  // adds event listeners to track shift key state
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(true);
+      }
+    };
+    
+    const handleKeyUp = (e) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(false);
+        tooltipRef.current.hide();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
   useEffect(() => {
     setOr(order);
   }, [order]);
@@ -212,7 +237,8 @@ export default function ZoomLine({
               width,
               height: rw
             }}
-            onMouseMove={(e) => handleHover(e, o)}
+            onMouseMove={(e) => {isShiftPressed ? handleMoreInfoHover(e, o) : handleHover(e, o)}}
+            onMouseLeave={handleLeave}
           >
             <div
               className="absolute top-0 left-0 opacity-10 bg-white"
@@ -265,25 +291,6 @@ export default function ZoomLine({
               <div>{bp[0]}</div>
               <div>{bp[1]}</div>
             </div>
-            {p ? 
-              <div
-                className="absolute font-mono cursor-pointer text-center pointer-events-none left-1/2 -translate-x-1/2"
-                style={{
-                  top: yScale(o) + rw - 15,
-                  fontSize: fontSize
-                }}
-              >
-                <span
-                  className="pointer-events-auto"
-                  onMouseMove={(e) => handleMoreInfoHover(e, o)}
-                  onMouseLeave={handleLeave}
-                  onClick={(e) => handleClick(e, o)}
-                >
-                  ?
-                </span>
-              </div> 
-              : null
-            }
           </div>
         );
       })}

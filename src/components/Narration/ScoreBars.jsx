@@ -34,6 +34,7 @@ export default function ScoreBars({
   height = '100%',
   fontSize = 9,
   scoreHeight = 20,
+  offsetX = 0,
   showScore=true,
   tipOrientation="left",
   onHover = () => {},
@@ -42,6 +43,31 @@ export default function ScoreBars({
   const tooltipRef = useRef(null);
   const containerRef = useRef(null);
   const [containerHeight, setContainerHeight] = useState(0);
+
+  // adds event listeners to track shift key state
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(true);
+      }
+    };
+    
+    const handleKeyUp = (e) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(false);
+        tooltipRef.current.hide();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
   
   // Measure container height when it's mounted or when height prop changes
   useEffect(() => {
@@ -112,26 +138,34 @@ export default function ScoreBars({
   }, [path, onClick])
 
   const handleHover = useCallback((e, o) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const my = e.clientY - rect.top;
-    const or = o + (my) / rw;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const rectTop = yScale(o);
+    const relativeY = e.clientY - containerRect.top - rectTop;
+    const or = o + relativeY / rw;
     onHover(or);
     setOr(or);
+  }, [csn, path, yScale, rw, offsetX, onHover, tipOrientation, width]);
 
+  const handleMoreInfoHover = useCallback((e, o) => {
+    const containerRect = containerRef.current.getBoundingClientRect();
     const p = path.find(d => d.order === o);
+    const my = e.clientY - containerRect.top;
+    handleHover(e, o);
     if (p) {
-      const xoff = tipOrientation === "left" ? -5 : width + 3;
-      let x = rect.left + xoff;
-      let y = rect.top + my + 1.5;
-      // tooltipRef.current.show(
-      //   { ...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score, GWAS: p.GWAS },
-      //   p.layer, x, y
-      // );
-      tooltipRef.current.hide()  // temperary hide
+      const xoff = tipOrientation === "left" ? -5 : width + 5;
+      const tooltipX = containerRect.left + xoff + offsetX;
+      const tooltipY = containerRect.top + my + 1.5;
+      tooltipRef.current &&
+        tooltipRef.current.show(
+          { ...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score, GWAS: p.GWAS },
+          p.layer,
+          tooltipX,
+          tooltipY
+        );
     } else {
-      tooltipRef.current.hide()
+      tooltipRef.current && tooltipRef.current.hide();
     }
-  }, [csn, path, yScale, rw, onHover, tipOrientation, width])
+  }, [csn, path, yScale, rw, offsetX, onHover, tipOrientation, width]);
 
   const handleLeave = useCallback(() => {
     tooltipRef.current.hide()
@@ -162,7 +196,7 @@ export default function ScoreBars({
                 width,
                 height: rw
               }}
-              onMouseMove={e => handleHover(e, o)}
+              onMouseMove={(e) => {isShiftPressed ? handleMoreInfoHover(e, o) : handleHover(e, o)}}
               onMouseLeave={handleLeave}
             >
               <div
@@ -173,14 +207,28 @@ export default function ScoreBars({
                 }}
               />
               {w ? (
-                <div
-                  className={`absolute top-0 left-0 border border-gray-300 ${selected ? 'opacity-75' : 'opacity-50'}`}
-                  style={{
-                    width: w,
-                    height: rw,
-                    backgroundColor: p && p.field ? p.field.color : "white"
-                  }}
-                />
+                <div>
+                  <div
+                    className={`absolute top-0 left-0 border border-gray-300 ${selected ? 'opacity-75' : 'opacity-50'}`}
+                    style={{
+                      width: w,
+                      height: rw,
+                      backgroundColor: p && p.field ? p.field.color : "white"
+                    }}
+                  />
+                  <div
+                    className={`absolute font-mono cursor-pointer right-0 top-0 -translate-x-1.5 translate-y-1.5 text-[${fontSize}px]`}
+                  >
+                    <span
+                      className="pointer-events-auto"
+                      onMouseMove={(e) => handleMoreInfoHover(e, o)}
+                      onMouseLeave={handleLeave}
+                      onClick={(e) => handleClick(e, o)}
+                    >
+                      ?
+                    </span>
+                  </div> 
+                </div>
               ) : null}
             </div>
           );
