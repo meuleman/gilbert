@@ -10,6 +10,7 @@ import FactorSearch from '../FactorSearch';
 import Loading from '../Loading';
 import AccordionArrow from '@/assets/accordion-circle-arrow.svg?react';
 import Spectrum from '../../components/Narration/Spectrum';
+import Minimap from './Minimap';
 
 import styles from './ActiveRegionSetModal.module.css'
 
@@ -72,6 +73,11 @@ const ActiveRegionSetModal = () => {
   const { selected, setSelected, setRegion } = SelectedStatesStore()
   const containerRef = useRef(null)
   const [width, height] = useContainerSize(containerRef, [activeGenesetEnrichment]);
+  const [showMinimap, setShowMinimap] = useState(true)
+
+  const handleShowMinimap = useCallback(() => {
+    setShowMinimap(!showMinimap)
+  }, [showMinimap])
 
   const handleSelectActiveRegionSet = useCallback((region) => {
     setSelected(region?.subregion || region)  // set selected with implied region
@@ -131,31 +137,42 @@ const ActiveRegionSetModal = () => {
   return (
     // TODO: remove hardcoded width
     <div className="flex-1 pl-1 min-h-0 max-h-full w-[24rem] text-xs overflow-hidden flex flex-col" ref={containerRef}>
-      <div className="pt-4">
-      <h3 className="text-sm text-gray-500">
-        AI Summary:
-      </h3>
-      <p className="mb-4 text-sm text-black font-medium">
-        {regionSetNarrationLoading ? "loading..." : regionSetNarration}
-      </p>
-      </div>
-      <div className="grow-0">
-        {activeGenesetEnrichment && (
-          <div className="relative h-28">
-            <div className="absolute top-0 left-0 w-full overflow-hidden">
-              <Spectrum
-                show
-                width={width - 24}
-                height={90}
-                windowSize={30}
-              />
+      <div className="h-1/2">
+        <div className="pt-4">
+        <h3 className="text-sm text-gray-500">
+          AI Summary:
+        </h3>
+        <p className="mb-4 text-sm text-black font-medium">
+          {regionSetNarrationLoading ? "loading..." : regionSetNarration}
+        </p>
+        </div>
+        <div className="grow-0">
+          {activeGenesetEnrichment && (
+            <div className="relative h-28">
+              <div className="absolute top-0 left-0 w-full overflow-hidden">
+                <Spectrum
+                  show
+                  width={width - 24}
+                  height={90}
+                  windowSize={30}
+                />
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-      <div className="pt-1 flex-1 text-xs flex flex-col overflow-hidden">
-        <div className="px-1.5 pb-2.75">
-          <strong>{(() => {
+      <div className="relative h-1/2 flex flex-col">
+        <button className="absolute top-[-30px] right-0 mb-2 p-1 z-10 border rounded-md bg-white hover:bg-gray-100 px-1.5 py-1 text-sm" onClick={handleShowMinimap}>
+          {showMinimap ? "Show Region List" : "Show Minimap"}
+        </button>
+        {showMinimap ? <Minimap 
+          width={width}
+          height={height / 2}
+        />
+        :
+        <div className="pt-1 flex-1 text-xs flex flex-col overflow-hidden">
+          <div className="px-1.5 pb-2.75">
+            <strong>{(() => {
               // Get region count and text
               const regionCount = filteredActiveRegions?.length || 0;
               const regionText = regionCount === 1 ? "region" : "regions";
@@ -174,206 +191,40 @@ const ActiveRegionSetModal = () => {
               // Return the full string
               return `${regionCount} selected ${regionText}${filterInfo}`;
             })()}</strong>
-        </div>
-        <div className="border-t-1 border-t-separator flex-1 flex flex-col overflow-hidden">
-          <div className="grid grid-cols-regionSet gap-y-1.5 py-2.75">
-            <div className='grid grid-cols-subgrid col-start-1 col-end-4 [&>div:last-child]:pr-1.5'>
-              <div className="col-span-2 px-1.5">
-                <strong>Position</strong>
-              </div>
-              <div className="col-start-3 col-end-4">
-                <strong>Score</strong>
-              </div>
-            </div>
           </div>
-          <div className="flex-1 overflow-auto">
-            <div className="grid grid-cols-regionSet gap-y-1.5">
-            {regions.map((region) => {
-              const regionKey = `${region.order}:${region.chromosome}:${region.i}`
-              return (
-                <div className="grid grid-cols-subgrid col-start-1 col-end-4 border-t-separator border-t-1 pt-1.5 gap-y-1.5" key={regionKey}>
-                  <div className="px-1.5 col-span-2 underline">
-                    <a href="#gotoRegion" onClick={(event) => {
-                      event.preventDefault()
-                      handleSelectActiveRegionSet(region)
-                    }}>
-                      {showPosition(region)}
-                    </a>
-                  </div>
-                  <div>{region.score?.toFixed(3)}</div>
+          <div className="border-t-1 border-t-separator flex-1 flex flex-col overflow-hidden">
+            <div className="grid grid-cols-regionSet gap-y-1.5 py-2.75">
+              <div className='grid grid-cols-subgrid col-start-1 col-end-4 [&>div:last-child]:pr-1.5'>
+                <div className="col-span-2 px-1.5">
+                  <strong>Position</strong>
                 </div>
-              )
-            })}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-
-
-  // eslint-disable-next-line no-unreachable
-  return (
-    <div className="w-full max-w-[26.9375rem] max-h-full overflow-auto">
-      <div className={styles.content}>
-        {/* <div className={styles.manage}>
-          <span className={styles['set-name']}>{activeSet?.name}</span>
-          {filteredActiveRegions ? 
-            <span className={styles['set-count']}>{filteredActiveRegions?.length} / {activeRegions?.length} total regions</span> :
-            <span className={styles['set-count']}>{activeRegions?.length} total regions</span>}
-          
-          <div className={styles.buttons}>
-            <button data-tooltip-id={`active-deselect`} onClick={handleDeselect}>❌</button>
-            <Tooltip id={`active-deselect`}>
-              Deselect active region set
-            </Tooltip>
-            <button data-tooltip-id={`active-download-regions`}
-              onClick={() => handleDownload(activeSet)}
-            >
-              ⬇️
-            </button>
-            <Tooltip id={`active-download-regions`}>
-              Download {activeRegions?.length} regions to BED file
-            </Tooltip>
-
-          </div>
-        </div> */}
-
-        <div className={styles.section}>
-          <h3>Filter</h3>
-          <FactorSearch onSelect={(f) => handleFactorSelect(f.factor)} />
-
-          {activeFilters?.length ? <div className={`${styles['active-filters']}`}>
-            <span>Active filters: </span>
-            <span className={styles['active-filters-list']}>
-              {activeFilters.map((f, i) =>
-                <span key={f.label} className={styles['active-filter']} style={{ border: `1px solid ${f.color}` }}>
-                  <span className={styles['active-filter-color']} style={{ backgroundColor: f.color }}>
-                  </span>
-                  {f.label}
-                  <button onClick={() => setActiveFilters(activeFilters.slice(0, i).concat(activeFilters.slice(i + 1)))}>❌</button>
-                </span>)}
-            </span>
-          </div>
-            : null}
-
-          {regionSetEnrichmentsLoading ? <div className={`${styles['region-set-enrichments']}`}>
-            <Loading text="Loading suggested filters..." />
-          </div> : null}
-          {!regionSetEnrichmentsLoading && regionSetEnrichments?.length ? <div className={`${styles['region-set-enrichments']}`}>
-            <span>Suggested filters: </span>
-            <span className={styles['region-set-enrichments-list']}>
-              {regionSetEnrichments.filter(f => !inFilters(activeFilters, f)).map((f, i) =>
-                <span onClick={() => handleFactorSelect(f)} key={"enrichment-" + f.label} className={styles['region-set-enrichment']} style={{ border: `1px solid ${f.color}` }}>
-                  <span className={styles['active-filter-color']} style={{ backgroundColor: f.color }}>
-                  </span>
-                  {f.label}: {f.score.toFixed(3)}, ~{f.percent.toFixed(0)}%
-                  <button>➕</button>
-                </span>)}
-            </span>
-          </div>
-            : null}
-        </div>
-
-
-
-        <div className={`${styles.section} ${styles['region-sets']}`}>
-          <div className={styles['region-sets-header']}>
-            {filteredRegionsLoading ? <h3><Loading text="Loading filtered regions..." /> </h3> :
-              <div>
-                {/* <h3> {filteredActiveRegions?.length} / {activeRegions?.length} regions</h3> */}
-                <h3>
-                  {`${filteredActiveRegions?.length
-                    } selected ${filteredActiveRegions?.length === 1 ? "region" : "regions"
-                    }${activeFilters?.length > 0 ? ` showing ${activeFilters.map(f => f.field).join(", ")}` : ""}`}
-                </h3>
+                <div className="col-start-3 col-end-4">
+                  <strong>Score</strong>
+                </div>
               </div>
-            }
-          </div>
-
-          <div className={styles.tabs}>
-            <button
-              className={`${styles.tab} ${activeTab === 'table' ? styles.active : ''}`}
-              onClick={() => setActiveTab('table')}
-            >
-              Table
-            </button>
-            <button
-              className={`${styles.tab} ${activeTab === 'summary' ? styles.active : ''}`}
-              onClick={() => setActiveTab('summary')}
-            >
-              Summary
-            </button>
-          </div>
-
-          {activeTab === 'summary' ? (
-            <div className={styles['summary-view']}>
-              <p>{regionSetNarrationLoading ? "loading..." : regionSetNarration}</p>
-              {!regionSetNarrationLoading && regionSetNarration !== "" ? <div><h3>{regionSetArticles.length} open access PubMed articles found: </h3>
-              <p>
-                {regionSetArticles.map((a,i) => {
-                  return (<span key={a.pmc}> {i+1}) <a href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} target="_blank" rel="noreferrer">{a.full_title}</a><br></br></span>)
-                })}
-              </p> </div> : null }
             </div>
-          ) : (
-            <div className={styles['table-body-container']} style={{ fontSize: '12px' }}>
-              <table style={{ width: '100%', tableLayout: 'fixed' }}>
-                <thead>
-                  <tr>
-                    <th style={{ width: '80%' }}>Position</th>
-                    {regions?.[0]?.score && <th style={{ width: '10%' }}>Score</th>}
-                    <th style={{ width: '10%' }}>Select</th>
-                    {/* <th style={{ width: '10%' }}>Path Score</th> */}
-                  </tr>
-                </thead>
-                <tbody>
-                  {regions.map((region, index) => {
-                    const regionKey = `${region.order}:${region.chromosome}:${region.i}`
-                    // const effectiveRegions = []  // can get rid of
-
-                    return (
-                      <>
-                        <tr key={index}>
-                          <td style={{ width: '80%' }}>
-                            {showPosition(region)}
-                            {!!activeFilters.length && filteredActiveRegions?.length > 0 &&
-                              <span
-                                className={styles['effective-count']}
-                                onClick={() => toggleExpand(regionKey)}
-                                style={{ cursor: 'pointer' }}
-                              >
-                                {/* ({region.subregion ? 1 : 0} subregions) */}
-                                {/* {expandedRows.has(regionKey) ? ' 🔽' : ' ▶️'} */}
-                              </span>
-                            }
-                          </td>
-                          {regions?.[0]?.score && <td style={{ width: '10%' }}>{region.score?.toFixed(3)}</td>}
-                          <td style={{ width: '10%' }}>
-                            <button onClick={() => handleSelectActiveRegionSet(region, region)}>🔍</button>
-                          </td>
-                        </tr>
-                        {/* {expandedRows.has(regionKey) && [region.subregion].map((subregion, subregionIndex) => (
-                        <tr 
-                          key={`${regionKey}-effective-${subregionIndex}`}
-                          className={styles['effective-row']}
-                        >
-                          <td style={{ width: '80%', paddingLeft: '2em' }}>
-                            {showPosition(subregion)}
-                          </td>
-                          {<td style={{ width: '10%' }}>{region.score?.toFixed(3)}</td>}
-                          <td style={{ width: '10%' }}>
-                            <button onClick={() => handleSelectActiveRegionSet(subregion, region)}>🔍</button>
-                          </td>
-                        </tr>
-                      ))} */}
-                      </>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>)}
+            <div className="flex-1 overflow-auto">
+              <div className="grid grid-cols-regionSet gap-y-1.5">
+              {regions.map((region) => {
+                const regionKey = `${region.order}:${region.chromosome}:${region.i}`
+                return (
+                  <div className="grid grid-cols-subgrid col-start-1 col-end-4 border-t-separator border-t-1 pt-1.5 gap-y-1.5" key={regionKey}>
+                    <div className="px-1.5 col-span-2 underline">
+                      <a href="#gotoRegion" onClick={(event) => {
+                        event.preventDefault()
+                        handleSelectActiveRegionSet(region)
+                      }}>
+                        {showPosition(region)}
+                      </a>
+                    </div>
+                    <div>{region.score?.toFixed(3)}</div>
+                  </div>
+                )
+              })}
+              </div>
+            </div>
           </div>
+        </div>}
       </div>
     </div>
   )

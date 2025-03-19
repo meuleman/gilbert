@@ -136,7 +136,9 @@ const HilbertGenome = ({
   onData = () => { },
   onZooming = () => { },
   onLoading = () => { },
+  zoomMethods = {},
   debug = false,
+  miniMap = false,
 }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -157,19 +159,20 @@ const HilbertGenome = ({
   const yScale = useMemo(() => scaleLinear().domain([yMin, yMax]).range(yRange), [yMin, yMax, yRange]);
   const sizeScale = useMemo(() => scaleLinear().domain([sizeMin, sizeMax]).range(sizeRange), [sizeMin, sizeMax, sizeRange]);
   // const orderZoomScale = useMemo(() =>  scaleLinear().domain(zoomExtent).range([1, Math.pow(2, orderDomain[1] - orderDomain[0] + 0.999)]), [orderDomain, zoomExtent])
+  const zoomContext = useZoom();
   const {
-    transform,
-    order,
-    zooming,
-    orderZoomScale,
-    setTransform,
-    setZooming,
-    panning,
-    setPanning,
-    center,
-    setCenter,
-    easeZoom
-  } = useZoom();
+    transform = zoomContext.transform,
+    order = zoomContext.order,
+    zooming = zoomContext.zooming,
+    orderZoomScale = zoomContext.orderZoomScale,
+    setTransform = zoomContext.setTransform,
+    setZooming = zoomContext.setZooming,
+    panning = zoomContext.panning,
+    setPanning = zoomContext.setPanning,
+    center = zoomContext.center,
+    setCenter = zoomContext.setCenter,
+    easeZoom = zoomContext.easeZoom
+  } = zoomMethods || {};
 
 
   const scales = useMemo(() => ({ xScale, yScale, sizeScale, orderZoomScale, width, height }), [xScale, yScale, sizeScale, orderZoomScale, width, height])
@@ -329,13 +332,13 @@ const HilbertGenome = ({
     return function (transform, points) {
       // make sure we don't try to render without the dataLayer ready
       // console.log("HG: renderCanvas", state.dataLayer, transform, points?.[0], state.data?.[0], points?.length, state.data?.length)
-      if (!state.dataLayer) return;
+      if (!canvasRef.current || !transform || !points) return;
       // all of the data we are rendering is associated with the currently loaded data in state 
       // (including layer, order and meta at time data was loaded)
       CanvasRenderer("Base", {
         scales,
         state: {
-          data: state.data,
+          data: state.data || [],
           loading: state.loading,
           points,
           order: order,
@@ -343,22 +346,24 @@ const HilbertGenome = ({
           // order: state.dataOrder,
           transform
         },
-        layer: state.dataLayer,
+        layer: state.dataLayer || activeLayer,
         canvasRef
       })
 
-      CanvasRenderer(state.dataLayer.renderer, {
-        scales,
-        state: {
-          data: state.data,
-          loading: state.loading,
-          points: state.dataPoints,
-          meta: state.dataMeta,
-          order: state.dataOrder,
-          transform
-        },
-        layer: state.dataLayer, canvasRef
-      })
+      if (state.dataLayer) {
+        CanvasRenderer(state.dataLayer.renderer, {
+          scales,
+          state: {
+            data: state.data,
+            loading: state.loading,
+            points: state.dataPoints,
+            meta: state.dataMeta,
+            order: state.dataOrder,
+            transform
+          },
+          layer: state.dataLayer, canvasRef
+        })
+      }
 
       CanvasRenderers.forEach(cr => {
         cr(canvasRef, scales, {
@@ -483,17 +488,20 @@ const HilbertGenome = ({
       prevPointsRef.current = state.points;
       prevDataRef.current = state.data
       prevLayerRef.current = state.dataLayer
+    } else if (canvasRef.current && transform && scales && state.data?.length) {
+      // for initial render of main map
+      renderCanvas(transform, state.points);
     }
-  }, [transform, state.points, state.data, state.dataLayer, renderCanvas])
+  }, [transform, state.points, state.data, state.dataLayer, CanvasRenderers, canvasRef, scales])
 
   // rerender the canvas when the canvas renderers change
   // useEffect(() => {
   //   renderCanvas(prevTransformRefRender.current, prevPointsRef.current);
   // }, [CanvasRenderers])
 
-  // useEffect(() => {
-  //   renderHovers(prevTransformRefRender.current, prevPointsRef.current);
-  // }, [HoverRenderers])
+  useEffect(() => {
+    renderHovers(prevTransformRefRender.current, prevPointsRef.current);
+  }, [HoverRenderers])
 
 
 
@@ -706,6 +714,10 @@ const HilbertGenome = ({
   // console.log("width", width)
   // console.log("height", height)
 
+  useEffect(() => {
+    // Force initial render with the proper transform (only for minimap)
+    if(miniMap) setTransform({x: 0, y: 0, k: 1});
+  }, []);
 
   // Render the component
   // eslint-disable-next-line no-unreachable

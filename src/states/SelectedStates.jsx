@@ -245,6 +245,10 @@ const SelectedStatesStore = create((set, get) => {
     selectedGenesetMembership: [],
     setSelectedGenesetMembership: (genesets) => set({ selectedGenesetMembership: genesets }),
 
+    // hover
+    hover: null,
+    setHover: (hover) => set({ hover: hover }),
+
     // subpaths
     findSubpaths,
     subpathGoBack,

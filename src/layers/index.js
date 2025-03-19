@@ -422,6 +422,9 @@ const allFactorFilterFields = allFactorFilterLayers.flatMap(layer => {
   return fs 
 })
 
+// minimap layer
+const minimapLayer = Bands
+
 
 export {
   fullList,
@@ -432,6 +435,7 @@ export {
   csnLayerList,
   fullDataLayers,
   GWASLayer,
+  minimapLayer,
   fieldMapping,
   rehydrate,
   fields,

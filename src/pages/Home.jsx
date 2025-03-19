@@ -252,7 +252,7 @@ function Home() {
   const { 
     selected, setSelected, region, setRegion, 
     loadingSelectedCSN, selectedNarration, setSelectedNarration, 
-    collectPathsForSelected, determineFactorExclusion
+    collectPathsForSelected, determineFactorExclusion, //hover, setHover
   } = SelectedStatesStore()
   // only on initial mount
   useEffect(() => {
