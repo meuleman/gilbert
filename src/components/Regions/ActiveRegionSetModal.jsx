@@ -139,9 +139,9 @@ const ActiveRegionSetModal = () => {
     <div className="flex-1 pl-1 min-h-0 max-h-full w-[24rem] text-xs overflow-hidden flex flex-col" ref={containerRef}>
       <div className="h-1/2">
         <div className="pt-4">
-        <h3 className="text-sm text-gray-500">
+        {(regionSetNarration || regionSetNarrationLoading) ? <h3 className="text-sm text-gray-500">
           AI Summary:
-        </h3>
+        </h3> : null}
         <p className="mb-4 text-sm text-black font-medium">
           {regionSetNarrationLoading ? "loading..." : regionSetNarration}
         </p>
@@ -162,9 +162,9 @@ const ActiveRegionSetModal = () => {
         </div>
       </div>
       <div className="relative h-1/2 flex flex-col">
-        <button className="absolute top-[-30px] right-0 mb-2 p-1 z-10 border rounded-md bg-white hover:bg-gray-100 px-1.5 py-1 text-sm" onClick={handleShowMinimap}>
+        {activeSet ? <button className="absolute top-[-30px] right-0 mb-2 p-1 z-10 border rounded-md bg-white hover:bg-gray-100 px-1.5 py-1 text-sm" onClick={handleShowMinimap}>
           {showMinimap ? "Show Region List" : "Show Minimap"}
-        </button>
+        </button> : null}
         {showMinimap ? <Minimap 
           width={width}
           height={height / 2}

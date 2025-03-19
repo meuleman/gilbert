@@ -653,6 +653,7 @@ function Home() {
   
   useEffect(() => {
     collectPathsForSelected(selected, genesetScoreMapping, determineFactorExclusion, activeSet, activeFilters)
+    !activeSet && setShowActiveRegionSet(!!selected)  // if selected but no region set, show the minimap anyway
   }, [selected])
 
   const [topCSNSFactorByCurrentOrder, setTopCSNSFactorByCurrentOrder] = useState(new Map())
