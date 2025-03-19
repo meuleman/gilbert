@@ -138,22 +138,24 @@ const ActiveRegionSetModal = () => {
     // TODO: remove hardcoded width
     <div className="flex-1 pl-1 min-h-0 max-h-full w-[24rem] text-xs overflow-hidden flex flex-col" ref={containerRef}>
       <div className="h-1/2">
-        <div className="pt-4">
-        {(regionSetNarration || regionSetNarrationLoading) ? <h3 className="text-sm text-gray-500">
-          AI Summary:
-        </h3> : null}
-        <p className="mb-4 text-sm text-black font-medium">
-          {regionSetNarrationLoading ? "loading..." : regionSetNarration}
-        </p>
+        <div className="h-3/4 overflow-scroll">
+          <div className="pt-4">
+          {(regionSetNarration || regionSetNarrationLoading) ? <h3 className="text-sm text-gray-500">
+            AI Summary:
+          </h3> : null}
+          <p className="mb-0 text-base text-black font-medium">
+            {regionSetNarrationLoading ? "loading..." : regionSetNarration}
+          </p>
+          </div>
         </div>
-        <div className="grow-0">
+        <div className="grow-0 h-1/4">
           {activeGenesetEnrichment && (
-            <div className="relative h-28">
-              <div className="absolute top-0 left-0 w-full overflow-hidden">
+            <div className="relative h-full">
+              <div className="absolute bottom-5 left-0 w-full overflow-hidden">
                 <Spectrum
                   show
                   width={width - 24}
-                  height={90}
+                  height={height / 8}
                   windowSize={30}
                 />
               </div>

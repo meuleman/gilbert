@@ -237,7 +237,7 @@ const RegionAISummary = ({} = {}) => {
       <div className="text-lg">
         {showPosition(narration.region)}
       </div>
-      <p className="mb-5 text-md text-black font-medium">
+      <p className="mb-5 text-base text-black font-medium">
         {loading ? "loading..." : generated}
       </p>
 
