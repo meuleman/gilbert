@@ -955,13 +955,20 @@ function Home() {
 
   const showInspectorGadget = selected && (selectedNarration || loadingSelectedCSN)
 
+  const handleLogoClick = () => {
+    navigate('/', { replace: true });
+    setTimeout(() => {
+      window.location.reload();
+    }, 10);
+  };
+
   return (
     <div className="w-dvw h-dvh overflow-hidden flex flex-col">
       <div className="grow-0">
         <div className="flex text-xs border-separator border-b-1">
           <div className="grow-0 border-separator border-r-1">
-            <div className="h-globalMenuBar aspect-square flex items-center justify-center">
-              <GilbertG />
+            <div className="h-globalMenuBar aspect-square flex items-center justify-center cursor-pointer">
+              <GilbertG onClick={handleLogoClick}/>
             </div>
           </div>
           <div className="grow-0 border-separator border-r-1">
