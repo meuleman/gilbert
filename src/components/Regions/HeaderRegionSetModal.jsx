@@ -253,7 +253,7 @@ const HeaderRegionSetModal = ({
                 </div>
 
                 <div>
-                  <h3 className="font-medium mb-2">Example Region Sets</h3>
+                  <h3 className="font-medium mb-2">Saved Region Sets</h3>
                   <table>
                     <tbody>
                       {sets.map((set, index) => (
