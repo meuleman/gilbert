@@ -171,14 +171,14 @@ const HeaderRegionSetModal = ({
             <div className="h-2/5 w-px bg-separator" />
             <div className="h-globalMenuBar aspect-square flex items-center justify-center">
               <CloseIcon data-tooltip-id="header-active-deselect" role="button" onClick={handleDeselect} />
-              <Tooltip id="header-active-deselect">
+              <Tooltip id="header-active-deselect" className="z-10">
                 Clear active region set
               </Tooltip>
             </div>
             <div className="h-2/5 w-px bg-separator" />
             <div className="h-globalMenuBar aspect-square flex items-center justify-center">
               <DownloadIcon data-tooltip-id="header-download-regions" role="button" onClick={() => handleDownload(activeSet)} />
-              <Tooltip id="header-download-regions">
+              <Tooltip id="header-download-regions" className="z-10">
                 Download {activeRegions?.length} regions to a BED file
               </Tooltip>
             </div>
