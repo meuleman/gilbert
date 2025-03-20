@@ -250,7 +250,7 @@ function Home() {
   // store
   const { setShowActiveRegionSet, setShowSummary } = RegionSetModalStatesStore()
   const { 
-    selected, setSelected, region, setRegion, 
+    selected, setSelected, region, setRegion, clearSelected,
     loadingSelectedCSN, selectedNarration, setSelectedNarration, 
     collectPathsForSelected, determineFactorExclusion, //hover, setHover
   } = SelectedStatesStore()
@@ -817,13 +817,11 @@ function Home() {
 
   const clearSelectedState = useCallback(() => {
     console.log("CLEARING STATE")
-    setRegion(null)
-    setSelected(null)
+    clearSelected()  // from SelectedStatesStore
     setSimSearch(null)
     setSearchByFactorInds([])
     setSimilarRegions([])
     setSimSearchMethod(null)
-    setSelectedNarration(null)
     setRegionCSNS([])
   }, [setRegion, setSelected, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSimSearchMethod, setSelectedNarration])
 

@@ -213,6 +213,31 @@ const SelectedStatesStore = create((set, get) => {
     set({ loadingFullNarration: false });
   };
 
+  const clearSelected = () => {
+    set({ selected: null });
+    set({ region: null });
+    set({ selectedNarration: null });
+    set({ subpaths: null });
+    set({ subpathCollection: [] });
+    set({ narrationCollection: [] });
+    set({ narrationPreview: null });
+    set({ slicedNarrationPreview: null });
+    set({ loadingRegionCSNS: false });
+    set({ fullNarration: null });
+    set({ loadingSelectedCSN: false });
+    set({ loadingFullNarration: false });
+    set({ selectedGenesetMembership: [] });
+    set({ query: "" });
+    set({ showQuery: false });
+    set({ showPromptEditor: false });
+    set({ summaryLoading: false });
+    set({ request_id: null });
+    set({ generated: "" });
+    set({ articles: [] });
+    set({ prompt: "" });
+    set({ articlesIncluded: true });
+  }
+
   return {
     selected: null,
     setSelected: (selected) => set({ selected: selected }),
@@ -280,6 +305,9 @@ const SelectedStatesStore = create((set, get) => {
     setPrompt: (prompt) => set({ prompt: prompt }),
     articlesIncluded: true,
     setArticlesIncluded: (included) => set({ articlesIncluded: included }),
+
+    // clear selected
+    clearSelected,
 }})
 
 export default SelectedStatesStore;
