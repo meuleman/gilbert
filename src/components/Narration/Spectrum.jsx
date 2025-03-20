@@ -11,12 +11,12 @@ import scaleCanvas from '../../lib/canvas'
 // import Tooltip from './Tooltips/Tooltip';
 
 
-const Tooltip = ({ geneset, x, y, visible }) => {
+const Tooltip = ({ geneset, x, y, visible, width }) => {
   if (!visible || !geneset) return null;
   let genesetName = geneset.geneset.split("_").slice(1).join(" ").toLowerCase()
   genesetName = genesetName.charAt(0).toUpperCase() + genesetName.slice(1)
   let enrichment = Math.round(geneset.score * 10000) / 10000
-
+  let positionLeft = (geneset?.index / genesetOrder.length) < 0.5 
   const tooltipRef = useRef();
 
   const content = (
@@ -33,21 +33,22 @@ const Tooltip = ({ geneset, x, y, visible }) => {
 
   useEffect(() => {
     if (tooltipRef.current) {
-      tooltipRef.current.style.left = `${x + 20}px`;
+      tooltipRef.current.style.left = 'auto';
+      tooltipRef.current.style.right = 'auto';
+      positionLeft ? tooltipRef.current.style.left = `${x}px` : tooltipRef.current.style.right = `${width - x}px`;
       tooltipRef.current.style.bottom = `${y}px`;
       tooltipRef.current.style.display = visible ? 'block' : 'none';
-      tooltipRef.current.style.minWidth = '200px';
+      tooltipRef.current.style.minWidth = '150px';
+      tooltipRef.current.style.maxWidth = `${width / 2}px`;
       tooltipRef.current.style.background = "#efefef";
       tooltipRef.current.style.border = 'solid';
       tooltipRef.current.style.borderWidth = '1px';
       tooltipRef.current.style.borderRadius = '5px';
-      tooltipRef.current.style.padding = '10px';
-      // tooltipRef.current.style.position = 'absolute';
-      // tooltipRef.current.style.display = 'inline';
-      tooltipRef.current.style.fontSize = '16px';
+      tooltipRef.current.style.padding = '5px';
+      tooltipRef.current.style.fontSize = '12px';
       tooltipRef.current.style.color = 'black';
     }
-  }, [x, y, visible]);
+  }, [x, y, visible, positionLeft]);
 
   return (
     <div ref={tooltipRef} style={{ position: 'absolute', background: '#fff', border: '1px solid #ccc', padding: '5px', pointerEvents: 'none' }}>
@@ -327,7 +328,7 @@ const Spectrum = ({
     <div className={"spectrum-component" + (show ? " show": " hide")} >
       <div style={{ position: 'relative', width: width + 'px', height: height + 'px' }}>
         <canvas ref={canvasRef} width={width} height={height}/>
-        <Tooltip geneset={tooltip.content} x={tooltip.x} y={tooltip.y} visible={tooltip.visible} />
+        <Tooltip geneset={tooltip.content} x={tooltip.x} y={tooltip.y} visible={tooltip.visible} width={width}/>
 
       </div>
     </div>

@@ -151,7 +151,7 @@ const ActiveRegionSetModal = () => {
         <div className="grow-0 h-1/4">
           {activeGenesetEnrichment && (
             <div className="relative h-full">
-              <div className="absolute bottom-5 left-0 w-full overflow-hidden">
+              <div className="absolute bottom-5 left-0 w-full">
                 <Spectrum
                   show
                   width={width - 24}
