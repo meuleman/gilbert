@@ -37,7 +37,6 @@ const FactorBar = ({ factor, index, handleFactorSelect, handleFactorDeselect }) 
             onClick={() => handleFactorDeselect(factor)}>❌</button>
         )}
       </div>
-      <Tooltip key={`tooltip-factor-${index}`} id={`factor-tooltip-${index}`} />
     </div>
   )
 }
@@ -204,13 +203,16 @@ const SummarizePaths = ({
                   {g[0]}s
                 </div>
                 {g[1].slice(0, N + g[1].filter(d => d.isFilter).length).map((factor, index) => (
-                  <FactorBar 
-                    key={index}
-                    factor={factor} 
-                    index={index} 
-                    handleFactorSelect={handleFactorSelect} 
-                    handleFactorDeselect={handleFactorDeselect}
-                  />
+                  <div>
+                    <FactorBar 
+                      key={index}
+                      factor={factor} 
+                      index={index} 
+                      handleFactorSelect={handleFactorSelect} 
+                      handleFactorDeselect={handleFactorDeselect}
+                    />
+                    <Tooltip key={`tooltip-factor-${index}`} id={`factor-tooltip-${index}`} className="z-10" />
+                  </div>
                 ))}
               </div>
             )
