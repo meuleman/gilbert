@@ -626,7 +626,7 @@ function Home() {
   const [filterLoading, setFilterLoading] = useState("")
   const [hoveredTopCSN, setHoveredTopCSN] = useState(null)
   const [csnSort, setCSNSort] = useState("factor")
-  const [regionCSNS, setRegionCSNS] = useState([])
+  // const [regionCSNS, setRegionCSNS] = useState([])
 
 
   // useEffect(() => {
@@ -819,11 +819,11 @@ function Home() {
   const clearSelectedState = useCallback(() => {
     console.log("CLEARING STATE")
     clearSelected()  // from SelectedStatesStore
-    setSimSearch(null)
-    setSearchByFactorInds([])
-    setSimilarRegions([])
-    setSimSearchMethod(null)
-    setRegionCSNS([])
+    // setSimSearch(null)
+    // setSearchByFactorInds([])
+    // setSimilarRegions([])
+    // setSimSearchMethod(null)
+    // setRegionCSNS([])
   }, [setRegion, setSelected, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSimSearchMethod, setSelectedNarration])
 
   const clearRegionSetSummaries = useCallback(() => {
