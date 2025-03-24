@@ -43,17 +43,20 @@ const SelectedRegionSummary = ({
     {selected && selectedNarration && (
       <div className="absolute inset-0 bg-white bg-opacity-90">
         {/* Header with close button */}
-        <div className="absolute top-0 right-0 p-2 z-10">
+        <div className="relative top-0 left-0 pt-4 pl-2 z-10 flex flex-row items-center space-x-2">
           <button 
             className="rounded-md flex items-center justify-center border border-gray-400 bg-white hover:bg-gray-100 text-red-500 px-1.5 py-1 text-sm" 
             onClick={onClose}
           >
             Close X
           </button>
+          <div className="text-lg">
+            {showPosition(selected)}
+          </div>
         </div>
         
         {/* Content with two columns */}
-        <div className="w-full h-full p-4 flex">
+        <div className="w-full h-full p-4 pt-2 flex">
           {/* First column - AI Summary */}
           <div className="w-full pr-2 overflow-auto">
             <RegionAISummary />
