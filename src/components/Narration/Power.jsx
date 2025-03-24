@@ -372,7 +372,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
         }))
         setLoading(false)
       },
-      150
+      50
     )
   }, [csn])
 
