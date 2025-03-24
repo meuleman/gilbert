@@ -81,7 +81,7 @@ const ActiveRegionSetModal = () => {
 
   const handleSelectActiveRegionSet = useCallback((region) => {
     setSelected(region?.subregion || region)  // set selected with implied region
-    setRegion(region)  // set region (zoom) with original region
+    // setRegion(region)  // set region (zoom) with original region
   }, [setSelected, setRegion])
 
   const [regions, setRegions] = useState([])

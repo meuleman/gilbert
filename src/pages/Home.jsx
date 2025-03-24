@@ -258,8 +258,8 @@ function Home() {
   useEffect(() => {
     // selected powers the sidebar modal and the 1D track
     setSelected(jsonify(initialSelectedRegion))
-    // changing the region changes the zoom and will also highlight on the map
-    setRegion(jsonify(initialSelectedRegion))
+    // // changing the region changes the zoom and will also highlight on the map
+    // setRegion(jsonify(initialSelectedRegion))
   }, [])
 
   const { filters, setFilters, clearFilters, hasFilters } = useContext(FiltersContext);
@@ -718,7 +718,7 @@ function Home() {
     let hit = fromPosition(csn.chromosome, csn.start, csn.end, order)
     console.log("SELECTED SANKEY CSN", csn, hit)
     setSelected(csn?.region)
-    setRegion(hit)
+    // setRegion(hit)
   }, [order])
 
 
@@ -902,7 +902,7 @@ function Home() {
         selected = overlappingRegion.order > hit.order ? overlappingRegion : hit
       } 
       setSelected(selected)
-      setRegion(hit)  // this sets zoom. we should set with selected segment, not implied segment
+      // setRegion(hit)  // this sets zoom. we should set with selected segment, not implied segment
     }
   }, [setSelected, setRegion, clearSelectedState, filteredActiveRegions])
 
