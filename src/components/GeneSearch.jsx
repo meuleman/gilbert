@@ -118,33 +118,50 @@ const GeneSearch = memo(({
   };
 
   const autocompleteRef = useRef(null)
+  const autocompleteWrapperRef = useRef(null)
   useEffect(() => {
     function handleKeyDown(e) {
-      if (e.key == "/") {
-        if (autocompleteRef.current) {
-          autocompleteRef.current.focus()
-          e.preventDefault()
+      // Don't trigger when already in an input field
+      const activeElement = document.activeElement;
+      const isInputActive = activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA';
+      
+      if (e.key === "/" && !isInputActive) {
+        // Prevent the "/" from being entered
+        e.preventDefault();
+        
+        if (autocompleteWrapperRef.current) {
+          // Get the input element
+          const inputElement = autocompleteWrapperRef.current.querySelector('.ant-select-selection-search input');
+          if (inputElement) {
+            inputElement.focus();
+            
+            // Clear any existing value
+            setInputValue('');
+            setSearchValue('');
+          }
         }
       }
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [])
+    };
+  }, [setInputValue, setSearchValue]);
 
 
   return (
-    <AutoComplete
-      options={filteredOptions}
-      value={inputValue}
-      onSearch={handleSearch}
-      onSelect={handleSelect}
-      placeholder="Search for a gene or genomic coordinate"
-      className="[&_input]:text-xs w-full h-full"
-      variant="borderless"
-      ref={autocompleteRef}
-    />
+    <div ref={autocompleteWrapperRef}>
+      <AutoComplete
+        options={filteredOptions}
+        value={inputValue}
+        onSearch={handleSearch}
+        onSelect={handleSelect}
+        placeholder="Search for a gene or genomic coordinate"
+        className="[&_input]:text-xs w-full h-full"
+        variant="borderless"
+        ref={autocompleteRef}
+      />
+    </div>
   )
 })
 GeneSearch.displayName = 'GeneSearch';
