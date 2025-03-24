@@ -557,7 +557,8 @@ function Home() {
       return currentDist < closestDist ? current : closest;
     }, range[0]);
     // console.log("MID", mid)
-    setRegion(mid)
+    // setRegion(mid)
+    setSelected(mid)
     // console.log("autocomplete range", range)
     // saveSet(selected.value, range, { activate: true, type: "search"})
     // }
