@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useContext, useState, useMemo, useCallback } from 'react';
+import React, { useRef, useEffect, useContext, useState, useMemo, useCallback, useLayoutEffect } from 'react';
 import './Spectrum.css';
 import genesetOrder from '../../data/genesetOrder2023.json';
 import colors from '../../data/spectrumColors.json';
@@ -57,15 +57,11 @@ const Tooltip = ({ geneset, x, y, visible, width }) => {
 const Spectrum = ({
   show = false,
   windowSize = 10,
-  width = 450,
-  height = 100,
+  width: propWidth,
+  height: propHeight,
   xtickMargin = 20,
-  plotXStart = xtickMargin,
-  plotXStop = width,
   plotYStart = 20,
   spectrumBarHeight = 10,
-  plotYStop = height - spectrumBarHeight,
-  curveHeight = (height - spectrumBarHeight) - plotYStart,
 } = {}) => {
 
   const SpectrumBar = ({ data, ctx, xScale, y, height, colorbarX }) => {
@@ -145,6 +141,33 @@ const Spectrum = ({
   const [enrichments, setEnrichments] = useState(new Array(genesetOrder.length).fill(0));
   const [smoothData, setSmoothData] = useState(new Array(genesetOrder.length).fill(0));
   const [tooltip, setTooltip] = useState({ content: null, x: 0, y: 0, visible: false });
+
+  const containerRef = useRef(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const width = propWidth || containerSize.width;
+  const height = propHeight || containerSize.height;
+  const plotXStart = xtickMargin
+  const plotXStop = width
+  const plotYStop = height - spectrumBarHeight
+
+  useLayoutEffect(() => {
+    const resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        setContainerSize({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height
+        });
+      }
+    });
+    
+    resizeObserver.observe(containerRef.current);
+    // Initial measurement
+    setContainerSize({
+      width: containerRef.current.clientWidth,
+      height: containerRef.current.clientHeight
+    });
+    return () => resizeObserver.disconnect();
+  }, []);
 
   useEffect(() => {
     if(activeGenesetEnrichment?.length) {
@@ -292,7 +315,7 @@ const Spectrum = ({
   }, [smoothData, xScale, yScale, plotYStop, spectrumBarHeight, colorbarX, labels, selectedGenesetMembership, height, isHoveringSpectrumBar, isHoveringCurve, determineGeneset, handleMouseLeave]);
 
   return (
-    <div className={"spectrum-component" + (show ? " show": " hide")} >
+    <div className="absolute h-full w-full flex flex-col justify-center" ref={containerRef}>
       <div style={{ position: 'relative', width: width + 'px', height: height + 'px' }}>
         <canvas ref={canvasRef} width={width} height={height}/>
         <Tooltip geneset={tooltip.content} x={tooltip.x} y={tooltip.y} visible={tooltip.visible} width={width}/>

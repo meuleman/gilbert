@@ -14,8 +14,6 @@ import Minimap from './Minimap';
 
 import styles from './ActiveRegionSetModal.module.css'
 
-// const FILTER_MAX_REGIONS = 1000
-
 function filterMatch(f1, f2) {
   return f1.index === f2.index && f1.layer.datasetName === f2.layer.datasetName
 }
@@ -148,28 +146,37 @@ const ActiveRegionSetModal = () => {
           </p>
           </div>
         </div>
-        <div className="grow-0 h-1/4">
-          {activeGenesetEnrichment && (
-            <div className="relative h-full">
-              <div className="absolute bottom-5 left-0 w-full">
-                <Spectrum
-                  show
-                  width={width - 24}
-                  height={height / 8}
-                  windowSize={30}
-                />
-              </div>
-            </div>
+        <div className="grow-0 h-1/4 flex flex-col">
+          {activeSet && (
+            <>
+              <h3 className="text-sm text-gray-500">
+                Spectrum:
+              </h3>
+              {activeGenesetEnrichment ?
+                <div className="flex-1 relative">
+                  <div className="absolute inset-0 mr-2">
+                    <Spectrum
+                      show
+                      windowSize={30}
+                    />
+                  </div>
+                </div>
+                : 
+                <div className="flex justify-center h-full">
+                  <Loading />
+                </div>
+              }
+            </>
           )}
         </div>
       </div>
-      <div className="relative h-1/2 flex flex-col">
-        {activeSet ? <button className="absolute top-[-30px] right-0 mb-2 p-1 z-10 border rounded-md bg-white hover:bg-gray-100 px-1.5 py-1 text-sm" onClick={handleShowMinimap}>
+      <div className="relative h-1/2 flex flex-col pt-10">
+        {activeSet ? <button className="absolute top-0 right-0 mb-2 p-1 z-10 border rounded-md bg-white hover:bg-gray-100 px-1.5 py-1 text-sm" onClick={handleShowMinimap}>
           {showMinimap ? "Show Region List" : "Show Minimap"}
         </button> : null}
         {showMinimap ? <Minimap 
           width={width}
-          height={height / 2}
+          height={height / 2 - 40}
         />
         :
         <div className="pt-1 flex-1 text-xs flex flex-col overflow-hidden">
