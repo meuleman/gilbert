@@ -4,7 +4,6 @@ import { zoomIdentity } from 'd3-zoom';
 import { range, extent } from 'd3-array';
 import { line } from "d3-shape";
 import { interpolateObject, interpolateNumber } from 'd3-interpolate';
-
 import { HilbertChromosome } from '../../lib/HilbertChromosome';
 import Data from '../../lib/data';
 import { debouncer } from '../../lib/debounce'
@@ -13,92 +12,14 @@ import scaleCanvas from '../../lib/canvas'
 import { getOffsets } from "../../lib/segments"
 import { variantChooser } from '../../lib/csn';
 import { getGencodesInView } from '../../lib/Genes';
-
 import order_14 from '../../layers/order_14';
-
 import Loading from '../Loading';
 import { Renderer as CanvasRenderer } from '../Canvas/Renderer';
-
 import { useZoom } from '../../contexts/zoomContext'
 import SelectedStatesStore from '../../states/SelectedStates'
-
 import Tooltip from '../Tooltips/Tooltip';
-
+import { renderSquares, renderPipes, zoomToBox } from './PowerUtils';
 import './Power.css';
-
-
-// TODO: move this to a more general place 
-function getDataBounds(meta) {
-  let nonzero_min = meta["nonzero_min"]
-  let fields, max, min
-  if ((meta["fields"].length == 2) && (meta["fields"][0] == "max_field") && (meta["fields"][1] == "max_value")) {
-    fields = meta["full_fields"]
-    max = meta["full_max"]
-    min = nonzero_min ? nonzero_min : meta["full_min"]
-  } else {
-    fields = meta["fields"]
-    max = meta["max"]
-    min = nonzero_min ? nonzero_min : meta["min"]
-  }
-  if(!min.length && min < 0) min = 0;
-  return { min, max, fields }
-}
-
-function renderSquares(ctx, points, t, o, scales, fill, stroke, sizeMultiple=1) {
-  let i,d,xx,yy; 
-  let step = Math.pow(0.5, o)
-  let rw = scales.sizeScale(step) * t.k * sizeMultiple - 1
-  for(i = 0; i < points.length; i++) {
-    d = points[i];
-    // scale and transform the coordinates
-    xx = t.x + scales.xScale(d.x) * t.k
-    yy = t.y + scales.yScale(d.y) * t.k
-    if(stroke) {
-      ctx.strokeStyle = stroke
-      ctx.strokeRect(xx - rw/2, yy - rw/2, rw, rw)
-    }
-    if(fill) {
-      ctx.fillStyle = fill
-      ctx.fillRect(xx - rw/2, yy - rw/2, rw, rw)
-    }
-  }
-}
-
-function renderPipes(ctx, points, t, o, scales, stroke, sizeMultiple=1) {
-  let linef = line()
-    .x(d => d.x)
-    .y(d => d.y)
-    .context(ctx)
-  let i,d,xx,yy,dp1,dm1; 
-  let step = Math.pow(0.5, o)
-  let rw = scales.sizeScale(step) * t.k 
-  let srw = rw * sizeMultiple
-
-  for(i = 0; i < points.length; i++) {
-    d = points[i];
-    dm1 = points[i-1];
-    dp1 = points[i+1];
-    // scale and transform the coordinates
-    xx = t.x + scales.xScale(d.x) * t.k
-    yy = t.y + scales.yScale(d.y) * t.k
-    let ps = []
-    if(dm1) {
-      let { xoff, yoff } = getOffsets(d, dm1, rw, srw)
-      ps.push({x: xx + xoff, y: yy + yoff})
-    }
-    ps.push({x: xx, y: yy})
-    if(dp1) {
-      let { xoff, yoff } = getOffsets(d, dp1, rw, srw)
-      ps.push({x: xx + xoff, y: yy + yoff})
-    }
-
-    ctx.strokeStyle = stroke
-    ctx.lineWidth = srw
-    ctx.beginPath()
-    linef(ps)
-    ctx.stroke()
-  }
-}
 
 import PropTypes from 'prop-types';
 
@@ -211,38 +132,6 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
 
   const [interpXScale, setInterpXScale] = useState(() => scaleLinear())
 
-  // const zoomToBox = useCallback((x0,y0,x1,y1,order,scaleMultiplier=1) => {
-  //   let tw = sizeScale(x1 - x0)
-  //   let scale = Math.pow(2, order)  * scaleMultiplier
-  //   let offset = tw * 1.25 * 2
-  //   let tx = xScale(x0) - offset / scaleMultiplier
-  //   let ty = yScale(y0) - offset / scaleMultiplier
-  //   let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
-  //   return transform
-  // }, [xScale, yScale, sizeScale])
-
-  const zoomToBox = useCallback((x0,y0,x1,y1,order,scaleMultiplier=1) => {
-    // Calculate the box center in data coordinates
-    let centerX = (x0 + x1) / 2
-    let centerY = (y0 + y1) / 2
-    
-    // Convert to screen coordinates
-    let screenCenterX = xScale(centerX)
-    let screenCenterY = yScale(centerY)
-    
-    // Calculate the scale
-    let scale = Math.pow(2, order) * scaleMultiplier
-    
-    // Calculate translations needed to center the box
-    // This centers the box by positioning the data center at the screen center
-    let tx = screenCenterX - width / 2 / scale
-    let ty = screenCenterY - height / 2 / scale
-    
-    // Create the centered transform
-    let transform = zoomIdentity.translate(-tx * scale, -ty * scale).scale(scale)
-    return transform
-}, [xScale, yScale, width, height])
-
   useEffect(() => {
     scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
   }, [canvasRef, width, height])
@@ -252,7 +141,6 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
   useEffect(() => {
     scaleCanvas(canvasRefStrip.current, canvasRefStrip.current.getContext("2d"), width, sheight)
   }, [canvasRefStrip, width, sheight])
-
 
 
   useEffect(() => {
@@ -376,34 +264,6 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
     )
   }, [csn])
 
-  // useEffect(() => {
-  //   if(data && onData && !isPreview)
-  //     onData(data)
-  // }, [data, onData, isPreview])
-
-
-  // const [genes, setGenes] = useState([])
-  // useEffect(() => {
-  //   if(data && order) {
-  //     const points = data.find(d => d.order === order)?.points
-  //     if(points) {
-  //       const genes = getGencodesInView(points, order)
-  //       const cellSize =  points[0].end - points[0].start
-  //       // console.log("GENES", genes, genes.filter(d => d.length > cellSize))
-  //       // console.log("CELL",cellSize)
-  //       setGenes(genes)
-  //     }
-  //   }
-  // }, [data, order])
-
-  // useEffect(() => {
-  //   onOrder && onOrder(order)
-  // }, [order, onOrder])
-
-  // useEffect(() => {
-  //   onPercent && onPercent(percent)
-  // }, [percent, onPercent])
-
   const handleWheel = useCallback((event) => {
     event.preventDefault();
     const delta = -event.deltaY;
@@ -424,7 +284,6 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
       };
     }
   }, [handleWheel]);
-
 
 
   const oscale = useMemo(() => scaleLinear().domain([0, 0.5]).range([1, 0]).clamp(true), [])
@@ -452,18 +311,16 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
         let transform;
           // next order 
         const no = o + 1
-        const nhilbert = new HilbertChromosome(no)
-        const nstep = nhilbert.step
         // const nregion = csn.path.find(d => d.order === no)
         const nd = data.find(d => d.order === no)
         if(nd) {
           const nr = nd.region
-          const t = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, 0.25)  // previously 0.75
-          const nt = zoomToBox(nr.x, nr.y, nr.x + nstep, nr.y + nstep, no, 0.25)  // previously 0.75
+          const t = zoomToBox(scales.xScale, scales.yScale, width, height)(r.x, r.y, r.x + step, r.y + step, o, 0.25);
+          const nt = zoomToBox(scales.xScale, scales.yScale, width, height)(nr.x, nr.y, nr.x + step, nr.y + step, no, 0.25);
           transform = interpolateObject(t, nt)(or - o)
         } else {
           const scaler = .25 + (or - o) // TODO: magic number for order 14..., was 0.675
-          transform = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, scaler)
+          transform = zoomToBox(scales.xScale, scales.yScale, width, height)(r.x, r.y, r.x + step, r.y + step, o, scaler);
         }
 
         const ctx = canvasRef.current.getContext('2d');
@@ -474,25 +331,6 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
         // render the current layer
         ctx.globalAlpha = 1
         if(d.layer){
-          //console.log("RENDER o", o, d)
-          if(o < 14) {
-            // set the central region's data to the field we chose 
-            // const central = d.data.find(r => r.i == d.p.region.i)
-            // if(d.region.data) {
-            //   central.data = d.region.data
-            // } else {
-            //   // console.log("central", d.region, central)
-            //   let centralData = {}
-            //   if(d.layer.topValues) {
-            //     centralData["max_value"] = d.region.field.value
-            //     centralData["max_field"] = d.region.field.index
-            //   } else {
-            //     centralData[d.region.field.field] = d.region.field.value
-            //   }
-            //   central.data = centralData
-            // }
-          }
-          
           CanvasRenderer(d.layer.renderer, { 
             scales, 
             state: { 
@@ -851,26 +689,8 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
           height={geneHeight}
           style={{width: width + "px", height: geneHeight + "px"}}
           ref={canvasRefGenes}
-          // onMouseMove={handleMouseMove}
-          // onMouseLeave={handleMouseLeave}
         />
       </div>
-      {/* <LinearGenome
-        // center={data?.center} 
-        data={data?.data}
-        dataOrder={data?.dataOrder}
-        activeRegions={filteredRegionsByCurrentOrder}
-        layer={data?.layer}
-        width={width}
-        height={96}
-        mapWidth={width}
-        mapHeight={height}
-        hover={hover}
-        onHover={handleHover}
-        onClick={(hit) => {
-          setRegion(hit)
-        }}
-      /> */}
       <Tooltip ref={tooltipRef} orientation="bottom" enforceBounds={false} />
     </div>
   );
