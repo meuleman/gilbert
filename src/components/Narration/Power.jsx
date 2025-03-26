@@ -5,7 +5,8 @@ import { range, extent } from 'd3-array';
 import { line } from "d3-shape";
 import { interpolateObject, interpolateNumber } from 'd3-interpolate';
 
-import { HilbertChromosome } from '../../lib/HilbertChromosome';
+import { HilbertChromosome, hilbertPosToOrder } from '../../lib/HilbertChromosome';
+import { fromIndex } from '../../lib/regions'
 import Data from '../../lib/data';
 import { debouncer } from '../../lib/debounce';
 import { showPosition } from '../../lib/display';
@@ -162,7 +163,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
   const tooltipRef = useRef(null);
 
   const { handleSelectedZoom: onOrder, selectedZoomOrder: userOrder } = useZoom();
-  const { collectFullData: onData, narrationPreview, loadingFullNarration, selectedNarration, fullNarration } = SelectedStatesStore();
+  const { collectFullData: onData, narrationPreview, loadingFullNarration, selectedNarration, fullNarration, selected } = SelectedStatesStore();
 
   const [isPreview, setIsPreview] = useState(false);
   useEffect(() => setIsPreview(!!narrationPreview), [narrationPreview]);
@@ -176,10 +177,45 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
   const [percent, setPercent] = useState(userOrder ? percentScale.invert(userOrder) : 1);
   useEffect(() => { setPercent(userOrder ? percentScale.invert(userOrder) : 1); }, [userOrder, percentScale]);
   const [order, setOrder] = useState(userOrder ? userOrder : 4);
-  const [data, setData] = useState(null);
   const [currentPreferred, setCurrentPreferred] = useState(null);
-
   const radius = 9;
+
+  // initialize data to empty data structure so we can render empty hilbert curve while data loads
+  const [data, setData] = selected ? useState(() => {
+    // Create default empty data structure
+    return range(4, 15).map(order => {
+      const oi = hilbertPosToOrder(selected.i, { from: selected.order, to: order });
+      const hilbert = new HilbertChromosome(order);
+      const oRegion = fromIndex(selected.chromosome, oi, order)
+      
+      // Generate points for initial rendering
+      const step = hilbert.step;
+      const bbox = {
+        x: oRegion.x - step * radius,
+        y: oRegion.y - step * radius,
+        width: step * radius * 2,
+        height: step * radius * 2
+      };
+      const points = hilbert.fromBbox(bbox)
+      
+      return {
+        order,
+        layer: null, // No layer initially
+        points,
+        region: oRegion,
+        p: null, // No preferred point initially
+        data: {
+          metas: [{ chromosome: selected.chromosome }],
+          filter: () => [], // Empty filter function
+          find: () => null, // Empty find function
+          map: () => [], // Empty map function
+          forEach: () => {} // Empty forEach function
+        }
+      };
+    });
+  }) : useState(null);
+
+  
   const orderMin = 4, orderMax = 14;
   let xMin = 0, yMin = 0, sizeMin = 0, zoomMin = 0.85;
   let xMax = 5, yMax = 5, sizeMax = 5, zoomMax = 4000;
@@ -327,7 +363,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
     setOrder(o);
     const hilbert = new HilbertChromosome(o);
     const step = hilbert.step;
-    if(csn && csn.path && canvasRef.current && data) {
+    if (canvasRef.current && data) { //csn && csn.path && 
       const d = data.find(d => d.order === o);
       if(d) {
         setCurrentPreferred(d.p);
@@ -535,19 +571,22 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
           ) : null}
         </div>
       </div>
-      <div className="relative">
-        {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60 transform scale-[1.75]">
-            <Loading />
-          </div>
-        )}
-        <canvas
-          className="power-canvas"
-          width={width}
-          height={height}
-          style={{ width: width + "px", height: height + "px" }}
-          ref={canvasRef}
-        />
+      <div>
+        <div className="relative">
+          {loading && (
+            //  bg-white bg-opacity-60
+            <div className="absolute inset-0 flex items-center justify-center transform scale-[1.75]">
+              <Loading />
+            </div>
+          )}
+          <canvas
+            className="power-canvas"
+            width={width}
+            height={height}
+            style={{ width: width + "px", height: height + "px" }}
+            ref={canvasRef}
+          />
+        </div>
         <canvas
           className="power-canvas-strip"
           width={width}
