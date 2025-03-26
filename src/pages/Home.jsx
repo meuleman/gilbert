@@ -252,13 +252,12 @@ function Home() {
   const { 
     selected, setSelected, region, setRegion, clearSelected,
     loadingSelectedCSN, selectedNarration, setSelectedNarration, 
-    collectPathsForSelected, determineFactorExclusion, showIG, setShowIG,
+    collectPathsForSelected, determineFactorExclusion
   } = SelectedStatesStore()
   // only on initial mount
   useEffect(() => {
     // selected powers the sidebar modal and the 1D track
     setSelected(jsonify(initialSelectedRegion))
-    setShowIG(true)
     // // changing the region changes the zoom and will also highlight on the map
     // setRegion(jsonify(initialSelectedRegion))
   }, [])
@@ -400,7 +399,6 @@ function Home() {
     if (!initialSelectedRegion) {
       // TODO: need a reliable way to clear state when deselecting a region
       setSelected(null)
-      setShowIG(false)
       setSimilarRegions([])
       setCrossScaleNarration([])
     }
@@ -431,7 +429,6 @@ function Home() {
     } else {
       setSimilarRegions([])
       setSelected(null)
-      setShowIG(false)
     }
   }, [setSimSearch, setSimilarRegions, setSelected])
 
@@ -484,7 +481,6 @@ function Home() {
       if (simSearchMethod != "Region") {
         SimSearchByFactor(newSearchByFactorInds, order, layer).then((SBFResult) => {
           setSelected(null)
-          setShowIG(false)
           processSimSearchResults(order, SBFResult)
           setSimSearchMethod("SBF")
         })
@@ -563,7 +559,6 @@ function Home() {
     // console.log("MID", mid)
     // setRegion(mid)
     setSelected(mid)
-    setShowIG(true)
     // console.log("autocomplete range", range)
     // saveSet(selected.value, range, { activate: true, type: "search"})
     // }
@@ -723,7 +718,6 @@ function Home() {
     let hit = fromPosition(csn.chromosome, csn.start, csn.end, order)
     console.log("SELECTED SANKEY CSN", csn, hit)
     setSelected(csn?.region)
-    setShowIG(true)
     // setRegion(hit)
   }, [order])
 
@@ -824,7 +818,6 @@ function Home() {
 
   const clearSelectedState = useCallback(() => {
     console.log("CLEARING STATE")
-    setShowIG(false)
     clearSelected()  // from SelectedStatesStore
     // setSimSearch(null)
     // setSearchByFactorInds([])
@@ -909,7 +902,6 @@ function Home() {
         selected = overlappingRegion.order > hit.order ? overlappingRegion : hit
       } 
       setSelected(selected)
-      setShowIG(true)
       // setRegion(hit)  // this sets zoom. we should set with selected segment, not implied segment
     }
   }, [setSelected, setRegion, clearSelectedState, filteredActiveRegions])
@@ -1032,7 +1024,7 @@ function Home() {
                   </div>
                 )}
               </div> */}
-              {showIG ? 
+              {selected ? 
               <div className="w-full flex-1 flex flex-col">
                 <div className="relative flex-[1]">
                   <SelectedRegionSummary onClose={handleModalClose}/>

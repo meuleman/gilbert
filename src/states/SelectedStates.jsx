@@ -239,8 +239,6 @@ const SelectedStatesStore = create((set, get) => {
   }
 
   return {
-    showIG: false,
-    setShowIG: (show) => set({ showIG: show }),
     selected: null,
     setSelected: (selected) => set({ selected: selected }),
     region: null,
