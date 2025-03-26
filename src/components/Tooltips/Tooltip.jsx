@@ -114,7 +114,7 @@ const Tooltip = forwardRef(({
       tooltipY = y + height;
       if (enforceBounds && tooltipY > window.innerHeight - height - bottomOffset) {
         newOrientation = 'top';
-        tooltipY = y - height - 10;
+        tooltipY = y - height - 40;
       }
     } else if (defaultOrientation === 'left') {
       tooltipX = x - width - 10;

@@ -565,7 +565,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
           ref={canvasRefGenes}
         />
       </div>
-      <Tooltip ref={tooltipRef} orientation="bottom" enforceBounds={false} />
+      <Tooltip ref={tooltipRef} orientation="bottom" enforceBounds={true} />
     </div>
   );
 }
