@@ -275,22 +275,20 @@ export default function ZoomLine({
         let p = path.find(d => d.order === o);
         let bp = showKb(Math.pow(4, 14 - o));
         return (
-          <div>
-            <div
-              key={o}
-              className="absolute left-0 text-center font-mono pointer-events-none"
-              style={{
-                top: yScale(o) + rw / 2,
-                width,
-                fontSize,
-                fontWeight: highlightOrders.indexOf(o) >= 0 ? "bold" : "normal",
-                color: "#111",
-                transform: "translateY(-50%)"
-              }}
-            >
-              <div>{bp[0]}</div>
-              <div>{bp[1]}</div>
-            </div>
+          <div
+            key={`text-${o}`}
+            className="absolute left-0 text-center font-mono pointer-events-none"
+            style={{
+              top: yScale(o) + rw / 2,
+              width,
+              fontSize,
+              fontWeight: highlightOrders.indexOf(o) >= 0 ? "bold" : "normal",
+              color: "#111",
+              transform: "translateY(-50%)"
+            }}
+          >
+            <div>{bp[0]}</div>
+            <div>{bp[1]}</div>
           </div>
         );
       })}
