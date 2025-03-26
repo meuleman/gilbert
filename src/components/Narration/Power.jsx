@@ -465,19 +465,21 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
           ) : null}
         </div>
       </div>
-      <div className="relative">
-        {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60 transform scale-[1.75]">
-            <Loading />
-          </div>
-        )}
-        <canvas
-          className="power-canvas"
-          width={width}
-          height={height}
-          style={{ width: width + "px", height: height + "px" }}
-          ref={canvasRef}
-        />
+      <div>
+        <div className="relative">
+          {loading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60 transform scale-[1.75]">
+              <Loading />
+            </div>
+          )}
+          <canvas
+            className="power-canvas"
+            width={width}
+            height={height}
+            style={{ width: width + "px", height: height + "px" }}
+            ref={canvasRef}
+          />
+        </div>
         <canvas
           className="power-canvas-strip"
           width={width}
