@@ -117,7 +117,7 @@ const Tooltip = forwardRef(({
         tooltipY = y - height - 40;
       }
     } else if (defaultOrientation === 'left') {
-      tooltipX = x - width - 10;
+      tooltipX = x - width;
       tooltipY = y - height / 2;
       if (enforceBounds && tooltipX < 0) {
         newOrientation = 'right';

@@ -153,7 +153,7 @@ export default function ScoreBars({
     handleHover(e, o);
     if (p) {
       const xoff = tipOrientation === "left" ? -5 : width + 5;
-      const tooltipX = containerRect.left + xoff + offsetX;
+      const tooltipX = containerRect.left + xoff - 34; // TODO: do not hardcode!
       const tooltipY = containerRect.top + my + 1.5;
       tooltipRef.current &&
         tooltipRef.current.show(
@@ -291,7 +291,7 @@ export default function ScoreBars({
         </div>
       )}
       
-      <Tooltip ref={tooltipRef} orientation={tipOrientation} contentFn={tooltipContent} enforceBounds={false} />
+      <Tooltip ref={tooltipRef} orientation={tipOrientation} contentFn={tooltipContent} enforceBounds={true} />
     </div>
   )
 }
