@@ -1,13 +1,15 @@
 import { useRef, useEffect, useState, useImperativeHandle, forwardRef, useMemo, useCallback } from 'react';
-// import { showPosition, showFloat, showKb } from '../../lib/display'
-import { defaultContent } from './Content'
-import { calc } from 'antd/es/theme/internal';
+import { defaultContent } from './Content';
 
-const Tooltip = forwardRef(({ 
-  orientation: defaultOrientation, 
+// Helper function to clamp a value between min and max.
+const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
+
+const Tooltip = forwardRef(({
+  orientation: defaultOrientation,
   contentFn,
-  bottomOffset = 0, 
-  enforceBounds = true 
+  topOffset = 40,
+  bottomOffset = 20,
+  enforceBounds = true,
 }, ref) => {
   const tooltipRef = useRef(null);
   const arrowRef = useRef(null);
@@ -15,149 +17,35 @@ const Tooltip = forwardRef(({
   const [content, setContent] = useState('');
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [orientation, setOrientation] = useState(defaultOrientation);
-  const cfn = useMemo(() => contentFn, [contentFn])
+  const [yDiff, setYDiff] = useState(0);
 
-  // keep track if the tooltip is being shoved down by the top of the screen
-  const [yDiff, setYDiff] = useState(0)
+  // Cache content function.
+  const cfn = useMemo(() => contentFn, [contentFn]);
 
   useImperativeHandle(ref, () => ({
     show: (region, layer, x, y) => {
-      if(contentFn) {
-        setContent(cfn(region, layer, defaultOrientation))
-      } else if(layer.tooltip) {
-        setContent(layer.tooltip(region, layer, defaultOrientation))
+      if (contentFn) {
+        setContent(cfn(region, layer, defaultOrientation));
+      } else if (layer.tooltip) {
+        setContent(layer.tooltip(region, layer, defaultOrientation));
       } else {
-        setContent(defaultContent(region, layer, defaultOrientation))
+        setContent(defaultContent(region, layer, defaultOrientation));
       }
       setPosition({ x, y });
       setIsVisible(true);
     },
-    hide: () => {
-      setIsVisible(false);
-    }
-  }))
+    hide: () => setIsVisible(false)
+  }), [cfn, defaultOrientation]);
 
   useEffect(() => {
-    const tooltip = tooltipRef.current;
-    if(tooltip) {
-      tooltip.style.display = isVisible ? 'block' : 'none'
+    if (tooltipRef.current) {
+      tooltipRef.current.style.display = isVisible ? 'block' : 'none';
     }
-  }, [isVisible])
+  }, [isVisible]);
 
-  useEffect(() => {
-    const updatePosition = () => {
-      const tooltip = tooltipRef.current;
-      const arrow = arrowRef.current
-      if (tooltip) {
-        tooltip.style.top = '-1000px'
-        tooltip.style.left = '-1000px'
-        // tooltip.style.display = isVisible ? 'block' : 'none'
-        const tooltipRect = tooltip.getBoundingClientRect();
-        const { width, height } = tooltipRect;
-        const { x, y } = position;
-
-        let newOrientation = defaultOrientation;
-        let tooltipX = x;
-        let tooltipY = y;
-
-        if (defaultOrientation === 'top') {
-          tooltipX = x - width / 2;
-          if(enforceBounds) {
-            if (y - height < 0 && y + height < window.innerHeight) {
-              newOrientation = 'bottom';
-              tooltipY = y + bottomOffset; 
-            } else {
-              tooltipY = y - height; // Adjust the offset as needed
-            }
-          }
-        } else if (defaultOrientation === 'bottom') {
-          tooltipX = x - width / 2;
-          if(enforceBounds) {
-            if (y + height > window.innerHeight) {
-              newOrientation = 'top';
-              tooltipY = y - height - 10; // Adjust the offset as needed
-            } else {
-              tooltipY = y + 10; // Adjust the offset as needed
-            }
-          }
-        } else if (defaultOrientation === 'left') {
-          tooltipY = y - height / 2;
-          tooltipX = x - width;
-          if(enforceBounds) {
-            if (x - width < 0) {
-              newOrientation = 'right';
-              tooltipX = x + 10; // Adjust the offset as needed
-            } else {
-              tooltipX = x - width - 10; // Adjust the offset as needed
-            }
-          }
-        } else if (defaultOrientation === 'right') {
-          tooltipY = y - height / 2;
-          tooltipX = x;
-          if(enforceBounds) {
-            if (x + width > window.innerWidth) {
-              newOrientation = 'left';
-              tooltipX = x - width - 10; // Adjust the offset as needed
-            } else {
-              tooltipX = x + 10; // Adjust the offset as needed
-            }
-          }
-        }
-
-        // Ensure the tooltip stays within the viewport horizontally
-
-        if (tooltipX < 0) {
-          if(newOrientation == 'top' || newOrientation == 'bottom') {
-            arrow.style.marginLeft = tooltipX + "px"
-          }
-          if(enforceBounds) tooltipX = 0;
-        } else if (tooltipX + width > window.innerWidth) {
-          if(enforceBounds) {
-            let dX = tooltipX - (window.innerWidth - width)
-            tooltipX = window.innerWidth - width;
-            if(newOrientation == 'top' || newOrientation == 'bottom') {
-              // arrow.style.marginLeft = dX + "px"
-            }
-          }
-        }
-
-        // TODO: make this a variable depending on the header
-        if(tooltipY < 94) {
-          setYDiff(94 - tooltipY)
-          tooltipY = 94;
-        } else {
-          setYDiff(0)
-        }
-        if(tooltipX < 0) {
-          tooltipX = 0;
-        }
-        setOrientation(newOrientation);
-        tooltip.style.left = `${tooltipX}px`;
-        tooltip.style.top = `${tooltipY}px`;
-        // tooltip.style.display = isVisible ? 'block' : 'none'
-      }
-      // if(!isVisible) {
-      //   tooltip.style.display = 'none'
-      // }
-    };
-    
-
-    updatePosition();
-    window.addEventListener('scroll', updatePosition);
-    window.addEventListener('resize', updatePosition);
-
-    return () => {
-      window.removeEventListener('scroll', updatePosition);
-      window.removeEventListener('resize', updatePosition);
-    };
-  }, [position, defaultOrientation, bottomOffset, enforceBounds]);
-
+  // Memoized arrow style calculation.
   const getArrowStyle = useCallback(() => {
-    const arrowSize = 5;
-    const halfSize = arrowSize / 2;
-
-    // const color = "#efefef"
-    const color = "black"
+    const arrowSize = 5, halfSize = arrowSize / 2, color = 'black';
     switch (orientation) {
       case 'top':
         return {
@@ -198,7 +86,96 @@ const Tooltip = forwardRef(({
       default:
         return {};
     }
-  }, [orientation, yDiff])
+  }, [orientation, yDiff]);
+
+  // Memoized updatePosition callback.
+  const updatePosition = useCallback(() => {
+    const tooltip = tooltipRef.current;
+    if (!tooltip) return;
+  
+    // Move off-screen to measure tooltip size.
+    tooltip.style.top = '-1000px';
+    tooltip.style.left = '-1000px';
+    const { width, height } = tooltip.getBoundingClientRect();
+    const { x, y } = position;
+    let newOrientation = defaultOrientation;
+    let tooltipX, tooltipY;
+  
+    // Calculate initial position based on defaultOrientation.
+    if (defaultOrientation === 'top') {
+      tooltipX = x - width / 2;
+      tooltipY = y - height;
+      if (enforceBounds && tooltipY < topOffset) {
+        newOrientation = 'bottom';
+        tooltipY = y + bottomOffset;
+      }
+    } else if (defaultOrientation === 'bottom') {
+      tooltipX = x - width / 2;
+      tooltipY = y + height;
+      if (enforceBounds && tooltipY > window.innerHeight - height - bottomOffset) {
+        newOrientation = 'top';
+        tooltipY = y - height - 10;
+      }
+    } else if (defaultOrientation === 'left') {
+      tooltipX = x - width - 10;
+      tooltipY = y - height / 2;
+      if (enforceBounds && tooltipX < 0) {
+        newOrientation = 'right';
+        tooltipX = x + 10;
+      }
+    } else if (defaultOrientation === 'right') {
+      tooltipX = x + 10;
+      tooltipY = y - height / 2;
+      if (enforceBounds && tooltipX + width > window.innerWidth) {
+        newOrientation = 'left';
+        tooltipX = x - width - 10;
+      }
+    } else {
+      tooltipX = x;
+      tooltipY = y;
+    }
+  
+    // Clamp horizontal and vertical positions.
+    if (enforceBounds) {
+      tooltipX = clamp(tooltipX, 0, window.innerWidth - width);
+      tooltipY = clamp(tooltipY, topOffset, window.innerHeight - height - bottomOffset);
+    }
+  
+    // Adjust tooltip if it sits exactly at the top boundary.
+    if (tooltipY === topOffset) {
+      setYDiff(topOffset - (y - height));
+    } else {
+      setYDiff(0);
+    }
+  
+    // Extra safeguard for top boundary.
+    if (tooltipY < topOffset) {
+      setYDiff(topOffset - tooltipY);
+      tooltipY = topOffset;
+    }
+  
+    // Ensure tooltipX doesn't fall below 0.
+    if (tooltipX < 0) tooltipX = 0;
+  
+    // Prevent tooltip from extending off the bottom of the viewport.
+    if (tooltipY + height > window.innerHeight) {
+      tooltipY = window.innerHeight - height;
+    }
+  
+    setOrientation(newOrientation);
+    tooltip.style.left = `${tooltipX}px`;
+    tooltip.style.top = `${tooltipY}px`;
+    // (Optional: adjust arrow styling if needed.)
+  }, [position, defaultOrientation, topOffset, bottomOffset, enforceBounds]);
+  useEffect(() => {
+    updatePosition();
+    window.addEventListener('scroll', updatePosition);
+    window.addEventListener('resize', updatePosition);
+    return () => {
+      window.removeEventListener('scroll', updatePosition);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [updatePosition]);
 
   return (
     <div
@@ -207,13 +184,12 @@ const Tooltip = forwardRef(({
         position: 'fixed',
         zIndex: 2000,
         background: '#efefef',
-        border: `1px solid black`,
+        border: '1px solid black',
         color: 'black',
         padding: '5px',
         borderRadius: '4px',
-        pointerEvents: "none",
-        display: 'none'
-        // display: isVisible ? 'block' : 'none',
+        pointerEvents: 'none',
+        display: 'none',
       }}
     >
       {content}
@@ -232,4 +208,3 @@ const Tooltip = forwardRef(({
 
 Tooltip.displayName = 'Tooltip';
 export default Tooltip;
-
