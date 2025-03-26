@@ -15,6 +15,9 @@ export default function HilbertPaths({
 
     let step = Math.pow(0.5, state.order)
     let strokeWidth = sizeScale(step)*strokeWidthMultiplier;
+    if (isNaN(strokeWidth)) { // TODO: figure out why this is happening
+      strokeWidth = 0;
+    }
 
     let chromosomes = groups(state.points, d => d.chromosome)
     let cpoints = chromosomes.flatMap(d => {
