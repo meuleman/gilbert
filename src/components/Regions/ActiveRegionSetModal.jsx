@@ -135,26 +135,32 @@ const ActiveRegionSetModal = () => {
   return (
     // TODO: remove hardcoded width
     <div className="flex-1 pl-1 min-h-0 max-h-full w-[24rem] text-xs overflow-hidden flex flex-col" ref={containerRef}>
-      <div className="h-1/2">
-        <div className="h-3/4 overflow-scroll">
-          <div className="pt-4">
-          {(regionSetNarration || regionSetNarrationLoading) ? <h3 className="text-sm text-gray-500">
-            AI Summary:
-          </h3> : null}
-          <p className="mb-0 text-base text-black font-medium">
-            {regionSetNarrationLoading ? "loading..." : regionSetNarration}
-          </p>
-          </div>
+      <div className="h-1/2 w-full">
+        <div className="h-3/4 flex flex-col">
+          {activeSet && (
+            <div className="pt-2 mx-2 flex-1 flex flex-col min-h-0">
+              <h3 className="text-sm text-gray-500">AI Summary:</h3>
+              {!regionSetNarration ? 
+                <div className="flex-1 flex justify-center items-center">
+                  <Loading />
+                </div>
+              : 
+                <p className="flex-1 text-base text-black font-medium overflow-auto">
+                  {regionSetNarration}
+                </p>
+              }
+            </div>
+          )}
         </div>
         <div className="grow-0 h-1/4 flex flex-col">
           {activeSet && (
-            <>
+            <div className="flex flex-col flex-1 px-2">
               <h3 className="text-sm text-gray-500">
                 Spectrum:
               </h3>
               {activeGenesetEnrichment ?
                 <div className="flex-1 relative">
-                  <div className="absolute inset-0 mr-2">
+                  <div className="absolute inset-0">
                     <Spectrum
                       show
                       windowSize={30}
@@ -166,7 +172,7 @@ const ActiveRegionSetModal = () => {
                   <Loading />
                 </div>
               }
-            </>
+            </div>
           )}
         </div>
       </div>

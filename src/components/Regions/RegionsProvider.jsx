@@ -165,9 +165,11 @@ const RegionsProvider = ({ children }) => {
     if(activeRegions?.length) {
       setFilteredActiveRegions(activeRegions.slice(0,100))
       setFilteredRegionsLoading(false)
+      setActiveGenesetEnrichment(null)
     } else {
       setFilteredActiveRegions(null)
       setFilteredRegionsLoading(false)
+      setActiveGenesetEnrichment(null)
     }
   }, [activeRegions, setFilteredActiveRegions, setFilteredRegionsLoading])
 
@@ -176,6 +178,7 @@ const RegionsProvider = ({ children }) => {
     if(activeFilters.length && activeRegions?.length) {
       setTopNarrations([])
       setFilteredRegionsLoading(true)
+      setActiveGenesetEnrichment(null)
       const filters = activeFilters.map(f => ({
         factor: f.index, 
         // TODO: more permanent solution for handling TF dataset name differences 
