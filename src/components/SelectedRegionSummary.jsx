@@ -41,7 +41,7 @@ const SelectedRegionSummary = ({
   return (
   <>
     {selected && selectedNarration && (
-      <div className="absolute inset-0 bg-white bg-opacity-90">
+      <div className="absolute inset-0 bg-white bg-opacity-90 flex flex-col">
         {/* Header with close button */}
         <div className="relative top-0 left-0 pt-4 pl-2 z-10 flex flex-row items-center space-x-2">
           <button 
@@ -54,25 +54,11 @@ const SelectedRegionSummary = ({
             {showPosition(selected)}
           </div>
         </div>
-        
-        {/* Content with two columns */}
-        <div className="w-full h-full p-4 pt-2 flex">
-          {/* First column - AI Summary */}
+        {/* AI Summary */}
+        <div className="flex-1 px-4 py-2 flex overflow-hidden">
           <div className="w-full pr-2 overflow-auto">
             <RegionAISummary />
           </div>
-          
-          {/* Second column - Region position */}
-          {/* <div className="w-1/2 pl-2">
-            <div className="mb-3 pb-2">
-              <h3 className="text-sm text-gray-500">
-                Region:
-              </h3>
-              <div className="text-sm">
-                {showPosition(selectedNarration.region)}
-              </div>
-            </div>
-          </div> */}
         </div>
       </div>
     )}
