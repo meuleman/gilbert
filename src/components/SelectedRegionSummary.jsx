@@ -48,9 +48,6 @@ const SelectedRegionSummary = ({
           <button 
             className="rounded-md flex items-center justify-center border border-gray-400 bg-white hover:bg-gray-100 text-red-500 px-1.5 py-1 text-sm" 
             onClick={onClose}> Close X </button>
-          <div className="text-lg">
-            {showPosition(selected)}
-          </div>
         </div>
 
         {/* AI Summary */}

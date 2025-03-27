@@ -394,10 +394,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = linearGeno
   return (
     <div ref={containerRef} className="power w-full h-full">
       <div className="flex items-center" style={{ height: `${badgeHeight}px`, minHeight: `${badgeHeight}px` }}>
-        <div className="flex-1 text-left text-xl whitespace-nowrap overflow-hidden text-ellipsis">
-          {currentPreferred?.region && showPosition(currentPreferred.region)}
-        </div>
-        <div className="flex-1 text-right text-xl whitespace-nowrap overflow-hidden text-ellipsis">
+        <div className="flex-1 text-center text-xl whitespace-nowrap overflow-hidden text-ellipsis">
           {currentPreferred?.field ? (
             <>
               <span style={{ color: currentPreferred?.layer?.fieldColor(currentPreferred?.field?.field), marginRight: '4px' }}>

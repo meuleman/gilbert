@@ -176,70 +176,103 @@ const ActiveRegionSetModal = () => {
           )}
         </div>
       </div>
-      <div className="relative h-1/2 flex flex-col pt-10">
-        {activeSet ? <button className="absolute top-0 right-0 mb-2 p-1 z-10 border rounded-md bg-white hover:bg-gray-100 px-1.5 py-1 text-sm" onClick={handleShowMinimap}>
-          {showMinimap ? "Show Region List" : "Show Minimap"}
-        </button> : null}
-        {showMinimap ? <Minimap 
-          width={width}
-          height={height / 2 - 40}
-        />
-        :
-        <div className="pt-1 flex-1 text-xs flex flex-col overflow-hidden">
-          <div className="px-1.5 pb-2.75">
-            <strong>{(() => {
-              // Get region count and text
-              const regionCount = filteredActiveRegions?.length || 0;
-              const regionText = regionCount === 1 ? "region" : "regions";
-              
-              // Build filter fields list if needed
-              let filterInfo = "";
-              if (!!activeSet?.factor || activeFilters?.length > 0) {
-                // Collect all fields from activeSet and activeFilters
-                const fields = [];
-                // Add activeSet factor field if it exists
-                if (activeSet?.factor?.field) fields.push(activeSet.factor.field)
-                // Add all fields from activeFilters
-                fields.push(...activeFilters.map(f => f.field));
-                filterInfo = ` showing ${fields.join(", ")}`;
-              }
-              // Return the full string
-              return `${regionCount} selected ${regionText}${filterInfo}`;
-            })()}</strong>
-          </div>
-          <div className="border-t-1 border-t-separator flex-1 flex flex-col overflow-hidden">
-            <div className="grid grid-cols-regionSet gap-y-1.5 py-2.75">
-              <div className='grid grid-cols-subgrid col-start-1 col-end-4 [&>div:last-child]:pr-1.5'>
-                <div className="col-span-2 px-1.5">
-                  <strong>Position</strong>
-                </div>
-                <div className="col-start-3 col-end-4">
-                  <strong>Score</strong>
-                </div>
+      <div className="relative h-1/2 flex flex-col pt-4">
+        <div className="relative w-full min-h-[25px] flex flex-row justify-between items-center mb-2 border-b-1 border-b-separator">
+          {
+            selected ? (
+              <div className="text-sm font-medium">
+                Selected: {showPosition(selected)}
               </div>
+            ) : null
+          }
+        </div>
+        {activeSet ? (
+          <div className="relative mb-2 border-b-1 border-b-separator flex flex-row justify-between items-start">
+            <div className="text-sm font-medium overflow-auto max-h-[50px] h-[50px] block">
+              {
+                (() => {
+                // Get region count and text
+                const regionCount = filteredActiveRegions?.length || 0;
+                const regionText = regionCount === 1 ? "region" : "regions";
+                
+                // Build filter fields list if needed
+                let filterInfo = "";
+                if (!!activeSet?.factor || activeFilters?.length > 0) {
+                  // Collect all fields from activeSet and activeFilters
+                  const fields = [];
+                  // Add activeSet factor field if it exists
+                  if (activeSet?.factor?.field) fields.push(activeSet.factor.field)
+                  // Add all fields from activeFilters
+                  fields.push(...activeFilters.map(f => f.field));
+                  filterInfo = ` showing ${fields.join(", ")}`;
+                }
+                // Return the full string
+                return `${regionCount} selected ${regionText}${filterInfo}`;
+              })()
+            }
             </div>
-            <div className="flex-1 overflow-auto">
-              <div className="grid grid-cols-regionSet gap-y-1.5">
-              {regions.map((region) => {
-                const regionKey = `${region.order}:${region.chromosome}:${region.i}`
-                return (
-                  <div className="grid grid-cols-subgrid col-start-1 col-end-4 border-t-separator border-t-1 pt-1.5 gap-y-1.5" key={regionKey}>
-                    <div className="px-1.5 col-span-2 underline">
-                      <a href="#gotoRegion" onClick={(event) => {
-                        event.preventDefault()
-                        handleSelectActiveRegionSet(region)
-                      }}>
-                        {showPosition(region)}
-                      </a>
-                    </div>
-                    <div>{region.score?.toFixed(3)}</div>
+          
+            <div className="flex items-center">
+              <label className="inline-flex gap-2 items-center cursor-pointer pr-2">
+                <div className="text-sm font-medium">
+                  Minimap
+                </div>
+                <input
+                  className="absolute -z-50 pointer-events-none opacity-0 peer"
+                  type="checkbox"
+                  checked={showMinimap}
+                  onChange={handleShowMinimap}
+                />
+                <span className="block bg-muted-foreground border-2 border-muted-foreground h-3 w-6 rounded-full after:block after:h-full after:aspect-square after:bg-white after:rounded-full peer-checked:bg-primary peer-checked:border-primary peer-checked:after:ml-[0.725rem]"></span>
+              </label>
+            </div>
+          </div>
+        ) : null}
+        {
+          showMinimap ? (
+            <div className="relative">
+              <Minimap 
+                width={width}
+                height={height / 2 - 110}
+              />
+            </div>
+          )
+          :
+          <div className="pt-1 flex-1 text-xs flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="grid grid-cols-regionSet gap-y-1.5 py-2.75">
+                <div className='grid grid-cols-subgrid col-start-1 col-end-4 [&>div:last-child]:pr-1.5'>
+                  <div className="col-span-2 px-1.5">
+                    <strong>Position</strong>
                   </div>
-                )
-              })}
+                  <div className="col-start-3 col-end-4">
+                    <strong>Score</strong>
+                  </div>
+                </div>
+              </div>
+              <div className="flex-1 overflow-auto">
+                <div className="grid grid-cols-regionSet gap-y-1.5">
+                {regions.map((region) => {
+                  const regionKey = `${region.order}:${region.chromosome}:${region.i}`
+                  return (
+                    <div className="grid grid-cols-subgrid col-start-1 col-end-4 border-t-separator border-t-1 pt-1.5 gap-y-1.5" key={regionKey}>
+                      <div className="px-1.5 col-span-2 underline">
+                        <a href="#gotoRegion" onClick={(event) => {
+                          event.preventDefault()
+                          handleSelectActiveRegionSet(region)
+                        }}>
+                          {showPosition(region)}
+                        </a>
+                      </div>
+                      <div>{region.score?.toFixed(3)}</div>
+                    </div>
+                  )
+                })}
+                </div>
               </div>
             </div>
           </div>
-        </div>}
+        }
       </div>
     </div>
   )

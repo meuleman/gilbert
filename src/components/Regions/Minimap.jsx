@@ -149,7 +149,7 @@ const Minimap = ({
         CanvasRenderers={canvasRenderers}
         HoverRenderers={hoverRenderers}
         SVGRenderers={[
-          SVGChromosomeNames({fontSize: 10}),
+          SVGChromosomeNames({fontSize: 8}),
           SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5 }),
           SVGSelected({ hit: hover, dataOrder: order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes: true }),
           SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25 }),
