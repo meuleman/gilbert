@@ -368,7 +368,6 @@ const LinearGenome = ({
   }, [center, targetRegions, dataOrder])
 
   // TODO: please doublecheck
-  /*
   // when data changes, we want to match them to the current 1D points
   useEffect(() => {
     if(!renderPointsRef.current || !data) return
@@ -388,31 +387,7 @@ const LinearGenome = ({
     // console.log("set data points")
     setDataPoints(dataPoints)
   }, [data])
-  */
   
-  // when data changes, we want to match them to the current 1D points
-  useEffect(() => {
-    if (!renderPointsRef.current || !data) return;
-    
-    // Compute new dataPoints from renderPointsRef
-    const newDataPoints = renderPointsRef.current.reduce((acc, p) => {
-      const found = data.find(d => d.chromosome === p.chromosome && d.i === p.i);
-      if (found) acc.push(found);
-      return acc;
-    }, []);
-    
-    // Only update state if newDataPoints is different from current dataPoints
-    setDataPoints(prevDataPoints => {
-      if (
-        prevDataPoints.length === newDataPoints.length &&
-        prevDataPoints.every((d, i) => d.chromosome === newDataPoints[i].chromosome && d.i === newDataPoints[i].i)
-      ) {
-        return prevDataPoints;
-      }
-      return newDataPoints;
-    });
-  }, [data]);
-
   useEffect(() => {
     // clear the canvas when layer or data changes
     if (canvasRef.current) {
