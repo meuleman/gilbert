@@ -304,7 +304,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 50, badgeH
   // Render the 2D power visualization (unchanged)
   useEffect(() => {
     const or = percentScale(percent);
-    const o = Math.floor(or);
+    const o = Math.max(Math.floor(or), 4);
     setOrder(o);
     const hilbert = new HilbertChromosome(o);
     const step = hilbert.step;
