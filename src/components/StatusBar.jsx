@@ -3,6 +3,7 @@ import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import { sum } from 'd3-array'
 import './StatusBar.css'
 import { format } from "d3-format"
+import { showPosition } from '../lib/display';
 
 const StatusBar = ({
   width = 800,
@@ -78,9 +79,11 @@ const StatusBar = ({
 
   return (
     <div className="bg-statusBar h-6 px-6 text-xs font-mono font-bold flex gap-6 items-center">
-      <div>
-        {hover && <>{hover.chromosome}:{hover.start} (region: {hover.i})</>}
-      </div>
+      {hover && (
+        <div className="text-xs font-mono font-bold status-position-override">
+          {showPosition(hover)} (region: {hover.i})
+        </div>
+      )}
 
       {inside && (<div>Genes in region: {inside} &nbsp;</div>)}
       {outside && (<div>Genes overlapping region: {outside}</div>)}

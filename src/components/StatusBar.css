@@ -86,3 +86,10 @@
   background: gray;
   /* border: 1px solid blue; */
 }
+
+.status-position-override .position,
+.status-position-override .position * {
+  font-weight: bold !important;
+  font-size: 0.75rem !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+}
