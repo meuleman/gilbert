@@ -236,6 +236,7 @@ const SelectedStatesStore = create((set, get) => {
     set({ abstracts: [] });
     set({ prompt: "" });
     set({ abstractsIncluded: true });
+    set({ currentPreferred: null });
   }
 
   return {
@@ -269,6 +270,8 @@ const SelectedStatesStore = create((set, get) => {
     setLoadingRegionCSNS: (loading) => set({ loadingRegionCSNS: loading }),
     selectedGenesetMembership: [],
     setSelectedGenesetMembership: (genesets) => set({ selectedGenesetMembership: genesets }),
+    currentPreferred: null,
+    setCurrentPreferred: (preferred) => set({ currentPreferred: preferred }),
 
     // hover
     hover: null,

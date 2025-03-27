@@ -109,7 +109,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = linearGeno
   const tooltipRef = useRef(null);
 
   const { handleSelectedZoom: onOrder, selectedZoomOrder: userOrder } = useZoom();
-  const { collectFullData: onData, narrationPreview, loadingFullNarration, selectedNarration, fullNarration, selected } = SelectedStatesStore();
+  const { collectFullData: onData, narrationPreview, loadingFullNarration, selectedNarration, fullNarration, selected, currentPreferred, setCurrentPreferred } = SelectedStatesStore();
 
   const [isPreview, setIsPreview] = useState(false);
   useEffect(() => setIsPreview(!!narrationPreview), [narrationPreview]);
@@ -123,7 +123,6 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = linearGeno
   const [percent, setPercent] = useState(userOrder ? percentScale.invert(userOrder) : 1);
   useEffect(() => { setPercent(userOrder ? percentScale.invert(userOrder) : 1); }, [userOrder, percentScale]);
   const [order, setOrder] = useState(userOrder ? userOrder : 4);
-  const [currentPreferred, setCurrentPreferred] = useState(null);
   const radius = 9;
 
   // initialize data to empty data structure so we can render empty hilbert curve while data loads

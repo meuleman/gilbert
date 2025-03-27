@@ -1,9 +1,11 @@
 // A component to display some information below the map when hovering over hilbert cells
+import { useEffect, useState } from 'react';
 import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import { sum } from 'd3-array'
 import './StatusBar.css'
 import { format } from "d3-format"
 import { showPosition } from '../lib/display';
+import SelectedStatesStore from '../states/SelectedStates';
 
 const StatusBar = ({
   width = 800,
@@ -15,6 +17,10 @@ const StatusBar = ({
   orderOffset,
   onOrderOffset = () => { },
 } = {}) => {
+
+  const { selected, currentPreferred } = SelectedStatesStore();
+  const [regionHighlight, setRegionHighlight] = useState(null)
+
   let sample = null
   let sampleSummary = ""
   if (layer && hover && hover.data) {
@@ -76,12 +82,17 @@ const StatusBar = ({
     topCSNRepresented = 0
   }
 
+  useEffect(() => {
+    if(currentPreferred) setRegionHighlight(currentPreferred.region)
+    else if(!selected && hover) setRegionHighlight(hover)
+    else setRegionHighlight(null)
+  }, [hover, currentPreferred, selected, setRegionHighlight])
 
   return (
     <div className="bg-statusBar h-6 px-6 text-xs font-mono font-bold flex gap-6 items-center">
-      {hover && (
+      {regionHighlight && (
         <div className="text-xs font-mono font-bold status-position-override">
-          {showPosition(hover)} (region: {hover.i})
+          {showPosition(regionHighlight)} (region: {regionHighlight.i})
         </div>
       )}
 
