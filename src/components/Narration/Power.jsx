@@ -22,6 +22,7 @@ import { Renderer as CanvasRenderer } from '../Canvas/Renderer';
 
 import { useZoom } from '../../contexts/zoomContext';
 import SelectedStatesStore from '../../states/SelectedStates';
+import LinearGenome from '../../components/LinearGenome'
 
 import Tooltip from '../Tooltips/Tooltip';
 import PropTypes from 'prop-types';
@@ -554,6 +555,18 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
     tooltipRef.current.hide();
   }, []);
 
+  const linearCenter = useMemo(() => {
+    return csn?.path.find(d => d.order === order)?.region
+  }, [csn, order])
+
+  const linearData = useMemo(() => {
+    return data?.find(d => d.order === order)?.data
+  }, [data, order])
+
+  const linearLayer = useMemo(() => {
+    return data.find(d => d.order === order)?.layer
+  }, [data, order])
+
   return (
     <div ref={containerRef} className="power w-full h-full">
       <div className={`max-h-[${badgeHeight}px] flex flex-col`}>
@@ -575,7 +588,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
         <div className="relative">
           {loading && (
             //  bg-white bg-opacity-60
-            <div className="absolute inset-0 flex items-center justify-center transform scale-[1.75]">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none transform scale-[1.75]">
               <Loading />
             </div>
           )}
@@ -587,22 +600,25 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
             ref={canvasRef}
           />
         </div>
-        <canvas
-          className="power-canvas-strip"
-          width={width}
-          height={sheight}
-          style={{ width: width + "px", height: sheight + "px" }}
-          ref={canvasRefStrip}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-        />
-        <canvas
-          className="power-canvas-genes"
-          width={width}
-          height={geneHeight}
-          style={{ width: width + "px", height: geneHeight + "px" }}
-          ref={canvasRefGenes}
-        />
+        {data && (
+          <div className="relative h-24 border-t-1 border-separator">
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+          
+              <LinearGenome
+                center={linearCenter} 
+                data={linearData}
+                dataOrder={order}
+                orderRaw={userOrder}
+                layer={linearLayer}
+                width={width}
+                height={50}
+                mapWidth={width}
+                mapHeight={height}
+                hover={null}
+              />
+            </div>
+          </div>
+        )}
       </div>
       <Tooltip ref={tooltipRef} orientation="bottom" enforceBounds={true} />
     </div>

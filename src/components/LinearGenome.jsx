@@ -21,7 +21,8 @@ const zoomDebounce = debouncer()
 import "./LinearGenome.css"
 
 const LinearGenome = ({
-  // center = null, // center of the view, a region
+  center: propCenter = null, // center of the view, a region
+  orderRaw: propOrderRaw = null,
   hover = null,
   data = [],
   dataOrder = null,
@@ -39,7 +40,7 @@ const LinearGenome = ({
     transform, 
     order, 
     orderZoomScale, 
-    orderRaw, 
+    orderRaw: zoomOrderRaw, 
     zoomMin,
     zoomMax,
     setTransform, 
@@ -47,9 +48,12 @@ const LinearGenome = ({
     setZooming, 
     panning,
     setPanning,
-    center,
+    center: zoomCenter,
     setCenter
   } = useZoom()
+
+  const center = propCenter || zoomCenter;
+  const orderRaw = propOrderRaw || zoomOrderRaw;
 
   let zoomExtent = useMemo(() => [zoomMin, zoomMax], [zoomMin, zoomMax])
 
@@ -385,6 +389,11 @@ const LinearGenome = ({
 
   
   useEffect(() => {
+    // clear the canvas when layer or data changes
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.clearRect(0, 0, width, height);
+    }
     // console.log("render", data.metas, layer, renderPoints)
     if(centerRef.current && data && data.metas && layer) {
       render(centerRef.current, targetRegions, dataPoints, data.metas, layer, renderPoints, activeRegions) 

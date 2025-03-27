@@ -66,6 +66,6 @@ function topValue(d) {
     value: data[f]
   }))
   .sort((a,b) => b.value - a.value)[0]
-  if(top?.value <= 0) return { field: "", value: null }
+  if(!top || top?.value <= 0) return { field: "", value: null }
   return top
 }
