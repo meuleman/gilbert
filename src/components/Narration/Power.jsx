@@ -109,7 +109,13 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = linearGeno
   const tooltipRef = useRef(null);
 
   const { handleSelectedZoom: onOrder, selectedZoomOrder: userOrder } = useZoom();
-  const { collectFullData: onData, narrationPreview, loadingFullNarration, selectedNarration, fullNarration, selected, currentPreferred, setCurrentPreferred } = SelectedStatesStore();
+  const { collectFullData: onData, narrationPreview, loadingFullNarration, selectedNarration, fullNarration, selected, setCurrentPreferred: setCurrentPreferredGlobal } = SelectedStatesStore();
+  
+  const [currentPreferred, setCurrentPreferred] = useState(null);
+  useEffect(() => {
+    // having a local and global (zustand) state for currentPreferred prevents lag with scrollable zoom (too many updates for zustand)
+    setCurrentPreferredGlobal(currentPreferred);
+  }, [currentPreferred]);
 
   const [isPreview, setIsPreview] = useState(false);
   useEffect(() => setIsPreview(!!narrationPreview), [narrationPreview]);
