@@ -1,30 +1,18 @@
 // A component to display some information below the map when hovering over hilbert cells
-import LayerDropdown from './LayerDropdown'
 import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import { sum } from 'd3-array'
-import { Tooltip } from 'react-tooltip';
-
 import './StatusBar.css'
-
 import { format } from "d3-format"
 
 const StatusBar = ({
   width = 800,
   hover = null,
-  // filteredRegions = [],
   regionsByOrder = {},
   topCSNS = new Map(),
   layer,
   zoom,
-  showFilter = false,
-  showDebug = false,
-  showSettings = false,
   orderOffset,
-  onFilter = () => { },
-  onDebug = () => { },
-  onSettings = () => { },
   onOrderOffset = () => { },
-  onClear = () => { },
 } = {}) => {
   let sample = null
   let sampleSummary = ""
@@ -87,14 +75,15 @@ const StatusBar = ({
     topCSNRepresented = 0
   }
 
+
   return (
     <div className="bg-statusBar h-6 px-6 text-xs font-mono font-bold flex gap-6 items-center">
       <div>
         {hover && <>{hover.chromosome}:{hover.start} (region: {hover.i})</>}
       </div>
 
-      {inside && (<div>Gedfnes in region: {inside} &nbsp;</div>)}
-      {outside && (<div>Gendfes overlapping region: {outside}</div>)}
+      {inside && (<div>Genes in region: {inside} &nbsp;</div>)}
+      {outside && (<div>Genes overlapping region: {outside}</div>)}
 
       <div className="ml-auto">
         <div className="flex gap-1">
@@ -110,95 +99,10 @@ const StatusBar = ({
               onChange={(e) => onOrderOffset(+e.target.value)}
             />
           </div>
-          <div>effective order</div>
         </div>
       </div>
     </div>
   )
 
-  // eslint-disable-next-line no-unreachable
-  return (
-    <div className="bg-statusBar h-6 px-6 text-xs font-mono flex gap-6 items-center">
-      <div className="status-bar-row">
-        <div style={{ width: '30px' }}>
-
-        </div>
-        {/* <div className="filtered-regions">
-          {topCSNCount ? <span>{topCSNCount} top path{topCSNCount > 1 ? "s" : ""} (representing {topCSNRepresented} paths)</span> : null}
-          {filteredPathCount ? <span> {filteredPathCount} total filtered paths</span> : null}
-        </div> */}
-        <div className="status-bar-hover">
-          {hover && (
-            <>
-              <span className="status-bar-hover-point">
-                {hover.chromosome}:{hover.start} (region: {hover.i})
-              </span>
-              {sample && sample.field && (<span className="status-bar-hover-data">
-                {sampleSummary}
-              </span>)}
-            </>
-          )}
-        </div>
-
-
-        <div className="genes">
-          {hover && (
-            <>
-              {inside && (<span>
-                Genes in region: {inside} &nbsp;
-              </span>
-
-              )}
-              {outside && (<span>
-                Genes overlapping region: {outside}
-              </span>)}
-            </>
-          )}
-        </div>
-        <div className="settings">
-          <label className="order-offset">
-            <span>Order Offset</span>
-            <input type="number" min={-2} max={2} value={orderOffset} onChange={(e) => onOrderOffset(+e.target.value)} />
-            <span>effective order {zoom.order}</span>
-          </label>
-          {/* <button className={`filter-button ${showFilter ? 'active' : null}`}
-            onClick={() => onFilter(!showFilter)}
-            data-tooltip-id="filter">
-            🔒
-          </button> */}
-          <Tooltip id="filter" place="top" effect="solid" className="tooltip-custom">
-            Filter regions by factor
-          </Tooltip>
-
-          <button className={`clear-button`}
-            onClick={() => onClear()}
-            data-tooltip-id="clear">
-            ❌
-          </button>
-          <Tooltip id="clear" place="top" effect="solid" className="tooltip-custom">
-            Clear all selected state
-          </Tooltip>
-
-          <button className={`settings-button ${showSettings ? 'active' : null}`}
-            onClick={() => onSettings(!showSettings)}
-            data-tooltip-id="settings">
-            {/* <input type="checkbox" checked={showSettings} onChange={onSettings} /> */}
-            ⚙️
-          </button>
-          <Tooltip id="settings" place="top" effect="solid" className="tooltip-custom">
-            Settings panel
-          </Tooltip>
-          <button className={`debug-button ${showDebug ? 'active' : null}`}
-            onClick={() => onDebug(!showDebug)}
-            data-tooltip-id="debug">
-            🐞
-          </button>
-          <Tooltip id="debug" place="top" effect="solid" className="tooltip-custom">
-            Debugging info
-          </Tooltip>
-        </div>
-      </div>
-    </div>
-  )
 }
 export default StatusBar
