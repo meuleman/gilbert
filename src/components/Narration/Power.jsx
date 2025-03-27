@@ -14,6 +14,7 @@ import scaleCanvas from '../../lib/canvas';
 import { getOffsets } from '../../lib/segments';
 import { variantChooser } from '../../lib/csn';
 import { getGencodesInView } from '../../lib/Genes';
+import { linearGenomeHeight } from '../Constants/Constants';
 
 import order_14 from '../../layers/order_14';
 
@@ -81,7 +82,7 @@ function renderPipes(ctx, points, t, o, scales, stroke, sizeMultiple=1) {
 // ------------------
 // Component
 // ------------------
-function PowerModal({ width: propWidth, height: propHeight, sheight = 50, badgeHeight = 30 }) {
+function PowerModal({ width: propWidth, height: propHeight, sheight = linearGenomeHeight, badgeHeight = 30 }) {
   const containerRef = useRef(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   useLayoutEffect(() => {
@@ -272,7 +273,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 50, badgeH
         }));
         setLoading(false);
       },
-      50
+      150
     );
   }, [csn]);
 

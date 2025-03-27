@@ -88,6 +88,8 @@ import { fetchSingleRegionFactorOverlap } from '../lib/regionSetEnrichments';
 
 import RegionStrip from '../components/RegionStrip'
 
+import { linearGenomeHeight } from '../components/Constants/Constants'
+
 
 /**
 BT ADDED IMPORTS
@@ -1104,7 +1106,7 @@ function Home() {
                           activeRegions={filteredRegionsByCurrentOrder}
                           layer={data?.layer}
                           width={width}
-                          height={96}
+                          height={linearGenomeHeight}
                           mapWidth={width}
                           mapHeight={height}
                           hover={hover}
