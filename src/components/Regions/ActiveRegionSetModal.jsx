@@ -240,15 +240,15 @@ const ActiveRegionSetModal = () => {
         ) : null}
         {
           showMinimap ? (
-            <div className="flex flex-col h-full">
-              <div className="min-h-[25px] text-red-500 text-sm font-medium">
+            <div className="flex flex-col h-full mt-8">
+              <div className="min-h-[25px] pl-2 text-red-500 text-xs font-medium">
                 {selected ? showPosition(selected) : null}
               </div>
               
               <div className="flex-1 relative">
                 <Minimap 
                   width={width}
-                  height={height / 2 - 100}
+                  height={height / 2 - 130}
                 />
               </div>
             </div>
@@ -256,7 +256,7 @@ const ActiveRegionSetModal = () => {
           :
           <div className="pt-0 flex-1 text-xs flex flex-col overflow-hidden">
             <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="grid grid-cols-regionSet gap-y-1.5 py-2">
+              <div className="grid grid-cols-regionSet gap-y-1.5 py-1">
                 <div className='grid grid-cols-subgrid col-start-1 col-end-4 [&>div:last-child]:pr-1.5'>
                   <div className="col-span-2 px-1.5">
                     <strong>Position</strong>
