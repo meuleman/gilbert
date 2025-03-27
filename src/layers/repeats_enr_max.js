@@ -31,6 +31,6 @@ function decodeValue(d) {
     field: repeatsFields[data.max_field],
     value: data.max_value
   }
-  if(top.value <= 0) return { field: "", value: null }
+  if(!top || top.value <= 0) return { field: "", value: null }
   return top
 }
