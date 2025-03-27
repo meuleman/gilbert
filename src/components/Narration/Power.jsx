@@ -393,16 +393,16 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 50, badgeH
 
   return (
     <div ref={containerRef} className="power w-full h-full">
-      <div className={`h-[${badgeHeight}px] flex flex-col`}>
-        <div className={`h-[${badgeHeight / 2}px] text-center`}>
-          <div className="text-xl whitespace-nowrap overflow-hidden text-ellipsis">
-            {currentPreferred?.region && showPosition(currentPreferred.region)}
-          </div>
+          <div className={`h-[${badgeHeight}px] flex items-center`}>
+        <div className="flex-1 text-left text-xl whitespace-nowrap overflow-hidden text-ellipsis">
+          {currentPreferred?.region && showPosition(currentPreferred.region)}
         </div>
-        <div className={`text-xl h-[${badgeHeight / 2}px] text-center mb-2 whitespace-nowrap overflow-hidden text-ellipsis`}>
+        <div className="flex-1 text-right text-xl whitespace-nowrap overflow-hidden text-ellipsis">
           {currentPreferred?.field ? (
             <>
-              <span style={{ color: currentPreferred?.layer?.fieldColor(currentPreferred?.field?.field), marginRight: '4px' }}>⏺</span>
+              <span style={{ color: currentPreferred?.layer?.fieldColor(currentPreferred?.field?.field), marginRight: '4px' }}>
+                ⏺
+              </span>
               {currentPreferred?.field?.field} {currentPreferred?.layer?.labelName}
             </>
           ) : null}

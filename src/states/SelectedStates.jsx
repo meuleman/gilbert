@@ -233,9 +233,9 @@ const SelectedStatesStore = create((set, get) => {
     set({ summaryLoading: false });
     set({ request_id: null });
     set({ generated: "" });
-    set({ articles: [] });
+    set({ abstracts: [] });
     set({ prompt: "" });
-    set({ articlesIncluded: true });
+    set({ abstractsIncluded: true });
   }
 
   return {
@@ -299,12 +299,12 @@ const SelectedStatesStore = create((set, get) => {
     setRequest_id: (id) => set({ request_id: id }),
     generated: "",
     setGenerated: (generated) => set({ generated: generated }),
-    articles: [],
-    setArticles: (articles) => set({ articles: articles }),
+    abstracts: [],
+    setAbstracts: (abstracts) => set({ abstracts: abstracts }),
     prompt: "",
     setPrompt: (prompt) => set({ prompt: prompt }),
-    articlesIncluded: true,
-    setArticlesIncluded: (included) => set({ articlesIncluded: included }),
+    abstractsIncluded: true,
+    setAbstractsIncluded: (included) => set({ abstractsIncluded: included }),
 
     // clear selected
     clearSelected,

@@ -41,19 +41,18 @@ const SelectedRegionSummary = ({
   return (
   <>
     {selected && selectedNarration && (
-      <div className="absolute inset-0 bg-white bg-opacity-90 flex flex-col">
+      <div className="absolute inset-0 flex flex-col">
+
         {/* Header with close button */}
-        <div className="relative top-0 left-0 pt-4 pl-2 z-10 flex flex-row items-center space-x-2">
+        <div className="relative top-0 left-0 pt-4 pl-2 z-10 flex flex-row space-x-2">
           <button 
             className="rounded-md flex items-center justify-center border border-gray-400 bg-white hover:bg-gray-100 text-red-500 px-1.5 py-1 text-sm" 
-            onClick={onClose}
-          >
-            Close X
-          </button>
+            onClick={onClose}> Close X </button>
           <div className="text-lg">
             {showPosition(selected)}
           </div>
         </div>
+
         {/* AI Summary */}
         <div className="flex-1 px-4 py-2 flex overflow-hidden">
           <div className="w-full pr-2 overflow-auto">

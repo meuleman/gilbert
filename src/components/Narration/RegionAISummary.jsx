@@ -20,7 +20,7 @@ Additionally, you are provided information on any genes that directly overlap (G
 To aid in functional narration, you are also provided with Gene Ontology genesets (GO) associated with the region, which may constitute important information in combination with all of the above.
 `
 
-const articlesAccess = `
+const abstractsAccess = `
 You also have access to titles and abstracts of research articles that may be relevant to the query, so make sure to use these for additional context and writing style.
 `
 
@@ -60,7 +60,7 @@ Summary:
 
 
 const defaultPrompt = `${termsSection}
-${articlesAccess}
+${abstractsAccess}
 ${tastSection}
 ${examplesSection}
 ${abstractsSection}
@@ -130,19 +130,19 @@ const RegionAISummary = ({} = {}) => {
   const { 
     selectedNarration: narration, query, setQuery, showQuery, setShowQuery,
     showPromptEditor, setShowPromptEditor, summaryLoading: loading, setSummaryLoading: setLoading,
-    request_id, setRequest_id, generated, setGenerated, articles, setArticles, prompt, setPrompt, 
-    articlesIncluded, setArticlesIncluded
+    request_id, setRequest_id, generated, setGenerated, abstracts, setAbstracts, prompt, setPrompt, 
+    abstractsIncluded, setAbstractsIncluded
   } = SelectedStatesStore()
 
   useEffect(() => {
     setPrompt(defaultPrompt)
   }, [])
 
-  const toggleIncludeArticles = (include) => {
-    setArticlesIncluded(include)
+  const toggleIncludeAbstracts = (include) => {
+    setAbstractsIncluded(include)
     let newPrompt = include ? 
       `${termsSection}
-      ${articlesAccess}
+      ${abstractsAccess}
       ${tastSection}
       ${examplesSection}
       ${abstractsSection}
@@ -160,7 +160,7 @@ const RegionAISummary = ({} = {}) => {
 
   const generate = useCallback((providedPrompt = null) => {
     setGenerated("")
-    setArticles([])
+    setAbstracts([])
     let p = providedPrompt || prompt
     if(query !== "") {
       // console.log("THIS IS THE PROMPT WE ARE USING:", p)
@@ -179,7 +179,7 @@ const RegionAISummary = ({} = {}) => {
         .then(data => {
           console.log("generate", data)
           setGenerated(data.summary.replace(/^"(.*)"$/, '$1'))
-          setArticles(data.results)
+          setAbstracts(data.results)
           setRequest_id(data.request_id)
           setLoading(false)
         })
@@ -218,9 +218,9 @@ const RegionAISummary = ({} = {}) => {
       })
   }, [request_id])
 
-  const [showArticles, setShowArticles] = useState(false)
-  const handleShowArticles = () => {
-    setShowArticles(!showArticles)
+  const [showAbstracts, setShowAbstracts] = useState(false)
+  const handleShowAbstracts = () => {
+    setShowAbstracts(!showAbstracts)
   }
 
   useEffect(() => {
@@ -231,27 +231,66 @@ const RegionAISummary = ({} = {}) => {
 
   return (
     <div className="bg-white rounded-md">
-      <p className="mb-5 text-base text-black font-medium">
+        <p className="mb-5 text-base text-black font-medium flex items-center gap-2">
         {loading ? "loading..." : generated}
+        {generated && (
+          <span className="flex items-center gap-2">
+            <button className="p-1 hover:bg-gray-100 rounded" onClick={() => feedback("👍")}>👍</button>
+            <button className="p-1 hover:bg-gray-100 rounded" onClick={() => feedback("👎")}>👎</button>
+          </span>
+        )}
       </p>
-
-      <div className="flex flex-wrap gap-2 mb-4 items-center">
+          
+      <div className="flex flex-wrap gap-2 items-center">
+        <div
+            className="px-3 py-1 text-sm border rounded hover:bg-blue-100 cursor-default"
+            data-tooltip-id="query-tooltip"
+            data-tooltip-content={`Query: ${query}`}
+            style={{ maxWidth: '80ch', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
+          >Hover to show Query</div>
+          <Tooltip 
+            id="query-tooltip" 
+            style={{ maxWidth: '80ch', whiteSpace: 'pre-wrap', wordWrap: 'break-word', zIndex: 9999 }}
+          />
         <button 
           className="px-3 py-1 text-sm border rounded hover:bg-blue-100"
           onClick={() => setShowPromptEditor(!showPromptEditor)}>
           {showPromptEditor ? 'Hide Prompt Editor' : 'Show Prompt Editor'}
         </button>
-        <Checkbox onClick={() => toggleIncludeArticles(!articlesIncluded)} checked={articlesIncluded}>
-          {articlesIncluded ? 'Articles Included' : 'Articles Not Included'}
+        <Checkbox onClick={() => toggleIncludeAbstracts(!abstractsIncluded)} checked={abstractsIncluded}>
+          {abstractsIncluded ? 'Abstracts included' : 'Abstracts excluded'}
         </Checkbox>
+        {generated && abstractsIncluded && (
+            <button 
+              className="px-3 py-1 text-sm border rounded bg-white hover:bg-blue-100"
+              onClick={handleShowAbstracts}>
+              {showAbstracts ? "Hide abstracts" : "Show abstracts"}
+            </button>
+        )}
       </div>
-  
-      <button 
-        className="px-3 py-1 text-sm border rounded hover:bg-blue-100 mb-4"
-        onClick={() => setShowQuery(!showQuery)} 
-        disabled={loading}>
-        {showQuery ? "Hide Query" : "Show Query"}
-      </button>
+
+      {generated && abstractsIncluded && showAbstracts && (
+        <div className="mt-2">
+          <h3 className="text-base font-small mb-1">
+            {abstracts.length} open access PubMed abstracts used:
+          </h3>
+          <ul className="text-xs">
+            {abstracts.map((a, i) => (
+              <li key={a.pmc} className="mb-1">
+                {i + 1}){' '}
+                <a
+                  className="text-blue-600 hover:underline"
+                  href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {a.full_title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {showPromptEditor && (
         <div className="border border-gray-200 rounded-md p-2 mb-4">
@@ -270,56 +309,6 @@ const RegionAISummary = ({} = {}) => {
         </div>
       )}
       
-      {showQuery && (
-        <div className="pb-5">
-          Query: {query}
-        </div>
-      )}
-
-      <Tooltip id="search-debug">
-        <p className="text-xs">search debug: {query}</p>
-      </Tooltip>
-  
-      
-      
-      {/* Results Section */}
-      {generated && (
-        <div className="mt-2">
-          <div className="flex items-center gap-2 mb-4">
-            Summary feedback:
-            <button className="p-1 hover:bg-gray-100 rounded" onClick={() => feedback("👍")}>👍</button>
-            <button className="p-1 hover:bg-gray-100 rounded" onClick={() => feedback("👎")}>👎</button>
-          </div>
-          
-          <button 
-            className="px-3 py-1 text-sm border rounded bg-white hover:bg-blue-100"
-            onClick={handleShowArticles}>
-            {showArticles ? "Hide Supporting Articles" : "Show Supporting Articles"}
-          </button>
-          
-          {showArticles && (
-            <div className="mt-4">
-              <h3 className="text-lg font-medium mb-2">
-                {articles.length} open access PubMed articles found:
-              </h3>
-              <div className="text-sm">
-                {articles.map((a, i) => (
-                  <span className="block mb-2" key={a.pmc}> 
-                    {i+1}) <a 
-                      className="text-blue-600 hover:underline" 
-                      href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} 
-                      target="_blank" 
-                      rel="noreferrer"
-                    >
-                      {a.full_title}
-                    </a>
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
