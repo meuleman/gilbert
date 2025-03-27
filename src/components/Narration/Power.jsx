@@ -81,7 +81,7 @@ function renderPipes(ctx, points, t, o, scales, stroke, sizeMultiple=1) {
 // ------------------
 // Component
 // ------------------
-function PowerModal({ width: propWidth, height: propHeight, sheight = 50, badgeHeight = 50 }) {
+function PowerModal({ width: propWidth, height: propHeight, sheight = 50, badgeHeight = 30 }) {
   const containerRef = useRef(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   useLayoutEffect(() => {
@@ -393,7 +393,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 50, badgeH
 
   return (
     <div ref={containerRef} className="power w-full h-full">
-          <div className={`h-[${badgeHeight}px] flex items-center`}>
+      <div className="flex items-center" style={{ height: `${badgeHeight}px`, minHeight: `${badgeHeight}px` }}>
         <div className="flex-1 text-left text-xl whitespace-nowrap overflow-hidden text-ellipsis">
           {currentPreferred?.region && showPosition(currentPreferred.region)}
         </div>
