@@ -135,7 +135,7 @@ const Minimap = ({
 
   return (
     <div className="absolute x0 y0">
-      <HilbertGenome
+      {(width > 0 && height > 0) ? <HilbertGenome
         orderMin={orderDomain[0]}
         orderMax={orderDomain[1]}
         zoomMin={zoomExtent[0]}
@@ -177,7 +177,7 @@ const Minimap = ({
         // onLayer={handleLayer}
         // debug={showDebug}
         miniMap={true}
-      />
+      /> : null}
     </div>
   )
 }
