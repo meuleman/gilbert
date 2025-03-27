@@ -131,6 +131,16 @@ const ActiveRegionSetModal = () => {
   if (!showActiveRegionSet) {
     return null
   }
+  
+  const [listRegions, setListRegions] = useState([])
+  useEffect(() => {
+    let selectedForList = selected ? {...selected} : null
+    selectedForList ? selectedForList['selected'] = true : null
+    let regionsForList = selectedForList ? [selectedForList].concat(
+      regions.filter(d => !((d.chromosome === selected.chromosome) && (d.i === selected.i) && (d.order === selected.order)))
+    ) : regions
+    setListRegions(regionsForList)
+  }, [regions, selected])
 
   return (
     // TODO: remove hardcoded width
@@ -177,7 +187,7 @@ const ActiveRegionSetModal = () => {
         </div>
       </div>
       <div className="relative h-1/2 flex flex-col pt-4">
-        <div className="relative w-full min-h-[25px] flex flex-row justify-between items-center mb-2 border-b-1 border-b-separator">
+        {/* <div className="relative w-full min-h-[25px] flex flex-row justify-between items-center mb-2 border-b-1 border-b-separator">
           {
             selected ? (
               <div className="text-sm font-medium">
@@ -185,9 +195,9 @@ const ActiveRegionSetModal = () => {
               </div>
             ) : null
           }
-        </div>
+        </div> */}
         {activeSet ? (
-          <div className="relative mb-2 border-b-1 border-b-separator flex flex-row justify-between items-start">
+          <div className="relative mb-2 pt-2 border-y-1 border-y-separator flex flex-row justify-between items-start">
             <div className="text-sm font-medium overflow-auto max-h-[50px] h-[50px] block">
               {
                 (() => {
@@ -212,7 +222,7 @@ const ActiveRegionSetModal = () => {
             }
             </div>
           
-            <div className="flex items-center">
+            <div className="flex items-center pl-2">
               <label className="inline-flex gap-2 items-center cursor-pointer pr-2">
                 <div className="text-sm font-medium">
                   Minimap
@@ -230,17 +240,23 @@ const ActiveRegionSetModal = () => {
         ) : null}
         {
           showMinimap ? (
-            <div className="relative">
-              <Minimap 
-                width={width}
-                height={height / 2 - 110}
-              />
+            <div className="flex flex-col h-full">
+              <div className="min-h-[25px] text-red-500 text-sm font-medium">
+                {selected ? showPosition(selected) : null}
+              </div>
+              
+              <div className="flex-1 relative">
+                <Minimap 
+                  width={width}
+                  height={height / 2 - 100}
+                />
+              </div>
             </div>
           )
           :
-          <div className="pt-1 flex-1 text-xs flex flex-col overflow-hidden">
+          <div className="pt-0 flex-1 text-xs flex flex-col overflow-hidden">
             <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="grid grid-cols-regionSet gap-y-1.5 py-2.75">
+              <div className="grid grid-cols-regionSet gap-y-1.5 py-2">
                 <div className='grid grid-cols-subgrid col-start-1 col-end-4 [&>div:last-child]:pr-1.5'>
                   <div className="col-span-2 px-1.5">
                     <strong>Position</strong>
@@ -252,10 +268,10 @@ const ActiveRegionSetModal = () => {
               </div>
               <div className="flex-1 overflow-auto">
                 <div className="grid grid-cols-regionSet gap-y-1.5">
-                {regions.map((region) => {
+                {listRegions.map((region) => {
                   const regionKey = `${region.order}:${region.chromosome}:${region.i}`
                   return (
-                    <div className="grid grid-cols-subgrid col-start-1 col-end-4 border-t-separator border-t-1 pt-1.5 gap-y-1.5" key={regionKey}>
+                    <div className="grid grid-cols-subgrid col-start-1 col-end-4 border-t-separator border-t-1 pt-1.5 gap-y-1.5" style={{color: region.selected ? "red" : "black"}} key={regionKey}>
                       <div className="px-1.5 col-span-2 underline">
                         <a href="#gotoRegion" onClick={(event) => {
                           event.preventDefault()
