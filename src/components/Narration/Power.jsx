@@ -77,65 +77,11 @@ function renderPipes(ctx, points, t, o, scales, stroke, sizeMultiple=1) {
     ctx.stroke();
   }
 }
-
-// Compute an interpolated x-scale based on current and next order points.
-function computeInterpXScale(currentPoints, nextPoints, orDiff, width) {
-  const curStart = (extent(currentPoints, d => d.start) || [0,0])[0];
-  const curEnd   = (extent(currentPoints, d => d.end)   || [0,width])[1];
-  const nextStart = nextPoints ? (extent(nextPoints, d => d.start) || [curStart, curEnd])[0] : curStart;
-  const nextEnd   = nextPoints ? (extent(nextPoints, d => d.end)   || [curStart, curEnd])[1] : curEnd;
-  const interpStart = interpolateNumber(curStart, nextStart)(orDiff);
-  const interpEnd   = interpolateNumber(curEnd, nextEnd)(orDiff);
-  return scaleLinear().domain([interpStart, interpEnd]).range([0, width]);
-}
-
-// Update render1DStrip to work with a single-order data array.
-function render1DStrip(ctx, currentData, xs, currentOrder, oscale, width, sheight) {
-  // Render only the current order
-  const rh = sheight; // use full strip height 
-  const d = currentData[0]; // expect one element
-  const dhdistance = 16 + 4 * (d.order - 4);
-  d.points
-    .filter(p => p.i > d.region.i - dhdistance && p.i < d.region.i + dhdistance)
-    .forEach(p => {
-      let rectW = xs(p.end) - xs(p.start);
-      if(rectW < 1) rectW = 1;
-      let dp;
-      if(d.order > 4) {
-        const tolerance = 1;
-        dp = d.data.find(dd =>
-          (dd.start <= p.start + tolerance && dd.end >= p.end - tolerance) ||
-          (Math.abs(dd.start - p.start) < tolerance && Math.abs(dd.end - p.end) < tolerance)
-        );
-      } else {
-        dp = d.data.find(dd => dd.i === p.i) ||
-             d.data.find(dd => p.start >= dd.start && p.end <= dd.end);
-      }
-      if(dp && d.layer) {
-        const sample = d.layer.fieldChoice(dp);
-        if(sample && sample.field){
-          ctx.fillStyle = d.layer.name === "Nucleotides"
-            ? d.layer.fieldColor(sample.value)
-            : d.layer.fieldColor(sample.field);
-        }
-      } else {
-        ctx.fillStyle = "#eee";
-      }
-      // Full opacity for current order.
-      ctx.globalAlpha = 1;
-      ctx.fillRect(xs(p.start), 0, rectW - 0.5, rh - 1);
-    });
-  // Highlight the current order's region.
-  ctx.globalAlpha = 1;
-  ctx.strokeStyle = "black";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(xs(d.region.start), 0, xs(d.region.end) - xs(d.region.start) - 0.5, rh - 1);
-}
   
 // ------------------
 // Component
 // ------------------
-function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHeight = 64, badgeHeight = 50, onPercent }) {
+function PowerModal({ width: propWidth, height: propHeight, sheight = 50, badgeHeight = 50 }) {
   const containerRef = useRef(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   useLayoutEffect(() => {
@@ -156,11 +102,9 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
   }, []);
   
   const width = propWidth || containerSize.width;
-  const height = propHeight || (containerSize.height - sheight - geneHeight - badgeHeight);
+  const height = propHeight || (containerSize.height - sheight - badgeHeight);
 
   const canvasRef = useRef(null);
-  const canvasRefStrip = useRef(null);
-  const canvasRefGenes = useRef(null);
   const tooltipRef = useRef(null);
 
   const { handleSelectedZoom: onOrder, selectedZoomOrder: userOrder } = useZoom();
@@ -250,11 +194,6 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
       scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height);
     }
   }, [canvasRef, width, height]);
-  useEffect(() => {
-    if (canvasRefStrip.current) {
-      scaleCanvas(canvasRefStrip.current, canvasRefStrip.current.getContext("2d"), width, sheight);
-    }
-  }, [canvasRefStrip, width, sheight]);
 
   // Data fetching
   const dataDebounce = debouncer();
@@ -435,126 +374,6 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
     }
   }, [percent, percentScale, csn, data, oscale, width, height, zoomToBox, scales]);
 
-  // Optimized Render for the 1D Strip
-  useEffect(() => {
-    const or = percentScale(percent);
-    const o = Math.floor(or);
-    const dCurrent = data?.find(d => d.order === o);
-    if(dCurrent && canvasRefStrip.current) {
-      const r = dCurrent.region;
-      const hdistance = 16 + 4 * (o - 4);
-      const pointso = dCurrent.points.filter(d => 
-        d.chromosome === r.chromosome && d.i > r.i - hdistance && d.i < r.i + hdistance
-      );
-      const xExtentStart = extent(pointso, d => d.start);
-      const xExtentEnd = extent(pointso, d => d.end);
-      let xs = scaleLinear().domain([xExtentStart[0], xExtentEnd[1]]).range([0, width]);
-      
-      // Interpolate with next order if available.
-      const no = o + 1;
-      const dnorder = data.find(d => d.order === no);
-      let nxExtentStart, nxExtentEnd;
-      if(dnorder) {
-        const nr = dnorder.region;
-        const nhdistance = 16 + 4 * (no - 4);
-        const pointsno = dnorder.points.filter(d =>
-          d.chromosome === r.chromosome && d.i > nr.i - nhdistance && d.i < nr.i + nhdistance
-        );
-        nxExtentStart = extent(pointsno, d => d.start);
-        nxExtentEnd = extent(pointsno, d => d.end);
-      } else {
-        const rw = r.end - r.start;
-        nxExtentStart = [r.start - rw * 16, 0];
-        nxExtentEnd = [0, r.end + rw * 16];
-      }
-      const interpolateStart = interpolateNumber(xExtentStart[0], nxExtentStart[0]);
-      const interpolateEnd = interpolateNumber(xExtentEnd[1], nxExtentEnd[1]);
-      xs = scaleLinear().domain([
-        interpolateStart(or - o),
-        interpolateEnd(or - o)
-      ]).range([0, width]);
-      setInterpXScale(() => xs);
-      const ctxs = canvasRefStrip.current.getContext('2d');
-      ctxs.clearRect(0, 0, width, sheight);
-      // Render only the current order by sending it as a single-element array.
-      render1DStrip(ctxs, [dCurrent], xs, o, oscale, width, sheight);
-    }
-  }, [percent, percentScale, csn, data, width, sheight, oscale]);
-
-
-  // Render the Gene tracks (using similar interpolation as before)
-  useEffect(() => {
-    const or = percentScale(percent);
-    const o = Math.floor(or);
-    const hilbert = new HilbertChromosome(o);
-    if(canvasRefGenes.current && data) {
-      const dorder = data.find(d => d.order === o);
-      if(dorder) {
-        const r = dorder.region;
-        const ctxs = canvasRefGenes.current.getContext('2d');
-        ctxs.clearRect(0, 0, width, geneHeight);
-        const hdistance = 16 + 4 * (o - 4);
-        const pointso = dorder.points.filter(d => d.chromosome === r.chromosome && d.i > r.i - hdistance && d.i < r.i + hdistance);
-        const xExtentStart = extent(pointso, d => d.start);
-        const xExtentEnd = extent(pointso, d => d.end);
-        let xs = scaleLinear().domain([xExtentStart[0], xExtentEnd[1]]).range([0, width]);
-        const no = o + 1;
-        const dnorder = data.find(d => d.order === no);
-        let nxExtentStart, nxExtentEnd;
-        if(dnorder) {
-          const nr = dnorder.region;
-          const nhdistance = 16 + 4 * (no - 4);
-          const pointsno = dnorder.points.filter(d => d.chromosome === r.chromosome && d.i > nr.i - nhdistance && d.i < nr.i + nhdistance);
-          nxExtentStart = extent(pointsno, d => d.start);
-          nxExtentEnd = extent(pointsno, d => d.end);
-        } else {
-          const rw = r.end - r.start;
-          nxExtentStart = [r.start - rw*16, 0];
-          nxExtentEnd = [0, r.end + rw*16];
-        }
-        const interpolateStart = interpolateNumber(xExtentStart[0], nxExtentStart[0]);
-        const interpolateEnd = interpolateNumber(xExtentEnd[1], nxExtentEnd[1]);
-        xs = scaleLinear().domain([
-          interpolateStart(or - o),
-          interpolateEnd(or - o)
-        ]).range([0, width]);
-        const gs = getGencodesInView(pointso, o, 100000000);
-        ctxs.globalAlpha = 1;
-        gs.forEach((g, i) => {
-          let xpos = xs(g.start);
-          if(xpos < 10) xpos = 10;
-          if(xpos > width - 10) xpos = width - 10;
-          ctxs.fillStyle = "black";
-          ctxs.fillText(g.hgnc, Math.floor(xpos), Math.floor(geneHeight - i - 5));
-          ctxs.beginPath();
-          const y = geneHeight - i;
-          ctxs.moveTo(Math.floor(xs(g.start)), y);
-          ctxs.lineTo(Math.floor(xs(g.end)), y);
-          ctxs.strokeStyle = "black";
-          ctxs.lineWidth = 2;
-          ctxs.stroke();
-        });
-      }
-    }
-  }, [percent, percentScale, data, width, geneHeight]);
-
-  const handleMouseMove = useCallback(e => {
-    const { clientX } = e;
-    const rect = e.target.getBoundingClientRect();
-    const xPos = clientX - rect.x;
-    let start = interpXScale.invert(xPos);
-    const dataRegion = data?.find(d => d.order === order);
-    if(!dataRegion) return;
-    const dFound = dataRegion.data.find(dd => dd.start <= start && dd.end >= start);
-    if(dFound){
-      tooltipRef.current.show(dFound, dataRegion.layer, clientX, rect.top + sheight + 5);
-    }
-  }, [data, interpXScale, order, sheight]);
-  
-  const handleMouseLeave = useCallback(() => {
-    tooltipRef.current.hide();
-  }, []);
-
   const linearCenter = useMemo(() => {
     return csn?.path.find(d => d.order === order)?.region
   }, [csn, order])
@@ -569,13 +388,13 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
 
   return (
     <div ref={containerRef} className="power w-full h-full">
-      <div className={`max-h-[${badgeHeight}px] flex flex-col`}>
-        <div className="min-h-[25px] text-center" style={{ maxWidth: width + "px" }}>
-          <div className="text-xl">
+      <div className={`h-[${badgeHeight}px] flex flex-col`}>
+        <div className={`h-[${badgeHeight / 2}px] text-center`}>
+          <div className="text-xl whitespace-nowrap overflow-hidden text-ellipsis">
             {currentPreferred?.region && showPosition(currentPreferred.region)}
           </div>
         </div>
-        <div className="text-xl min-h-[25px] text-center mb-2" style={{ maxWidth: width + "px" }}>
+        <div className={`text-xl h-[${badgeHeight / 2}px] text-center mb-2 whitespace-nowrap overflow-hidden text-ellipsis`}>
           {currentPreferred?.field ? (
             <>
               <span style={{ color: currentPreferred?.layer?.fieldColor(currentPreferred?.field?.field), marginRight: '4px' }}>⏺</span>
@@ -601,9 +420,8 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
           />
         </div>
         {data && (
-          <div className="relative h-24 border-t-1 border-separator">
+          <div className="relative h-24 border-separator">
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-          
               <LinearGenome
                 center={linearCenter} 
                 data={linearData}
@@ -611,7 +429,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 30, geneHe
                 orderRaw={userOrder}
                 layer={linearLayer}
                 width={width}
-                height={50}
+                height={sheight}
                 mapWidth={width}
                 mapHeight={height}
                 hover={null}
