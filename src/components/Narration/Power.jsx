@@ -282,7 +282,12 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = 50, badgeH
     setPercent(prev => {
       let newP = prev + delta * 0.01;
       newP = Math.max(0, Math.min(100, newP));
-      onOrder(percentScale(newP));
+      
+      // Defer update of ZoomProvider until after render:
+      requestAnimationFrame(() => {
+        onOrder(percentScale(newP));
+      });
+      
       return newP;
     });
   }, [onOrder, percentScale]);
