@@ -28,6 +28,7 @@ import LinearGenome from '../../components/LinearGenome'
 import Tooltip from '../Tooltips/Tooltip';
 import PropTypes from 'prop-types';
 import './Power.css';
+import { throttle } from 'lodash';
 
 // ------------------
 // Helper Rendering Functions
@@ -282,21 +283,45 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = linearGeno
     );
   }, [csn]);
 
+  const throttledWheel = useCallback(
+    throttle((delta) => {
+      setPercent(prev => {
+        const newP = Math.max(0, Math.min(100, prev + delta * 0.01));
+
+        // Defer update of ZoomProvider until after render:
+        requestAnimationFrame(() => {
+          onOrder(percentScale(newP));
+        });
+        // onOrder(percentScale(newP))
+
+        return newP;
+      });
+    }, 22), // ~45fps
+    [onOrder, percentScale]
+  );
+
   const handleWheel = useCallback(event => {
     event.preventDefault();
-    const delta = -event.deltaY;
-    setPercent(prev => {
-      let newP = prev + delta * 0.01;
-      newP = Math.max(0, Math.min(100, newP));
+    throttledWheel(-event.deltaY);
+  }, [throttledWheel]);
+
+  // const handleWheel = useCallback(event => {
+  //   event.preventDefault();
+  //   const delta = -event.deltaY;
+  //   setPercent(prev => {
+  //     let newP = prev + delta * 0.01;
+  //     newP = Math.max(0, Math.min(100, newP));
       
-      // Defer update of ZoomProvider until after render:
-      requestAnimationFrame(() => {
-        onOrder(percentScale(newP));
-      });
+  //     // Defer update of ZoomProvider until after render:
+  //     requestAnimationFrame(() => {
+  //       onOrder(percentScale(newP));
+  //     });
+  //     // onOrder(percentScale(newP))
       
-      return newP;
-    });
-  }, [onOrder, percentScale]);
+  //     return newP;
+  //   });
+  // }, [onOrder, percentScale]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
@@ -307,83 +332,181 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = linearGeno
 
   const oscale = useMemo(() => scaleLinear().domain([0, 0.5]).range([1, 0]).clamp(true), []);
 
-  // Render the 2D power visualization (unchanged)
-  useEffect(() => {
+  // memoized transform
+  const transformResult = useMemo(() => {
+    if (!data) return null;
+    
     const or = percentScale(percent);
     const o = Math.max(Math.floor(or), 4);
-    setOrder(o);
     const hilbert = new HilbertChromosome(o);
     const step = hilbert.step;
-    if (canvasRef.current && data) { //csn && csn.path && 
-      const d = data.find(d => d.order === o);
-      if(d) {
-        setCurrentPreferred(d.p);
-        const r = d.region;
-        let transform;
-        const no = o + 1;
-        const nd = data.find(d => d.order === no);
-        if(nd) {
-          const t = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, 0.25);
-          const nStep = new HilbertChromosome(no).step;
-          const nt = zoomToBox(nd.region.x, nd.region.y, nd.region.x + nStep, nd.region.y + nStep, no, 0.25);
-          transform = interpolateObject(t, nt)(or - o);
-        } else {
-          const scalerVal = 0.25 + (or - o);
-          transform = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, scalerVal);
-        }
-        const meta = d.data.metas?.find(meta => meta.chromosome === r.chromosome) || {};
-        const ctx = canvasRef.current.getContext('2d');
-        ctx.clearRect(0, 0, width, height);
-        if(d.layer){
-          CanvasRenderer(d.layer.renderer, { 
-            scales, 
-            state: { 
-              data: d.data.filter(dd => dd.chromosome === r.chromosome),
-              loading: false,
-              points: d.points,
-              meta,
-              order: o,
-              transform
-            }, 
-            layer: d.layer, 
-            canvasRef 
-          });
-        } else {
-          renderPipes(ctx, d.points, transform, o, scales, "#eee", 0.25);
-        }
-        ctx.lineWidth = 0.5;
-        if(o > 4) {
-          const pd = data.find(d => d.order === o - 1);
-          ctx.globalAlpha = oscale(or - o);
-          if(pd && pd.layer) {
-            CanvasRenderer(pd.layer.renderer, { 
-              scales,
-              state: { 
-                data: pd.data.filter(dd => dd.chromosome === r.chromosome),
-                loading: false,
-                points: pd.points,
-                meta: pd.data.metas.find(meta => meta.chromosome === pd.region.chromosome),
-                order: o - 1,
-                transform
-              },
-              layer: pd.layer,
-              canvasRef
-            });
-          } else if(pd) {
-            renderPipes(ctx, pd.points, transform, o - 1, scales, "#eee", 0.25);
-          }
-          const lr = data.find(d => d.order === o - 1);
-          ctx.lineWidth = 2;
-          ctx.strokeStyle = "black";
-          if(lr) renderSquares(ctx, [lr.region], transform, o - 1, scales, false, "black");
-        }
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "black";
-        ctx.globalAlpha = 1; // Ensure full opacity for the outline
-        renderSquares(ctx, [r], transform, o, scales, false, "black");
-      }
+    
+    const d = data.find(d => d.order === o);
+    if (!d) return null;
+    
+    const r = d.region;
+    const no = o + 1;
+    const nd = data.find(d => d.order === no);
+    
+    let transform;
+    if(nd) {
+      const t = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, 0.25);
+      const nStep = new HilbertChromosome(no).step;
+      const nt = zoomToBox(nd.region.x, nd.region.y, nd.region.x + nStep, nd.region.y + nStep, no, 0.25);
+      transform = interpolateObject(t, nt)(or - o);
+    } else {
+      const scalerVal = 0.25 + (or - o);
+      transform = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, scalerVal);
     }
-  }, [percent, percentScale, csn, data, oscale, width, height, zoomToBox, scales]);
+
+    return {
+      transform,
+      order: o,
+      region: r,
+      data: d,
+      or: or
+    };
+  }, [percent, percentScale, data, zoomToBox]);
+
+  useEffect(() => {
+    if (!canvasRef.current || !transformResult) return;
+    
+    const { transform, order: o, region: r, data: d, or } = transformResult;
+    setOrder(o);
+    setCurrentPreferred(d.p);
+    
+    const meta = d.data.metas?.find(meta => meta.chromosome === r.chromosome) || {};
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.clearRect(0, 0, width, height);
+    
+    if(d.layer) {
+      CanvasRenderer(d.layer.renderer, { 
+        scales, 
+        state: { 
+          data: d.data.filter(dd => dd.chromosome === r.chromosome),
+          loading: false,
+          points: d.points,
+          meta,
+          order: o,
+          transform
+        }, 
+        layer: d.layer, 
+        canvasRef 
+      });
+    } else {
+      renderPipes(ctx, d.points, transform, o, scales, "#eee", 0.25);
+    }
+    
+    ctx.lineWidth = 0.5;
+    if(o > 4) {
+      const pd = data.find(d => d.order === o - 1);
+      ctx.globalAlpha = oscale(or - o);
+      if(pd && pd.layer) {
+        CanvasRenderer(pd.layer.renderer, { 
+          scales,
+          state: { 
+            data: pd.data.filter(dd => dd.chromosome === r.chromosome),
+            loading: false,
+            points: pd.points,
+            meta: pd.data.metas.find(meta => meta.chromosome === pd.region.chromosome),
+            order: o - 1,
+            transform
+          },
+          layer: pd.layer,
+          canvasRef
+        });
+      } else if(pd) {
+        renderPipes(ctx, pd.points, transform, o - 1, scales, "#eee", 0.25);
+      }
+      const lr = data.find(d => d.order === o - 1);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "black";
+      if(lr) renderSquares(ctx, [lr.region], transform, o - 1, scales, false, "black");
+    }
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "black";
+    ctx.globalAlpha = 1; // Ensure full opacity for the outline
+    renderSquares(ctx, [r], transform, o, scales, false, "black");
+    
+  }, [transformResult, width, height, scales, data, oscale]);
+
+  // // Render the 2D power visualization (unchanged)
+  // useEffect(() => {
+  //   const or = percentScale(percent);
+  //   const o = Math.max(Math.floor(or), 4);
+  //   setOrder(o);
+  //   const hilbert = new HilbertChromosome(o);
+  //   const step = hilbert.step;
+  //   if (canvasRef.current && data) { //csn && csn.path && 
+  //     const d = data.find(d => d.order === o);
+  //     if(d) {
+  //       setCurrentPreferred(d.p);
+  //       const r = d.region;
+  //       let transform;
+  //       const no = o + 1;
+  //       const nd = data.find(d => d.order === no);
+  //       if(nd) {
+  //         const t = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, 0.25);
+  //         const nStep = new HilbertChromosome(no).step;
+  //         const nt = zoomToBox(nd.region.x, nd.region.y, nd.region.x + nStep, nd.region.y + nStep, no, 0.25);
+  //         transform = interpolateObject(t, nt)(or - o);
+  //       } else {
+  //         const scalerVal = 0.25 + (or - o);
+  //         transform = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, scalerVal);
+  //       }
+  //       const meta = d.data.metas?.find(meta => meta.chromosome === r.chromosome) || {};
+  //       const ctx = canvasRef.current.getContext('2d');
+  //       ctx.clearRect(0, 0, width, height);
+  //       if(d.layer){
+  //         CanvasRenderer(d.layer.renderer, { 
+  //           scales, 
+  //           state: { 
+  //             data: d.data.filter(dd => dd.chromosome === r.chromosome),
+  //             loading: false,
+  //             points: d.points,
+  //             meta,
+  //             order: o,
+  //             transform
+  //           }, 
+  //           layer: d.layer, 
+  //           canvasRef 
+  //         });
+  //       } else {
+  //         renderPipes(ctx, d.points, transform, o, scales, "#eee", 0.25);
+  //       }
+  //       ctx.lineWidth = 0.5;
+  //       if(o > 4) {
+  //         const pd = data.find(d => d.order === o - 1);
+  //         ctx.globalAlpha = oscale(or - o);
+  //         if(pd && pd.layer) {
+  //           CanvasRenderer(pd.layer.renderer, { 
+  //             scales,
+  //             state: { 
+  //               data: pd.data.filter(dd => dd.chromosome === r.chromosome),
+  //               loading: false,
+  //               points: pd.points,
+  //               meta: pd.data.metas.find(meta => meta.chromosome === pd.region.chromosome),
+  //               order: o - 1,
+  //               transform
+  //             },
+  //             layer: pd.layer,
+  //             canvasRef
+  //           });
+  //         } else if(pd) {
+  //           renderPipes(ctx, pd.points, transform, o - 1, scales, "#eee", 0.25);
+  //         }
+  //         const lr = data.find(d => d.order === o - 1);
+  //         ctx.lineWidth = 2;
+  //         ctx.strokeStyle = "black";
+  //         if(lr) renderSquares(ctx, [lr.region], transform, o - 1, scales, false, "black");
+  //       }
+  //       ctx.lineWidth = 2;
+  //       ctx.strokeStyle = "black";
+  //       ctx.globalAlpha = 1; // Ensure full opacity for the outline
+  //       renderSquares(ctx, [r], transform, o, scales, false, "black");
+  //     }
+  //   }
+  // }, [percent, percentScale, csn, data, oscale, width, height, zoomToBox, scales]);
 
   const linearCenter = useMemo(() => {
     return csn?.path.find(d => d.order === order)?.region

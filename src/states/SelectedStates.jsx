@@ -12,7 +12,13 @@ const SelectedStatesStore = create((set, get) => {
     if (region) {
       fetchSingleRegionFactorOverlap({ region, factorExclusion })
         .then((response) => {
-          let topSubregionFactors = response.map(f => {
+          // change TF full to TF top10 for faster power rendering
+          // TODO: more permanent solution for this?
+          const transformedResponse = response.map(f => ({
+            ...f,
+            dataset: f.dataset === "tf_1en6_enr" ? "tf_1en6_enr_top10" : f.dataset
+          }));
+          let topSubregionFactors = transformedResponse.map(f => {
             let layer = layers.find(d => d.datasetName == f.dataset);
             let factorName = layer.fieldColor.domain()[f.factor];
             return { ...f, factorName, color: layer.fieldColor(factorName), layer };

@@ -134,34 +134,34 @@ const assignSubpath = function(paths, topFactors, regionOrder) {
 
 // find the top factors by selecting one factor per order
 const getTopFactors = function(factorData, maxPerOrder = 5) {
-    let allSegments = factorData.flatMap((d, i) => d.segments.map(s => ({...s, dataset: i}))).sort((a, b) => b.score - a.score)
+    let allSegments = factorData.flatMap((d, i) => d.segments.map(s => ({...s, factor: i}))).sort((a, b) => b.score - a.score)
     let topFactorSegments = []
-    let processedDatasets = new Set()
+    let processedFactors = new Set()
     let orderCounts = {}
     for (let i = 4; i <= 14; i++) orderCounts[i] = 0
 
     // reserve order 14 for variants
-    let variantDatasets = factorData.map((d, i) => d.dataset === "ukbb_94_traits" ? i : -1).filter(i => i > -1)
-    if(variantDatasets.length > 0) {
-        allSegments = allSegments.filter(s => !((s.order === 14) && (!variantDatasets.includes(s.dataset))))
+    let variantFactors = factorData.map((d, i) => d.dataset === "ukbb_94_traits" ? i : -1).filter(i => i > -1)
+    if(variantFactors.length > 0) {
+        allSegments = allSegments.filter(s => !((s.order === 14) && (!variantFactors.includes(s.factor))))
     }
 
     // find the top segments for each order
     for (let i = 0; i < allSegments.length; i++) {
         let topSegment = allSegments[i]
-        if (!processedDatasets.has(topSegment.dataset) && orderCounts[topSegment.order] < maxPerOrder) {
+        if (!processedFactors.has(topSegment.factor) && orderCounts[topSegment.order] < maxPerOrder) {
             topFactorSegments.push(topSegment)
-            processedDatasets.add(topSegment.dataset)
+            processedFactors.add(topSegment.factor)
             orderCounts[topSegment.order] += 1
         }
     }
 
     // assign the top segment to the factor data
     factorData = factorData.map((d, i) => {
-        let factorTopSegment = topFactorSegments.filter(s => s.dataset === i)
+        let factorTopSegment = topFactorSegments.filter(s => s.factor === i)
         if(factorTopSegment.length === 1) {
             let segment = factorTopSegment[0]
-            delete segment.dataset
+            delete segment.factor
             d.topSegment = segment
         }
         return d

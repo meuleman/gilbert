@@ -84,7 +84,6 @@ import SelectedModal from '../components/SelectedModal'
 import InspectorGadget from '../components/InspectorGadget'
 import SelectedRegionSummary from '../components/SelectedRegionSummary'
 import SimSearchResultList from '../components/SimSearch/ResultList'
-import { fetchSingleRegionFactorOverlap } from '../lib/regionSetEnrichments';
 
 import RegionStrip from '../components/RegionStrip'
 
