@@ -196,11 +196,10 @@ const ActiveRegionSetModal = () => {
             ) : null
           }
         </div> */}
-        {activeSet ? (
-          <div className="relative mb-2 pt-2 border-y-1 border-y-separator flex flex-row justify-between items-start">
-            <div className="text-sm font-medium overflow-auto max-h-[50px] h-[50px] block">
-              {
-                (() => {
+        <div className="relative mb-2 pt-2 border-y-1 border-y-separator flex flex-row justify-between items-start min-h-[60px]">
+          <div className="text-sm font-medium overflow-auto max-h-[50px] h-[50px] block">
+            {activeSet ? (
+              (() => {
                 // Get region count and text
                 const regionCount = filteredActiveRegions?.length || 0;
                 const regionText = regionCount === 1 ? "region" : "regions";
@@ -219,25 +218,27 @@ const ActiveRegionSetModal = () => {
                 // Return the full string
                 return `${regionCount} selected ${regionText}${filterInfo}`;
               })()
-            }
-            </div>
-          
-            <div className="flex items-center pl-2">
-              <label className="inline-flex gap-2 items-center cursor-pointer pr-2">
-                <div className="text-sm font-medium">
-                  Minimap
-                </div>
-                <input
-                  className="absolute -z-50 pointer-events-none opacity-0 peer"
-                  type="checkbox"
-                  checked={showMinimap}
-                  onChange={handleShowMinimap}
-                />
-                <span className="block bg-muted-foreground border-2 border-muted-foreground h-3 w-6 rounded-full after:block after:h-full after:aspect-square after:bg-white after:rounded-full peer-checked:bg-primary peer-checked:border-primary peer-checked:after:ml-[0.725rem]"></span>
-              </label>
-            </div>
+            ) : (
+              null
+            )}
           </div>
-        ) : null}
+
+          <div className="flex items-center pl-2">
+            <label className={`inline-flex gap-2 items-center cursor-pointer pr-2 ${!activeSet ? "opacity-50 pointer-events-none" : ""}`}>
+              <div className="text-sm font-medium">
+                Minimap
+              </div>
+              <input
+                className="absolute -z-50 pointer-events-none opacity-0 peer"
+                type="checkbox"
+                checked={showMinimap}
+                onChange={handleShowMinimap}
+                disabled={!activeSet}
+              />
+              <span className="block bg-muted-foreground border-2 border-muted-foreground h-3 w-6 rounded-full after:block after:h-full after:aspect-square after:bg-white after:rounded-full peer-checked:bg-primary peer-checked:border-primary peer-checked:after:ml-[0.725rem]"></span>
+            </label>
+          </div>
+        </div>
         {
           showMinimap ? (
             <div className="flex flex-col h-full mt-8">
