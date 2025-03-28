@@ -69,7 +69,7 @@ ${taskSection}
 `
 
 // generate query from narration for summary
-export const generateQuery = (narration) => {
+const generateQuery = (narration) => {
   let order = Math.max(...narration.path.map(d => d.order))
   let scale = showKb(4 ** (14 - order)).join("") + " SCALE"
   

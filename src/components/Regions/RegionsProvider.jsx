@@ -9,7 +9,6 @@ import { fetchGenesetEnrichment } from '../../lib/genesetEnrichment';
 import { csnLayers, variantLayers, makeField, csnLayerList } from '../../layers'
 import { fetchRegionSetEnrichments } from '../../lib/regionSetEnrichments';
 import { fetchGenes } from '../../lib/genesForRegions';
-import { generateQuery } from '../Narration/RegionAISummary';
 
 // import { v4 as uuidv4 } from 'uuid';
 

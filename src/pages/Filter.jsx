@@ -22,7 +22,6 @@ import {
 import { csnLayers, variantLayers} from '../layers'
 
 import LogoNav from '../components/LogoNav';
-import InspectorGadget from '../components/InspectorGadget';
 import VerticalSankey from '../components/Narration/VerticalSankey';
 import ZoomLine from '../components/Narration/ZoomLine';
 import FilterSelects from '../components/ComboLock/FilterSelects';
@@ -317,7 +316,7 @@ const Filter = () => {
                 <h4>Selected CSN</h4>
                 <p>Index: {csns.indexOf(selectedCSN)}</p>
                 <p>Score: {selectedCSN.score} </p>
-                <InspectorGadget 
+                {/* <InspectorGadget 
                   selected={selectedCSN} 
                   zoomOrder={max(Object.keys(orderSelects), d => +d) + 0.5}
                   narration={selectedCSN}
@@ -329,7 +328,7 @@ const Filter = () => {
                   tipOrientation="right"
                   modalPosition={{top: 0, left: 0}}
                   onClose={() => {}}
-                ></InspectorGadget>
+                ></InspectorGadget> */}
                 {/* <PowerModal 
                   csn={selectedCSN} 
                   width={400} 

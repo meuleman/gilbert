@@ -81,7 +81,6 @@ import useCanvasAnnotationRegions from '../components/Canvas/Annotation';
 
 import { getSet } from '../components/Regions/localstorage'
 import SelectedModal from '../components/SelectedModal'
-import InspectorGadget from '../components/InspectorGadget'
 import SelectedRegionSummary from '../components/SelectedRegionSummary'
 import SimSearchResultList from '../components/SimSearch/ResultList'
 
@@ -952,8 +951,6 @@ function Home() {
       activeGenesetEnrichment?.length > 0 ? setShowSpectrum(true) : setShowSpectrum(false)
     }
   }, [activeSet, activeGenesetEnrichment])
-
-  const showInspectorGadget = selected && (selectedNarration || loadingSelectedCSN)
 
   const handleLogoClick = () => {
     navigate('/', { replace: true });
