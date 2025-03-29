@@ -134,7 +134,7 @@ const RegionAISummary = ({} = {}) => {
   const { 
     selectedNarration: narration, query, setQuery, showQuery, setShowQuery,
     showPromptEditor, setShowPromptEditor, summaryLoading: loading, setSummaryLoading: setLoading,
-    request_id, setRequest_id, generated, setGenerated, abstracts, setAbstracts, prompt, setPrompt, 
+    request_id, setRequest_id, regionSummary, setRegionSummary, abstracts, setAbstracts, prompt, setPrompt, 
     abstractsIncluded, setAbstractsIncluded
   } = SelectedStatesStore()
 
@@ -163,7 +163,7 @@ const RegionAISummary = ({} = {}) => {
 
 
   const generate = useCallback((providedPrompt = null) => {
-    setGenerated("")
+    setRegionSummary("")
     setAbstracts([])
     let p = providedPrompt || prompt
     if(query !== "") {
@@ -182,7 +182,7 @@ const RegionAISummary = ({} = {}) => {
       }).then(res => res.json())
         .then(data => {
           console.log("generate", data)
-          setGenerated(data.summary.replace(/^"(.*)"$/, '$1'))
+          setRegionSummary(data.summary.replace(/^"(.*)"$/, '$1'))
           setAbstracts(data.results)
           setRequest_id(data.request_id)
           setLoading(false)
@@ -232,12 +232,13 @@ const RegionAISummary = ({} = {}) => {
     setQuery(query)
     
   }, [narration, narration?.genesets])
+  return null
 
   return (
     <div className="bg-white rounded-md">
         <p className="mb-5 text-base text-black font-medium flex items-center gap-2">
-        {loading ? "loading..." : generated}
-        {generated && (
+        {loading ? "loading..." : regionSummary}
+        {regionSummary && (
           <span className="flex items-center gap-2">
             <button className="p-1 hover:bg-gray-100 rounded" onClick={() => feedback("👍")}>👍</button>
             <button className="p-1 hover:bg-gray-100 rounded" onClick={() => feedback("👎")}>👎</button>
@@ -264,7 +265,7 @@ const RegionAISummary = ({} = {}) => {
         <Checkbox onClick={() => toggleIncludeAbstracts(!abstractsIncluded)} checked={abstractsIncluded}>
           {abstractsIncluded ? 'Abstracts included' : 'Abstracts excluded'}
         </Checkbox>
-        {generated && abstractsIncluded && (
+        {regionSummary && abstractsIncluded && (
             <button 
               className="px-3 py-1 text-sm border rounded bg-white hover:bg-blue-100"
               onClick={handleShowAbstracts}>
@@ -273,7 +274,7 @@ const RegionAISummary = ({} = {}) => {
         )}
       </div>
 
-      {generated && abstractsIncluded && showAbstracts && (
+      {regionSummary && abstractsIncluded && showAbstracts && (
         <div className="mt-2">
           <h3 className="text-base font-small mb-1">
             {abstracts.length} open access PubMed abstracts used:

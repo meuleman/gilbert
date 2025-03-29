@@ -238,7 +238,7 @@ const SelectedStatesStore = create((set, get) => {
     set({ showPromptEditor: false });
     set({ summaryLoading: false });
     set({ request_id: null });
-    set({ generated: "" });
+    set({ regionSummary: "" });
     set({ abstracts: [] });
     set({ prompt: "" });
     set({ abstractsIncluded: true });
@@ -306,8 +306,8 @@ const SelectedStatesStore = create((set, get) => {
     setSummaryLoading: (loading) => set({ summaryLoading: loading }),
     request_id: null,
     setRequest_id: (id) => set({ request_id: id }),
-    generated: "",
-    setGenerated: (generated) => set({ generated: generated }),
+    regionSummary: "",
+    setRegionSummary: (regionSummary) => set({ regionSummary: regionSummary }),
     abstracts: [],
     setAbstracts: (abstracts) => set({ abstracts: abstracts }),
     prompt: "",

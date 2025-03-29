@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useContext, memo, useRef } from 'react'
+import { useState, useCallback, useEffect, useContext, memo, useRef, useMemo } from 'react'
 
 import { showPosition, showKbOrder } from '../../lib/display'
 import { Tooltip } from 'react-tooltip';
@@ -61,14 +61,14 @@ const ActiveRegionSetModal = () => {
     filteredActiveRegions,
     setActiveSet,
     setActiveFilters,
-    regionSetNarration,
+    regionSetNarration: regionSetSummary,
     regionSetNarrationLoading,
     regionSetArticles,
     activeGenesetEnrichment
   } = useContext(RegionsContext)
   
   const { showActiveRegionSet } = RegionSetModalStatesStore()
-  const { selected, setSelected, setRegion } = SelectedStatesStore()
+  const { selected, setSelected, setRegion, regionSummary } = SelectedStatesStore()
   const containerRef = useRef(null)
   const [width, height] = useContainerSize(containerRef, [activeGenesetEnrichment]);
   const [showMinimap, setShowMinimap] = useState(true)
@@ -132,35 +132,103 @@ const ActiveRegionSetModal = () => {
     return null
   }
   
-  const [listRegions, setListRegions] = useState([])
-  useEffect(() => {
-    let selectedForList = selected ? {...selected} : null
-    selectedForList ? selectedForList['selected'] = true : null
-    let regionsForList = selectedForList ? [selectedForList].concat(
-      regions.filter(d => !((d.chromosome === selected.chromosome) && (d.i === selected.i) && (d.order === selected.order)))
-    ) : regions
-    setListRegions(regionsForList)
-  }, [regions, selected])
+  const listRegions = useMemo(() => {
+    if (!regions?.length) return [];
+    const selectedForList = selected ? {...selected, selected: true} : null;
+    return selectedForList 
+      ? [selectedForList, ...regions.filter(d => 
+          !(d.chromosome === selected.chromosome && d.i === selected.i && d.order === selected.order))]
+      : regions;
+  }, [regions, selected]);
+
+  const [summaryToShowState, setSummaryToShowState] = useState("regionSet");
+  const handleSwitchSummary = useCallback(() => {
+    setSummaryToShowState(prevState => 
+      prevState === "regionSet" ? "selected" : "regionSet"
+    );
+  }, []);
+
+  const summaryToShow = useMemo(() => {
+    if (!activeSet && !selected) return null;
+    if (activeSet && !selected) return "regionSet";
+    if (!activeSet && selected) return "selected";
+    return summaryToShowState;
+  }, [activeSet, selected, summaryToShowState]);
+  
+  const bothSummariesAvailable = useMemo(() => {
+    return !!(activeSet && selected);
+  }, [activeSet, selected]);
+
+  
 
   return (
     // TODO: remove hardcoded width
     <div className="flex-1 pl-1 min-h-0 max-h-full w-[24rem] text-xs overflow-hidden flex flex-col" ref={containerRef}>
       <div className="h-1/2 w-full">
         <div className="h-3/4 flex flex-col">
-          {activeSet && (
-            <div className="pt-2 mx-2 flex-1 flex flex-col min-h-0">
-              <h3 className="text-sm text-gray-500">AI Summary:</h3>
-              {!regionSetNarration ? 
+          {summaryToShow ? (
+            <div className="mt-2 pt-2 mx-2 flex-1 flex flex-col min-h-0 border-1 border-gray-300 rounded-md">
+              <div className="flex flex-row justify-between items-center">
+                
+                <div className="flex items-center px-2 w-full">
+                  {/* <label className={`inline-flex gap-2 items-center ${!bothSummariesAvailable ? "pointer-events-none" : "cursor-pointer"}`}>
+                    <div className={`text-xs font-medium ${summaryToShow !== "regionSet" ? "opacity-50" : ""}`}>
+                      Region Set
+                    </div>
+                    <input
+                      className="absolute -z-50 pointer-events-none opacity-0 peer"
+                      type="checkbox"
+                      checked={summaryToShow === "selected"}
+                      onChange={handleSwitchSummary}
+                      disabled={!bothSummariesAvailable}
+                    />
+                    <span className={`block bg-muted-foreground border-2 border-muted-foreground h-3 w-6 rounded-full after:block after:h-full after:aspect-square after:bg-white after:rounded-full peer-checked:bg-primary peer-checked:border-primary peer-checked:after:ml-[0.725rem] ${!bothSummariesAvailable ? "opacity-50" : ""}`}></span>
+                    <div className={`text-xs font-medium text-red-500 ${summaryToShow !== "selected" ? "opacity-50" : ""}`}>
+                      Selected Region
+                    </div>
+                  </label> */}
+                  <div className="flex p-0.5 rounded-full bg-gray-100 border border-gray-300 text-xs gap-1 w-full">
+                    {/* Region Set Tab */}
+                    <button 
+                      className={`py-1 px-3 transition-colors rounded-full flex-1 text-center ${
+                        summaryToShow === "regionSet" 
+                          ? "bg-red-500 text-white font-medium shadow-sm" 
+                          : "bg-transparent text-black hover:bg-gray-200"
+                      } ${!bothSummariesAvailable && summaryToShow !== "regionSet" ? "opacity-50 pointer-events-none" : ""}`}
+                      onClick={() => setSummaryToShowState("regionSet")}
+                      disabled={!bothSummariesAvailable && summaryToShow !== "regionSet"}
+                    >
+                      Region Set
+                    </button>
+                    
+                    {/* Selected Region Tab */}
+                    <button 
+                      className={`py-1 px-3 transition-colors rounded-full flex-1 text-center ${
+                        summaryToShow === "selected" 
+                          ? "bg-red-500 text-white font-medium shadow-sm" 
+                          : "bg-transparent text-black hover:bg-gray-200"
+                      } ${!bothSummariesAvailable && summaryToShow !== "selected" ? "opacity-50 pointer-events-none" : ""}`}
+                      onClick={() => setSummaryToShowState("selected")}
+                      disabled={!bothSummariesAvailable && summaryToShow !== "selected"}
+                    >
+                      {/* <span className={summaryToShow === "selected" ? "text-white" : "text-red-500"}>Selected Region</span> */}
+                      Selected Region
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <h3 className="text-sm text-gray-500 pl-2 pt-2">AI Summary:</h3>
+              {(summaryToShow === "regionSet" ? !regionSetSummary : !regionSummary) ? 
                 <div className="flex-1 flex justify-center items-center">
                   <Loading />
                 </div>
               : 
-                <p className="flex-1 text-base text-black font-medium overflow-auto">
-                  {regionSetNarration}
+                <p className="flex-1 text-base text-black font-medium overflow-auto px-2">
+                  {summaryToShow === "regionSet" ? regionSetSummary : regionSummary}
                 </p>
               }
             </div>
-          )}
+          ) : null}
         </div>
         <div className="grow-0 h-1/4 flex flex-col">
           {activeSet && (
