@@ -218,7 +218,7 @@ const ActiveRegionSetModal = () => {
                 </div>
               </div>
               <h3 className="text-sm text-gray-500 pl-2 pt-2">AI Summary:</h3>
-              {(summaryToShow === "regionSet" ? !regionSetSummary : !regionSummary) ? 
+              {(summaryToShow === "regionSet" ? !regionSetSummary : regionSummary === "") ? // if regionSummary = null, no narration available
                 <div className="flex-1 flex justify-center items-center">
                   <Loading />
                 </div>

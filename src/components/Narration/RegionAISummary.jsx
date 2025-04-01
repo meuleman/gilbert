@@ -119,6 +119,7 @@ const generateQuery = (narration) => {
       const term = d.geneset.split('_').slice(1).join(' ')
       return `GO ${term.toUpperCase()}`
     })
+  if(!fields.length && !genesets.length && !genes.length) return null;
 
   // Combine all parts with semicolons
   let query = [scale, ...fields, ...genes, ...(genesets || [])].join("; ")
@@ -229,7 +230,8 @@ const RegionAISummary = ({} = {}) => {
 
   useEffect(() => {
     let query = generateQuery(narration)
-    setQuery(query)
+    if(!!query) setQuery(query)
+    else setRegionSummary(null)
     
   }, [narration, narration?.genesets])
   return null
