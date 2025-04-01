@@ -99,7 +99,7 @@ const StatusBar = ({
       {inside && (<div>Genes in region: {inside} &nbsp;</div>)}
       {outside && (<div>Genes overlapping region: {outside}</div>)}
 
-      <div className="ml-auto">
+      {!selected ? <div className="ml-auto">
         <div className="flex gap-1">
           <div>Order offset</div>
           <div>
@@ -114,7 +114,8 @@ const StatusBar = ({
             />
           </div>
         </div>
-      </div>
+      </div> : null
+      }
     </div>
   )
 
