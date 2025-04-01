@@ -141,13 +141,7 @@ const ActiveRegionSetModal = () => {
       : regions;
   }, [regions, selected]);
 
-  const [summaryToShowState, setSummaryToShowState] = useState("regionSet");
-  const handleSwitchSummary = useCallback(() => {
-    setSummaryToShowState(prevState => 
-      prevState === "regionSet" ? "selected" : "regionSet"
-    );
-  }, []);
-
+  const [summaryToShowState, setSummaryToShowState] = useState("selected");
   const summaryToShow = useMemo(() => {
     if (!activeSet && !selected) return null;
     if (activeSet && !selected) return "regionSet";
@@ -159,7 +153,9 @@ const ActiveRegionSetModal = () => {
     return !!(activeSet && selected);
   }, [activeSet, selected]);
 
-  
+  useEffect(() => {
+    if(selected) setSummaryToShowState("selected")
+  }, [selected])
 
   return (
     // TODO: remove hardcoded width
@@ -171,22 +167,6 @@ const ActiveRegionSetModal = () => {
               <div className="flex flex-row justify-between items-center">
                 
                 <div className="flex items-center px-2 w-full">
-                  {/* <label className={`inline-flex gap-2 items-center ${!bothSummariesAvailable ? "pointer-events-none" : "cursor-pointer"}`}>
-                    <div className={`text-xs font-medium ${summaryToShow !== "regionSet" ? "opacity-50" : ""}`}>
-                      Region Set
-                    </div>
-                    <input
-                      className="absolute -z-50 pointer-events-none opacity-0 peer"
-                      type="checkbox"
-                      checked={summaryToShow === "selected"}
-                      onChange={handleSwitchSummary}
-                      disabled={!bothSummariesAvailable}
-                    />
-                    <span className={`block bg-muted-foreground border-2 border-muted-foreground h-3 w-6 rounded-full after:block after:h-full after:aspect-square after:bg-white after:rounded-full peer-checked:bg-primary peer-checked:border-primary peer-checked:after:ml-[0.725rem] ${!bothSummariesAvailable ? "opacity-50" : ""}`}></span>
-                    <div className={`text-xs font-medium text-red-500 ${summaryToShow !== "selected" ? "opacity-50" : ""}`}>
-                      Selected Region
-                    </div>
-                  </label> */}
                   <div className="flex p-0.5 rounded-full bg-gray-100 border border-gray-300 text-xs gap-1 w-full">
                     {/* Region Set Tab */}
                     <button 
