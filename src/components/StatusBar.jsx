@@ -92,7 +92,7 @@ const StatusBar = ({
     <div className="bg-statusBar h-6 px-6 text-xs font-mono font-bold flex gap-6 items-center">
       {regionHighlight && (
         <div className="text-xs font-mono font-bold status-position-override">
-          {showPosition(regionHighlight)} (region: {regionHighlight.i})
+          {showPosition(regionHighlight)}
         </div>
       )}
 
