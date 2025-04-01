@@ -171,7 +171,8 @@ const HilbertGenome = ({
     setPanning = zoomContext.setPanning,
     center = zoomContext.center,
     setCenter = zoomContext.setCenter,
-    easeZoom = zoomContext.easeZoom
+    easeZoom = zoomContext.easeZoom,
+    setBbox = zoomContext.setBbox,
   } = zoomMethods || {};
 
 
@@ -421,6 +422,8 @@ const HilbertGenome = ({
     // calculate new state dependencies based on order and zoom 
     let hilbert = HilbertChromosome(order, { padding: 2 })
     let bbox = getBboxDomain(transform, xScale, yScale, width, height)
+    // set global bbox for minimap
+    setBbox(bbox)
     let points = hilbert.fromBbox(bbox)
     // console.log("HANDLE TRANSFORM", order, points, points[0].order)
     const payload = {

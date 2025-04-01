@@ -12,7 +12,7 @@ export default function CanvasBaseComponent({ canvasRef, state, scales, layer })
     if(!ctx) return;
 
     // layer options
-    let { stroke, fill, strokeWidthMultiplier} = layer
+    let { stroke, fill, strokeWidthMultiplier} = layer || {stroke: null, fill: null, strokeWidthMultiplier: 1}
     
     // scales
     let {xScale ,yScale ,sizeScale, width, height} = scales

@@ -9,6 +9,7 @@ const useCanvasFilteredRegions = (topPathsMap = new Map(), options = {}) => {
   const opacity = options.opacity || 1
   const strokeScale = options.strokeScale || 1
   const mask = options.mask
+  const dotFill = options.dotFill || false
 
   const drawRegions = useCallback((canvasRef, scales, state) => {
     let {xScale ,yScale ,sizeScale} = scales
@@ -91,11 +92,18 @@ const useCanvasFilteredRegions = (topPathsMap = new Map(), options = {}) => {
       // Drawing logic here
       // ctx.fillStyle = color
       ctx.strokeStyle = color
+      ctx.fillStyle = color
       ctx.lineWidth = strokeScale < 1 ? strokeScale : srw * strokeScale
       // ctx.fillRect(t.x + xScale(r.x) * t.k, t.y + yScale(r.y) * t.k, rw, rw)
-      ctx.strokeRect(t.x + xScale(r.x) * t.k - rw/2, t.y + yScale(r.y) * t.k - rw/2, rw, rw)
+      if(dotFill) {
+        // render dot instead of square
+        ctx.beginPath();
+        ctx.arc(t.x + xScale(r.x) * t.k, t.y + yScale(r.y) * t.k, rw / 2, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+      else ctx.strokeRect(t.x + xScale(r.x) * t.k - rw/2, t.y + yScale(r.y) * t.k - rw/2, rw, rw)
     });
-  }, [topPathsMap, color, opacity, strokeScale, mask])
+  }, [topPathsMap, color, opacity, strokeScale, mask, dotFill])
 
   return drawRegions
 };

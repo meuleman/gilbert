@@ -1,12 +1,13 @@
 import { useState, useCallback, useEffect, useContext, memo, useMemo, useRef } from 'react'
 import RegionsContext from './RegionsContext'
 import SelectedStatesStore from '../../states/SelectedStates'
-import HilbertGenome from '../../components/HilbertGenome'
+import MinimapGenome from './MinimapGenome'
 import { hilbertPosToOrder } from '../../lib/HilbertChromosome'
-import { fromIndex } from '../../lib/regions'
+import { fromIndex, overlaps } from '../../lib/regions'
 import { minimapLayer } from '../../layers'
 import useCanvasFilteredRegions from '../../components/Canvas/FilteredRegions';
 import useCanvasAnnotationRegions from '../../components/Canvas/Annotation';
+import useCanvasBbox from '../../components/Canvas/Bbox';
 import SVGChromosomeNames from '../../components/SVGChromosomeNames'
 import SVGHilbertPaths from '../../components/SVGHilbertPaths'
 import SVGGenePaths from '../../components/SVGGenePaths'
@@ -14,44 +15,39 @@ import SVGSelected from '../../components/SVGSelected'
 import { zoomIdentity } from 'd3-zoom';
 import { range, group } from 'd3-array'
 
+import { useZoom } from '../../contexts/zoomContext';
+
 
 const Minimap = ({
   width,
   height,
 }) => {
 
-  const { 
-    activeSet,
-    activeRegions, 
-    filteredRegionsLoading,
-    filteredActiveRegions,
-    setActiveSet,
-  } = useContext(RegionsContext)
-  const { selected, setSelected, setRegion } = SelectedStatesStore()
+  const bbox = useZoom().bbox
+
+  const { filteredActiveRegions, } = useContext(RegionsContext)
+  const { selected, setSelected, setRegion, clearSelected } = SelectedStatesStore()
   const [hover, setHover] = useState(null)
 
   const order = 4
-  const orderDomain = [order, order]
   const zoomExtent = [1, 1]
-  const [activeInHovered, setActiveInHovered] = useState(null)
   const [filteredRegionsByCurrentOrder, setFilteredRegionsByCurrentOrder] = useState(new Map())
   const [minimapResolutionSelected, setMinimapResolutionSelected] = useState(null)
-  const [minimapResolutionHover, setMinimapResolutionHover] = useState(null)
   const [allRegionsByCurrentOrder, setAllRegionsByCurrentOrder] = useState(new Map())
   const [transform, setTransform] = useState(zoomIdentity);
   const [panning, setPanning] = useState(false);
 
-  // group the full set of regions found in region set by the current order
-  useEffect(() => {
-    if (activeRegions?.length) {
-      const groupedAllRegions = group(
-        activeRegions,
-        d => d.chromosome + ":" + (d.order > order ? hilbertPosToOrder(d.i, { from: d.order, to: order }) : d.i))
-      setAllRegionsByCurrentOrder(groupedAllRegions)
-    } else {
-      setAllRegionsByCurrentOrder(new Map())
-    }
-  }, [activeRegions, order])
+  // // group the full set of regions found in region set by the current order
+  // useEffect(() => {
+  //   if (activeRegions?.length) {
+  //     const groupedAllRegions = group(
+  //       activeRegions,
+  //       d => d.chromosome + ":" + (d.order > order ? hilbertPosToOrder(d.i, { from: d.order, to: order }) : d.i))
+  //     setAllRegionsByCurrentOrder(groupedAllRegions)
+  //   } else {
+  //     setAllRegionsByCurrentOrder(new Map())
+  //   }
+  // }, [activeRegions, order])
 
   // group the top regions found through filtering by the current order
   useEffect(() => {
@@ -75,17 +71,17 @@ const Minimap = ({
     }
   }, [selected])
 
-  // convert the hover region to the minimap resolution
-  useEffect(() => {
-    if (hover && !selected) {
-      let minimapResHover = fromIndex(hover.chromosome, hilbertPosToOrder(hover.i, { from: hover.order, to: order }), order)
-      setMinimapResolutionHover(minimapResHover)
-    } else {
-      setMinimapResolutionHover(null)
+  const handleHover = useCallback((region) => {
+    let hr = {...region}
+    hr.inBbox = false
+    if(hr.x > bbox.x && hr.x < bbox.x + bbox.width && hr.y > bbox.y && hr.y < bbox.y + bbox.height) {
+      hr.inBbox = true
     }
-  }, [hover, selected])
+    if(hr) setHover(hr)
+    else setHover(null)
+  }, [setHover])
 
-  const drawEffectiveFilteredRegions = useCanvasFilteredRegions(filteredRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
+  const drawEffectiveFilteredRegions = useCanvasFilteredRegions(filteredRegionsByCurrentOrder, { color: "black", opacity: 1, strokeScale: 1, mask: false, dotFill: true })
   // const drawAllFilteredRegions = useCanvasFilteredRegions(allRegionsByCurrentOrder, { color: "gray", opacity: 0.5, strokeScale: 0.5, mask: false })
   const drawAnnotationRegionSelected = useCanvasAnnotationRegions(minimapResolutionSelected, "selected", {
     stroke: "red",
@@ -95,24 +91,25 @@ const Minimap = ({
     strokeWidthMultiplier: 0.5,
     showGenes: false
   })
-  const drawAnnotationRegionHover = useCanvasAnnotationRegions(minimapResolutionHover, "hover", {
-    // if there is an activeSet and no paths in the hover, lets make it lightgray to indicate you can't click on it
-    stroke: "black",
+  const drawAnnotationRegionHover = useCanvasAnnotationRegions(hover, "selected", {
+    stroke: hover?.inBbox ? "black" : "grey",
     radiusMultiplier: 1.25,
     mask: false,
     strokeWidthMultiplier: 0.5,
-    showGenes: false,
-    highlightPath: true,
     opacity: 1
   })
+
+  const drawBbox = useCanvasBbox(bbox, { color: "black", opacity: 0.5, strokeScale: 1 })
   const canvasRenderers = useMemo(() => [
     drawEffectiveFilteredRegions,
     // drawAllFilteredRegions,
     drawAnnotationRegionSelected,
+    drawBbox,
   ], [
     drawEffectiveFilteredRegions,
     // drawAllFilteredRegions,
     drawAnnotationRegionSelected,
+    drawBbox,
   ]);
 
   const hoverRenderers = useMemo(() => [
@@ -121,40 +118,53 @@ const Minimap = ({
     drawAnnotationRegionHover,
   ]);
 
-  const handleZoom = useCallback((newZoom) => {
-    console.log("ZOOMIN....")
-  }, [])
-
-  const handleData = useCallback((data) => {
-    console.log("Data loaded");
-  }, []);
-
   const handleTransform = useCallback((data) => {
     setTransform({x: 0, y: 0, k: 1})
   }, []);
 
+  // use ref to keep track of the filtered active and selected regions for the click handler
+  const filteredActiveRegionsRef = useRef(filteredActiveRegions);
+  useEffect(() => {
+    filteredActiveRegionsRef.current = filteredActiveRegions;
+  }, [filteredActiveRegions])
+
+  const selectedRef = useRef(selected);
+  useEffect(() => {
+    selectedRef.current = selected;
+  }, [selected]);
+
+  const handleClick = useCallback((hit, order, double) => {
+    if (hit && selectedRef.current) {
+      clearSelected()
+    } else if (hit) {
+
+      // TODO: check if logic is what we want
+      // if region set exists, we grab the first region (since they are ordered) that falls within the selected region
+      // use region subpath if it exists
+      // if the selected region is smaller than the overlapping region set region, use the originally selected region
+      let selected = hit
+      if(filteredActiveRegionsRef.current?.length) {
+        let overlappingRegion = overlaps(hit, filteredActiveRegionsRef.current)[0] || hit
+        overlappingRegion.subregion ? overlappingRegion = overlappingRegion.subregion : null
+        selected = overlappingRegion.order > hit.order ? overlappingRegion : hit
+      } 
+      setSelected(selected)
+    }
+  }, [setSelected, setRegion, clearSelected, filteredActiveRegions])
+
   return (
-    <div className="absolute x0 y0">
-      {(width > 0 && height > 0) ? <HilbertGenome
-        orderMin={orderDomain[0]}
-        orderMax={orderDomain[1]}
+    <div className="absolute x0 y0 cursor-pointer">
+      {(width > 0 && height > 0) ? <MinimapGenome
         zoomMin={zoomExtent[0]}
         zoomMax={zoomExtent[1]}
         width={width}
         height={height}
-        // zoomToRegion={region}
-        activeLayer={minimapLayer}
-        // selected={selected}
-        // zoomDuration={duration}
         CanvasRenderers={canvasRenderers}
         HoverRenderers={hoverRenderers}
         SVGRenderers={[
-          SVGChromosomeNames({fontSize: 8}),
+          SVGChromosomeNames({fontSize: 7}),
           SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5 }),
-          SVGSelected({ hit: hover, dataOrder: order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes: true }),
-          SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25 }),
         ]}
-        onZoom={handleZoom}
         zoomMethods={{
           transform,
           order: 4,
@@ -168,15 +178,8 @@ const Minimap = ({
           setCenter: () => {},
           easeZoom: (from, to) => { setTransform(from); },
         }}
-        // onHover={handleHover}
-        // onClick={handleClick}
-        onData={handleData}
-        // onScales={setScales}
-        // onZooming={(d) => setIsZooming(d.zooming)}
-        // onLoading={setMapLoading}
-        // onLayer={handleLayer}
-        // debug={showDebug}
-        miniMap={true}
+        onHover={handleHover}
+        onClick={handleClick}
       /> : null}
     </div>
   )

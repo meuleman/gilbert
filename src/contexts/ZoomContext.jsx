@@ -94,6 +94,9 @@ export function ZoomProvider({ children}) {
     setSelectedZoomOrder(order);
   }, []);
 
+  // bounding box of main map (for use in minimap)
+  const [bbox, setBbox] = useState(null);
+
   const value = {
     transform,
     setTransform,
@@ -117,6 +120,8 @@ export function ZoomProvider({ children}) {
     selectedZoomOrder,
     setSelectedZoomOrder,
     handleSelectedZoom,
+    bbox,
+    setBbox,
   };
 
   return <ZoomContext.Provider value={value}>{children}</ZoomContext.Provider>;
