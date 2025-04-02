@@ -164,9 +164,9 @@ const ActiveRegionSetModal = () => {
         <div className="h-3/4 flex flex-col">
           {summaryToShow ? (
             <div className="mt-2 pt-2 mx-2 flex-1 flex flex-col min-h-0 border-1 border-gray-300 rounded-md">
+              <h3 className="text-sm text-balck pl-2 pb-2">AI Summary:</h3>
               <div className="flex flex-row justify-between items-center">
-                
-                <div className="flex items-center px-2 w-full">
+                <div className="flex items-center px-2 pb-2 w-full">
                   <div className="flex p-0.5 rounded-full bg-gray-100 border border-gray-300 text-xs gap-1 w-full">
                     {/* Region Set Tab */}
                     <button 
@@ -197,7 +197,6 @@ const ActiveRegionSetModal = () => {
                   </div>
                 </div>
               </div>
-              <h3 className="text-sm text-gray-500 pl-2 pt-2">AI Summary:</h3>
               {(summaryToShow === "regionSet" ? !regionSetSummary : regionSummary === "") ? // if regionSummary = null, no narration available
                 <div className="flex-1 flex justify-center items-center">
                   <Loading />
