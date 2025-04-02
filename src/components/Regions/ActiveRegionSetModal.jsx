@@ -134,12 +134,28 @@ const ActiveRegionSetModal = () => {
   
   const listRegions = useMemo(() => {
     if (!regions?.length) return [];
-    const selectedForList = selected ? {...selected, selected: true} : null;
-    return selectedForList 
-      ? [selectedForList, ...regions.filter(d => 
-          !(d.chromosome === selected.chromosome && d.i === selected.i && d.order === selected.order))]
-      : regions;
+    let newList = regions;
+    let selectedInList = selected ? !!regions.find(d => (d.chromosome === selected.chromosome && d.i === selected.i && d.order === selected.order)) : false
+    if(selectedInList) {
+      // reorder list to have selected region on top
+      newList = [
+        {...selected, selected: true}, 
+        ...regions.filter(d => !(d.chromosome === selected.chromosome && d.i === selected.i && d.order === selected.order))
+      ]
+    } 
+    return newList
   }, [regions, selected]);
+
+  const [manuallyAddedRegion, setManuallyAddedRegion] = useState(false)
+  useEffect(() => {
+    if(!!selected && !!regions) {
+      const selectedInList = !!regions.find(d => (d.chromosome === selected.chromosome && d.i === selected.i && d.order === selected.order))
+      if(!selectedInList) setManuallyAddedRegion(true)
+      else setManuallyAddedRegion(false)
+    } else {
+      setManuallyAddedRegion(false)
+    }
+  }, [setManuallyAddedRegion, selected, regions])
 
   const [summaryToShowState, setSummaryToShowState] = useState("selected");
   const summaryToShow = useMemo(() => {
@@ -262,8 +278,9 @@ const ActiveRegionSetModal = () => {
                   fields.push(...activeFilters.map(f => f.field));
                   filterInfo = ` showing ${fields.join(", ")}`;
                 }
+                let manuallyAddedText = manuallyAddedRegion ? " +1 manually selected region" : "";
                 // Return the full string
-                return `${regionCount} selected ${regionText}${filterInfo}`;
+                return `${regionCount} selected ${regionText}${filterInfo}${manuallyAddedText}`;
               })()
             ) : (
               null
