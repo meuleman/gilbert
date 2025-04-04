@@ -83,7 +83,12 @@ function renderPipes(ctx, points, t, o, scales, stroke, sizeMultiple=1) {
 // ------------------
 // Component
 // ------------------
-function PowerModal({ width: propWidth, height: propHeight, sheight = linearGenomeHeight, badgeHeight = 30 }) {
+function PowerModal({ 
+  width: propWidth, 
+  height: propHeight, 
+  sheight = linearGenomeHeight, 
+  onClose = () => {} 
+}) {
   const containerRef = useRef(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   useLayoutEffect(() => {
@@ -104,7 +109,7 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = linearGeno
   }, []);
   
   const width = propWidth || containerSize.width;
-  const height = propHeight || (containerSize.height - sheight - badgeHeight);
+  const height = propHeight || (containerSize.height - sheight);
 
   const canvasRef = useRef(null);
   const tooltipRef = useRef(null);
@@ -430,84 +435,6 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = linearGeno
     
   }, [transformResult, width, height, scales, data, oscale]);
 
-  // // Render the 2D power visualization (unchanged)
-  // useEffect(() => {
-  //   const or = percentScale(percent);
-  //   const o = Math.max(Math.floor(or), 4);
-  //   setOrder(o);
-  //   const hilbert = new HilbertChromosome(o);
-  //   const step = hilbert.step;
-  //   if (canvasRef.current && data) { //csn && csn.path && 
-  //     const d = data.find(d => d.order === o);
-  //     if(d) {
-  //       setCurrentPreferred(d.p);
-  //       const r = d.region;
-  //       let transform;
-  //       const no = o + 1;
-  //       const nd = data.find(d => d.order === no);
-  //       if(nd) {
-  //         const t = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, 0.25);
-  //         const nStep = new HilbertChromosome(no).step;
-  //         const nt = zoomToBox(nd.region.x, nd.region.y, nd.region.x + nStep, nd.region.y + nStep, no, 0.25);
-  //         transform = interpolateObject(t, nt)(or - o);
-  //       } else {
-  //         const scalerVal = 0.25 + (or - o);
-  //         transform = zoomToBox(r.x, r.y, r.x + step, r.y + step, o, scalerVal);
-  //       }
-  //       const meta = d.data.metas?.find(meta => meta.chromosome === r.chromosome) || {};
-  //       const ctx = canvasRef.current.getContext('2d');
-  //       ctx.clearRect(0, 0, width, height);
-  //       if(d.layer){
-  //         CanvasRenderer(d.layer.renderer, { 
-  //           scales, 
-  //           state: { 
-  //             data: d.data.filter(dd => dd.chromosome === r.chromosome),
-  //             loading: false,
-  //             points: d.points,
-  //             meta,
-  //             order: o,
-  //             transform
-  //           }, 
-  //           layer: d.layer, 
-  //           canvasRef 
-  //         });
-  //       } else {
-  //         renderPipes(ctx, d.points, transform, o, scales, "#eee", 0.25);
-  //       }
-  //       ctx.lineWidth = 0.5;
-  //       if(o > 4) {
-  //         const pd = data.find(d => d.order === o - 1);
-  //         ctx.globalAlpha = oscale(or - o);
-  //         if(pd && pd.layer) {
-  //           CanvasRenderer(pd.layer.renderer, { 
-  //             scales,
-  //             state: { 
-  //               data: pd.data.filter(dd => dd.chromosome === r.chromosome),
-  //               loading: false,
-  //               points: pd.points,
-  //               meta: pd.data.metas.find(meta => meta.chromosome === pd.region.chromosome),
-  //               order: o - 1,
-  //               transform
-  //             },
-  //             layer: pd.layer,
-  //             canvasRef
-  //           });
-  //         } else if(pd) {
-  //           renderPipes(ctx, pd.points, transform, o - 1, scales, "#eee", 0.25);
-  //         }
-  //         const lr = data.find(d => d.order === o - 1);
-  //         ctx.lineWidth = 2;
-  //         ctx.strokeStyle = "black";
-  //         if(lr) renderSquares(ctx, [lr.region], transform, o - 1, scales, false, "black");
-  //       }
-  //       ctx.lineWidth = 2;
-  //       ctx.strokeStyle = "black";
-  //       ctx.globalAlpha = 1; // Ensure full opacity for the outline
-  //       renderSquares(ctx, [r], transform, o, scales, false, "black");
-  //     }
-  //   }
-  // }, [percent, percentScale, csn, data, oscale, width, height, zoomToBox, scales]);
-
   const linearCenter = useMemo(() => {
     return csn?.path.find(d => d.order === order)?.region
   }, [csn, order])
@@ -521,21 +448,15 @@ function PowerModal({ width: propWidth, height: propHeight, sheight = linearGeno
   }, [data, order])
 
   return (
-    <div ref={containerRef} className="power w-full h-full">
-      <div className="flex items-center" style={{ height: `${badgeHeight}px`, minHeight: `${badgeHeight}px` }}>
-        <div className="flex-1 text-center text-xl whitespace-nowrap overflow-hidden text-ellipsis">
-          {currentPreferred?.field ? (
-            <>
-              <span style={{ color: currentPreferred?.layer?.fieldColor(currentPreferred?.field?.field), marginRight: '4px' }}>
-                ⏺
-              </span>
-              {currentPreferred?.field?.field} {currentPreferred?.layer?.labelName}
-            </>
-          ) : null}
-        </div>
-      </div>
+    <div ref={containerRef} className="power w-full h-full border-[2px] border-red-500 p-2">
       <div>
         <div className="relative">
+          {/* Close button */}
+          <div className="absolute top-0 left-0 pt-2 pl-2 flex flex-row space-x-2">
+            <button 
+              className="rounded-md flex items-center justify-center border border-gray-400 bg-white hover:bg-gray-100 text-red-500 px-1.5 py-1 text-sm" 
+              onClick={onClose}>Close X</button>
+          </div>
           {loading && (
             //  bg-white bg-opacity-60
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none transform scale-[1.75]">

@@ -81,7 +81,6 @@ import useCanvasAnnotationRegions from '../components/Canvas/Annotation';
 
 import { getSet } from '../components/Regions/localstorage'
 import SelectedModal from '../components/SelectedModal'
-import SelectedRegionSummary from '../components/SelectedRegionSummary'
 import SimSearchResultList from '../components/SimSearch/ResultList'
 
 import RegionStrip from '../components/RegionStrip'
@@ -127,7 +126,7 @@ function Home() {
 
   const navigate = useNavigate();
 
-  const { order, transform, orderOffset, setOrderOffset, zoomMin, zoomMax, orderMin, orderMax } = useZoom()
+  const { order, transform, orderOffset, setOrderOffset, zoomMin, zoomMax, orderMin, orderMax, setSelectedZoomOrder } = useZoom()
   const zoomExtent = useMemo(() => [zoomMin, zoomMax], [zoomMin, zoomMax])
   const orderDomain = useMemo(() => [orderMin, orderMax], [orderMin, orderMax])
 
@@ -959,6 +958,15 @@ function Home() {
     }, 10);
   };
 
+  // When narration data updates, recalc the zoom order.
+  // (The narration region's order is increased by 0.5; but it is at least 4.)
+  useEffect(() => {
+    if (!selectedNarration) return;
+    let newZoom = selectedNarration.region.order + 0.5;
+    if (newZoom < 4) newZoom = 4;
+    setSelectedZoomOrder(newZoom);
+  }, [selectedNarration]);
+
   return (
     <div className="w-dvw h-dvh overflow-hidden flex flex-col">
       <div className="grow-0">
@@ -1024,13 +1032,10 @@ function Home() {
               </div> */}
               {selected ? 
               <div className="w-full flex-1 flex flex-col">
-                <div className="relative flex-[1]">
-                  <SelectedRegionSummary onClose={handleModalClose}/>
-                </div>
-                <div className="relative flex-[20]">
+                <div className="relative flex-1">
                   {/*<div className="absolute top-0 left-1/4 w-1/2 h-full overflow-hidden p-2">*/}
                   <div className="absolute top-0 w-full h-full overflow-hidden p-2">
-                    <Power/>
+                    <Power onClose={handleModalClose}/>
                   </div>
                 </div>
               </div>

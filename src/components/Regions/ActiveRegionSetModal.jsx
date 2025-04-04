@@ -68,7 +68,11 @@ const ActiveRegionSetModal = () => {
   } = useContext(RegionsContext)
   
   const { showActiveRegionSet } = RegionSetModalStatesStore()
-  const { selected, setSelected, setRegion, regionSummary } = SelectedStatesStore()
+  const { 
+    selected, setSelected, setRegion, regionSummary, selectedNarration, query, setQuery,
+    setRegionSummary, generateQuery, generateSummary, feedback: selectedFeedback,
+  } = SelectedStatesStore()
+
   const containerRef = useRef(null)
   const [width, height] = useContainerSize(containerRef, [activeGenesetEnrichment]);
   const [showMinimap, setShowMinimap] = useState(true)
@@ -173,6 +177,36 @@ const ActiveRegionSetModal = () => {
     if(selected) setSummaryToShowState("selected")
   }, [selected])
 
+  const [showAbstracts, setShowAbstracts] = useState(false)
+  const handleShowAbstracts = () => {
+    setShowAbstracts(!showAbstracts)
+  }
+
+  useEffect(() => {
+    if(selectedNarration) {
+      let query = generateQuery(selectedNarration)
+      if(!!query) setQuery(query)
+      else setRegionSummary(null)
+    }
+  }, [selectedNarration, selectedNarration?.genesets])
+
+  // generate summary on new query
+  useEffect(() => {
+    if(query !== "") {
+      generateSummary()
+    }
+  }, [query])
+
+  const handleFeedback = useCallback((feedback) => {
+    if(summaryToShow === "regionSet") {
+      // TODO: send region set feedback, api endpoint should be available
+      console.log("Feedback for region set:", feedback)
+    } else {
+      selectedFeedback(feedback)
+      console.log("Feedback for selected region:", feedback)
+    }
+  }, [selectedFeedback, summaryToShow])
+
   return (
     // TODO: remove hardcoded width
     <div className="flex-1 pl-1 min-h-0 max-h-full w-[24rem] text-xs overflow-hidden flex flex-col" ref={containerRef}>
@@ -222,6 +256,14 @@ const ActiveRegionSetModal = () => {
                   {summaryToShow === "regionSet" ? regionSetSummary : regionSummary}
                 </p>
               }
+              <p className="">
+                {((summaryToShow === "regionSet" && regionSetSummary) || (summaryToShow === "selected" && regionSummary)) && (
+                  <span className="text-base flex justify-end pr-4 gap-2">
+                    <button className="p-1 hover:bg-gray-100 rounded" onClick={() => handleFeedback("👍")}>👍</button>
+                    <button className="p-1 hover:bg-gray-100 rounded" onClick={() => handleFeedback("👎")}>👎</button>
+                  </span>
+                )}
+              </p>
             </div>
           ) : null}
         </div>

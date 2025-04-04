@@ -91,10 +91,22 @@ const StatusBar = ({
   return (
     <div className="bg-statusBar h-6 px-6 text-xs font-mono font-bold flex gap-6 items-center">
       {regionHighlight && (
-        <div className="text-xs font-mono font-bold status-position-override">
+        <div className="status-position-override">
           {showPosition(regionHighlight)}
         </div>
       )}
+      <div className="flex items-center">
+        <div className="flex-1 text-center whitespace-nowrap overflow-hidden text-ellipsis">
+          {currentPreferred?.field ? (
+            <>
+              <span style={{ color: currentPreferred?.layer?.fieldColor(currentPreferred?.field?.field), marginRight: '4px' }}>
+                ⏺
+              </span>
+              {currentPreferred?.field?.field} {currentPreferred?.layer?.labelName}
+            </>
+          ) : null}
+        </div>
+      </div>
 
       {inside && (<div>Genes in region: {inside} &nbsp;</div>)}
       {outside && (<div>Genes overlapping region: {outside}</div>)}

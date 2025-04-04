@@ -316,19 +316,6 @@ const Filter = () => {
                 <h4>Selected CSN</h4>
                 <p>Index: {csns.indexOf(selectedCSN)}</p>
                 <p>Score: {selectedCSN.score} </p>
-                {/* <InspectorGadget 
-                  selected={selectedCSN} 
-                  zoomOrder={max(Object.keys(orderSelects), d => +d) + 0.5}
-                  narration={selectedCSN}
-                  maxPathScore={maxPathScore}
-                  layers={csnLayers}
-                  loadingCSN={loadingCSN}
-                  mapWidth={340}
-                  mapHeight={340}
-                  tipOrientation="right"
-                  modalPosition={{top: 0, left: 0}}
-                  onClose={() => {}}
-                ></InspectorGadget> */}
                 {/* <PowerModal 
                   csn={selectedCSN} 
                   width={400} 
