@@ -133,23 +133,22 @@ const Minimap = ({
     selectedRef.current = selected;
   }, [selected]);
 
-  const handleClick = useCallback((hit, order, double) => {
-    if (hit && selectedRef.current) {
-      clearSelected()
-    } else if (hit) {
-
-      // TODO: check if logic is what we want
-      // if region set exists, we grab the first region (since they are ordered) that falls within the selected region
-      // use region subpath if it exists
-      // if the selected region is smaller than the overlapping region set region, use the originally selected region
-      let selected = hit
-      if(filteredActiveRegionsRef.current?.length) {
-        let overlappingRegion = overlaps(hit, filteredActiveRegionsRef.current)[0] || hit
-        overlappingRegion.subregion ? overlappingRegion = overlappingRegion.subregion : null
-        selected = overlappingRegion.order > hit.order ? overlappingRegion : hit
-      } 
-      setSelected(selected)
-    }
+  const handleClick = useCallback((hit) => {
+    clearSelected(() => {
+      // This code will run only after the state has been cleared
+      if (hit) {
+        if (filteredActiveRegionsRef.current?.length) {
+          // only allow regions from region set to be selected
+          let overlappingRegion = overlaps(hit, filteredActiveRegionsRef.current)[0];
+          if (overlappingRegion?.subregion) {
+            overlappingRegion = overlappingRegion.subregion;
+          }
+          if (!!overlappingRegion) {
+            setSelected(overlappingRegion);
+          }
+        }
+      }
+    });
   }, [setSelected, setRegion, clearSelected, filteredActiveRegions])
 
   return (

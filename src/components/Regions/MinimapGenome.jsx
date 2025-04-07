@@ -339,7 +339,7 @@ const MinimapGenome = ({
     let hit = qt.find(xScale.invert(ut.x), yScale.invert(ut.y), step * 3)
 
     let clicked = hit;
-    onClick(clicked, order, true);
+    onClick(clicked);
 
   }, [untransform, transform, order, qt, xScale, yScale])
 

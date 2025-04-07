@@ -288,7 +288,6 @@ const SelectedStatesStore = create((set, get) => {
     let query = get().query
     if(query !== "") {
       set({ summaryLoading: true })
-      console.log("THIS IS THE QUERY", query, p)
       fetch(`${get().url}`, {
         method: "POST",
         headers: {
@@ -415,30 +414,37 @@ const SelectedStatesStore = create((set, get) => {
     get().generateSummary(newPrompt)
   }
 
-  const clearSelected = () => {
-    set({ selected: null });
-    set({ region: null });
-    set({ selectedNarration: null });
-    set({ subpaths: null });
-    set({ subpathCollection: [] });
-    set({ narrationCollection: [] });
-    set({ narrationPreview: null });
-    set({ slicedNarrationPreview: null });
-    set({ loadingRegionCSNS: false });
-    set({ fullNarration: null });
-    set({ loadingSelectedCSN: false });
-    set({ loadingFullNarration: false });
-    set({ selectedGenesetMembership: [] });
-    set({ query: "" });
-    set({ showQuery: false });
-    set({ showPromptEditor: false });
-    set({ summaryLoading: false });
-    set({ request_id: null });
-    set({ regionSummary: "" });
-    set({ abstracts: [] });
-    set({ prompt: defaultPrompt });
-    set({ abstractsIncluded: true });
-    set({ currentPreferred: null });
+  const clearSelected = (callback) => {
+    set({ 
+      selected: null,
+      region: null, 
+      selectedNarration: null,
+      subpaths: null, 
+      subpathCollection: [], 
+      narrationCollection: [], 
+      narrationPreview: null,
+      slicedNarrationPreview: null,
+      loadingRegionCSNS: false,
+      loadingSelectedCSN: false,
+      fullNarration: null,
+      loadingFullNarration: false,
+      selectedGenesetMembership: [],
+      query: "",
+      showQuery: false,
+      showPromptEditor: false,
+      summaryLoading: false,
+      request_id: null,
+      regionSummary: "",
+      abstracts: [],
+      prompt: defaultPrompt,
+      abstractsIncluded: true,
+      currentPreferred: null,
+    }, false, { type: 'selected/clear' });
+
+    // Execute the callback function if provided
+    if (callback && typeof callback === 'function') {
+      callback();
+    }
   }
 
   return {
