@@ -987,7 +987,7 @@ function Home() {
               <div className="w-full flex-1 flex flex-col">
                 <div className="relative flex-1">
                   {/*<div className="absolute top-0 left-1/4 w-1/2 h-full overflow-hidden p-2">*/}
-                  <div className="absolute top-0 w-full h-full overflow-hidden p-2">
+                  <div className="absolute top-0 w-full h-full overflow-hidden p-2 pt-5">
                     <Power onClose={handleModalClose}/>
                   </div>
                 </div>

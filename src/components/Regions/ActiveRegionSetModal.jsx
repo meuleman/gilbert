@@ -353,9 +353,9 @@ const ActiveRegionSetModal = () => {
         {
           showMinimap ? (
             <div className="flex flex-col h-full mt-2">
-              <div className="min-h-[20px] pl-2 text-red-500 text-xs font-medium">
+              {/* <div className="min-h-[20px] pl-2 text-red-500 text-xs font-medium">
                 {selected ? showPosition(selected) : null}
-              </div>
+              </div> */}
               
               <div className="flex-1 relative" ref={minimapContainerRef}>
                 <Minimap 

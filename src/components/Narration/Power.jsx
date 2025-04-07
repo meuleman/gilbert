@@ -4,6 +4,7 @@ import { zoomIdentity } from 'd3-zoom';
 import { range, extent } from 'd3-array';
 import { line } from "d3-shape";
 import { interpolateObject, interpolateNumber } from 'd3-interpolate';
+import CloseIcon from "@/assets/close.svg?react"
 
 import { HilbertChromosome, hilbertPosToOrder } from '../../lib/HilbertChromosome';
 import { fromIndex } from '../../lib/regions'
@@ -451,14 +452,20 @@ function PowerModal({
   }, [data, order])
 
   return (
-    <div ref={containerRef} className="power w-full h-full border-[2px] border-red-500 p-2">
+    <div ref={containerRef} className="power w-full h-full border-[2px] border-separator p-0">
       <div>
         <div className="relative">
           {/* Close button */}
-          <div className="absolute top-0 left-0 pt-2 pl-2 flex flex-row space-x-2">
+          <div className="absolute top-0 left-0 -ml-0.5 -mt-4.5 px-1 flex flex-row space-x-2 bg-separator text-black text-[10px] cursor-default">
             <button 
-              className="rounded-md flex items-center justify-center border border-gray-400 bg-white hover:bg-gray-100 text-red-500 px-1.5 py-1 text-sm" 
-              onClick={onClose}>Close X</button>
+              className="cursor-pointer" 
+              onClick={onClose}
+            >
+              <CloseIcon width="8"/>
+            </button>
+            <div>
+              {showPosition(selected)}
+            </div>
           </div>
           {loading && (
             //  bg-white bg-opacity-60
