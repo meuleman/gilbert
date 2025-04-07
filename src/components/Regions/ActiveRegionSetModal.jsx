@@ -75,9 +75,12 @@ const ActiveRegionSetModal = () => {
     setRegionSummary, generateQuery, generateSummary, feedback: selectedFeedback,
   } = SelectedStatesStore()
 
+  const [showMinimap, setShowMinimap] = useState(true)
+
   const containerRef = useRef(null)
   const [width, height] = useContainerSize(containerRef, [activeGenesetEnrichment]);
-  const [showMinimap, setShowMinimap] = useState(true)
+  const minimapContainerRef = useRef(null)
+  const [minimapWidth, minimapHeight] = useContainerSize(minimapContainerRef, [showMinimap]);
 
   const handleShowMinimap = useCallback(() => {
     setShowMinimap(!showMinimap)
@@ -349,15 +352,15 @@ const ActiveRegionSetModal = () => {
         </div>
         {
           showMinimap ? (
-            <div className="flex flex-col h-full mt-8">
-              <div className="min-h-[25px] pl-2 text-red-500 text-xs font-medium">
+            <div className="flex flex-col h-full mt-2">
+              <div className="min-h-[20px] pl-2 text-red-500 text-xs font-medium">
                 {selected ? showPosition(selected) : null}
               </div>
               
-              <div className="flex-1 relative">
+              <div className="flex-1 relative" ref={minimapContainerRef}>
                 <Minimap 
                   width={width}
-                  height={height / 2 - 130}
+                  height={minimapHeight}
                 />
               </div>
             </div>
