@@ -37,18 +37,6 @@ const Minimap = ({
   const [transform, setTransform] = useState(zoomIdentity);
   const [panning, setPanning] = useState(false);
 
-  // // group the full set of regions found in region set by the current order
-  // useEffect(() => {
-  //   if (activeRegions?.length) {
-  //     const groupedAllRegions = group(
-  //       activeRegions,
-  //       d => d.chromosome + ":" + (d.order > order ? hilbertPosToOrder(d.i, { from: d.order, to: order }) : d.i))
-  //     setAllRegionsByCurrentOrder(groupedAllRegions)
-  //   } else {
-  //     setAllRegionsByCurrentOrder(new Map())
-  //   }
-  // }, [activeRegions, order])
-
   // group the top regions found through filtering by the current order
   useEffect(() => {
     if (filteredActiveRegions?.length) {
@@ -82,7 +70,6 @@ const Minimap = ({
   }, [setHover])
 
   const drawEffectiveFilteredRegions = useCanvasFilteredRegions(filteredRegionsByCurrentOrder, { color: "black", opacity: 1, strokeScale: 1, mask: false, dotFill: true })
-  // const drawAllFilteredRegions = useCanvasFilteredRegions(allRegionsByCurrentOrder, { color: "gray", opacity: 0.5, strokeScale: 0.5, mask: false })
   const drawAnnotationRegionSelected = useCanvasAnnotationRegions(minimapResolutionSelected, "selected", {
     stroke: "red",
     mask: false,
@@ -100,16 +87,20 @@ const Minimap = ({
   })
 
   const drawBbox = useCanvasBbox(bbox, { color: "black", opacity: 0.5, strokeScale: 1 })
-  const canvasRenderers = useMemo(() => [
+  const canvasRenderers = useMemo(() => {
+    let renderers = [
+      drawEffectiveFilteredRegions,
+      drawAnnotationRegionSelected,
+    ]
+    if(!selected) {
+      renderers.push(drawBbox)
+    }
+    return renderers
+  }, [
     drawEffectiveFilteredRegions,
-    // drawAllFilteredRegions,
     drawAnnotationRegionSelected,
     drawBbox,
-  ], [
-    drawEffectiveFilteredRegions,
-    // drawAllFilteredRegions,
-    drawAnnotationRegionSelected,
-    drawBbox,
+    selected
   ]);
 
   const hoverRenderers = useMemo(() => [
