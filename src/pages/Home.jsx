@@ -1,28 +1,17 @@
 import { useEffect, useState, useRef, useCallback, useMemo, useContext } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
-import { FilterOutlined } from '@ant-design/icons';
-
-
-// import FiltersProvider from '../components/ComboLock/FiltersProvider'
 import FiltersContext from '../components/ComboLock/FiltersContext'
 import { useZoom } from '../contexts/zoomContext';
 
-import { urlify, jsonify, fromPosition, fromRange, fromCoordinates, toPosition, fromIndex, overlaps } from '../lib/regions'
+import { urlify, jsonify, fromPosition, fromRange, fromCoordinates, overlaps } from '../lib/regions'
 import { hilbertPosToOrder } from '../lib/HilbertChromosome'
-import { debouncerTimed } from '../lib/debounce'
 
-import { fetchFilteringWithoutOrder } from '../lib/dataFiltering';
-import { fetchPartialPathsForRegions, rehydratePartialCSN } from '../lib/csn'
 import { calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
-import { gencode, getRangesOverCell } from '../lib/Genes'
 import { range, group } from 'd3-array'
 import { Tooltip } from 'react-tooltip'
-import { createSubregionPaths } from '../lib/subregionPaths'
 
 import './Home.css'
-
-import LogoNav from '../components/LogoNav';
 // base component
 import HilbertGenome from '../components/HilbertGenome'
 import LinearGenome from '../components/LinearGenome'
@@ -30,22 +19,15 @@ import LinearGenome from '../components/LinearGenome'
 import SVGHilbertPaths from '../components/SVGHilbertPaths'
 import SVGGenePaths from '../components/SVGGenePaths'
 import ZoomLegend from '../components/ZoomLegend'
-// import LinearTracks from '../components/LinearTracks'
-// import TrackPyramid from '../components/TrackPyramid'
 import LayerDropdown from '../components/LayerDropdown'
 import StatusBar from '../components/StatusBar'
 import LeftToolbar from '../components/LeftToolbar'
 import SettingsPanel from '../components/SettingsPanel';
-//import SelectedModal from '../components/SelectedModal'
 import LensModal from '../components/LensModal'
 import LayerLegend from '../components/LayerLegend'
 import SVGSelected from '../components/SVGSelected'
-import RegionMask from '../components/RegionMask'
 import SVGChromosomeNames from '../components/SVGChromosomeNames'
-// import SVGBBox from '../components/SVGBBox'
-// import FilterModal from '../components/ComboLock/FilterModal'
 import SelectFactorPreview from '../components/ComboLock/SelectFactorPreview'
-import FilterSelects from '../components/ComboLock/FilterSelects'
 
 import RegionsContext from '../components/Regions/RegionsContext';
 import RegionSetModalStatesStore from '../states/RegionSetModalStates'
@@ -58,8 +40,6 @@ import ActiveRegionSetModal from '../components/Regions/ActiveRegionSetModal'
 import SummarizePaths from '../components/Narration/SummarizePaths'
 import ZoomInspector from '../components/ZoomInspector'
 import Power from '../components/Narration/Power'
-
-import Spectrum from '../components/Narration/Spectrum';
 
 
 // layer configurations
@@ -74,16 +54,10 @@ import GeneSearch from '../components/GeneSearch'
 import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
 import SimSearchByFactor from '../components/SimSearch/SimSearchByFactor'
 
-import DisplaySimSearchRegions from '../components/SimSearch/DisplaySimSearchRegions'
-import DisplayExampleRegions from '../components/ExampleRegions/DisplayExampleRegions';
 import useCanvasFilteredRegions from '../components/Canvas/FilteredRegions';
 import useCanvasAnnotationRegions from '../components/Canvas/Annotation';
 
 import { getSet } from '../components/Regions/localstorage'
-import SelectedModal from '../components/SelectedModal'
-import SimSearchResultList from '../components/SimSearch/ResultList'
-
-import RegionStrip from '../components/RegionStrip'
 
 import { linearGenomeHeight } from '../components/Constants/Constants'
 
@@ -104,8 +78,6 @@ import UploadIcon from "@/assets/upload.svg?react"
 
 
 
-// declare globally so it isn't recreated on every render
-const debounceTimed = debouncerTimed()
 
 function Home() {
   const location = useLocation();
@@ -206,12 +178,6 @@ function Home() {
   useEffect(() => {
     layerRef.current = layer
   }, [layer])
-
-  // TODO:
-  // something is wrong with the order being calculated by the zoom
-  // also why isn't zoom legend showing up?
-
-
 
   // We want to keep track of the zoom state
   const [zoom, setZoom] = useState({ points: [], bbox: {} })
@@ -627,19 +593,6 @@ function Home() {
   const [csnSort, setCSNSort] = useState("factor")
   // const [regionCSNS, setRegionCSNS] = useState([])
 
-
-  // useEffect(() => {
-  //   // console.log("all full csns", allFullCSNS)
-  //   if(activePaths?.length) {
-  //     let sorted = activePaths.slice(0, numTopRegions)
-  //       // .sort((a,b) => b.score - a.score)
-  //     // console.log("sorted", sorted)
-  //     setTopFullCSNS(sorted)
-  //     setCSNLoading("")
-  //   } else {
-  //     setTopFullCSNS([])
-  //   }
-  // }, [activePaths, numTopRegions])
 
   // Create a mapping from geneset to its score for quick lookup
   const genesetScoreMapping = useMemo(() => {

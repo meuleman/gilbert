@@ -239,7 +239,7 @@ function RegionStrip({ region, segments=100, highlights, layer, width, height })
 
       // fetch the data around the region
       const dataClient = new Data()
-      if(layer.layers) {
+      if(layer?.layers) {
         Promise.all(layer.layers.map(l => dataClient.fetchData(l, region.order, points))).then((responses) => {
           let data = layer.combiner(responses)
           setData(data)

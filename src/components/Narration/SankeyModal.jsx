@@ -2,7 +2,8 @@ import { useState, useCallback, useEffect, useRef, useContext } from 'react'
 
 import { max } from 'd3-array'
 import VerticalSankey from './VerticalSankey';
-import ZoomLine from './ZoomLine';
+// import ZoomLine from './ZoomLine';
+import ZoomLine from './ZoomLineOld';
 import Loading from '../Loading'
 import FiltersContext from '../ComboLock/FiltersContext'
 import {showPosition} from '../../lib/display'
@@ -37,18 +38,18 @@ const SankeyModal = ({
   // const [showPanel, setShowPanel] = useState(false)
   const [showControls, setShowControls] = useState(false)
 
-  const { filters, hasFilters } = useContext(FiltersContext)
+  // const { filters, hasFilters } = useContext(FiltersContext)
 
   // useEffect(() => {
   //   setShowPanel(show)
   // }, [show])
 
 
-  useEffect(() => {
-    if(!hasFilters()){
-      setSort("full")
-    }
-  }, [filters])
+  // useEffect(() => {
+  //   if(!hasFilters()){
+  //     setSort("full")
+  //   }
+  // }, [filters])
 
   const [view, setView] = useState("sankey")
   const [sort, setSort] = useState("full")
@@ -128,7 +129,7 @@ const SankeyModal = ({
             Switch Visualization to {view == "heatmap" ? "Sankey" : "Heatmap"}
           </Tooltip>
 
-          {show && selectedRegion ? <button 
+          {/* {show && selectedRegion ? <button 
             // onClick={handleSwitchView}
             onClick={onClearRegion}
             data-tooltip-id="sankey-clear-region"
@@ -146,10 +147,10 @@ const SankeyModal = ({
                 position: "absolute",
                 top: "9px",
               }}>❌</span>
-          </button> : null }
-          {selectedRegion ? <Tooltip id="sankey-clear-region">
+          </button> : null } */}
+          {/* {selectedRegion ? <Tooltip id="sankey-clear-region">
             Remove selected region {showPosition(selectedRegion)} as a filter
-          </Tooltip> : null}
+          </Tooltip> : null} */}
  
         </div>
         <div className={`controls ${showControls ? "show" : "hide"}`}>
@@ -173,7 +174,7 @@ const SankeyModal = ({
                     type="radio" 
                     value="factor" 
                     checked={sort === "factor"} 
-                    disabled={!hasFilters()}
+                    // disabled={!hasFilters()}
                     onChange={() => setSort("factor")} 
                   />
                   Factor
@@ -182,7 +183,7 @@ const SankeyModal = ({
                   <input 
                     type="radio" 
                     value="full" 
-                    checked={sort === "full" || !hasFilters()} 
+                    checked={sort === "full"} 
                     onChange={() => setSort("full")} 
                   />
                   Full
@@ -204,7 +205,7 @@ const SankeyModal = ({
             <div className="only-top-factor line-column">
               <div className="csn-lines">
                 {csns.slice(0,40).map((n,i) => {
-                  // console.log("n", n)
+                  console.log("n", n)
                   return (<ZoomLine 
                     key={i}
                     csn={n} 

@@ -138,7 +138,9 @@ function PowerModal({
   const radius = 9;
 
   // initialize data to empty data structure so we can render empty hilbert curve while data loads
-  const [data, setData] = selected ? useState(() => {
+  const [data, setData] = useState(() => {
+    if (!selected) return null;
+    
     // Create default empty data structure
     return range(4, 15).map(order => {
       const oi = hilbertPosToOrder(selected.i, { from: selected.order, to: order });
@@ -170,7 +172,7 @@ function PowerModal({
         }
       };
     });
-  }) : useState(null);
+  });
 
   
   const orderMin = 4, orderMax = 14;
@@ -444,6 +446,7 @@ function PowerModal({
   }, [data, order])
 
   const linearLayer = useMemo(() => {
+    if (!data) return null;
     return data.find(d => d.order === order)?.layer
   }, [data, order])
 

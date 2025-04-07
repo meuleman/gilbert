@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { range, max } from 'd3-array';
+import { ZoomProvider, useZoom } from '../contexts/zoomContext';
 
 import { showFloat, showPosition, showKb } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition, sameHilbertRegion } from '../lib/regions';
@@ -30,13 +31,16 @@ import './RegionDetail.css';
 
 const decoder = new TextDecoder('ascii');
 
-const RegionDetail = () => {
+const RegionDetailContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location]);
   const region = useMemo(() => {return jsonify(queryParams.get('region'))}, [queryParams]);
   useEffect(() => { document.title = `Gilbert | Region Detail: ${region.chromosome}:${region.start}` }, [region]);
   const fetchData = useMemo(() => Data({debug: false}).fetchData, []);
+  
+  // Get access to zoom context
+  const { setSelectedZoomOrder } = useZoom();
 
   const [inside, setInside] = useState([]);
   const [outside, setOutside] = useState([]);
@@ -103,6 +107,11 @@ const RegionDetail = () => {
       const rs = hilbert.fromRange(region.chromosome, region.i - 1, region.i + 1)
       // console.log("ranges", rs)
       setRanges(rs)
+      
+      // Update selected zoom order based on region
+      if (region && region.order) {
+        setSelectedZoomOrder(region.order);
+      }
 
       // fetch data for each layer
       const matchingLayers = csnLayerList.filter(d => d.orders[0] <= region.order && d.orders[1] >= region.order)
@@ -140,28 +149,10 @@ const RegionDetail = () => {
       // Sim search on DHS
       SimSearchRegion(rs[1], region.order, DHS_Components_Sfc_max, setFactorsDHS,[]).then((result) => {
         setSimSearchDHS(result)
-        // let similarRegions = result?.simSearch
-        // if(similarRegions && similarRegions.length)  {
-        //   const similarRanges = similarRegions.map((d) => {
-        //     const { chromosome, start, end } = parsePosition(d.coordinates)
-        //     let range = fromPosition(chromosome, start, end)
-        //     return range
-        //   })
-        //   // console.log("similar dhs ranges", similarRanges)
-        // }
       })
       // Sim search on Chromatin States
       SimSearchRegion(rs[1], region.order, Chromatin_States_Sfc_max, setFactorsChromatin, []).then((result) => {
         setSimSearchChromatin(result)
-        // let similarRegions = result?.simSearch
-        // if(similarRegions && similarRegions.length)  {
-        //   const similarRanges = similarRegions.map((d) => {
-        //     const { chromosome, start, end } = parsePosition(d.coordinates)
-        //     let range = fromPosition(chromosome, start, end)
-        //     return range
-        //   })
-        //   // console.log("similar chromatin ranges", similarRanges)
-        // }
       })
 
       if(region.order < 14) {
@@ -174,7 +165,7 @@ const RegionDetail = () => {
         })
       } 
     }
-  }, [region, fetchData, csnMethod])
+  }, [region, fetchData, csnMethod, setSelectedZoomOrder]);
 
   // We have special logic for making a "CSN" path from order 14
   // it's mostly about finding the highest factor for every region "above" the order 14 region
@@ -779,6 +770,15 @@ const RegionDetail = () => {
 
       </div>
     </div>
+  );
+};
+
+// Main component wrapper with ZoomProvider
+const RegionDetail = () => {
+  return (
+    <ZoomProvider>
+      <RegionDetailContent />
+    </ZoomProvider>
   );
 };
 
