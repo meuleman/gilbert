@@ -160,7 +160,7 @@ function Home() {
         for (let entry of entries) {
           // The contentRect provides the new dimensions
           const { width, height } = entry.contentRect;
-          setSize([width, height]);
+          setSize([width, height - linearGenomeHeight]);
         }
       });
 
