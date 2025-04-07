@@ -1,0 +1,12 @@
+<svg width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Group 36">
+<rect id="Rectangle 145" width="2" height="2" rx="1" fill="black"/>
+<rect id="Rectangle 147" y="4" width="2" height="2" rx="1" fill="black"/>
+<rect id="Rectangle 148" y="8" width="2" height="2" rx="1" fill="black"/>
+<rect id="Rectangle 149" x="3" y="8" width="9" height="2" fill="black"/>
+<g id="Rectangle 150">
+<path d="M3 4H12V6H3V4Z" fill="black"/>
+<path d="M3 0H12V2H3V0Z" fill="black"/>
+</g>
+</g>
+</svg>

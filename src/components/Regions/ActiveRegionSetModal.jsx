@@ -11,6 +11,8 @@ import Loading from '../Loading';
 import AccordionArrow from '@/assets/accordion-circle-arrow.svg?react';
 import Spectrum from '../../components/Narration/Spectrum';
 import Minimap from './Minimap';
+import MinimapIcon from "@/assets/minimap.svg?react";
+import ListviewIcon from "@/assets/listview.svg?react";
 
 import styles from './ActiveRegionSetModal.module.css'
 
@@ -301,8 +303,8 @@ const ActiveRegionSetModal = () => {
             ) : null
           }
         </div> */}
-        <div className="relative mb-2 pt-2 border-y-1 border-y-separator flex flex-row justify-between items-start min-h-[60px]">
-          <div className="text-sm font-medium overflow-auto max-h-[50px] h-[50px] block">
+        <div className="relative border-y-1 border-y-separator flex flex-row justify-between items-start min-h-[60px]">
+          <div className="text-sm mb-2 pt-2 font-medium overflow-auto max-h-[50px] h-[50px] block">
             {activeSet ? (
               (() => {
                 // Get region count and text
@@ -328,21 +330,21 @@ const ActiveRegionSetModal = () => {
               null
             )}
           </div>
-
-          <div className="flex items-center pl-2">
-            <label className={`inline-flex gap-2 items-center cursor-pointer pr-2 ${!activeSet ? "opacity-50 pointer-events-none" : ""}`}>
-              <div className="text-sm font-medium">
-                Minimap
-              </div>
-              <input
-                className="absolute -z-50 pointer-events-none opacity-0 peer"
-                type="checkbox"
-                checked={showMinimap}
-                onChange={handleShowMinimap}
-                disabled={!activeSet}
-              />
-              <span className="block bg-muted-foreground border-2 border-muted-foreground h-3 w-6 rounded-full after:block after:h-full after:aspect-square after:bg-white after:rounded-full peer-checked:bg-primary peer-checked:border-primary peer-checked:after:ml-[0.725rem]"></span>
-            </label>
+          <div className="flex flex-col h-full justify-center">
+            <div className="flex items-center pl-2">
+              <label className={`inline-flex gap-2 items-center cursor-pointer pr-2 ${!activeSet ? "opacity-50 pointer-events-none" : ""}`}>
+                <ListviewIcon />
+                <input
+                  className="absolute -z-50 pointer-events-none opacity-0 peer"
+                  type="checkbox"
+                  checked={showMinimap}
+                  onChange={handleShowMinimap}
+                  disabled={!activeSet}
+                />
+                <span className="block bg-muted-foreground border-2 border-muted-foreground h-3 w-6 rounded-full after:block after:h-full after:aspect-square after:bg-white after:rounded-full peer-checked:bg-primary peer-checked:border-primary peer-checked:after:ml-[0.725rem]"></span>
+                <MinimapIcon />
+              </label>
+            </div>
           </div>
         </div>
         {
