@@ -1,9 +1,9 @@
 // function to generate simsearch results for a provided region with Genomic Narration tool. 
 import axios from "axios";
-
+import { baseAPIUrl } from "../../lib/apiService";
 export default function GenesetEnrichment(data, order) {
   if(data && order) {
-    let url = "https://explore.altius.org:5001/geneset_enrichment"
+    let url = `${baseAPIUrl}/geneset_enrichment`
     
     const queryData = data.map(d => {
       return {

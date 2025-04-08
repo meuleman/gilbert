@@ -1,4 +1,5 @@
 import axios from "axios";
+import { baseAPIUrl } from './apiService';
 import { GWASLayer } from '../layers'
 
 // * ================================================================
@@ -14,7 +15,7 @@ Returns:
 [ { chromosome: chromosome, index: index, trait_names: [], scores: [] }, ...]
 */
 function fetchGWASforPositions(positions) {
-  const url = "https://explore.altius.org:5001/api/gwas/gwas_for_positions"
+  const url = `${baseAPIUrl}/api/gwas/gwas_for_positions`
   const postBody = {'positions': positions}
   // console.log("GWAS POST BODY", postBody)
   return axios({

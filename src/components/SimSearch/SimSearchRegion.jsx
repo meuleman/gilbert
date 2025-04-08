@@ -2,7 +2,7 @@
 import axios from "axios";
 import allFactors from './SimSearchFactors.json'
 import { fromRegion } from '../../lib/regions'
-
+import { baseAPIUrl } from "../../lib/apiService";
 export default function SimSearchRegion(selected, order, layer, setSearchByFactorInds, factors, simSearchMethod) {
   const maxSimSearchOrder = 11
   if(selected) {
@@ -23,7 +23,7 @@ export default function SimSearchRegion(selected, order, layer, setSearchByFacto
       const fusionWeight = 0.1
       const regionMethod = 'hilbert_sfc'
 
-      let url = "https://explore.altius.org:5001/simsearch"
+      let url = `${baseAPIUrl}/simsearch`
 
       const { chromosome, start, end } = fromRegion(selected)
       // const end = start + 1

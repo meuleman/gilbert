@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import { baseAPIUrl } from './apiService';
 // * ================================================================
 // * Server side API calls
 // * ================================================================
@@ -16,7 +16,7 @@ Returns: [{geneset}, ...] if membership=true
 */
 function fetchGenesetEnrichment(genes, membership=false) {
 
-  const url = "https://explore.altius.org:5001/api/genesetEnrichment/geneset_enrichment"
+  const url = `${baseAPIUrl}/api/genesetEnrichment/geneset_enrichment`
   const postBody = {genes, threshold: 0.01, membership}
   // console.log("GENESET POST BODY", postBody)
   return axios({

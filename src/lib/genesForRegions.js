@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import { baseAPIUrl } from './apiService';
 // * ================================================================
 // * Server side API calls
 // * ================================================================
@@ -12,7 +12,7 @@ Returns:
 [{chromosome, domain_start, domain_end, name, stable_ID, strand, start, end, description, in_gene}, ...]
 */
 function fetchGenes(regions) {
-  const url = "https://explore.altius.org:5001/api/genes/fetch_genes"
+  const url = `${baseAPIUrl}/api/genes/fetch_genes`
   const postBody = {regions}
   console.log("FETCH GENES POST BODY", postBody)
   return axios({

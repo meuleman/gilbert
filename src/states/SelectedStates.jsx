@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { baseAPIUrl } from '../lib/apiService';
 import { fetchSingleRegionFactorOverlap } from '../lib/regionSetEnrichments';
 import { createSubregionPaths } from '../lib/subregionPaths'
 import { fullList as layers, csnLayers, variantLayers } from '../layers'
@@ -30,7 +31,7 @@ const SelectedStatesStore = create((set, get) => {
               set({ subpaths: subpathResponse });
             });
         });
-    };
+    }
   };
 
   const collectPathsForSelected = (selected, genesetScoreMapping, determineFactorExclusion, activeSet, activeFilters) => {
@@ -163,7 +164,7 @@ const SelectedStatesStore = create((set, get) => {
         if (correspondingSegment.length === 1) {
           d.fullData ? correspondingSegment[0]["fullData"] = d.fullData : null;
           d.counts ? correspondingSegment[0]["counts"] = d.counts : null;
-        };
+        }
       });
       newNarration.path = newPath;
       set({ 
@@ -498,8 +499,8 @@ const SelectedStatesStore = create((set, get) => {
     collectFullData,
 
     // summary
-    url: "https://explore.altius.org:5001/api/pubmedSummary/pubmed_summary",
-    url_feedback: "https://explore.altius.org:5001/api/pubmedSummary/feedback",
+    url: `${baseAPIUrl}/api/pubmedSummary/pubmed_summary`,
+    url_feedback: `${baseAPIUrl}/api/pubmedSummary/feedback`,
     query: "",
     setQuery: (query) => set({ query: query }),
     showQuery: false,

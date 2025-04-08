@@ -1,6 +1,7 @@
-import axios from "axios";
 import Data from './data';
-import { count, range } from 'd3-array';
+import axios from "axios";
+import { range } from 'd3-array';
+import { baseAPIUrl } from './apiService';
 
 import { fullList as layers, countLayers, fullDataLayers, rehydrate, csnLayerList } from '../layers'
 
@@ -50,7 +51,7 @@ region (and baseRegion): {order, chromosome, index}
 function fetchTopCSNs(filtersMap, region, scoreType, diversity, N) {
   const filters = getFilters(filtersMap, region)
 
-  const url = "https://explore.altius.org:5001/api/csns/top_paths"
+  const url = `${baseAPIUrl}/api/csns/top_paths`
   const postBody = {filters, scoreType, region, diversity, N}
   // console.log("CSN POST BODY", postBody)
   return axios({
@@ -80,7 +81,7 @@ function fetchFilterPreview(filtersMap, region, newFilterFull) {
   const filters = getFilters(filtersMap, region)
   const newFilter = {"dataset_name": newFilterFull.layer.datasetName, "index": newFilterFull.index}
 
-  const url = "https://explore.altius.org:5001/api/csns/preview_filter"
+  const url = `${baseAPIUrl}/api/csns/preview_filter`
   const postBody = {filters, region, newFilter}
   // console.log("FILTER PREVIEW POST BODY", postBody)
   return axios({
@@ -108,7 +109,7 @@ Returns:
 */
 function fetchTopPathsForRegions(regions, N) {
   if(regions.length === 0) return Promise.resolve({regions: []})
-  const url = "https://explore.altius.org:5001/api/csns/top_paths_for_regions"
+  const url = `${baseAPIUrl}/api/csns/top_paths_for_regions`
   const postBody = {regions, N}
   // console.log("TOP PATHS POST BODY", postBody)
   return axios({
@@ -138,7 +139,7 @@ Returns:
 }
 */
 function fetchPartialPathsForRegions(regions, membership=false, threshold=0.1) {
-  const url = "https://explore.altius.org:5001/api/csns/paths_by_order"
+  const url = `${baseAPIUrl}/api/csns/paths_by_order`
   const postBody = {regions, threshold, membership}
   console.log("PARTIAL PATHS POST BODY", postBody)
   return axios({
@@ -165,7 +166,7 @@ Returns:
 [ ...]
 */
 function fetchFilteredRegions(filters, order) {
-  const url = "https://explore.altius.org:5001/csn/filtered_indices"
+  const url = `${baseAPIUrl}/csn/filtered_indices`
   const postBody = {filters, order}
   return axios({
     method: 'POST',
@@ -517,7 +518,7 @@ function narrateRegion(selected, order) {
   if(selected) {
     if(order <= maxSimSearchOrder) {
       const regionMethod = 'hilbert_sfc'
-      let url = "https://explore.altius.org:5001/narration"
+      let url = `${baseAPIUrl}/narration`
 
       const chromosome = selected.chromosome
       const start = selected.start

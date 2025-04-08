@@ -1,7 +1,7 @@
 // function to generate simsearch results for a provided region with Genomic Narration tool. 
 import axios from "axios";
 import allFactors from './SimSearchFactors.json'
-
+import { baseAPIUrl } from "../../lib/apiService";
 export default function SimSearchByFactor(factors, order, layer) {
   const maxSimSearchOrder = 11
   if(factors && order) {
@@ -11,7 +11,7 @@ export default function SimSearchByFactor(factors, order, layer) {
       const fusionWeight = 0.1
       const regionMethod = 'hilbert_sfc'
 
-      let url = "https://explore.altius.org:5001/search_by_factor"
+      let url = `${baseAPIUrl}/search_by_factor`
 
       const postBody = {
         factors: JSON.stringify(factors),

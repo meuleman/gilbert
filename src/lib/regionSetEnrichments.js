@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import { baseAPIUrl } from './apiService';
 // * ================================================================
 // * Server side API calls
 // * ================================================================
@@ -15,7 +15,7 @@ Returns:
 [{dataset, factor, enrichment, count}, ...]
 */
 function fetchRegionSetEnrichments({regions, N = null, factorExclusion = [], enrichmentThreshold = null}) {
-  const url = "https://explore.altius.org:5001/api/regionSetEnrichment/region_set_enrichment"
+  const url = `${baseAPIUrl}/api/regionSetEnrichment/region_set_enrichment`
   const postBody = {regions, factor_exclusion: factorExclusion}
   N && (postBody.N = N)
   enrichmentThreshold && (postBody.enrichment_threshold = enrichmentThreshold)
@@ -44,7 +44,7 @@ Returns:
 [{dataset, factor, segments: [{order, chromosome, i, score}, ...]}, ...]
 */
 function fetchSingleRegionFactorOverlap({region, factorExclusion = []}) {
-  const url = "https://explore.altius.org:5001/api/regionSetEnrichment/single_region_factor_query"
+  const url = `${baseAPIUrl}/api/regionSetEnrichment/single_region_factor_query`
   const postBody = {region, factor_exclusion: factorExclusion}
   console.log("SINGLE REGION FACTOR OVERLAP POST BODY", postBody)
   return axios({

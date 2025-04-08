@@ -1,4 +1,5 @@
 import axios from "axios";
+import { baseAPIUrl } from './apiService';
 // import Data from './data';
 // import { count, range } from 'd3-array';
 
@@ -60,7 +61,7 @@ function fetchFilterSegments(filtersMap, regions, N) {
   // remove duplicate regions
   let uniqueRegions = getUniqueRegions(regions)
 
-  const url = "https://explore.altius.org:5001/api/dataFiltering/data_filtering"
+  const url = `${baseAPIUrl}/api/dataFiltering/data_filtering`
   // const postBody = N ? {filters, N} : {filters}
   const postBody = {
     filters,
@@ -96,7 +97,7 @@ function fetchFilterPreview(regions, filtersMap, newFilterFull) {
   const filters = getFilters(filtersMap)
   const newFilters = [{"dataset_name": newFilterFull.layer.datasetName, "index": newFilterFull.index}]
 
-  const url = "https://explore.altius.org:5001/api/dataFiltering/preview_filter"
+  const url = `${baseAPIUrl}/api/dataFiltering/preview_filter`
   const postBody = {
     filters, 
     newFilters,
@@ -135,7 +136,7 @@ function fetchOrderPreview(regions, newFiltersList, orders) {
     return {"dataset_name": d.layer.datasetName, "index": d.index}
   })
 
-  const url = "https://explore.altius.org:5001/api/dataFiltering/preview_filter"
+  const url = `${baseAPIUrl}/api/dataFiltering/preview_filter`
   const postBody = {regions: uniqueRegions, newFilters, orders, normalize: false}
   // console.log("POST BODY", postBody)
   return axios({
@@ -162,7 +163,7 @@ Returns:
 [{chromosome, i, order, max_score_order, csn, csn_scores}, ...]
 */
 function fetchFilteringWithoutOrder(filters, regions) {
-  const url = "https://explore.altius.org:5001/api/filteringWithoutOrder/filtering_without_order"
+  const url = `${baseAPIUrl}/api/filteringWithoutOrder/filtering_without_order`
   const postBody = {filters}
   regions && (postBody.regions = regions)
   console.log("FILTER WITHOUT ORDER POST BODY", postBody)
@@ -197,7 +198,7 @@ Returns:
 [{chromosome, i, order, score}, ...]
 */
 function fetchRegionSetFromFactor(factor, maxRegions=null) {
-  const url = "https://explore.altius.org:5001/api/filteringWithoutOrder/generate_region_set_from_factor"
+  const url = `${baseAPIUrl}/api/filteringWithoutOrder/generate_region_set_from_factor`
   const postBody = {factor}
   maxRegions && (postBody.max_regions = maxRegions)
   console.log("REGION SET FROM FACTOR POST BODY", postBody)
@@ -226,7 +227,7 @@ Returns:
 [{chromosome, i, order, score, ranges, subregion}, ...]
 */
 function fetchBackfillFiltering(regions, filters, N=100) {
-  const url = "https://explore.altius.org:5001/api/filteringWithoutOrder/backfill_region_filtering"
+  const url = `${baseAPIUrl}/api/filteringWithoutOrder/backfill_region_filtering`
   const postBody = {regions, filters, N}
   console.log("REGION BACKFILL FILTERING POST BODY", postBody)
   return axios({

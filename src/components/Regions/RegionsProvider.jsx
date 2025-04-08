@@ -1,15 +1,12 @@
-import { useState, useEffect, useCallback, useContext, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import RegionsContext from './RegionsContext';
-import FiltersContext from '../ComboLock/FiltersContext';
-import { fromPosition, toPosition, fromIndex } from '../../lib/regions';
-import { fetchFilterSegments, fetchBackfillFiltering } from '../../lib/dataFiltering';
+import { fromPosition, fromIndex } from '../../lib/regions';
+import { fetchBackfillFiltering } from '../../lib/dataFiltering';
 import { rehydratePartialCSN, fetchPartialPathsForRegions } from '../../lib/csn'
 import { showKbOrder } from '../../lib/display'
-import { fetchGenesetEnrichment } from '../../lib/genesetEnrichment';
-import { csnLayers, variantLayers, makeField, csnLayerList } from '../../layers'
+import { makeField, csnLayerList } from '../../layers'
 import { fetchRegionSetEnrichments } from '../../lib/regionSetEnrichments';
-import { fetchGenes } from '../../lib/genesForRegions';
-
+import { baseAPIUrl } from '../../lib/apiService';
 // import { v4 as uuidv4 } from 'uuid';
 
 import CSNExamples from '../ExampleRegions/Nice_CSN_Examples.json'
@@ -18,7 +15,6 @@ import ec from '../ExampleRegions/Eosinophil_count_Variants_UKBB_94_Traits.json'
 import tc from '../ExampleRegions/Total_cholesterol_Variants_UKBB_94_Traits.json'
 import knownLCRs from '../ExampleRegions/known_LCRs.json'
 import OneMbRegions from '../ExampleRegions/1mb_regions.json'
-import { range } from 'd3-array';
 
 function convertExamples(examples) {
   return examples.map(d => {
@@ -234,8 +230,8 @@ const RegionsProvider = ({ children }) => {
   const [regionSetEnrichmentsLoading, setRegionSetEnrichmentsLoading] = useState(false)
   useEffect(() => {
     if(filteredActiveRegions) {
-      let factor = activeSetRef.current?.factor
-      let filters = activeFiltersRef.current
+      // let factor = activeSetRef.current?.factor
+      // let filters = activeFiltersRef.current
       setRegionSetEnrichmentsLoading(true)
       // use subregion if available, else region
       let regionsToUse = filteredActiveRegions.map(d => d.subregion ? d.subregion : d)
@@ -266,7 +262,6 @@ const RegionsProvider = ({ children }) => {
   // collecting paths, genes, and genesets for top regions
   const [topNarrations, setTopNarrations] = useState([])
   const [topNarrationsLoading, setTopNarrationsLoading] = useState(false)
-  const [genesInRegions, setGenesInRegions] = useState([])
   const [activeGenesetEnrichment, setActiveGenesetEnrichment] = useState(null)
   useEffect(() => {
     if(filteredActiveRegions?.length) {
@@ -274,8 +269,6 @@ const RegionsProvider = ({ children }) => {
       // if subregion exists, use for narration
       let narrationRegions = filteredActiveRegions.map(d => d.subregion ? {...d, ...d.subregion} : d)
       fetchPartialPathsForRegions(narrationRegions, false).then((response) => {
-        // set region set genes
-        setGenesInRegions(response.regions.flatMap(d => d.genes)?.map(d => d.name))
         // set geneset enrichment for region set
         setActiveGenesetEnrichment(response.genesets)
         // rehydrate paths
@@ -297,7 +290,7 @@ const RegionsProvider = ({ children }) => {
   const [regionSetNarrationLoading, setRegionSetNarrationLoading] = useState(false)
   const [regionSetArticles, setRegionSetArticles] = useState([])
   const generateRegionSetNarration = useCallback((query) => {
-    const url = "https://explore.altius.org:5001/api/pubmedSummary/pubmed_region_set_summary"
+    const url = `${baseAPIUrl}/api/pubmedSummary/pubmed_region_set_summary`
     fetch(`${url}`, {
       method: "POST",
       headers: {
