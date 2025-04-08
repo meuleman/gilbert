@@ -274,10 +274,10 @@ const ActiveRegionSetModal = () => {
         </div>
         <div className="grow-0 h-1/4 flex flex-col">
           {activeSet && (
-            <div className="flex flex-col flex-1 px-2">
-              <h3 className="text-sm text-gray-500">
+            <div className="flex flex-col flex-1 px-2 pt-1">
+              {/* <h3 className="text-sm text-gray-500">
                 Spectrum:
-              </h3>
+              </h3> */}
               {activeGenesetEnrichment ?
                 <div className="flex-1 relative">
                   <div className="absolute inset-0">
