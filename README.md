@@ -20,6 +20,23 @@ npm run dev
 
 The API that provides the data can be found at [gilbert-api](), follow the setup instructions and then modify the `VITE_API_URL` in `.env.development` to point to the API.
 
+
+## Overview
+
+The main entry point into the App is `src/pages/Home.jsx`. This is the page that is rendered when the user navigates to the root URL.
+
+The focal point of the App is the [HilbertGenome](src/components/HilbertGenome.jsx) component which provides the 2D map of the genome, with a more traditional 1D genome track to the bottom found in [LinearGenome.jsx](src/components/LinearGenome.jsx). To the right side is the [ZoomLegend](src/components/ZoomLegend.jsx) which provides a legend for the zoom levels and which data layers are active at each zoom level (AKA `order`).
+
+The zoom state is coordinated by the [ZoomProvider](src/contexts/ZoomProvider.jsx) context, which allows us to sync the 1D view as well as the zoom legend.
+
+When you select a region or a region set, another layer of UI is activated.
+TODO: describe the state of the UI when a region or region set is selected.
+
+RegionProvider
+SelectedStates
+
+
+
 ## Contributing
 
 // TODO Describe the contribution process, coding guidelines, and ways to get involved in the project.
