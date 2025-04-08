@@ -48,10 +48,6 @@ import { fullList as layers, dropdownList, csnLayers, variantLayers, countLayers
 // import Autocomplete from '../components/Autocomplete/Autocomplete'
 import GeneSearch from '../components/GeneSearch'
 
-// region SimSearch
-import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
-import SimSearchByFactor from '../components/SimSearch/SimSearchByFactor'
-
 import useCanvasFilteredRegions from '../components/Canvas/FilteredRegions';
 import useCanvasAnnotationRegions from '../components/Canvas/Annotation';
 
@@ -308,10 +304,7 @@ function Home() {
     setHoveredPosition({ x: hoveredX, y: hoveredY, sw, stepSize: scales.sizeScale(step) });
   }, [hover, transform, order, scales])
 
-  const [simSearch, setSimSearch] = useState(null)
-  const [similarRegions, setSimilarRegions] = useState([])
-  // const [simSearchDetailLevel, setSimSearchDetailLevel] = useState(null)
-  const [simSearchMethod, setSimSearchMethod] = useState(null)
+
   const [crossScaleNarration, setCrossScaleNarration] = useState(new Array(1).fill({ 'path': [] }))
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
   const [csnMethod, setCsnMethod] = useState("sum")
@@ -326,15 +319,10 @@ function Home() {
     if (!initialSelectedRegion) {
       // TODO: need a reliable way to clear state when deselecting a region
       setSelected(null)
-      setSimilarRegions([])
       setCrossScaleNarration([])
     }
   }, [initialSelectedRegion])
 
-  // the hover can be null or the data in a hilbert cell
-  const [lastHover, setLastHover] = useState(null)
-  // for when a region is hovered in the similar region list
-  const [similarRegionListHover, setSimilarRegionListHover] = useState(null)
 
   const [data, setData] = useState(null)
   const dataRef = useRef(data)
@@ -343,21 +331,6 @@ function Home() {
   }, [data])
 
   const [searchByFactorInds, setSearchByFactorInds] = useState([])
-
-  const processSimSearchResults = useCallback((order, result) => {
-    setSimSearch(result)
-    let similarRegions = result?.simSearch
-    if (similarRegions && similarRegions.length) {
-      const similarRanges = similarRegions.map((d) => {
-        return fromCoordinates(d.coordinates)
-      })
-
-      setSimilarRegions(similarRanges)
-    } else {
-      setSimilarRegions([])
-      setSelected(null)
-    }
-  }, [setSimSearch, setSimilarRegions, setSelected])
 
 
   const updateUrlParams = useCallback((newRegionSet, newSelected, newFilters) => {
@@ -392,38 +365,9 @@ function Home() {
   // function to change the ENR threshold for CSN
   const handleCsnEnrThresholdChange = (e) => setCsnEnrThreshold(e.target.value)
 
-  const handleHover = useCallback((hit, similarRegionList = false) => {
-    // if(hit && !selectedRef.current) {}
-    if (similarRegionList) {
-      setSimilarRegionListHover(hit)
-    }
+  const handleHover = useCallback((hit) => {
     setHover(hit)
-    if (hit) setLastHover(hit)
-  }, [setSimilarRegionListHover, setHover])
-
-  const handleFactorClick = useCallback((newSearchByFactorInds) => {
-    console.log("HANDLE FACTOR CLICK", newSearchByFactorInds, simSearchMethod)
-    setSearchByFactorInds(newSearchByFactorInds)
-    if (newSearchByFactorInds.length > 0) {
-      if (simSearchMethod != "Region") {
-        SimSearchByFactor(newSearchByFactorInds, order, layer).then((SBFResult) => {
-          setSelected(null)
-          processSimSearchResults(order, SBFResult)
-          setSimSearchMethod("SBF")
-        })
-      } else if (simSearchMethod == "Region") {
-        SimSearchRegion(selected, selected.order, layer, setSearchByFactorInds, newSearchByFactorInds, simSearchMethod).then((regionResult) => {
-          processSimSearchResults(selected.order, regionResult)
-          console.log("REGION RESULT", regionResult)
-        })
-      }
-    } else {
-      // clear the sim search
-      processSimSearchResults(order, { simSearch: null, factors: null, method: null, layer: null })
-      setSimSearchMethod(null)
-    }
-  }, [selected, order, setSearchByFactorInds, processSimSearchResults, simSearchMethod, setSelected, layer])  // setGenesetEnrichment
-
+  }, [setHover])
 
   const [showHilbert, setShowHilbert] = useState(false)
   const handleChangeShowHilbert = (e) => {
@@ -607,26 +551,6 @@ function Home() {
     }
   }, [filteredActiveRegions, order])
 
-  // useEffect(() => {
-  //   if(activePaths?.length) {
-  //     console.log("updating active regions by current order", order)
-  //     const groupedActiveRegions = group(
-  //       activePaths.slice(0, numTopRegions),
-  //       d => d.chromosome + ":" + hilbertPosToOrder(d.i, {from: 14, to: order}))
-  //     setActiveRegionsByCurrentOrder(groupedActiveRegions)
-  //   } else {
-  //     console.log("no active regions", order)
-  //     setActiveRegionsByCurrentOrder(new Map())
-  //   }
-  // }, [order, activePaths, regions, numTopRegions])
-
-
-
-  const handleFactorPreview = useCallback((field, values) => {
-    // console.log("preview factor!", field, values)
-    setFactorPreviewField(field)
-    setFactorPreviewValues(values)
-  }, [setFactorPreviewField, setFactorPreviewValues])
 
   const handleSelectedCSNSankey = useCallback((csn) => {
     let hit = fromPosition(csn.chromosome, csn.start, csn.end, order)
@@ -733,12 +657,7 @@ function Home() {
   const clearSelectedState = useCallback(() => {
     console.log("CLEARING STATE")
     clearSelected()  // from SelectedStatesStore
-    // setSimSearch(null)
-    // setSearchByFactorInds([])
-    // setSimilarRegions([])
-    // setSimSearchMethod(null)
-    // setRegionCSNS([])
-  }, [setRegion, setSelected, setSimSearch, setSearchByFactorInds, setSimilarRegions, setSimSearchMethod, setSelectedNarration])
+  }, [setRegion, setSelected, setSelectedNarration])
 
   const clearRegionSetSummaries = useCallback(() => {
     setRegionSetNarration("")
@@ -962,7 +881,6 @@ function Home() {
                       hover={hover}
                       selected={selected}
                       show={showLayerLegend}
-                      handleFactorClick={handleFactorClick}
                       searchByFactorInds={searchByFactorInds}
                     />
                     {/* <div className="grow-0">
@@ -1125,7 +1043,6 @@ function Home() {
           selected={selected}
           show={showLayerLegend}
           onShow={setShowLayerLegend}
-          handleFactorClick={handleFactorClick}
           searchByFactorInds={searchByFactorInds}
         />
 

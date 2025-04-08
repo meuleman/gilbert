@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import SimSearchFactors from './SimSearch/SimSearchFactors.json'
 
 const LayerLegend = ({
   data,
@@ -21,9 +20,6 @@ const LayerLegend = ({
     let fullFactorList = [];
     let layerName = data?.layer.name;
     let SBFFactors = null;
-
-    if (layerName === 'DHS Components') SBFFactors = SimSearchFactors['DHS'];
-    else if (layerName === 'Chromatin States') SBFFactors = SimSearchFactors['Chromatin States'];
 
     if (SBFFactors) {
       setSBFFactors(SBFFactors);
