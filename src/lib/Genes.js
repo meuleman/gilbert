@@ -1,5 +1,5 @@
 import { rollups, extent } from "d3-array"
-import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome" 
+import { HilbertChromosome, hilbertPosToOrder } from "./HilbertChromosome" 
 
 // gencode.v38.annotation.gtf.higlass-transcripts.hgnc.112322.canonical.forceHGNC.longestIsoform.txt
 // gencode file processed to a simpler json format in this notebook:

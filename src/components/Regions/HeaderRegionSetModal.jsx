@@ -1,26 +1,22 @@
 import { useState, useCallback, useEffect, useRef, useMemo, useContext } from 'react'
 import { groups } from 'd3-array'
-import { fetchRegionSetFromFactor } from '../../lib/dataFiltering';
-import FactorSearch from '../FactorSearch'
-import Loading from '../Loading'
-import RegionsContext from './RegionsContext'
-import FiltersContext from '../ComboLock/FiltersContext'
-import { allFactorFilterFields } from '../../layers'
 
+import FactorSearch from '../FactorSearch'
+import RegionsContext from './RegionsContext'
+import { allFactorFilterFields } from '../../layers'
+import { fetchRegionSetFromFactor } from '../../lib/apiService'
 import { download, parseBED } from '../../lib/regionsets'
-import { showKbOrder } from '../../lib/display'
 import { fromIndex } from '../../lib/regions'
 import { Tooltip } from 'react-tooltip';
 import CloseIcon from "@/assets/close.svg?react"
 import DownloadIcon from "@/assets/download.svg?react"
 import UpDownChevronIcon from "@/assets/up-down-chevron.svg?react"
-import UploadIcon from "@/assets/upload.svg?react"
 import './HeaderRegionSetModal.css'
 
 const HeaderRegionSetModal = ({
 } = {}) => {
-  const { sets, activeSet, activeRegions, activeState, setActiveSet, setNumTopRegions, clearActive, saveSet, deleteSet } = useContext(RegionsContext)
-  const { setFilters } = useContext(FiltersContext)
+  const { sets, activeSet, activeRegions, setActiveSet, setNumTopRegions, clearActive, saveSet, deleteSet } = useContext(RegionsContext)
+  // const { setFilters } = useContext(FiltersContext)
   const [searchShowing, setSearchShowing] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState({});
   const toggleRef = useRef(null);
@@ -48,17 +44,17 @@ const HeaderRegionSetModal = ({
 
   const handleDeselect = useCallback(() => {
     clearActive()
-    setFilters({})
-  }, [clearActive, setFilters])
+    // setFilters({})
+  }, [clearActive])
 
   const handleSelect = useCallback((set) => {
     setSearchShowing(false)
     setExpandedGroups({})
     setActiveSet(set)
-    if(set?.type !== "filter") {
-      setFilters({})
-    }
-  }, [setActiveSet, setFilters])
+    // if(set?.type !== "filter") {
+    //   setFilters({})
+    // }
+  }, [setActiveSet])
 
   const handleFileChange = useCallback((event) => {
     setSearchShowing(false)
@@ -71,12 +67,12 @@ const HeaderRegionSetModal = ({
         // Process file content into an array
         const data = parseBED(content);
         // Store in local storage
-        setFilters({})
+        // setFilters({})
         saveSet(file.name, data, {type: "file", activate: true})
       };
       reader.readAsText(file);
     }
-  }, [saveSet, setFilters]);
+  }, [saveSet]);
 
   const handleSelectFactor = useCallback((selected) => {
     setSearchShowing(false)

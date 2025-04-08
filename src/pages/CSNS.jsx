@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import React from 'react';
 
-import { fetchTopPathsForRegions, rehydrateCSN } from '../lib/csn';
+import { fetchTopPathsForRegions } from '../lib/apiService';
+import { rehydrateCSN, getDehydrated } from '../lib/csn';
 
 import { csnLayers, variantLayers } from '../layers';
 
@@ -12,20 +13,6 @@ import RegionsProvider from '../components/Regions/RegionsProvider';
 
 import './CSNS.css';
 
-const getDehydrated = (regions, paths) => {
-  return paths.flatMap((r, ri) => r.dehydrated_paths.map((dp, i) => {
-    return {
-      ...r,
-      i: r.top_positions[0], // hydrating assumes order 14 position
-      factors: r.top_factor_scores[0],
-      score: r.top_path_scores[0],
-      genes: r.genes[0]?.genes,
-      scoreType: "full",
-      path: dp,
-      region: regions[ri]
-    }
-  }))
-}
 
 const RegionCSNContent = () => {
 

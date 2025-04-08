@@ -5,9 +5,7 @@ import RegionSet from './pages/RegionSet'
 import RegionDetail from './pages/RegionDetail'
 import RegionCSN from './pages/CSNS'
 import YC240322 from './pages/YC240322'
-import Filter from './pages/Filter'
 
-import FiltersProvider from './components/ComboLock/FiltersProvider';
 import RegionsProvider from './components/Regions/RegionsProvider';
 import { ZoomProvider } from './contexts/zoomContext';
 
@@ -23,28 +21,23 @@ function App() {
       <div className="page">
       <Routes>
         <Route path="/" element={
-          <FiltersProvider>
             <RegionsProvider>
               <ZoomProvider>
                 <Home />
               </ZoomProvider>
             </RegionsProvider>
-          </FiltersProvider>
         } />
         <Route path="/regions" element={<RegionSets />} />
         <Route path="/regions/:regionset" element={<RegionSet />} />
         <Route path="/region" element={<RegionDetail />} />
         <Route path="/csns" element={<RegionCSN />} />
         <Route path="/umap" element={
-          <FiltersProvider>
             <RegionsProvider>
               <ZoomProvider>
                 <YC240322 />
               </ZoomProvider>
             </RegionsProvider>
-          </FiltersProvider>
           } />
-        <Route path="/filter" element={<Filter />} />
       </Routes>
       </div>
     </Router>

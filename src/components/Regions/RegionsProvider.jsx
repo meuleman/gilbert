@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import RegionsContext from './RegionsContext';
+import { 
+  fetchPartialPathsForRegions, 
+  fetchRegionSetNarration, 
+  fetchRegionSetEnrichments,
+  fetchBackfillFiltering
+} from '../../lib/apiService';
 import { fromPosition, fromIndex } from '../../lib/regions';
-import { fetchBackfillFiltering } from '../../lib/dataFiltering';
-import { rehydratePartialCSN, fetchPartialPathsForRegions } from '../../lib/csn'
+import { rehydratePartialCSN, } from '../../lib/csn'
 import { showKbOrder } from '../../lib/display'
 import { makeField, csnLayerList } from '../../layers'
-import { fetchRegionSetEnrichments } from '../../lib/regionSetEnrichments';
-import { baseAPIUrl } from '../../lib/apiService';
 // import { v4 as uuidv4 } from 'uuid';
 
 import CSNExamples from '../ExampleRegions/Nice_CSN_Examples.json'
@@ -210,21 +213,6 @@ const RegionsProvider = ({ children }) => {
   // ACTIVE PATH logic
   const pathsRequestRef = useRef("")
 
-  function getDehydrated(regions, paths) {
-    return paths.flatMap((r,ri) => r.dehydrated_paths.map((dp,i) => {
-      return {
-        ...r,
-        // i: r.top_positions[0], // hydrating assumes order 14 position
-        factors: r.top_factor_scores[0],
-        // score: r.top_path_scores[0],  // no longer using path scores
-        genes: r.genes[0]?.genes,
-        // scoreType: "full",
-        path: dp,
-        region: regions[ri] // the activeSet region
-      }
-    }))
-  }
-
   // region set factor enrichments
   const [regionSetEnrichments, setRegionSetEnrichments] = useState([])
   const [regionSetEnrichmentsLoading, setRegionSetEnrichmentsLoading] = useState(false)
@@ -290,17 +278,7 @@ const RegionsProvider = ({ children }) => {
   const [regionSetNarrationLoading, setRegionSetNarrationLoading] = useState(false)
   const [regionSetArticles, setRegionSetArticles] = useState([])
   const generateRegionSetNarration = useCallback((query) => {
-    const url = `${baseAPIUrl}/api/pubmedSummary/pubmed_region_set_summary`
-    fetch(`${url}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        query: query,
-      })
-    }).then(res => res.json())
-    .then((data) => {
+    fetchRegionSetNarration(query).then((data) => {
       setRegionSetNarration(data.summary)
       setRegionSetArticles(data.results)
       setRegionSetNarrationLoading(false)

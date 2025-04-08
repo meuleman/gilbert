@@ -5,7 +5,6 @@ import { path as d3path } from 'd3-path';
 import Tooltip from '../Tooltips/Tooltip';
 import { showKb } from '../../lib/display'
 import { makeField } from '../../layers'
-import FiltersContext from '../ComboLock/FiltersContext'
 
 // TODO: make this drop in for sankeyLinkVertical()
 function sankeyLinkPath(link, offset=0, debug=false) {
@@ -121,7 +120,7 @@ export default function CSNVerticalSankey({
   const [sank, setSank] = useState(null)
   const [maxOrder, setMaxOrder] = useState(0)
 
-  const { filters, handleFilter } = useContext(FiltersContext)
+  // const { filters, handleFilter } = useContext(FiltersContext)
 
   useEffect(() => {
     if(csns.length) {
@@ -319,21 +318,21 @@ export default function CSNVerticalSankey({
         } else {
           d.strokeWidth = 0
         }
-        if(filters[d.order]?.field == d.field) {
-          d.strokeWidth = 3
-        }
+        // if(filters[d.order]?.field == d.field) {
+        //   d.strokeWidth = 3
+        // }
       })
 
       setSank(s)
     }
-  }, [ csns, shrinkNone, width, height, filters])
+  }, [ csns, shrinkNone, width, height])
 
   const handleNodeFilter = useCallback((node) => {
     console.log("handling filter", node)
     if(node.field == "Layer") return;
     let field = makeField(node.dataLayer, node.field, node.order)
     console.log("field!", field)
-    handleFilter(field, node.order, true)
+    // handleFilter(field, node.order, true)
     // onFilter((oldNodeFilter) => {
     //   if(oldNodeFilter.find(n => n.id == node.id)) {
     //     const filtered = oldNodeFilter.filter(n => n.id != node.id)

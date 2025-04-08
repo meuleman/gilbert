@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo, useContext } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import FiltersContext from '../components/ComboLock/FiltersContext'
 import { useZoom } from '../contexts/zoomContext';
 
 import { urlify, jsonify, fromPosition, fromRange, fromCoordinates, overlaps } from '../lib/regions'
@@ -27,7 +26,6 @@ import LensModal from '../components/LensModal'
 import LayerLegend from '../components/LayerLegend'
 import SVGSelected from '../components/SVGSelected'
 import SVGChromosomeNames from '../components/SVGChromosomeNames'
-import SelectFactorPreview from '../components/ComboLock/SelectFactorPreview'
 
 import RegionsContext from '../components/Regions/RegionsContext';
 import RegionSetModalStatesStore from '../states/RegionSetModalStates'
@@ -84,7 +82,6 @@ function Home() {
   const queryParams = new URLSearchParams(location.search);
   const initialRegionset = queryParams.get('regionset');
   let initialSelectedRegion = queryParams.get('region');
-  const initialFilters = queryParams.get('filters')
   const initialPosition = queryParams.get('position');
   // console.log("initial selected region", initialSelectedRegion)
   // if we have a position URL, overwrite the initial region
@@ -195,21 +192,7 @@ function Home() {
     console.log("order", order)
   }, [order])
 
-  // if we have filters in the url, show the filter modal on loading
-  const anyFilters = Object.keys(parseFilters(initialFilters || "[]")).length > 0
-  const [showFilter, setShowFilter] = useState(anyFilters)
-  const [showFactorPreview, setShowFactorPreview] = useState(false)
-  const handleChangeShowFilter = useCallback((e) => {
-    setShowFilter(!showFilter)
-  }, [showFilter])
-
-  useEffect(() => {
-    // turn on showfilter if showfactorpreview is on
-    if (showFactorPreview) {
-      setShowFilter(showFactorPreview)
-    }
-  }, [showFactorPreview])
-
+  
   const [showSankey, setShowSankey] = useState(false)
 
   // store
@@ -227,28 +210,16 @@ function Home() {
     // setRegion(jsonify(initialSelectedRegion))
   }, [])
 
-  const { filters, setFilters, clearFilters, hasFilters } = useContext(FiltersContext);
   const initialUpdateRef = useRef(true);
-  useEffect(() => {
-    if (initialUpdateRef.current) {
-      // console.log("INITIAL FILTERS", initialFilters)
-      setFilters(parseFilters(initialFilters || "[]"))
-      initialUpdateRef.current = false
-    }
-  }, [initialFilters, setFilters])
 
   const {
     activeSet,
-    // activePaths, 
     activeState,
-    numTopRegions,
-    setActiveSet,
     clearActive,
     saveSet,
     activeGenesetEnrichment,
     setRegionSetNarration,
     setRegionSetArticles,
-    topNarrations,
     activeRegions,
     filteredActiveRegions,
     activeFilters
@@ -267,22 +238,13 @@ function Home() {
   }, [activeRegions])//, filteredActiveRegions])
 
   useEffect(() => {
-    if (showFilter && regions?.length) {
-      let path_density = layers.find(d => d.datasetName == "precomputed_csn_path_density_above_90th_percentile")
-      const lo = {}
-      range(4, 15).map(o => {
-        lo[o] = filters[o]?.layer || path_density
-      })
-      // console.log("setting layer order for density", lo)
-      setLayerOrder(lo)
-      setLayer(lo[orderRef.current])
-    } else if (layerOrderNatural) {
+    if (layerOrderNatural) {
       // console.log("setting layer order back to natural", layerOrderNatural)
       // setLayerLock(false)
       setLayerOrder(layerOrderNatural)
       setLayer(layerOrderNatural[orderRef.current])
     }
-  }, [filters, showFilter, layerOrderNatural, regions])
+  }, [layerOrderNatural])
 
   const handleZoom = useCallback((newZoom) => {
     // if(zoomRef.current.order !== newZoom.order && !layerLockRef.current) {
@@ -294,7 +256,7 @@ function Home() {
     //   }
     // }
     // setZoom(newZoom)
-  }, [setZoom, setLayer, showFilter, filters])
+  }, [setZoom, setLayer])
 
   const [scales, setScales] = useState(null)
   const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 })
@@ -402,7 +364,7 @@ function Home() {
     const params = new URLSearchParams();
     if (newRegionSet) params.set('regionset', newRegionSet);
     if (newSelected) params.set('region', urlify(newSelected));
-    if (newFilters) params.set('filters', urlifyFilters(newFilters));
+    // if (newFilters) params.set('filters', urlifyFilters(newFilters));
     navigate({ search: params.toString() }, { replace: true });
   }, [navigate]);
 
@@ -414,14 +376,14 @@ function Home() {
       setExampleRegions(set)
     }
     if (!initialUpdateRef.current) {
-      updateUrlParams(regionset, selected, filters)
+      updateUrlParams(regionset, selected)
     }
-  }, [regionset, selected, filters, setExampleRegions, updateUrlParams])
+  }, [regionset, selected, setExampleRegions, updateUrlParams])
   useEffect(() => {
     if (!initialUpdateRef.current) { // Only update URL params if not the initial update
-      updateUrlParams(regionset, selected, filters);
+      updateUrlParams(regionset, selected);
     }
-  }, [filters, regionset, selected, updateUrlParams]);
+  }, [regionset, selected, updateUrlParams]);
 
   // cross scale narration
   const handleChangeCSNIndex = (e) => setCrossScaleNarrationIndex(e.target.value)
@@ -813,11 +775,9 @@ function Home() {
     console.log("handle clear!")
     clearSelectedState()
     clearRegionSetSummaries()
-    clearFilters()
     clearActive()
     // setActiveSet(null)
-    setShowFilter(false)
-  }, [clearSelectedState, clearFilters, setShowFilter, clearActive, clearRegionSetSummaries])
+  }, [clearSelectedState, clearActive, clearRegionSetSummaries])
 
   // use ref to keep track of the filtered active regions for the click handler
   const filteredActiveRegionsRef = useRef(filteredActiveRegions);
@@ -1112,7 +1072,6 @@ function Home() {
           topCSNS={topCSNSFactorByCurrentOrder}
           layer={layer}
           zoom={zoom}
-          showFilter={showFilter}
           showDebug={showDebug}
           showSettings={showSettings}
           orderOffset={orderOffset}
@@ -1121,7 +1080,6 @@ function Home() {
           onDebug={handleChangeShowDebug}
           onSettings={handleChangeShowSettings}
           onOrderOffset={setOrderOffset}
-          onFilter={handleChangeShowFilter}
         />
       </div>
 
@@ -1129,21 +1087,10 @@ function Home() {
         to render and zoom correctly
        */}
       <div className="fixed top-0 left-full opacity-0 pointer-events-none">
-        {showFactorPreview ?
-          <SelectFactorPreview
-            activeWidth={400}
-            restingWidth={400}
-            onPreviewValues={handleFactorPreview}
-          />
-          :
-          //<Autocomplete
-          //   ref={autocompleteRef}
-          //   onChangeLocation={handleChangeLocationViaAutocomplete}
-          // /> 
-          <GeneSearch
-            onSelect={handleChangeLocationViaGeneSearch}
-          />
-        }
+         
+        <GeneSearch
+          onSelect={handleChangeLocationViaGeneSearch}
+        />
 
         <LensModal
           layers={layers}
@@ -1250,7 +1197,6 @@ function Home() {
           topCSNS={topCSNSFactorByCurrentOrder}
           layer={layer}
           zoom={zoom}
-          showFilter={showFilter}
           showDebug={showDebug}
           showSettings={showSettings}
           orderOffset={orderOffset}
@@ -1259,7 +1205,6 @@ function Home() {
           onDebug={handleChangeShowDebug}
           onSettings={handleChangeShowSettings}
           onOrderOffset={setOrderOffset}
-          onFilter={handleChangeShowFilter}
         />
 
         {showSettings ? <SettingsPanel

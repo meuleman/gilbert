@@ -5,8 +5,6 @@ import VerticalSankey from './VerticalSankey';
 // import ZoomLine from './ZoomLine';
 import ZoomLine from './ZoomLineOld';
 import Loading from '../Loading'
-import FiltersContext from '../ComboLock/FiltersContext'
-import {showPosition} from '../../lib/display'
 import {Tooltip} from 'react-tooltip';
 
 

@@ -1,7 +1,7 @@
 import { line } from "d3-shape"
 import { scaleDiverging } from "d3-scale"
 import { interpolateBrBG } from "d3-scale-chromatic"
-import { getRangesOverCell } from "../lib/Genes"
+import { getRangesOverCell } from "../lib/genes"
 import { HilbertChromosome, hilbertPosToOrder } from "../lib/HilbertChromosome"
 
 

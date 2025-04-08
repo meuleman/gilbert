@@ -16,9 +16,6 @@ import DHS_Components_Sfc_max from '../layers/dhs_components_sfc_max'
 import Chromatin_States_Sfc_max from '../layers/chromatin_states_sfc_max';
 
 import LogoNav from '../components/LogoNav';
-import SimSearchRegion from '../components/SimSearch/SimSearchRegion'
-import SelectedModalSimSearch from '../components/SimSearch/SelectedModalSimSearch'
-import SimSearchResultList from '../components/SimSearch/ResultList'
 import CSNSentence from '../components/Narration/Sentence'
 import RegionThumb from '../components/RegionThumb';
 import RegionStrip from '../components/RegionStrip';
@@ -47,12 +44,6 @@ const RegionDetailContent = () => {
   const [ranges, setRanges] = useState([]);
     
   // sim search related state
-  const [simSearchDHS, setSimSearchDHS] = useState(null)
-  const [simSearchChromatin, setSimSearchChromatin] = useState(null)
-  const [factorsDHS, setFactorsDHS] = useState([])
-  const [factorsChromatin, setFactorsChromatin] = useState([])
-  const [similarDHSRegions, setSimilarDHSRegions] = useState([])
-  const [similarChromatinRegions, setSimilarChromatinRegions] = useState([])
   const [similarBy, setSimilarBy] = useState('dhs')
   const [layersData, setLayersData] = useState([])
   const [crossScaleNarration, setCrossScaleNarration] = useState(null)
@@ -146,14 +137,6 @@ const RegionDetailContent = () => {
         }))
       })
 
-      // Sim search on DHS
-      SimSearchRegion(rs[1], region.order, DHS_Components_Sfc_max, setFactorsDHS,[]).then((result) => {
-        setSimSearchDHS(result)
-      })
-      // Sim search on Chromatin States
-      SimSearchRegion(rs[1], region.order, Chromatin_States_Sfc_max, setFactorsChromatin, []).then((result) => {
-        setSimSearchChromatin(result)
-      })
 
       if(region.order < 14) {
         calculateCrossScaleNarrationInWorker(rs[1], csnMethod, enrThreshold, csnLayers, variantLayers, countLayers).then(crossScaleResponse => {
@@ -627,11 +610,6 @@ const RegionDetailContent = () => {
 
             })}
             </div>
-            <br></br>
-            <Power csn={csn} width={(stripsWidth-450)/2} height={(stripsWidth-450)/2} onData={(data) => setPowerData(data)} />
-
-            
-
 
             {/* <div className="strips" id="strips">
               {range(4, csnMaxOrder + 1).map((order, i) => {
@@ -682,69 +660,6 @@ const RegionDetailContent = () => {
           </div>
         </div>
 
-        <div className="section similar">
-          <h3>Similar regions</h3>
-          <div className="section-content">
-            <div className="radio-buttons">
-              Show similar regions based on:
-              <input type="radio" id="dhs" name="regionType" value="dhs" checked={similarBy === 'dhs'} onChange={() => setSimilarBy('dhs')}/>
-              <label htmlFor="dhs">DHS</label>
-              <input type="radio" id="chromatin" name="regionType" value="chromatin" checked={similarBy === 'chromatin'} onChange={() => setSimilarBy('chromatin')}/>
-              <label htmlFor="chromatin">Chromatin</label>
-            </div>
-            { similarBy == "dhs" ? <div className="similar-dhs-regions">
-                {/* <>{simSearchDHS ? <SelectedModalSimSearch
-                  simSearch={simSearchDHS}
-                  searchByFactorInds={factorsDHS}
-                  handleFactorClick={(factor) => {console.log("dhs factor click", factor)}}
-                  onZoom={(region) => { console.log("dhs on zoom", region)}}
-                  selectedOrder={region?.order}
-                  setRegion={(region) => {console.log("dhs set region", region)}}
-                  onHover={(region) => {setSimilarZoomedRegion(zoomARegion(region))}}
-                /> : <div>No similar regions found</div>} */}
-                {simSearchDHS ? <SimSearchResultList
-                  simSearch={simSearchDHS}
-                  searchByFactorInds={factorsDHS}
-                  onFactorClick={(factor) => {console.log("dhs factor click", factor)}}
-                  onZoom={(region) => { console.log("dhs on zoom", region)}}
-                  selectedOrder={region?.order}
-                  setRegion={(region) => {console.log("dhs set region", region)}}
-                  onHover={(region) => {setSimilarZoomedRegion(zoomARegion(region))}}
-                /> : <div>No similar regions found</div>}
-                {/* </> */}
-            </div>
-            :
-            <div className="similar-chromatin-regions">
-                {/* {simSearchChromatin ? <SelectedModalSimSearch
-                  simSearch={simSearchChromatin}
-                  searchByFactorInds={factorsChromatin}
-                  handleFactorClick={(factor) => {console.log("Chromatin factor click", factor)}}
-                  onZoom={(region) => { console.log("Chromatin on zoom", region)}}
-                  selectedOrder={region?.order}
-                  setRegion={(region) => {console.log("Chromatin set region", region)}}
-                  onHover={(region) => {setSimilarZoomedRegion(zoomARegion(region))}}
-                /> : <div>No similar regions found</div>} */}
-                {simSearchChromatin ? <SimSearchResultList
-                  simSearch={simSearchChromatin}
-                  searchByFactorInds={factorsChromatin}
-                  onFactorClick={(factor) => {console.log("Chromatin factor click", factor)}}
-                  onZoom={(region) => { console.log("Chromatin on zoom", region)}}
-                  selectedOrder={region?.order}
-                  setRegion={(region) => {console.log("Chromatin set region", region)}}
-                  onHover={(region) => {setSimilarZoomedRegion(zoomARegion(region))}}
-                /> : <div>No similar regions found</div>}
-            </div>
-            }
-          </div>
-          {layersData && layersData.length && <div className="zoomed-region">
-            Region zoomed to order {zoomedRegion?.order}
-            {zoomedRegion && region && similarBy == "dhs" && <RegionStrip region={zoomedRegion} segments={32} layer={csnLayerList.find(d => d.name == "DHS Components")} width={500} height={40} /> }
-            {zoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={zoomedRegion} segments={32} layer={csnLayerList.find(d => d.name == "Chromatin States")} width={500} height={40} /> }
-            Hovered similar region zoomed to order {similarZoomedRegion?.order}
-            {similarZoomedRegion && region && similarBy == "dhs" && <RegionStrip region={similarZoomedRegion} segments={32} layer={csnLayerList.find(d => d.name == "DHS Components")} width={500} height={40} /> }
-            {similarZoomedRegion && region && similarBy == "chromatin" && <RegionStrip region={similarZoomedRegion} segments={32} layer={csnLayerList.find(d => d.name == "Chromatin States")} width={500} height={40} /> }
-          </div>}
-        </div>
         
         <div className="section layers">
           <h3>Data Layers at order {region.order}</h3>

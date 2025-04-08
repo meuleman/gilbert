@@ -1,13 +1,9 @@
-import { useState, useCallback, useEffect, useRef, useMemo, useContext } from 'react'
+import { useCallback, useContext } from 'react'
 
-import { sum, max } from 'd3-array'
-import Loading from '../Loading'
-import {showPosition, showInt, showKb} from '../../lib/display'
 import {Tooltip} from 'react-tooltip';
 import { download, parseBED } from '../../lib/regionsets'
 import RegionsContext from './RegionsContext'
-import FiltersContext from '../ComboLock/FiltersContext'
-import { fetchRegionSetFromFactor } from '../../lib/dataFiltering';
+import { fetchRegionSetFromFactor } from '../../lib/apiService';
 import { fromIndex } from '../../lib/regions'
 import FactorSearch from '../FactorSearch'
 
@@ -21,7 +17,7 @@ const ManageRegionSetModal = ({
 } = {}) => {
 
   const { sets, activeSet, saveSet, deleteSet, setActiveSet } = useContext(RegionsContext)
-  const { setFilters } = useContext(FiltersContext)
+  // const { setFilters } = useContext(FiltersContext)
 
   // useEffect(() => {
   //   console.log("manage, sets!", sets)
@@ -29,10 +25,10 @@ const ManageRegionSetModal = ({
 
   const handleSelect = useCallback((set) => {
     setActiveSet(set)
-    if(set?.type !== "filter") {
-      setFilters({})
-    }
-  }, [setActiveSet, setFilters])
+    // if(set?.type !== "filter") {
+    //   setFilters({})
+    // }
+  }, [setActiveSet ])
 
   const handleDownload = useCallback((set) => {
     console.log("SET", set)
@@ -48,12 +44,12 @@ const ManageRegionSetModal = ({
         // Process file content into an array
         const data = parseBED(content);
         // Store in local storage
-        setFilters({})
+        // setFilters({})
         saveSet(file.name, data, {type: "file", activate: true})
       };
       reader.readAsText(file);
     }
-  }, [saveSet, setFilters]);
+  }, [saveSet]);
 
   const handleSelectFactor = useCallback((selected) => {
     if (!selected) return

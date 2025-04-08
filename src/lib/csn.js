@@ -1,186 +1,19 @@
 import Data from './data';
 import axios from "axios";
 import { range } from 'd3-array';
-import { baseAPIUrl } from './apiService';
+import { baseAPIUrl, fetchGWASforPositions, fetchGenes } from './apiService';
 
 import { fullList as layers, countLayers, fullDataLayers, rehydrate, csnLayerList } from '../layers'
 
 import calculateCrossScaleNarration from './calculateCSN'
 import { HilbertChromosome, hilbertPosToOrder } from "./HilbertChromosome";
-import { fetchGenes } from './genesForRegions'
-import { fetchGWASforPositions } from "./gwas";
 
-
-// * ================================================================
-// * Server side API calls
-// * ================================================================
-
-/*
-Converts filtersMap to a list of filters
-*/
-function getFilters(filtersMap, region) {
-  if (Object.keys(filtersMap).length === 0 && !region) {
-    return Promise.resolve([]);
-  }
-  // order, index, dataset_name
-  const filters = Object.keys(filtersMap).map(o => {
-    let f = filtersMap[o]
-    return {
-      order: +o,
-      index: f.index,
-      dataset_name: f.layer.datasetName
-    }
-  })
-  return filters
-}
-
-
-/*
-Get the top N paths filtered by filters and regions
-filters: [{order, field}, ...]
-region: {order, chromosome, index}
-scoreType: "full", "factor"
-diversity: true | false
-N: number of paths to return
-
-Returns:
-[ { baseRegion, path: [{order, field, region}, ...]}, ...]
-
-region (and baseRegion): {order, chromosome, index}
-*/
-function fetchTopCSNs(filtersMap, region, scoreType, diversity, N) {
-  const filters = getFilters(filtersMap, region)
-
-  const url = `${baseAPIUrl}/api/csns/top_paths`
-  const postBody = {filters, scoreType, region, diversity, N}
-  // console.log("CSN POST BODY", postBody)
-  return axios({
-    method: 'POST',
-    url: url,
-    data: postBody
-  }).then(response => {
-    // console.log("CSN DATA", response.data)
-    return response.data
-  }).catch(error => {
-    console.error(`error:     ${JSON.stringify(error)}`);
-    console.error(`post body: ${JSON.stringify(postBody)}`);
-    return null
-  })
-}
-
-/*
-Get the preview overlap fractions for a new filter at each order based on available regions from current filters
-filters: [{order, field, dataset_name}, ...]
-region: {order, chromosome, index}
-newFilterFull: {field, dataset_name}
-
-Returns:
-{ preview_fractions: { order: fraction, ...} }
-*/
-function fetchFilterPreview(filtersMap, region, newFilterFull) {
-  const filters = getFilters(filtersMap, region)
-  const newFilter = {"dataset_name": newFilterFull.layer.datasetName, "index": newFilterFull.index}
-
-  const url = `${baseAPIUrl}/api/csns/preview_filter`
-  const postBody = {filters, region, newFilter}
-  // console.log("FILTER PREVIEW POST BODY", postBody)
-  return axios({
-    method: 'POST',
-    url: url,
-    data: postBody
-  }).then(response => {
-    // console.log("FILTER PREVIEW DATA", response.data)
-    return response.data
-  }).catch(error => {
-    console.error(`error:     ${JSON.stringify(error)}`);
-    console.error(`post body: ${JSON.stringify(postBody)}`);
-    return null
-  })
-}
-
-
-/*
-Collects the top N paths for each region in regions
-region: [{chromosome, start, end}, ...]
-N: number of paths to return per region
-
-Returns:
-{ regions: [{ chromosome, start, end, top_scores, top_positions, dehydrated_paths }, ...] }
-*/
-function fetchTopPathsForRegions(regions, N) {
-  if(regions.length === 0) return Promise.resolve({regions: []})
-  const url = `${baseAPIUrl}/api/csns/top_paths_for_regions`
-  const postBody = {regions, N}
-  // console.log("TOP PATHS POST BODY", postBody)
-  return axios({
-    method: 'POST',
-    url: url,
-    data: postBody
-  }).then(response => {
-    // console.log("TOP PATHS FOR REGIONS DATA", response.data)
-    return response.data
-  }).catch(error => {
-    console.error(`error:     ${JSON.stringify(error)}`);
-    console.error(`post body: ${JSON.stringify(postBody)}`);
-    return null
-  })
-}
-
-
-/*
-Collects the partial path for each region in regions
-region: [{chromosome, order, i}, ...]
-membership (return genesets with regional gene membership): true | false
-threshold (geneset p-value threshold): float (0 < p <= 1)
-
-Returns:
-{ regions: [{ chromosome, order, i, path_factors: [], factor_scores: [] }, ...], 
-  genesets: [{geneset, p (if not membership), genes (if not membership)}, ...] 
-}
-*/
-function fetchPartialPathsForRegions(regions, membership=false, threshold=0.1) {
-  const url = `${baseAPIUrl}/api/csns/paths_by_order`
-  const postBody = {regions, threshold, membership}
-  console.log("PARTIAL PATHS POST BODY", postBody)
-  return axios({
-    method: 'POST',
-    url: url,
-    data: postBody
-  }).then(response => {
-    // console.log("PARTIAL PATHS FOR REGIONS DATA", response.data)
-    return response.data
-  }).catch(error => {
-    console.error(`error:     ${JSON.stringify(error)}`);
-    console.error(`post body: ${JSON.stringify(postBody)}`);
-    return null
-  })
-}
-
-
-
-/*
-filters: [{order, field}, ...]
-order: 4-14
-
-Returns:
-[ ...]
-*/
-function fetchFilteredRegions(filters, order) {
-  const url = `${baseAPIUrl}/csn/filtered_indices`
-  const postBody = {filters, order}
-  return axios({
-    method: 'POST',
-    url: url,
-    data: postBody
-  })
-}
 
 const getRange = (region, order) => {
   const hilbert = HilbertChromosome(order)
   let range = hilbert.fromRegion(region.chromosome, region.start, region.end-1)
   return range
 }
-
 
 // sets preferential factors in path with full data
 function fillNarration(csn) {
@@ -428,24 +261,19 @@ async function calculateCrossScaleNarrationInWorker(selected, csnMethod, enrThre
 
 
 
-
-// i is the hilbert position
-function fetchDehydratedCSN(r) {
-  const cachebust = 1
-  const burl = "https://resources.altius.org/~ctrader/public/gilbert/data/precomputed_csn_paths/paths"
-  let url = `${burl}/${r.chromosome}.bytes?cachebust=${cachebust}`
-
-  let arrayType = Int16Array;
-  let stride = 11
-  let bpv = 2
-  const from = r.i
-  const to = r.i + 1
-  return Data.fetchBytes(url, from*bpv*stride, to*bpv*stride - 1).then(buffer => {
+const getDehydrated = (regions, paths) => {
+  return paths.flatMap((r, ri) => r.dehydrated_paths.map((dp, i) => {
     return {
-      csn: new arrayType(buffer),
       ...r,
+      i: r.top_positions[0], // hydrating assumes order 14 position
+      factors: r.top_factor_scores[0],
+      score: r.top_path_scores[0],
+      genes: r.genes[0]?.genes,
+      scoreType: "full",
+      path: dp,
+      region: regions[ri]
     }
-  })
+  }))
 }
 
 function rehydrateCSN(csn, layers) {
@@ -646,14 +474,10 @@ export {
   layerSuggestion,
   walkTree,
   findUniquePaths,
-  fetchDehydratedCSN,
+  getDehydrated,
   rehydrateCSN,
   rehydratePartialCSN,
-  fetchTopCSNs,
-  fetchPartialPathsForRegions,
-  fetchTopPathsForRegions,
   createTopPathsForRegions,
-  fetchFilterPreview,
   retrieveFullDataForCSN
 }
 

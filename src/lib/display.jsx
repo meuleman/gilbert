@@ -50,6 +50,7 @@ const showInt = format(",")
 
 
 function showPosition(d, full = true) {
+  if(!d) return null
   return (
     <span className="position">
       <span className="chromosome">{d.chromosome}</span>

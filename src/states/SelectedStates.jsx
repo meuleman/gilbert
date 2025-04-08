@@ -1,11 +1,13 @@
 import { create } from 'zustand';
-import { baseAPIUrl } from '../lib/apiService';
-import { fetchSingleRegionFactorOverlap } from '../lib/regionSetEnrichments';
+import { 
+  baseAPIUrl, 
+  fetchGWASforPositions, 
+  fetchPartialPathsForRegions,
+  fetchSingleRegionFactorOverlap 
+} from '../lib/apiService';
 import { createSubregionPaths } from '../lib/subregionPaths'
 import { fullList as layers, csnLayers, variantLayers } from '../layers'
-import { fetchPartialPathsForRegions, rehydratePartialCSN } from '../lib/csn'
-import { fetchGWASforPositions } from '../lib/gwas'
-import { retrieveFullDataForCSN } from '../lib/csn'
+import { rehydratePartialCSN, retrieveFullDataForCSN } from '../lib/csn'
 import { showKbOrder, showKb } from '../lib/display'
 
 const SelectedStatesStore = create((set, get) => {
