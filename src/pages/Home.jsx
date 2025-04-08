@@ -3,8 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import { useZoom } from '../contexts/zoomContext';
 
-import { urlify, jsonify, fromPosition, fromRange, fromCoordinates, overlaps } from '../lib/regions'
+import { urlify, jsonify, fromPosition, fromRange, fromCountOrder, overlaps } from '../lib/regions'
 import { hilbertPosToOrder } from '../lib/HilbertChromosome'
+import { getRangesOverCell } from "../lib/genes"
 
 import { calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
 import { range, group } from 'd3-array'
@@ -50,6 +51,7 @@ import GeneSearch from '../components/GeneSearch'
 
 import useCanvasFilteredRegions from '../components/Canvas/FilteredRegions';
 import useCanvasAnnotationRegions from '../components/Canvas/Annotation';
+import useCanvasPathAnnotation from '../components/Canvas/PathAnnotation';
 
 import { getSet } from '../components/Regions/localstorage'
 
@@ -91,7 +93,7 @@ function Home() {
 
   const navigate = useNavigate();
 
-  const { order, transform, orderOffset, setOrderOffset, zoomMin, zoomMax, orderMin, orderMax, setSelectedZoomOrder } = useZoom()
+  const { order, orderRaw, transform, orderOffset, setOrderOffset, zoomMin, zoomMax, orderMin, orderMax, setSelectedZoomOrder } = useZoom()
   const zoomExtent = useMemo(() => [zoomMin, zoomMax], [zoomMin, zoomMax])
   const orderDomain = useMemo(() => [orderMin, orderMax], [orderMin, orderMax])
 
@@ -610,6 +612,19 @@ function Home() {
     }
   }, [hover, activeInHovered, activeSet, activeState, mapLoading])
 
+  const hoverArrowRange = useMemo(() => {
+    if(!hover) return []
+      let range = fromCountOrder(hover.chromosome, hover.start, 2, hover.order)
+      return range
+  }, [hover])
+
+  const geneRanges = useMemo(() => {
+    if(!hover) return []
+    let ranges = getRangesOverCell(hover, hover.order)
+    return ranges
+  }, [hover])
+
+
   // const drawFilteredRegions = useCanvasFilteredRegions(filterSegmentsByCurrentOrder)
   // const drawActiveFilteredRegions = useCanvasFilteredRegions(activeRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
   const drawEffectiveFilteredRegions = useCanvasFilteredRegions(filteredRegionsByCurrentOrder, { color: "orange", opacity: 1, strokeScale: 1, mask: true })
@@ -622,35 +637,42 @@ function Home() {
     showGenes: false
   })
   const drawAnnotationRegionHover = useCanvasAnnotationRegions(hover, "hover", {
-    // if there is an activeSet and no paths in the hover, lets make it lightgray to indicate you can't click on it
-    stroke: activeSet && !activeInHovered?.length ? "lightgray" : "black",
+    stroke: "gray",
+    mask: !activeSet,
+    radiusMultiplier: 1,
+    strokeWidthMultiplier: 0.15,
+    showGenes: false
+  })
+  const drawPathHover = useCanvasPathAnnotation([hoverArrowRange], {
+    stroke: "gray",
     radiusMultiplier: 1,
     strokeWidthMultiplier: 0.1,
-    showGenes,
-    highlightPath: true
-  })
-  // const drawAnnotationRegionCenter = useCanvasAnnotationRegions(data?.center, "hover", { 
-  //   // if there is an activeSet and no paths in the hover, lets make it lightgray to indicate you can't click on it
-  //   stroke: "gray",
-  //   radiusMultiplier: 0.5, 
-  //   strokeWidthMultiplier: 0.05, 
-  //   showGenes, 
-  //   highlightPath: true 
-  // })
+    startMarker: false,
+    endMarker: true,
+    limitLength: true
+  });
+  const drawPathGenes = useCanvasPathAnnotation(geneRanges, {
+    stroke: "black",
+    radiusMultiplier: 1,
+    strokeWidthMultiplier: 0.1,
+    startMarker: true,
+    endMarker: true,
+    limitLength: true
+  });
   const canvasRenderers = useMemo(() => [
     drawEffectiveFilteredRegions,
     drawAllFilteredRegions,
     drawAnnotationRegionSelected,
+    drawAnnotationRegionHover,
+    drawPathGenes,
+    drawPathHover,
   ], [
     drawEffectiveFilteredRegions,
     drawAllFilteredRegions,
     drawAnnotationRegionSelected,
-  ]);
-
-  const hoverRenderers = useMemo(() => [
     drawAnnotationRegionHover,
-  ], [
-    drawAnnotationRegionHover,
+    drawPathGenes,
+    drawPathHover,
   ]);
 
 
@@ -908,11 +930,9 @@ function Home() {
                       selected={selected}
                       zoomDuration={duration}
                       CanvasRenderers={canvasRenderers}
-                      HoverRenderers={hoverRenderers}
                       SVGRenderers={[
                         SVGChromosomeNames({}),
                         showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5 }),
-                        SVGSelected({ hit: hover, dataOrder: order, stroke: "black", highlightPath: true, type: "hover", strokeWidthMultiplier: 0.1, showGenes }),
                         showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25 }),
                       ]}
                       onZoom={handleZoom}

@@ -95,6 +95,15 @@ export function fromRange(chromosome, start, end, targetCount) {
   return regions
 }
 
+// Get a set of regions from a range, targeting a specific count of regions
+// We generate a set of regions from that order
+export function fromCountOrder(chromosome, start, count, order) {
+  let hilbert = HilbertChromosome(order, { padding: 2 })
+  let stride = hilbertPosToOrder(1, { from: order, to: 14 })
+  let regions = hilbert.fromRegion(chromosome, start, start + stride * (count - 1))
+  return regions
+}
+
 export function urlify(region) {
   if(region) {
     // We only keep the core identifying information about the region

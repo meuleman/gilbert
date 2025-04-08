@@ -7,8 +7,6 @@ import { hilbertPosToOrder } from '../../lib/HilbertChromosome';
 const useCanvasAnnotatedRegion = (hit, type, options = {}) => {
   const stroke = options.stroke || "orange"
   const fill = options.fill || ""
-  const showGenes = options.showGenes || false
-  const highlightPath = options.highlightPath || false
   const strokeWidthMultiplier = options.strokeWidthMultiplier || 0.2
   const radiusMultiplier = options.radiusMultiplier || 1.25
   const mask = options.mask
@@ -33,7 +31,6 @@ const useCanvasAnnotatedRegion = (hit, type, options = {}) => {
     let sw = rw * strokeWidthMultiplier
 
     const radius = rw * radiusMultiplier;
-    const circumference = radius * 2 * Math.PI;
  
     const ctx = canvasRef.current.getContext('2d');
 
@@ -80,7 +77,7 @@ const useCanvasAnnotatedRegion = (hit, type, options = {}) => {
       ctx.stroke();
     }
  
-  }, [hit, type, stroke, fill, showGenes, highlightPath, strokeWidthMultiplier, radiusMultiplier, mask])
+  }, [hit, type, stroke, fill, strokeWidthMultiplier, radiusMultiplier, mask])
 
   return drawRegions
 };
