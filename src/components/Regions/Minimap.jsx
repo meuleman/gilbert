@@ -10,8 +10,6 @@ import useCanvasAnnotationRegions from '../../components/Canvas/Annotation';
 import useCanvasBbox from '../../components/Canvas/Bbox';
 import SVGChromosomeNames from '../../components/SVGChromosomeNames'
 import SVGHilbertPaths from '../../components/SVGHilbertPaths'
-import SVGGenePaths from '../../components/SVGGenePaths'
-import SVGSelected from '../../components/SVGSelected'
 import { zoomIdentity } from 'd3-zoom';
 import { range, group } from 'd3-array'
 
@@ -134,7 +132,7 @@ const Minimap = ({
           if (overlappingRegion?.subregion) {
             overlappingRegion = overlappingRegion.subregion;
           }
-          if (!!overlappingRegion) {
+          if (overlappingRegion) {
             setSelected(overlappingRegion);
           }
         }

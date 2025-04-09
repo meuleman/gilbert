@@ -25,7 +25,6 @@ import LeftToolbar from '../components/LeftToolbar'
 import SettingsPanel from '../components/SettingsPanel';
 import LensModal from '../components/LensModal'
 import LayerLegend from '../components/LayerLegend'
-import SVGSelected from '../components/SVGSelected'
 import SVGChromosomeNames from '../components/SVGChromosomeNames'
 
 import RegionsContext from '../components/Regions/RegionsContext';
