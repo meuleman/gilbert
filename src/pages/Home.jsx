@@ -630,14 +630,14 @@ function Home() {
   const drawAllFilteredRegions = useCanvasFilteredRegions(allRegionsByCurrentOrder, { color: "gray", opacity: 0.5, strokeScale: 0.5, mask: false })
   const drawAnnotationRegionSelected = useCanvasAnnotationRegions(selected, "selected", {
     stroke: "orange",
-    mask: !activeSet,
+    mask: false,
     radiusMultiplier: 1,
     strokeWidthMultiplier: 0.35,
     showGenes: false
   })
   const drawAnnotationRegionHover = useCanvasAnnotationRegions(hover, "hover", {
     stroke: "gray",
-    mask: !activeSet,
+    mask: false,
     radiusMultiplier: 1,
     strokeWidthMultiplier: 0.15,
     showGenes: false
