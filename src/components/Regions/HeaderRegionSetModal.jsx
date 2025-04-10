@@ -12,6 +12,7 @@ import CloseIcon from "@/assets/close.svg?react"
 import DownloadIcon from "@/assets/download.svg?react"
 import UpDownChevronIcon from "@/assets/up-down-chevron.svg?react"
 import './HeaderRegionSetModal.css'
+import { X } from "lucide-react";
 
 const HeaderRegionSetModal = ({
 } = {}) => {
@@ -166,11 +167,12 @@ const HeaderRegionSetModal = ({
           <>
             <div className="h-2/5 w-px bg-separator" />
             <div className="h-globalMenuBar aspect-square flex items-center justify-center group">
-              <CloseIcon 
+              <X 
                 data-tooltip-id="header-active-deselect" 
+                width="18"
                 role="button" 
                 onClick={handleDeselect} 
-                className="[&_path]:fill-black [&_path]:scale-[0.85] [&_path]:origin-center group-hover:[&_path]:fill-red-500"
+                className="group-hover:[&_path]:stroke-red-500"
               />
               <Tooltip id="header-active-deselect" className="z-10">
                 Clear active region set
@@ -264,14 +266,14 @@ const HeaderRegionSetModal = ({
                     <tbody>
                       {sets.map((set, index) => (
                       <tr key={index} className="hover:bg-gray-50">
-                        <td className="py-1 px-2 group">
+                        <td className="py-1 px-2 group align-middle text-center">
                           {activeSet?.name == set.name 
-                          ? //<button onClick={() => handleSelect(null)}>❌</button>
-                          <CloseIcon 
-                            // data-tooltip-id="header-active-deselect" 
+                          ?
+                          <X 
                             role="button" 
                             onClick={() => handleSelect(null)}
-                            className="[&_path]:fill-black [&_path]:scale-[0.85] [&_path]:origin-center group-hover:[&_path]:fill-red-500"
+                            width="18"
+                            className="inline-block [&_path]:origin-center group-hover:[&_path]:stroke-red-500"
                           />
                           : <button 
                               className="text-black hover:text-red-500" 
@@ -286,7 +288,7 @@ const HeaderRegionSetModal = ({
                             data-tooltip-id={`download-regions-${index}`}
                             role="button" 
                             onClick={() => handleDownload(set)} 
-                            className="[&_path]:fill-black group-hover:[&_path]:fill-red-500"
+                            className="group-hover:[&_path]:fill-red-500"
                           />
                           <Tooltip id={`download-regions-${index}`}>
                             Download {set.name} ({set.regions?.length} regions) to a BED file

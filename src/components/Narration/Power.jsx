@@ -30,6 +30,7 @@ import Tooltip from '../Tooltips/Tooltip';
 import PropTypes from 'prop-types';
 import './Power.css';
 import { throttle } from 'lodash';
+import { X } from 'lucide-react'
 
 // ------------------
 // Helper Rendering Functions
@@ -456,16 +457,16 @@ function PowerModal({
       <div>
         <div className="relative">
           {/* Close button */}
-          <div className="absolute top-0 left-0 -ml-0.5 -mt-4.5 px-1 flex flex-row space-x-2 bg-separator text-black text-[10px] cursor-default">
-            <div className="group flex flex-row items-center">
-              <CloseIcon 
-                width="8" 
+          <div className="absolute -top-1.5 left-0 -ml-0.5 -mt-4.5 px-1 flex flex-row items-center space-x-2 bg-separator text-black text-[10px] cursor-default">
+            <div className="group flex items-center">
+              <X 
+                width="10" 
                 role="button" 
-                className="cursor-pointer [&_path]:fill-black group-hover:[&_path]:fill-red-500" 
+                className="cursor-pointer group-hover:[&_path]:stroke-red-500" 
                 onClick={onClose}
               />
             </div>
-            <div>
+            <div className="flex items-center">
               {showPosition(selected)}
             </div>
           </div>

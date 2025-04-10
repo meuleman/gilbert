@@ -230,7 +230,7 @@ const ActiveRegionSetModal = () => {
                     <button 
                       className={`py-1 px-3 transition-colors rounded-full flex-1 text-center ${
                         summaryToShow === "regionSet" 
-                          ? "bg-black text-white font-medium shadow-sm" 
+                          ? "bg-gray-400 text-white font-medium shadow-sm" 
                           : "bg-transparent text-black hover:text-red-500"
                       } ${!bothSummariesAvailable && summaryToShow !== "regionSet" ? "opacity-50 pointer-events-none" : ""}`}
                       onClick={() => setSummaryToShowState("regionSet")}
@@ -243,7 +243,7 @@ const ActiveRegionSetModal = () => {
                     <button 
                       className={`py-1 px-3 transition-colors rounded-full flex-1 text-center ${
                         summaryToShow === "selected" 
-                          ? "bg-black text-white font-medium shadow-sm" 
+                          ? "bg-gray-400 text-white font-medium shadow-sm" 
                           : "bg-transparent text-black hover:text-red-500"
                       } ${!bothSummariesAvailable && summaryToShow !== "selected" ? "opacity-50 pointer-events-none" : ""}`}
                       onClick={() => setSummaryToShowState("selected")}
@@ -335,7 +335,7 @@ const ActiveRegionSetModal = () => {
               <button 
                 className={`py-1 px-3 transition-colors rounded-full flex-1 text-center ${
                   regionSetView === "minimap"
-                    ? "bg-black text-white font-medium shadow-sm" 
+                    ? "bg-gray-400 text-white font-medium shadow-sm" 
                     : "bg-transparent text-black hover:text-red-500"
                 }`}
                 onClick={() => handleRegionSetView('minimap')}
@@ -347,7 +347,7 @@ const ActiveRegionSetModal = () => {
               <button 
                 className={`py-1 px-3 transition-colors rounded-full flex-1 text-center ${
                   regionSetView === "list"
-                    ? "bg-black text-white font-medium shadow-sm" 
+                    ? "bg-gray-400 text-white font-medium shadow-sm" 
                     : "bg-transparent text-black hover:text-red-500"
                 } ${!activeSet ? "opacity-50 pointer-events-none" : ""}`}
                 onClick={() => handleRegionSetView('list')}
