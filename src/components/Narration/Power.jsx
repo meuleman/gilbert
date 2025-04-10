@@ -457,12 +457,14 @@ function PowerModal({
         <div className="relative">
           {/* Close button */}
           <div className="absolute top-0 left-0 -ml-0.5 -mt-4.5 px-1 flex flex-row space-x-2 bg-separator text-black text-[10px] cursor-default">
-            <button 
-              className="cursor-pointer" 
-              onClick={onClose}
-            >
-              <CloseIcon width="8"/>
-            </button>
+            <div className="group flex flex-row items-center">
+              <CloseIcon 
+                width="8" 
+                role="button" 
+                className="cursor-pointer [&_path]:fill-black group-hover:[&_path]:fill-red-500" 
+                onClick={onClose}
+              />
+            </div>
             <div>
               {showPosition(selected)}
             </div>

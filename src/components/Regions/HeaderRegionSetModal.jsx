@@ -158,22 +158,32 @@ const HeaderRegionSetModal = ({
             <div className="text-bodyMuted">Active region set</div>
             <div>{activeSet?.name ?? "None selected"}</div>
           </div>
-          <div className="ml-9">
+          <div className="ml-9 group">
             <UpDownChevronIcon />
           </div>
         </div>
         {activeSet && (
           <>
             <div className="h-2/5 w-px bg-separator" />
-            <div className="h-globalMenuBar aspect-square flex items-center justify-center">
-              <CloseIcon data-tooltip-id="header-active-deselect" role="button" onClick={handleDeselect} />
+            <div className="h-globalMenuBar aspect-square flex items-center justify-center group">
+              <CloseIcon 
+                data-tooltip-id="header-active-deselect" 
+                role="button" 
+                onClick={handleDeselect} 
+                className="[&_path]:fill-black [&_path]:scale-[0.85] [&_path]:origin-center group-hover:[&_path]:fill-red-500"
+              />
               <Tooltip id="header-active-deselect" className="z-10">
                 Clear active region set
               </Tooltip>
             </div>
             <div className="h-2/5 w-px bg-separator" />
-            <div className="h-globalMenuBar aspect-square flex items-center justify-center">
-              <DownloadIcon data-tooltip-id="header-download-regions" role="button" onClick={() => handleDownload(activeSet)} />
+            <div className="h-globalMenuBar aspect-square flex items-center justify-center group">
+              <DownloadIcon 
+                data-tooltip-id="header-download-regions" 
+                role="button" 
+                onClick={() => handleDownload(activeSet)} 
+                className="[&_path]:fill-black group-hover:[&_path]:fill-red-500"
+              />
               <Tooltip id="header-download-regions" className="z-10">
                 Download {activeRegions?.length} regions to a BED file
               </Tooltip>
@@ -254,15 +264,30 @@ const HeaderRegionSetModal = ({
                     <tbody>
                       {sets.map((set, index) => (
                       <tr key={index} className="hover:bg-gray-50">
-                        <td className="py-1 px-2">
+                        <td className="py-1 px-2 group">
                           {activeSet?.name == set.name 
-                          ? <button onClick={() => handleSelect(null)}>❌</button>
-                          : <button onClick={() => handleSelect(set)}>Select</button>}
+                          ? //<button onClick={() => handleSelect(null)}>❌</button>
+                          <CloseIcon 
+                            // data-tooltip-id="header-active-deselect" 
+                            role="button" 
+                            onClick={() => handleSelect(null)}
+                            className="[&_path]:fill-black [&_path]:scale-[0.85] [&_path]:origin-center group-hover:[&_path]:fill-red-500"
+                          />
+                          : <button 
+                              className="text-black hover:text-red-500" 
+                              onClick={() => handleSelect(set)}
+                            >Select</button>
+                          }
                           </td>
                         <td className="py-1 px-2">{set.name}</td>
                         <td className="py-1 px-2">{set.regions?.length} regions</td> 
-                        <td className="py-1 px-2">
-                          <DownloadIcon data-tooltip-id={`download-regions-${index}`} role="button" onClick={() => handleDownload(set)} />
+                        <td className="py-1 px-2 group">
+                          <DownloadIcon 
+                            data-tooltip-id={`download-regions-${index}`}
+                            role="button" 
+                            onClick={() => handleDownload(set)} 
+                            className="[&_path]:fill-black group-hover:[&_path]:fill-red-500"
+                          />
                           <Tooltip id={`download-regions-${index}`}>
                             Download {set.name} ({set.regions?.length} regions) to a BED file
                           </Tooltip>
