@@ -391,12 +391,13 @@ const ActiveRegionSetModal = () => {
                 {listRegions.map((region) => {
                   const regionKey = `${region.order}:${region.chromosome}:${region.i}`
                   return (
-                    <div className="grid grid-cols-subgrid col-start-1 col-end-4 border-t-separator border-t-1 pt-1.5 gap-y-1.5" style={{color: region.selected ? "red" : "black"}} key={regionKey}>
+                    <div className="grid grid-cols-subgrid col-start-1 col-end-4 border-t-separator border-t-1 pt-1.5 gap-y-1.5 hover:text-red-500" key={regionKey}> 
                       <div className="px-1.5 col-span-2 underline">
                         <a href="#gotoRegion" onClick={(event) => {
                           event.preventDefault()
                           handleSelectActiveRegionSet(region)
                         }}>
+                          {region.selected ? <div className="absolute -left-1.5 text-black">▶</div> : null}
                           {showPosition(region)}
                         </a>
                       </div>
