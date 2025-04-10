@@ -19,7 +19,7 @@ const LeftToolbar = ({
         <div className="grow-0 shrink-0 w-[2.4375rem] flex justify-center p-1.5">
           <div className="w-full h-full bg-separator rounded">
             <button 
-              className={`w-full aspect-square rounded flex items-center justify-center ${showActiveRegionSet ? 'bg-primary' : ''}`}
+              className={`w-full aspect-square rounded flex items-center justify-center group ${showActiveRegionSet ? 'bg-black' : ''}`}
               disabled={!activeSet}
               onClick={() => {
                 if(!showActiveRegionSet) {
@@ -28,10 +28,10 @@ const LeftToolbar = ({
                 setShowActiveRegionSet(!showActiveRegionSet)
               }}
             >
-              <DetailsIcon className={showActiveRegionSet ? "[&_path]:fill-primary-foreground" : ''} />
+              <DetailsIcon className={showActiveRegionSet ? "[&_path]:fill-primary-foreground" : 'group-hover:[&_path]:fill-red-500'} />
             </button>
             <button 
-              className={`w-full aspect-square rounded flex items-center justify-center ${showSummary ? 'bg-primary' : ''}`}
+              className={`w-full aspect-square rounded flex items-center justify-center group ${showSummary ? 'bg-black' : ''}`}
               disabled={!topNarrations?.length}
               onClick={() => {
                 if(!showSummary) {
@@ -40,7 +40,7 @@ const LeftToolbar = ({
                 topNarrations?.length && setShowSummary(!showSummary)
               }}
             >
-              <FiltersIcon className={showSummary ? "[&_path]:fill-primary-foreground" : ''} />
+              <FiltersIcon className={showSummary ? "[&_path]:fill-primary-foreground" : 'group-hover:[&_path]:fill-red-500'} />
             </button>
           </div>
         </div>
