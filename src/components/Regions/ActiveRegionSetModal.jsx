@@ -75,16 +75,11 @@ const ActiveRegionSetModal = () => {
     setRegionSummary, generateQuery, generateSummary, feedback: selectedFeedback,
   } = SelectedStatesStore()
 
-  const [showMinimap, setShowMinimap] = useState(true)
-
   const containerRef = useRef(null)
   const [width, height] = useContainerSize(containerRef, [activeGenesetEnrichment]);
   const minimapContainerRef = useRef(null)
-  const [minimapWidth, minimapHeight] = useContainerSize(minimapContainerRef, [showMinimap]);
-
-  const handleShowMinimap = useCallback(() => {
-    setShowMinimap(!showMinimap)
-  }, [showMinimap])
+  const [regionSetView, setRegionSetView] = useState("minimap");
+  const [minimapWidth, minimapHeight] = useContainerSize(minimapContainerRef, [regionSetView]);
 
   const handleSelectActiveRegionSet = useCallback((region) => {
     setSelected(region?.subregion || region)  // set selected with implied region
@@ -212,6 +207,14 @@ const ActiveRegionSetModal = () => {
     }
   }, [selectedFeedback, summaryToShow])
 
+  const handleRegionSetView = useCallback((view) => {
+    setRegionSetView(view);
+  }, [setRegionSetView]);
+
+  useEffect(() => {
+    if(!activeSet) setRegionSetView("minimap")
+  }, [activeSet, setRegionSetView])
+
   return (
     // TODO: remove hardcoded width
     <div className="flex-1 pl-1 min-h-0 max-h-full w-[24rem] text-xs overflow-hidden flex flex-col" ref={containerRef}>
@@ -227,8 +230,8 @@ const ActiveRegionSetModal = () => {
                     <button 
                       className={`py-1 px-3 transition-colors rounded-full flex-1 text-center ${
                         summaryToShow === "regionSet" 
-                          ? "bg-red-500 text-white font-medium shadow-sm" 
-                          : "bg-transparent text-black hover:bg-gray-200"
+                          ? "bg-black text-white font-medium shadow-sm" 
+                          : "bg-transparent text-black hover:text-red-500"
                       } ${!bothSummariesAvailable && summaryToShow !== "regionSet" ? "opacity-50 pointer-events-none" : ""}`}
                       onClick={() => setSummaryToShowState("regionSet")}
                       disabled={!bothSummariesAvailable && summaryToShow !== "regionSet"}
@@ -240,8 +243,8 @@ const ActiveRegionSetModal = () => {
                     <button 
                       className={`py-1 px-3 transition-colors rounded-full flex-1 text-center ${
                         summaryToShow === "selected" 
-                          ? "bg-red-500 text-white font-medium shadow-sm" 
-                          : "bg-transparent text-black hover:bg-gray-200"
+                          ? "bg-black text-white font-medium shadow-sm" 
+                          : "bg-transparent text-black hover:text-red-500"
                       } ${!bothSummariesAvailable && summaryToShow !== "selected" ? "opacity-50 pointer-events-none" : ""}`}
                       onClick={() => setSummaryToShowState("selected")}
                       disabled={!bothSummariesAvailable && summaryToShow !== "selected"}
@@ -296,16 +299,7 @@ const ActiveRegionSetModal = () => {
           )}
         </div>
       </div>
-      <div className="relative h-1/2 flex flex-col pt-4">
-        {/* <div className="relative w-full min-h-[25px] flex flex-row justify-between items-center mb-2 border-b-1 border-b-separator">
-          {
-            selected ? (
-              <div className="text-sm font-medium">
-                Selected: {showPosition(selected)}
-              </div>
-            ) : null
-          }
-        </div> */}
+      <div className="relative h-1/2 flex flex-col pt-1">
         <div className="relative border-y-1 border-y-separator flex flex-row justify-between items-start min-h-[60px]">
           <div className="text-sm mb-2 pt-2 font-medium overflow-auto max-h-[50px] h-[50px] block">
             {activeSet ? (
@@ -333,25 +327,39 @@ const ActiveRegionSetModal = () => {
               null
             )}
           </div>
-          <div className="flex flex-col h-full justify-center">
-            <div className="flex items-center pl-2">
-              <label className={`inline-flex gap-2 items-center cursor-pointer pr-2 ${!activeSet ? "opacity-50 pointer-events-none" : ""}`}>
-                <ListviewIcon />
-                <input
-                  className="absolute -z-50 pointer-events-none opacity-0 peer"
-                  type="checkbox"
-                  checked={showMinimap}
-                  onChange={handleShowMinimap}
-                  disabled={!activeSet}
-                />
-                <span className="block bg-muted-foreground border-2 border-muted-foreground h-3 w-6 rounded-full after:block after:h-full after:aspect-square after:bg-white after:rounded-full peer-checked:bg-primary peer-checked:border-primary peer-checked:after:ml-[0.725rem]"></span>
-                <MinimapIcon />
-              </label>
+        </div>
+        <div className="flex flex-row justify-between items-center">
+          <div className="flex items-center px-2 pt-1 w-full">
+            <div className="flex p-0.5 rounded-full bg-gray-100 border border-gray-300 text-xs gap-1 w-full">
+              {/* Minimap Tab */}
+              <button 
+                className={`py-1 px-3 transition-colors rounded-full flex-1 text-center ${
+                  regionSetView === "minimap"
+                    ? "bg-black text-white font-medium shadow-sm" 
+                    : "bg-transparent text-black hover:text-red-500"
+                }`}
+                onClick={() => handleRegionSetView('minimap')}
+              >
+                Minimap
+              </button>
+              
+              {/* Listview Tab */}
+              <button 
+                className={`py-1 px-3 transition-colors rounded-full flex-1 text-center ${
+                  regionSetView === "list"
+                    ? "bg-black text-white font-medium shadow-sm" 
+                    : "bg-transparent text-black hover:text-red-500"
+                } ${!activeSet ? "opacity-50 pointer-events-none" : ""}`}
+                onClick={() => handleRegionSetView('list')}
+                disabled={!activeSet}
+              >
+                Listview
+              </button>
             </div>
           </div>
         </div>
         {
-          showMinimap ? (
+          regionSetView === "minimap" ? (
             <div className="flex flex-col h-full mt-2">
               {/* <div className="min-h-[20px] pl-2 text-red-500 text-xs font-medium">
                 {selected ? showPosition(selected) : null}
