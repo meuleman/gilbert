@@ -160,32 +160,9 @@ const SummarizePaths = ({
     return groups(filtered, d => d.layerName).sort((a, b) => b[1][0].count - a[1][0].count)
   }, [topFactors])
 
-  const [activeTab, setActiveTab] = useState('summary')
-
-  const [showArticles, setShowArticles] = useState(false)
-  const handleShowArticles = () => {
-    setShowArticles(!showArticles)
-  }
-
   return (
     // TODO: remove hardcoded width
     <div className={`h-full w-[24.9375rem] flex-1 overflow-hidden ${showSummary ? 'flex flex-col' : 'hidden'}`}>
-      <div className="flex border-b border-separator">
-        <button 
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'summary' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-          onClick={() => setActiveTab('summary')}
-        >
-          Summary
-        </button>
-        <button 
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'factors' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-          onClick={() => setActiveTab('factors')}
-        >
-          Top Factors
-        </button>
-      </div>
-
-      {activeTab === 'factors' ? 
       <div className="flex-1 overflow-y-auto p-3 w-full min-w-0">
         <h3 className="text-sm font-semibold mb-2">Filter</h3>
         <div className="mb-2 w-full">
@@ -218,40 +195,7 @@ const SummarizePaths = ({
             )
           })}
         </div>
-      </div> : 
-      <div className="flex-1 overflow-y-auto p-3">
-        <p className="text-sm text-foreground">{regionSetNarrationLoading ? "loading..." : regionSetNarration}</p>
-        {!regionSetNarrationLoading && regionSetNarration !== "" &&
-        <div className="mt-4">
-          <button 
-            className="px-2 py-1 text-sm rounded bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
-            onClick={handleShowArticles}
-          >
-            {showArticles ? "Hide Supporting Articles" : "Show Supporting Articles"}
-          </button>
-          {showArticles && <div className="mt-3">
-            <h3 className="text-sm font-semibold">{regionSetArticles.length} open access PubMed articles found: </h3>
-            <div className="mt-2 space-y-2">
-              {regionSetArticles.map((a,i) => {
-                return (
-                  <div key={a.pmc} className="text-xs">
-                    <span className="mr-1">{i+1})</span>
-                    <a 
-                      href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`} 
-                      target="_blank" 
-                      rel="noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      {a.full_title}
-                    </a>
-                  </div>
-                )
-              })}
-            </div>
-          </div>}
-        </div>}
       </div>
-      }
     </div>
   )
 }
