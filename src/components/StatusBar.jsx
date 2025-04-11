@@ -90,28 +90,29 @@ const StatusBar = ({
 
   return (
     <div className="bg-statusBar h-6 px-6 text-xs font-mono font-bold flex gap-6 items-center">
-      {regionHighlight && (
-        <div className="status-position-override">
-          {showPosition(regionHighlight)}
+      <div className="grid grid-cols-3 w-full gap-x-2 max-w-5xl mx-auto items-center">
+          <div className="justify-self-end min-w-0 overflow-hidden whitespace-nowrap">
+            {inside && (<div>Genes in region: {inside} &nbsp;</div>)}
+            {outside && (<div>Genes overlapping region: {outside}</div>)}
+          </div>
+          <div className="status-position-override justify-self-center min-w-0 overflow-hidden whitespace-nowrap">
+            {regionHighlight ? showPosition(regionHighlight) : null}
+          </div>
+          <div className="justify-self-start">
+            <div className="text-center min-w-0 overflow-hidden whitespace-nowrap">
+              {currentPreferred?.field ? (
+                <>
+                  <span style={{ color: currentPreferred?.layer?.fieldColor(currentPreferred?.field?.field), marginRight: '4px' }}>
+                    ⏺
+                  </span>
+                  {currentPreferred?.field?.field} {currentPreferred?.layer?.labelName}
+                </>
+              ) : null}
+            </div>
+          </div>
         </div>
-      )}
-      <div className="flex items-center">
-        <div className="flex-1 text-center whitespace-nowrap overflow-hidden text-ellipsis">
-          {currentPreferred?.field ? (
-            <>
-              <span style={{ color: currentPreferred?.layer?.fieldColor(currentPreferred?.field?.field), marginRight: '4px' }}>
-                ⏺
-              </span>
-              {currentPreferred?.field?.field} {currentPreferred?.layer?.labelName}
-            </>
-          ) : null}
-        </div>
-      </div>
 
-      {inside && (<div>Genes in region: {inside} &nbsp;</div>)}
-      {outside && (<div>Genes overlapping region: {outside}</div>)}
-
-      {!selected ? <div className="ml-auto">
+      {!selected ? <div className="absolute right-6">
         <div className="flex gap-1">
           <div>Order offset</div>
           <div>
