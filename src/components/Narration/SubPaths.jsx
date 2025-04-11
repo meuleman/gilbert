@@ -5,6 +5,7 @@ import { hierarchy, treemap, treemapDice } from 'd3-hierarchy';
 import { variantChooser } from '../../lib/csn';
 import { showKbOrder } from '../../lib/display';
 import SelectedStatesStore from '../../states/SelectedStates'
+import Loading from '../Loading';
 import './SubPaths.css';
 
 import Tooltip from '../Tooltips/Tooltip';
@@ -174,6 +175,12 @@ export default function SubPaths({
     tooltipRef.current.hide()
   }, [removeNarrationPreview])
 
+  const [subpathsLoading, setSubpathsLoading] = useState(false)
+  useEffect(() => {
+    if(factors===null) setSubpathsLoading(true)
+    else setSubpathsLoading(false)
+  }, [factors, setSubpathsLoading])
+
   return (
     <div 
       ref={containerRef}
@@ -181,49 +188,59 @@ export default function SubPaths({
       style={{ width }}
     >
       {path.length && yScale && containerHeight > 0 &&
+        subpathsLoading ? 
+        <div
+          className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2"
+          style={{
+            // midpoint between end of max order and end of order 14
+            top: yScale((Math.max(...path.map(d => d.order)) + 14) / 2 + 1),
+          }}
+        >
+          <Loading/>
+        </div> :
         range(4, 15).map(o => {
-            let facs = factorsByOrder[o]
-            // ensure that preview path is not already showing something for this order
-            if(facs?.length && !preview?.path?.find(p => p?.order === o)) {
-              // Create a treemap layout for the facs of this order group.
-              const root = hierarchy({ children: facs }).sum(d => d.score);
-              treemap()
-                .size([width, rw])
-                .tile(treemapDice)
-                .padding(2)(root)
-              return (
-                <div
-                  key={o}
-                  className="absolute left-0 pointer-events-auto"
-                  style={{
-                    top: yScale(o),
-                    width: width,
-                    height: rw
-                  }}
-                  onMouseMove={e => handleZoom(e, o)}
-                >
-                  {root.leaves().map((leaf, i) => {
-                    return (
-                    <div
-                      className="subpath-rect absolute"
-                      key={`${o}-${i}`}
-                      style={{
-                        left: leaf.x0,
-                        top: leaf.y0,
-                        width: leaf.x1 - leaf.x0,
-                        height: leaf.y1 - leaf.y0,
-                        backgroundColor: leaf.data.factor.color,
-                      }}
-                      onClick={e => handleClick(e, leaf.data.factor)}
-                      onMouseMove={e => handleSubpathHover(e, leaf.data.factor)}
-                      onMouseLeave={handleLeave}
-                    />
-                  )})}
-                </div>
-              )
-            }
-            return null
-          })
+          let facs = factorsByOrder[o]
+          // ensure that preview path is not already showing something for this order
+          if(facs?.length && !preview?.path?.find(p => p?.order === o)) {
+            // Create a treemap layout for the facs of this order group.
+            const root = hierarchy({ children: facs }).sum(d => d.score);
+            treemap()
+              .size([width, rw])
+              .tile(treemapDice)
+              .padding(2)(root)
+            return (
+              <div
+                key={o}
+                className="absolute left-0 pointer-events-auto"
+                style={{
+                  top: yScale(o),
+                  width: width,
+                  height: rw
+                }}
+                onMouseMove={e => handleZoom(e, o)}
+              >
+                {root.leaves().map((leaf, i) => {
+                  return (
+                  <div
+                    className="subpath-rect absolute"
+                    key={`${o}-${i}`}
+                    style={{
+                      left: leaf.x0,
+                      top: leaf.y0,
+                      width: leaf.x1 - leaf.x0,
+                      height: leaf.y1 - leaf.y0,
+                      backgroundColor: leaf.data.factor.color,
+                    }}
+                    onClick={e => handleClick(e, leaf.data.factor)}
+                    onMouseMove={e => handleSubpathHover(e, leaf.data.factor)}
+                    onMouseLeave={handleLeave}
+                  />
+                )})}
+              </div>
+            )
+          }
+          return null
+        })
       }
 
       {chosenFactorOrder && subpathCollection?.length && containerHeight > 0 ? (
