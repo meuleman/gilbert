@@ -385,7 +385,8 @@ const LinearGenome = ({
       // console.log("missing", missing)
     }
     // console.log("set data points")
-    setDataPoints(dataPoints)
+    // if empty order, still show points without layer data
+    dataPoints?.length ? setDataPoints(dataPoints) : setDataPoints(missing)
   }, [data])
   
   useEffect(() => {
@@ -394,8 +395,7 @@ const LinearGenome = ({
       const ctx = canvasRef.current.getContext('2d');
       ctx.clearRect(0, 0, width, height);
     }
-    // console.log("render", data.metas, layer, renderPoints)
-    if(centerRef.current && data && data.metas && layer) {
+    if(centerRef.current && data && data.metas) {
       render(centerRef.current, targetRegions, dataPoints, data.metas, layer, renderPoints, activeRegions) 
     }
   }, [targetRegions, renderPoints, dataPoints, data, layer, render, activeRegions])
