@@ -20,6 +20,45 @@ const zoomDebounce = debouncer()
 
 import "./LinearGenome.css"
 
+// Uses similar badge rendering logic as in CanvasOrder14Component
+const renderBadge = (ctx, d, layer, x, y, w, h) => {
+  // Draw background
+  ctx.fillStyle = layer.nucleotideColor(d.data.nucleotide);
+  ctx.fillRect(x, y, w, h);
+  
+  // Define corner positions for badges
+  const cornerXOffset = w/3;
+  const cornerYOffset = h/4;
+  const radius = w/10;
+
+  const dataForBadges = [
+    { value: d.data.protein_function, color: layer.fieldColor("Protein Function"), x: x + cornerXOffset, y: y + cornerYOffset},
+    { value: d.data.clinvar_sig, color: layer.fieldColor("ClinVar Sig"), x: x + w - cornerXOffset, y: y + h - cornerYOffset},
+    { value: d.data.conservation, color: layer.fieldColor("Conservation"), x: x + cornerXOffset, y: y + h - cornerYOffset},
+    { value: d.data.gwas, color: layer.fieldColor("GWAS"), x: x + w - cornerXOffset, y: y + cornerYOffset}
+  ];
+
+  // Render badges
+  dataForBadges.forEach((badge) => {
+    if (badge.value) {
+      ctx.fillStyle = badge.color;
+    } else {
+      ctx.fillStyle = "#bbb";  // Default badgeColor
+    }
+    ctx.beginPath();
+    ctx.arc(badge.x, badge.y, radius, 0, 2 * Math.PI);
+    ctx.fill();
+  });
+  
+  // Render nucleotide text
+  ctx.fillStyle = 'black';
+  const fontSize = Math.min(w/2, h/3);
+  ctx.font = `${fontSize}px monospace`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(d.data.nucleotide, x + w/2, y + h/2);
+}
+
 const LinearGenome = ({
   center: propCenter = null, // center of the view, a region
   orderRaw: propOrderRaw = null,
@@ -98,7 +137,10 @@ const LinearGenome = ({
         const scaleFactor = 1 + 3 * diff
         // Set up the x scale for the whole track
         const bpbw = points[0].end - points[0].start
-        let xExtent = [region.start - targetSize * bpbw, region.start + targetSize * bpbw + bpbw]
+
+        // For badges at order 14, use a reduced view window (zoom in)
+        const zoomFactor = (layer?.datasetName === "badges" && region.order === 14) ? 0.2 : 1;
+        let xExtent = [region.start - targetSize * bpbw * zoomFactor , region.start + targetSize * bpbw * zoomFactor + bpbw]
 
         const xs = scaleLinear()
           .domain(xExtent)
@@ -253,7 +295,7 @@ const LinearGenome = ({
           const meta = metas?.find((meta) => meta.chromosome === region.chromosome)
           let { min, max, fields } = Data.getDataBounds(meta)
           max = extent(data, d => layer.fieldChoice(d)?.value)[1]
-          if(layer.datasetName == "variants_gwas") {
+          if(layer.datasetName == "variants_ukbb_94") {
             max = 100
           }
 
@@ -261,44 +303,47 @@ const LinearGenome = ({
             const sample = layer.fieldChoice(d);
             
             if(sample && sample.field){
-              // console.log("sample", sample, yScale(sample.value))
-              let domain = [0, max]
-              // let domain = [min < 0 ? 0 : min, max]
-              // if (Array.isArray(min)) {
-              //   let fi = fields.indexOf(sample.field)
-              //   domain = [min[fi] < 0 ? 0 : min[fi], max[fi]]
-              // }
-              
-              const yScale = scaleLinear()
-                .domain(domain)
-                .range([trackHeight,0])
+              const x = xScale(d.start);
+              const w = Math.max(1, bw - 0.5);
 
-              let y = geneHeight + yScale(sample.value)// + 0.5
-              let h = trackHeight - yScale(sample.value)// - 2
-              if(layer.name == "Nucleotides") {
-                ctx.fillStyle = layer.fieldColor(sample.value)
-                y = geneHeight
-                h = trackHeight
-              } else if(layer.datasetName == "badges") {
-                ctx.fillStyle = layer.nucleotideColor(d.data.nucleotide)
-                y = geneHeight
-                h = trackHeight
+              if(layer.datasetName == "badges" && d.data?.nucleotide) {
+                const y = geneHeight;
+                const h = trackHeight;
+                renderBadge(ctx, d, layer, x, y, w, h)
               } else {
-                ctx.fillStyle = layer.fieldColor(sample.field)
+                // console.log("sample", sample, yScale(sample.value))
+                let domain = [0, max]
+                // let domain = [min < 0 ? 0 : min, max]
+                // if (Array.isArray(min)) {
+                //   let fi = fields.indexOf(sample.field)
+                //   domain = [min[fi] < 0 ? 0 : min[fi], max[fi]]
+                // }
+                
+                const yScale = scaleLinear()
+                  .domain(domain)
+                  .range([trackHeight,0])
+
+                let y = geneHeight + yScale(sample.value)// + 0.5
+                let h = trackHeight - yScale(sample.value)// - 2
+                if(layer.name == "Nucleotides") {
+                  ctx.fillStyle = layer.fieldColor(sample.value)
+                  y = geneHeight
+                  h = trackHeight
+                } else {
+                  ctx.fillStyle = layer.fieldColor(sample.field)
+                }
+                ctx.fillRect(x, y, w, h)
+                if(layer.name == "Nucleotides") {
+                  // ctx.fillStyle = 'white'
+                  ctx.fillStyle = 'black'
+                  let fs = trackHeight/3
+                  ctx.font = `${fs}px monospace`;
+                  ctx.fillText(sample.value, x+bw/2 - .4*fs, y+trackHeight/2+.3*fs)
+                }
+                // if(d.i == region.i){
+                //   ctx.strokeRect(xScale(d.start)+1, 1, bw-2, height-2)
+                // }
               }
-              const x = xScale(d.start)// + 1
-              const w = Math.max(1, bw - 0.5)// - 2
-              ctx.fillRect(x, y, w, h)
-              if(layer.name == "Nucleotides") {
-                // ctx.fillStyle = 'white'
-                ctx.fillStyle = 'black'
-                let fs = trackHeight/3
-                ctx.font = `${fs}px monospace`;
-                ctx.fillText(sample.value, x+bw/2 - .4*fs, y+trackHeight/2+.3*fs)
-              }
-              // if(d.i == region.i){
-              //   ctx.strokeRect(xScale(d.start)+1, 1, bw-2, height-2)
-              // }
             }
           })
           ctx.strokeStyle = "black" 
@@ -395,7 +440,7 @@ const LinearGenome = ({
       const ctx = canvasRef.current.getContext('2d');
       ctx.clearRect(0, 0, width, height);
     }
-    if(centerRef.current && data && data.metas) {
+    if(centerRef.current && data) {
       render(centerRef.current, targetRegions, dataPoints, data.metas, layer, renderPoints, activeRegions) 
     }
   }, [targetRegions, renderPoints, dataPoints, data, layer, render, activeRegions])
