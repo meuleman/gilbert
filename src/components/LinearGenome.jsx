@@ -345,11 +345,11 @@ const LinearGenome = ({
                 // }
               }
             }
-          })
-          ctx.strokeStyle = "black" 
-          ctx.lineWidth = 1;
-          ctx.strokeRect(xScale(region.start), geneHeight, bw, trackHeight-1)
+          }) 
         }
+        ctx.strokeStyle = "black" 
+        ctx.lineWidth = 1;
+        ctx.strokeRect(xScale(region.start), geneHeight, bw, trackHeight-1)
 
         // Render the active regions
         if(activeRegions.size) {
