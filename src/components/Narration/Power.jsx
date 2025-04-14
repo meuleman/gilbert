@@ -440,7 +440,14 @@ function PowerModal({
   }, [transformResult, width, height, scales, data, oscale]);
 
   const linearCenter = useMemo(() => {
-    return csn?.path.find(d => d.order === order)?.region
+    let center = csn?.path.find(d => d.order === order)?.region;
+    // if path does not extend to order, extend highest resolution region to order and use that as centerpoint
+    if(!!csn?.path.length && !center) {
+      const largestOrderRegion = csn.path.sort((a, b) => a.order - b.order).slice(-1)[0]?.region;
+      const oi = hilbertPosToOrder(largestOrderRegion.i, { from: largestOrderRegion.order, to: order });
+      center = fromIndex(largestOrderRegion.chromosome, oi, order)
+    }
+    return center; 
   }, [csn, order])
 
   const linearData = useMemo(() => {
