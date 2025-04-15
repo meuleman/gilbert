@@ -10,7 +10,7 @@ export default {
   datasetName: "repeats_rank_occ",
   labelName: "Repeat Occurrence",
   baseURL: `${constants.baseS3URLPrefix}/20241204`,
-  orders: [4,14],
+  orders: [4,13],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()

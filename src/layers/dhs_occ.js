@@ -9,7 +9,7 @@ export default {
   datasetName: "dhs_occ",
   labelName: "DHS Occurrence",
   baseURL: `${constants.baseS3URLPrefix}/20241127`,
-  orders: [4,14],
+  orders: [4,13],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()

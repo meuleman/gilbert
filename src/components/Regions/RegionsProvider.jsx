@@ -1,15 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import RegionsContext from './RegionsContext';
 import { 
-  fetchPartialPathsForRegions, 
   fetchRegionSetNarration, 
   fetchRegionSetEnrichments,
   fetchBackfillFiltering
 } from '../../lib/apiService';
 import { fromPosition, fromIndex } from '../../lib/regions';
-import { rehydratePartialCSN, } from '../../lib/csn'
+import { fetchCombinedPathsAndGWAS } from '../../lib/csn'
 import { showKbOrder } from '../../lib/display'
-import { makeField, csnLayerList } from '../../layers'
+import { makeField } from '../../layers'
 // import { v4 as uuidv4 } from 'uuid';
 
 import CSNExamples from '../ExampleRegions/Nice_CSN_Examples.json'
@@ -193,7 +192,7 @@ const RegionsProvider = ({ children }) => {
               score: r.score
             }
           }))
-          console.log("FILTERED ACTIVE REGIONS", rs)
+          // console.log("FILTERED ACTIVE REGIONS", rs)
           setFilteredActiveRegions(rs)
         }
         setFilteredRegionsLoading(false)
@@ -232,7 +231,7 @@ const RegionsProvider = ({ children }) => {
         ]
       })
       .then((response) => {
-        console.log("REGION SET ENRICHMENTS", response)
+        // console.log("REGION SET ENRICHMENTS", response)
         // attach enrichment and count
         setRegionSetEnrichments(response.map(d => {
           let field = makeField(d.dataset, d.factor)
@@ -256,12 +255,10 @@ const RegionsProvider = ({ children }) => {
       setTopNarrationsLoading(true)
       // if subregion exists, use for narration
       let narrationRegions = filteredActiveRegions.map(d => d.subregion ? {...d, ...d.subregion} : d)
-      fetchPartialPathsForRegions(narrationRegions, false).then((response) => {
+      fetchCombinedPathsAndGWAS(narrationRegions).then((response) => {
         // set geneset enrichment for region set
-        setActiveGenesetEnrichment(response.genesets)
-        // rehydrate paths
-        let rehydrated = response.regions.map(d => rehydratePartialCSN(d, csnLayerList))
-        setTopNarrations(rehydrated)
+        setActiveGenesetEnrichment(response.paths.genesets)
+        setTopNarrations(response.rehydrated)
         setTopNarrationsLoading(false)
       })
       .catch((e) => {
@@ -282,7 +279,7 @@ const RegionsProvider = ({ children }) => {
       setRegionSetNarration(data.summary)
       setRegionSetArticles(data.results)
       setRegionSetNarrationLoading(false)
-      console.log("REGION SET NARRATION:", data.summary)
+      // console.log("REGION SET NARRATION:", data.summary)
     }) 
   }, [])
 
@@ -327,7 +324,7 @@ const RegionsProvider = ({ children }) => {
         factors[term].count += 1
       })
     })
-    console.log("FACTORS", factors)
+    // console.log("FACTORS", factors)
     let topFactors = Object.keys(factors)
       .map(d => ({term: d, ...factors[d]})).sort((a, b) => b.count - a.count).slice(0, 10)
       .map(d => {
@@ -359,7 +356,7 @@ const RegionsProvider = ({ children }) => {
     // only generate query if topNarrations and activeGenesetEnrichment are available
     if (topNarrations.length && activeGenesetEnrichment !== null) {
       let query = generateRegionSetQuery(topNarrations)
-      console.log(query)
+      // console.log(query)
       setRegionSetQuery(query)
     } else {
       setRegionSetQuery("")

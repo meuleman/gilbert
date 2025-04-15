@@ -9,7 +9,7 @@ export default {
   datasetName: "cpg_islands_density",
   baseURL: `${constants.baseURLPrefix}/20230724`,  // removed from s3
   // baseURL: `https://resources.altius.org/~ctrader/public/hilbert/20230724`,
-  orders: [4,14],
+  orders: [4,13],
   renderer: "CanvasOpacityValue",
   fieldChoice: d => ({ field: "count", value: d.data?.count}),
   fieldColor: scaleOrdinal()

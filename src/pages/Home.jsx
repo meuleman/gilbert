@@ -196,7 +196,7 @@ function Home() {
   const { setShowActiveRegionSet, setShowSummary } = RegionSetModalStatesStore()
   const { 
     selected, setSelected, region, setRegion, clearSelected,
-    loadingSelectedCSN, selectedNarration, setSelectedNarration, 
+    selectedNarration, setSelectedNarration, 
     collectPathsForSelected, determineFactorExclusion
   } = SelectedStatesStore()
   // only on initial mount

@@ -6,7 +6,7 @@ export default {
   name: "DHS Mean Signal",
   datasetName: "dhs_meansignal",
   baseURL: `${constants.baseURLPrefix}/20230724`,
-  orders: [4,14],
+  orders: [4,13],
   renderer: "CanvasOpacityValue",
   fieldChoice: d => ({ 
     field: "mean", 

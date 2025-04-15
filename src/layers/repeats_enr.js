@@ -33,7 +33,7 @@ export default {
 // this function chooses the top value for a data point
 function topValue(d) {
   let data = d.data
-  delete data.Count
+  data?.Count && delete data.Count
   if(!data) return { field: "", value: null }
   let top = Object.keys(data).map((f) => ({
     field: f,

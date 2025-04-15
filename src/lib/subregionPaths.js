@@ -1,7 +1,5 @@
 import { HilbertChromosome } from '../lib/HilbertChromosome';
-import { fetchPartialPathsForRegions } from './apiService';
-import { rehydratePartialCSN } from '../lib/csn';
-import { csnLayerList } from '../layers';
+import { fetchCombinedPathsAndGWAS } from '../lib/csn';
 
 
 // find the top factors by selecting one factor per order
@@ -45,13 +43,11 @@ const getTopFactors = function(factorData, maxPerOrder = 5) {
 // fetches partial paths for factor segments up to the factor segment order
 // ensures that the top factor is in the correct location in the path
 const getPathsForRegions = function(topFactors, region) {
-    let rehydratedTopFactors = fetchPartialPathsForRegions(topFactors.map(d => d.topSegment), true)
+    let rehydratedTopFactors = fetchCombinedPathsAndGWAS(topFactors.map(d => d.topSegment), true)
         .then((response) => {
-            // let rehydratedTopFactors = response.regions.map((r, i) => ({...(topFactors[i]), path: rehydratePartialCSN(r, csnLayerList)}))
-            let rehydrated = response.regions.map(r => rehydratePartialCSN(r, csnLayerList))
             // force top factor to show up in prescribed location in path
             let rehydratedTopFactors = topFactors.map((d, i) => {
-                let path = rehydrated[i]
+                let path = response.rehydrated[i]
                 
                 let field = {color: d.color, field: d.factorName, value: d.topSegment.score, index: d.factor}
                 let layer = d.layer

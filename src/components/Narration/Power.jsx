@@ -117,7 +117,7 @@ function PowerModal({
   const tooltipRef = useRef(null);
 
   const { handleSelectedZoom: onOrder, selectedZoomOrder: userOrder } = useZoom();
-  const { collectFullData: onData, narrationPreview, loadingFullNarration, selectedNarration, fullNarration, selected, setCurrentPreferred: setCurrentPreferredGlobal } = SelectedStatesStore();
+  const { narrationPreview, loadingFullNarration, selectedNarration, fullNarration, selected, setCurrentPreferred: setCurrentPreferredGlobal } = SelectedStatesStore();
   
   const [currentPreferred, setCurrentPreferred] = useState(null);
   useEffect(() => {

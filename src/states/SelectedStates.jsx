@@ -1,13 +1,11 @@
 import { create } from 'zustand';
 import { 
   baseAPIUrl, 
-  fetchGWASforPositions, 
-  fetchPartialPathsForRegions,
   fetchSingleRegionFactorOverlap 
 } from '../lib/apiService';
 import { createSubregionPaths } from '../lib/subregionPaths'
-import { fullList as layers, csnLayers, variantLayers } from '../layers'
-import { rehydratePartialCSN, retrieveFullDataForCSN } from '../lib/csn'
+import { fullList as layers } from '../layers'
+import { retrieveFullDataForCSN, fetchCombinedPathsAndGWAS } from '../lib/csn'
 import { showKbOrder, showKb } from '../lib/display'
 
 const SelectedStatesStore = create((set, get) => {
@@ -40,7 +38,7 @@ const SelectedStatesStore = create((set, get) => {
     if(selected) {
       set({ loadingSelectedCSN: true });
       set({ selectedNarration: null });
-      fetchPartialPathsForRegions([selected], true).then((response) => {
+      fetchCombinedPathsAndGWAS([selected], true).then((response) => {
         if(!response) { 
           set({ selectedNarration: null });
           set({ loadingSelectedCSN: false });
@@ -48,13 +46,11 @@ const SelectedStatesStore = create((set, get) => {
           set({ selectedGenesetMembership: [] })
           return null
         } else {
-          let responseRegion = response.regions[0]
-          let rehydrated = {
-            path: rehydratePartialCSN(responseRegion, [...csnLayers, ...variantLayers]).path,
-            region: selected, 
-            genes: responseRegion.genes,
-            genesets: responseRegion.genesets.map(g => ({...g, p: genesetScoreMapping[g.geneset]})),
-          }
+          let rehydrated = response.rehydrated[0]
+          rehydrated["region"] = selected
+          // add scores to sort for summary
+          rehydrated.genesets = rehydrated.genesets.map(g => ({...g, p: genesetScoreMapping[g.geneset]}))
+
           set({ selectedNarration: rehydrated });
           set({ selectedGenesetMembership: rehydrated.genesets })
           set({ loadingRegionCSNS: false });
@@ -191,32 +187,9 @@ const SelectedStatesStore = create((set, get) => {
     const promises = [
       retrieveFullDataForCSN(selectedNarration),
     ];
-    let impliedRegion = selectedNarration?.region?.subregion || selectedNarration?.region;
-    if (impliedRegion?.order === 14) {
-      promises.push(
-        fetchGWASforPositions([{
-          chromosome: impliedRegion.chromosome,
-          index: impliedRegion.i
-        }])
-      );
-    }
 
     const responses = await Promise.all(promises);
     const fullDataResponse = responses[0];
-    const gwasResponse = impliedRegion?.order === 14 ? responses[1] : null;
-
-    // Process GWAS data if available and attach to the order 14 segment.
-    const csnGWAS = gwasResponse
-      ? gwasResponse[0].trait_names.map((trait, i) => ({
-        trait,
-        score: gwasResponse[0].scores[i],
-        layer: gwasResponse[0].layer
-      })).sort((a, b) => b.score - a.score)
-      : null;
-    const csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14);
-    if (csnOrder14Segment) {
-      csnOrder14Segment.GWAS = csnGWAS;
-    }
 
     // Set the enriched narration and mark loading as complete.
     set({ fullNarration: fullDataResponse });

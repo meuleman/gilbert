@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react';
 import React from 'react';
-
-import { fetchTopPathsForRegions } from '../lib/apiService';
-import { rehydrateCSN, getDehydrated } from '../lib/csn';
-
-import { csnLayers, variantLayers } from '../layers';
+import { fetchCombinedPathsAndGWAS } from '../lib/csn';
 
 import LogoNav from '../components/LogoNav';
 import SankeyModal from '../components/Narration/SankeyModal';
@@ -57,44 +53,29 @@ const RegionCSNContent = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
+  
   // Load CSN data based on active regions
   useEffect(() => {
-    if (activeRegions && activeRegions.length > 0) {
+    if(activeRegions?.length) {
       console.log("Loading CSN for active regions", activeRegions);
       setLoadingSelectedCSN(true);
-      fetchTopPathsForRegions(activeRegions, 1)
-        .then((response) => {
-          if (!response) { 
-            setActivePaths(null);
-            setLoadingSelectedCSN(false);
-          } else { 
-            // convert the response into "dehydrated" csn paths with the region added
-            let tpr = getDehydrated(activeRegions, response.regions);
-            let hydrated = tpr.map(d => rehydrateCSN(d, [...csnLayers, ...variantLayers]));
-            
-            // combine the regions with the paths so we can sort them by the path score
-            let combined = activeRegions.map((r, i) => {
-              return { i, r, p: hydrated[i], rscore: r.score, pscore: hydrated[i]?.score };
-            }).sort((a, b) => (a.rscore && b.rscore && a.rscore.toFixed(3) != b.rscore.toFixed(3)) ? b.rscore - a.rscore : b.pscore - a.pscore);
-
-            let reorderedRegions = combined.map(d => d.r);
-            let reorderedPaths = combined.map(d => d.p).filter(d => !!d);
-            setActivePaths(reorderedPaths);
-            setActiveState(null);
-            setLoadingSelectedCSN(false);
-            
-            // for geneset enrichment calculation
-            let gip = response.regions.flatMap(d => d.genes[0]?.genes).map(d => d.name);
-            console.log("GIP", gip);
-          }
-        }).catch((e) => {
-          console.log("error fetching top paths for regions", e);
+      fetchCombinedPathsAndGWAS(activeRegions, false).then((response) => {
+        if (!response) { 
           setActivePaths(null);
           setLoadingSelectedCSN(false);
-        });
+        } else {
+          setActivePaths(response.rehydrated);
+          setActiveState(null);
+          setLoadingSelectedCSN(false);
+        }
+      })
+      .catch((e) => {
+        console.log("error fetching top paths for regions", e);
+        setActivePaths(null);
+        setLoadingSelectedCSN(false);
+      })
     }
-  }, [activeRegions]);
+  }, [activeRegions])
 
   // Render a dropdown to select example sets
   const renderSetSelector = () => {

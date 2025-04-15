@@ -10,7 +10,7 @@ export default {
   labelName: "Chromatin State Occurrence",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseS3URLPrefix}/20241127`,
-  orders: [4,14],
+  orders: [4,13],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()

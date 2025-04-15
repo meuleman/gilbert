@@ -9,7 +9,7 @@ export default {
   name: "TF Motifs (OCC)",
   datasetName: "tf_occ",
   baseURL: `${constants.baseS3URLPrefix}/20240329`,  // removed from s3
-  orders: [4,14],
+  orders: [4,13],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()

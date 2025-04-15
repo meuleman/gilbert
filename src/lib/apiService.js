@@ -9,68 +9,6 @@ const baseAPIUrl = import.meta.env.VITE_API_URL
 /* ================================================================ */
 
 /*
-Get the top N paths filtered by filters and regions
-filters: [{order, field}, ...]
-region: {order, chromosome, index}
-scoreType: "full", "factor"
-diversity: true | false
-N: number of paths to return
-
-Returns:
-[ { baseRegion, path: [{order, field, region}, ...]}, ...]
-
-region (and baseRegion): {order, chromosome, index}
-*/
-function fetchTopCSNs(filtersMap, region, scoreType, diversity, N) {
-  const filters = getFilters(filtersMap, region)
-
-  const url = `${baseAPIUrl}/api/csns/top_paths`
-  const postBody = {filters, scoreType, region, diversity, N}
-  // console.log("CSN POST BODY", postBody)
-  return axios({
-    method: 'POST',
-    url: url,
-    data: postBody
-  }).then(response => {
-    // console.log("CSN DATA", response.data)
-    return response.data
-  }).catch(error => {
-    console.error(`error:     ${JSON.stringify(error)}`);
-    console.error(`post body: ${JSON.stringify(postBody)}`);
-    return null
-  })
-}
-
-
-/*
-Collects the top N paths for each region in regions
-region: [{chromosome, start, end}, ...]
-N: number of paths to return per region
-
-Returns:
-{ regions: [{ chromosome, start, end, top_scores, top_positions, dehydrated_paths }, ...] }
-*/
-function fetchTopPathsForRegions(regions, N) {
-  if(regions.length === 0) return Promise.resolve({regions: []})
-  const url = `${baseAPIUrl}/api/csns/top_paths_for_regions`
-  const postBody = {regions, N}
-  // console.log("TOP PATHS POST BODY", postBody)
-  return axios({
-    method: 'POST',
-    url: url,
-    data: postBody
-  }).then(response => {
-    // console.log("TOP PATHS FOR REGIONS DATA", response.data)
-    return response.data
-  }).catch(error => {
-    console.error(`error:     ${JSON.stringify(error)}`);
-    console.error(`post body: ${JSON.stringify(postBody)}`);
-    return null
-  })
-}
-
-
-/*
 Collects the partial path for each region in regions
 region: [{chromosome, order, i}, ...]
 membership (return genesets with regional gene membership): true | false
@@ -331,8 +269,6 @@ function fetchRegionSetFromFactor(factor, maxRegions=null) {
 export {
   baseAPIUrl,
   fetchGWASforPositions,
-  fetchTopCSNs,
-  fetchTopPathsForRegions,
   fetchPartialPathsForRegions,
   fetchSingleRegionFactorOverlap,
   fetchRegionSetEnrichments,

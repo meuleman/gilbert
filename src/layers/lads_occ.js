@@ -8,7 +8,7 @@ export default {
   name: "LADs",
   datasetName: "lads_occ",
   baseURL: `${constants.baseS3URLPrefix}/20250116`,
-  orders: [4,14],
+  orders: [4,13],
   renderer: "CanvasSimpleValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()

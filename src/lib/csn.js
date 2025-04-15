@@ -1,7 +1,7 @@
 import Data from './data';
 import axios from "axios";
 import { range } from 'd3-array';
-import { baseAPIUrl, fetchGWASforPositions, fetchGenes } from './apiService';
+import { baseAPIUrl, fetchGWASforPositions, fetchPartialPathsForRegions } from './apiService';
 
 import { fullList as layers, countLayers, fullDataLayers, rehydrate, csnLayerList } from '../layers'
 
@@ -44,50 +44,6 @@ function fillNarration(csn) {
     }
   }
 }
-
-
-function createTopPathsForRegions(regions) {
-  console.log("Creating CSN paths for regions", regions)
-  return Promise.all(regions.map(r => {
-    let pathOrders = Array.from({ length: r.order - 4 + 1 }, (_, i) => i + 4);
-    let path = pathOrders.map((o) => {
-      const hilbert = new HilbertChromosome(o)
-      const pos = hilbertPosToOrder(r.i, {from: r.order, to: o})
-      const region = hilbert.fromRange(r.chromosome, pos, pos+1)[0]
-      return { order: o, region: region }
-    })
-    let csn = {'region': r, 'path': path}
-    
-    // retrieve full data and genes
-    let promises = [retrieveFullDataForCSN(csn), fetchGenes([r])]
-    if(r.order === 14) {
-      promises.push(fetchGWASforPositions([{chromosome: r.chromosome, index: r.i}]))
-    }
-
-    return Promise.all(promises)
-    .then((responses) => {
-      let fullDataResponse = responses[0]
-      let genesResponse = responses[1]
-
-      let gwasResponse = r.order === 14 ? responses[2] : null
-      const csnGWAS = gwasResponse ? gwasResponse[0]['trait_names'].map((trait, i) => {
-        return {trait: trait, score: gwasResponse[0]['scores'][i], layer: gwasResponse[0]['layer']}
-      }).sort((a,b) => b.score - a.score) : null
-      // add GWAS associations to the full data response
-      let csnOrder14Segment = fullDataResponse?.path.find(d => d.order === 14)
-      csnOrder14Segment ? csnOrder14Segment["GWAS"] = csnGWAS : null
-
-      fillNarration(fullDataResponse)  // not yet including GWAS in path creation
-      fullDataResponse['genes'] = genesResponse[0]
-      return fullDataResponse
-    })
-    .catch((error) => {
-      console.error(`Error creating CSN path: ${error}`);
-      return
-    })
-  }))
-}
-
 
 function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
   const fetchData = Data({debug: false}).fetchData
@@ -339,6 +295,87 @@ function rehydratePartialCSN(r, layers) {
   }
 }
 
+// Fetches both partial paths for regions and GWAS data concurrently.
+// Since partial paths are only available through order 13, order 14 segments are
+// created from GWAS data
+function fetchCombinedPathsAndGWAS(regions, membership = false, threshold = 0.1) {
+  const regionsForGWAS = regions.map((d) => ({
+    chromosome: d.chromosome, index: d.i, order: d.order
+  })).filter(d => d.order === 14)
+  return Promise.all([
+    fetchPartialPathsForRegions(regions, membership, threshold),
+    fetchGWASforPositions(regionsForGWAS)
+  ]).then(([pathsResponse, gwasResponse]) => {
+    // rehydrate paths
+    let rehydrated = pathsResponse.regions.map(d => rehydratePartialCSN(d, csnLayerList))
+
+    // Create an index map for quick GWAS lookup
+    const gwasMap = new Map();
+    gwasResponse.forEach(gwas => {
+      gwasMap.set(`${gwas.chromosome}:${gwas.index}`, gwas);
+    });
+
+    rehydrated.forEach(d => {
+      // add order 14 segments to rehydrated paths if necessary
+      if(d.order === 14) {
+        let segment = {
+          field: null, 
+          layer: null, 
+          order: 14, 
+          region: {
+            chromosome: d.chromosome, 
+            order: d.order, 
+            start: d.start, 
+            end: d.end, 
+            x: d.x, 
+            y: d.y, 
+            i: d.i
+          }
+        }
+        
+        const regionGWAS = gwasMap.get(`${d.chromosome}:${d.i}`);
+
+        // only GWAS can occupy order 14 segment position
+        if(regionGWAS) {
+          let regionGWASParsed = regionGWAS.trait_names.map((trait, i) => ({
+            trait,
+            score: regionGWAS.scores[i],
+            layer: regionGWAS.layer
+          })).sort((a, b) => b.score - a.score);
+
+          if (regionGWASParsed.length) {
+            let trait = regionGWASParsed[0]
+            let field = {
+              field: trait.trait,
+              index: trait.layer.fieldColor.domain().indexOf(trait.trait),
+              color: trait.layer.fieldColor(trait.trait),
+              value: trait.score
+            }
+            segment.field = field
+            segment.layer = trait.layer
+            segment.region.field = field
+
+            // add full set of GWAS associations to the segment
+            segment.GWAS = regionGWASParsed
+          }
+        }
+        d.path.push(segment)
+      }
+    })
+
+    return {
+      paths: pathsResponse,
+      gwas: gwasResponse,
+      rehydrated: rehydrated
+    };
+  }).catch(error => {
+    console.error("Error fetching combined data:", error);
+    return {
+      paths: null,
+      gwas: null
+    };
+  });
+}
 
 // function to generate narration results for a provided region with Genomic Narration tool. 
 function narrateRegion(selected, order) {
@@ -477,8 +514,8 @@ export {
   getDehydrated,
   rehydrateCSN,
   rehydratePartialCSN,
-  createTopPathsForRegions,
-  retrieveFullDataForCSN
+  retrieveFullDataForCSN,
+  fetchCombinedPathsAndGWAS
 }
 
 

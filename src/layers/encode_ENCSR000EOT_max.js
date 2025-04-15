@@ -7,7 +7,7 @@ export default {
   name: "K562 DNase-seq",
   datasetName: "encode_ENCSR000EOT_max",
   baseURL: `${constants.baseURLPrefix}/20230727`,
-  orders: [4,14],
+  orders: [4,13],
   renderer: "CanvasOpacityValue",
   fieldChoice: d => ({ field: "max", value: d.data?.max}),
   fieldColor: scaleOrdinal()

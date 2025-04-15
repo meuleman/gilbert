@@ -6,7 +6,7 @@ export default {
   name: "DHS Density",
   datasetName: "dhs_density",
   baseURL: `${constants.baseURLPrefix}/20230724`,
-  orders: [4,14],
+  orders: [4,13],
   renderer: "CanvasOpacityValue",
   fieldChoice: d => ({ 
     field: "count", 
