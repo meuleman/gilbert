@@ -32,6 +32,8 @@ import './Power.css';
 import { throttle } from 'lodash';
 import { X } from 'lucide-react'
 
+const dataDebounce = debouncer();
+
 // ------------------
 // Helper Rendering Functions
 // ------------------
@@ -212,10 +214,10 @@ function PowerModal({
   }, [canvasRef, width, height]);
 
   // Data fetching
-  const dataDebounce = debouncer();
   useEffect(() => {
     if (!csn || !csn.path || !csn.path.length) return;
     const fetchData = async () => {
+      setLoading(true);
       const dataClient = new Data();
       let lastRegion = null;
       const orderPoints = range(4, 15).map(o => {
@@ -273,7 +275,6 @@ function PowerModal({
       }));
       return { responses, orderPoints };
     };
-    setLoading(true);
     dataDebounce(
       fetchData, 
       ({ responses, orderPoints }) => {
@@ -288,7 +289,7 @@ function PowerModal({
         }));
         setLoading(false);
       },
-      150
+      100
     );
   }, [csn]);
 
