@@ -145,7 +145,6 @@ export default function ScoreBars({
     const relativeY = e.clientY - containerRect.top - rectTop;
     const or = o + relativeY / rw;
     onHover(or);
-    setOr(or);
   }, [csn, path, yScale, rw, offsetX, onHover, tipOrientation, width]);
 
   const handleMoreInfoHover = useCallback((e, o) => {

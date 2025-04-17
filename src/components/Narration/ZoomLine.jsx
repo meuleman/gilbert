@@ -53,8 +53,11 @@ export default function ZoomLine({
   const containerRef = useRef(null);
   
   const [or, setOr] = useState(order);
-  const [containerHeight, setContainerHeight] = useState(0);
+  useEffect(() => {
+    setOr(order);
+  }, [order]);
 
+  const [containerHeight, setContainerHeight] = useState(0);
   
   // adds event listeners to track shift key state
   const [isShiftPressed, setIsShiftPressed] = useState(false);
@@ -81,9 +84,7 @@ export default function ZoomLine({
     };
   }, []);
 
-  useEffect(() => {
-    setOr(order);
-  }, [order]);
+  
   
   // Measure container height when it's mounted or when height prop changes
   useEffect(() => {
@@ -144,7 +145,6 @@ export default function ZoomLine({
     const relativeY = e.clientY - containerRect.top - rectTop;
     const or = o + relativeY / rw;
     onHover(or);
-    setOr(or);
   }, [csn, path, yScale, rw, offsetX, onHover, tipOrientation, width]);
 
   const handleMoreInfoHover = useCallback((e, o) => {
