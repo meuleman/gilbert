@@ -493,6 +493,8 @@ const SelectedStatesStore = create((set, get) => {
     setAbstracts: (abstracts) => set({ abstracts: abstracts }),
     prompt: defaultPrompt,
     setPrompt: (prompt) => set({ prompt: prompt }),
+    powerDataLoaded: false,
+    setPowerDataLoaded: (loaded) => set({ powerDataLoaded: loaded }),
     abstractsIncluded: true,
     setAbstractsIncluded: (included) => set({ abstractsIncluded: included }),
     generateQuery,

@@ -15,6 +15,7 @@ import { defaultContent } from './Tooltips/Content';
 import { getGencodesInView } from '../lib/genes';
 
 import { useZoom } from '../contexts/zoomContext';
+import Loading from './Loading';
 
 const zoomDebounce = debouncer()
 
@@ -71,6 +72,7 @@ const LinearGenome = ({
   height = 100,
   mapWidth = 640,
   mapHeight = 640,
+  loading = false,
   onHover = () => {},
   onClick = () => {}
 } = {}) => {
@@ -665,6 +667,12 @@ const LinearGenome = ({
 
   return (
     <div className="linear-genome">
+      {loading && (
+        <div className="absolute bg-white bg-opacity-40 inset-0 flex items-center justify-center pointer-events-none transform scale-[1.75]"
+        style={{paddingTop: "10px"}}>
+          <Loading />
+        </div>
+      )}
       <svg className="linear-genome-svg" width={width} height={height} 
         ref={svgRef}
         onMouseMove={handleMouseMove}

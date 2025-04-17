@@ -24,7 +24,8 @@ function ZoomInspector({
   const { 
     selectedNarration, fullNarration, loadingFullNarration,
     narrationPreview, slicedNarrationPreview, collectFullData, 
-    setFullNarration, setLoadingFullNarration
+    setFullNarration, setLoadingFullNarration,
+    powerDataLoaded, setPowerDataLoaded
   } = SelectedStatesStore();
 
   const [csn, setCsn] = useState(selectedNarration);
@@ -35,11 +36,15 @@ function ZoomInspector({
   // When narration changes, reset the enriched narration data while new data loads.
   useEffect(() => {
     setFullNarration(selectedNarration);
-    setLoadingFullNarration(true);
-    setTimeout(() => {
-      collectFullData(selectedNarration);
-    }, 3000)
   }, [selectedNarration]);
+
+  useEffect(() => {
+    if(powerDataLoaded) {
+      setLoadingFullNarration(true);
+      collectFullData(selectedNarration);
+      setPowerDataLoaded(false); // reset this so we dont eagerly collect full data next selected narration change
+    }
+  }, [selectedNarration, powerDataLoaded, collectFullData])
 
   const tipOrientation = "left";
   const sidebarWidth = 30;

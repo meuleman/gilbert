@@ -119,7 +119,11 @@ function PowerModal({
   const tooltipRef = useRef(null);
 
   const { handleSelectedZoom: onOrder, selectedZoomOrder: userOrder } = useZoom();
-  const { narrationPreview, loadingFullNarration, selectedNarration, fullNarration, selected, setCurrentPreferred: setCurrentPreferredGlobal } = SelectedStatesStore();
+  const { 
+    narrationPreview, selectedNarration, selected, 
+    setCurrentPreferred: setCurrentPreferredGlobal,
+    setPowerDataLoaded
+  } = SelectedStatesStore();
   
   const [currentPreferred, setCurrentPreferred] = useState(null);
   useEffect(() => {
@@ -312,6 +316,7 @@ function PowerModal({
     // First fetch data for the current order
     const currentOrder = csn.order //Math.floor(percentScale(percent));
     setLoading(true);
+    setPowerDataLoaded(false);
     
     // Prepare the order point for the current order
     const currentOrderPoint = prepareOrderPoint(currentOrder);
@@ -330,7 +335,7 @@ function PowerModal({
       });
       
       setLoading(false);
-
+      setPowerDataLoaded(true);
       kickoff = Date.now()
       console.log("kick off fetchAllData")
         // Now lazily fetch the rest of the data
@@ -554,7 +559,7 @@ function PowerModal({
           </div>
           {loading && (
             //  bg-white bg-opacity-60
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none transform scale-[1.75]">
+            <div className="absolute bg-white bg-opacity-40 inset-0 flex items-center justify-center pointer-events-none transform scale-[1.75]">
               <Loading />
             </div>
           )}
@@ -579,6 +584,7 @@ function PowerModal({
                 height={sheight}
                 mapWidth={width}
                 mapHeight={height}
+                loading={loading}
                 hover={null}
               />
             </div>
