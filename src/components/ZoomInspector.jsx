@@ -35,8 +35,10 @@ function ZoomInspector({
   // When narration changes, reset the enriched narration data while new data loads.
   useEffect(() => {
     setFullNarration(selectedNarration);
-    collectFullData(selectedNarration);
     setLoadingFullNarration(true);
+    setTimeout(() => {
+      collectFullData(selectedNarration);
+    }, 3000)
   }, [selectedNarration]);
 
   const tipOrientation = "left";
@@ -54,6 +56,7 @@ function ZoomInspector({
           highlight={true}
           selected={true}
           text={true}
+          loadingFullNarration={loadingFullNarration}
           width={34}
           height="100%"
           offsetX={0}
@@ -72,6 +75,7 @@ function ZoomInspector({
           highlight={true}
           selected={true}
           text={true}
+          loadingFullNarration={loadingFullNarration}
           width={scoreBarWidth}
           height="100%"
           offsetX={sidebarWidth}

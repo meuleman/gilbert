@@ -183,6 +183,7 @@ const SelectedStatesStore = create((set, get) => {
 
     let selectedNarration = get().selectedNarration;
 
+    set({ loadingFullNarration: true });
     // Prepare data fetch promises; if region order is 14 then also fetch GWAS data.
     const promises = [
       retrieveFullDataForCSN(selectedNarration),

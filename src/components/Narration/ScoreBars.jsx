@@ -15,6 +15,7 @@ ScoreBars.propTypes = {
   order: PropTypes.number.isRequired,
   highlight: PropTypes.bool,
   selected: PropTypes.bool,
+  loadingFullNarration: PropTypes.bool,
   width: PropTypes.number,
   height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   tipOrientation: PropTypes.string,
@@ -27,6 +28,7 @@ export default function ScoreBars({
   order,
   highlight=false,
   selected=false,
+  loadingFullNarration=false,
   showOrderLine=true,
   highlightOrders=[],
   text=true,
@@ -157,7 +159,14 @@ export default function ScoreBars({
       const tooltipY = containerRect.top + my + 1.5;
       tooltipRef.current &&
         tooltipRef.current.show(
-          { ...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score, GWAS: p.GWAS },
+          { ...p.region, 
+            fullData: p.fullData, 
+            counts: p.counts, 
+            layer: p.layer, 
+            score: csn.score, 
+            GWAS: p.GWAS,
+            loadingFullNarration: loadingFullNarration
+          },
           p.layer,
           tooltipX,
           tooltipY
@@ -165,7 +174,7 @@ export default function ScoreBars({
     } else {
       tooltipRef.current && tooltipRef.current.hide();
     }
-  }, [csn, path, yScale, rw, offsetX, onHover, tipOrientation, width]);
+  }, [csn, path, yScale, rw, offsetX, onHover, tipOrientation, width, loadingFullNarration]);
 
   const handleLeave = useCallback(() => {
     tooltipRef.current.hide()

@@ -112,6 +112,7 @@ function tooltipContent(region, layer, orientation) {
           <span>-</span>
         </div>
       )}
+      {region.loadingFullNarration && <span>Loading secondary factors...</span>}
       {otherFactors.length > 0 && (
         <>
           <span style={separatorStyle}>Secondary factors</span>

@@ -130,9 +130,10 @@ function PowerModal({
   const [isPreview, setIsPreview] = useState(false);
   useEffect(() => setIsPreview(!!narrationPreview), [narrationPreview]);
   const [csn, setCsn] = useState(selectedNarration);
+
   useEffect(() => {
-    setCsn(narrationPreview ? narrationPreview : loadingFullNarration ? selectedNarration : fullNarration);
-  }, [narrationPreview, loadingFullNarration, selectedNarration, fullNarration]);
+    setCsn(narrationPreview ? narrationPreview : selectedNarration);
+  }, [narrationPreview, selectedNarration]);
 
   const [loading, setLoading] = useState(false);
   const percentScale = useMemo(() => scaleLinear().domain([1, 100]).range([4, 14.999]), []);
@@ -216,81 +217,154 @@ function PowerModal({
   // Data fetching
   useEffect(() => {
     if (!csn || !csn.path || !csn.path.length) return;
-    const fetchData = async () => {
-      setLoading(true);
-      const dataClient = new Data();
+    
+    // Function to prepare an orderPoint for a specific order
+    const prepareOrderPoint = (o) => {
+      let p = csn.path.find(d => d.order === o);
+      if(o === 14 && csn.variants) {
+        const v = variantChooser(csn.variants || []);
+        p = { region: v, layer: v.layer, field: v.topField, order: 14 };
+      }
+      
+      const hilbert = new HilbertChromosome(o);
+      const step = hilbert.step;
+      let region;
       let lastRegion = null;
-      const orderPoints = range(4, 15).map(o => {
-        let p = csn.path.find(d => d.order === o);
-        if(o === 14 && csn.variants) {
-          const v = variantChooser(csn.variants || []);
-          p = { region: v, layer: v.layer, field: v.topField, order: 14 };
-        }
-        const hilbert = new HilbertChromosome(o);
-        const step = hilbert.step;
-        let region;
-        if(p) {
-          region = p.region;
-          lastRegion = region;
+      
+      if(p) {
+        region = p.region;
+        lastRegion = region;
+      } else {
+        // Find a region based on nearby regions in the path
+        let nearestHigherOrder = csn.path.find(d => d.order > o);
+        let nearestLowerOrder = [...csn.path].reverse().find(d => d.order < o);
+        
+        if (nearestHigherOrder) {
+          const orderDiff = nearestHigherOrder.order - o;
+          const i = parseInt(nearestHigherOrder.region.i / (4 ** orderDiff));
+          region = hilbert.fromRange(nearestHigherOrder.region.chromosome, i, i+1)[0];
+        } else if (nearestLowerOrder) {
+          const i = nearestLowerOrder.region.i * 4 ** (o - nearestLowerOrder.order);
+          region = hilbert.fromRange(nearestLowerOrder.region.chromosome, i, i+1)[0];
         } else {
-          let start, end, chromosome;
-          if(!lastRegion) {
-            const np = csn.path.find(d => d.order > o);
-            const orderDiff = np.order - o;
-            const i = parseInt(np.region.i / (4 ** orderDiff));
-            region = hilbert.fromRange(np.region.chromosome, i, i+1)[0];
-          } else {
-            const i = lastRegion.i * 4;
-            region = hilbert.fromRange(lastRegion.chromosome, i, i+1)[0];
-          }
-          if(o < 14) {
-            let np = csn.path.find(d => d.order > o);
-            if(o === 13 && csn.variants) {
-              const v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0];
-              np = { region: v };
-            }
-            if(np && np.region) {
-              // Optionally update start/end if needed
-            }
-          }
-          const regions = hilbert.fromRegion(lastRegion ? lastRegion.chromosome : csn.path[0].region.chromosome, region.start, region.end);
-          region = regions[0];
-          lastRegion = region;
+          // Fallback to first region in path
+          const firstRegion = csn.path[0].region;
+          region = hilbert.fromRange(firstRegion.chromosome, firstRegion.i, firstRegion.i+1)[0];
         }
-        const bbox = {
-          x: region.x - step * radius,
-          y: region.y - step * radius,
-          width: step * radius * 2,
-          height: step * radius * 2
-        };
-        const points = hilbert.fromBbox(bbox);
-        return { order: o, layer: o === 14 ? order_14 : p?.layer, region, p, points };
-      });
-      const responses = await Promise.all(orderPoints.map(p => {
-        if(p.layer?.layers){ 
-          return Promise.all(p.layer.layers.map(l => dataClient.fetchData(l, p.order, p.points)));
-        } else {
-          return dataClient.fetchData(p.layer, p.order, p.points);
+        
+        // Special handling for order 13 with variants
+        if(o === 13 && csn.variants) {
+          const v = csn.variants.sort((a,b) => b.topField.value - a.topField.value)[0];
+          // Use variant information if available
         }
-      }));
-      return { responses, orderPoints };
+      }
+      
+      const bbox = {
+        x: region.x - step * radius,
+        y: region.y - step * radius,
+        width: step * radius * 2,
+        height: step * radius * 2
+      };
+      const points = hilbert.fromBbox(bbox);
+      
+      return { 
+        order: o, 
+        layer: o === 14 ? order_14 : p?.layer, 
+        region, 
+        p, 
+        points 
+      };
     };
-    dataDebounce(
-      fetchData, 
-      ({ responses, orderPoints }) => {
-        setData(responses.map((d, i) => {
-          const ord = orderPoints[i].order;
-          const layer = orderPoints[i].layer;
-          const region = orderPoints[i].region;
-          if(ord === 14) {
-            d = layer.combiner(d);
+    
+    // Function to fetch data for a specific order point
+    const fetchDataForOrderPoint = async (orderPoint) => {
+      const dataClient = new Data();
+      // console.log("fetchDataForOrderPoint", orderPoint)
+      if(orderPoint.layer?.layers) { 
+        return Promise.all(orderPoint.layer.layers.map(l => 
+          dataClient.fetchData(l, orderPoint.order, orderPoint.points)
+        ));
+      } else {
+        return dataClient.fetchData(orderPoint.layer, orderPoint.order, orderPoint.points);
+      }
+    };
+    
+    // Function to process fetched data
+    const processOrderData = (orderPoint, response) => {
+      const ord = orderPoint.order;
+      const layer = orderPoint.layer;
+      let processedData = response;
+      
+      if(ord === 14 && layer) {
+        processedData = layer.combiner(response);
+      }
+      
+      return { 
+        order: ord, 
+        layer, 
+        points: orderPoint.points, 
+        region: orderPoint.region, 
+        p: orderPoint.p, 
+        data: processedData 
+      };
+    };
+    
+    // First fetch data for the current order
+    const currentOrder = csn.order //Math.floor(percentScale(percent));
+    setLoading(true);
+    
+    // Prepare the order point for the current order
+    const currentOrderPoint = prepareOrderPoint(currentOrder);
+    
+    let kickoff = Date.now()
+    console.log("kick off target fetchData", currentOrderPoint)
+    // Fetch data for the current order
+    fetchDataForOrderPoint(currentOrderPoint).then(response => {
+      console.log("finished target fetchData", currentOrderPoint, Date.now() - kickoff)
+      // Process the current order data
+      const processedData = processOrderData(currentOrderPoint, response);
+      // Update the data state for just this order
+      setData(prevData => {
+        if (!prevData) return [processedData];
+        return prevData.map(d => d.order === currentOrder ? processedData : d);
+      });
+      
+      setLoading(false);
+
+      kickoff = Date.now()
+      console.log("kick off fetchAllData")
+        // Now lazily fetch the rest of the data
+      const fetchAllData = async () => {
+        // Generate order points for all orders
+        const allOrderPoints = range(4, 15)
+          .filter(o => o !== currentOrder) // Skip the already fetched order
+          .map(prepareOrderPoint);
+        
+        // Fetch data for each order point
+        for (const orderPoint of allOrderPoints) {
+          try {
+            const response = await fetchDataForOrderPoint(orderPoint);
+            const processedData = processOrderData(orderPoint, response);
+            
+            // Update the data state for this order
+            setData(prevData => {
+              if (!prevData) return [processedData];
+              return prevData.map(d => d.order === orderPoint.order ? processedData : d);
+            });
+          } catch (error) {
+            console.error(`Error fetching data for order ${orderPoint.order}:`, error);
           }
-          return { order: ord, layer, points: orderPoints[i].points, region, p: orderPoints[i].p, data: d };
-        }));
-        setLoading(false);
-      },
-      100
-    );
+        }
+        console.log("finished fetchAllData", Date.now() - kickoff)
+      };
+      // Start fetching all data in the background
+      fetchAllData();
+    }).catch(error => {
+      console.error("Error fetching initial data:", error);
+      setLoading(false);
+    });
+    
+    
   }, [csn]);
 
   const throttledWheel = useCallback(

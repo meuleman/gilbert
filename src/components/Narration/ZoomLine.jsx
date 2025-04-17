@@ -10,13 +10,6 @@ import { tooltipContent } from './FactorTooltip'
 
 import PropTypes from 'prop-types';
 
-function scoreTooltipContent(score, layer, orientation) {
-  return (
-    <div className="flex flex-col">
-      <span>Score: {showFloat(score)}</span>
-    </div>
-  )
-}
 
 ZoomLine.propTypes = {
   csn: PropTypes.object,
@@ -24,6 +17,7 @@ ZoomLine.propTypes = {
   maxPathScore: PropTypes.number,
   highlight: PropTypes.bool,
   selected: PropTypes.bool,
+  loadingFullNarration: PropTypes.bool,
   width: PropTypes.number,
   height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   tipOrientation: PropTypes.string,
@@ -39,6 +33,7 @@ export default function ZoomLine({
   maxPathScore,
   highlight=false,
   selected=false,
+  loadingFullNarration=false,
   showOrderLine=true,
   highlightOrders=[],
   text=true,
@@ -59,6 +54,7 @@ export default function ZoomLine({
   
   const [or, setOr] = useState(order);
   const [containerHeight, setContainerHeight] = useState(0);
+
   
   // adds event listeners to track shift key state
   const [isShiftPressed, setIsShiftPressed] = useState(false);
@@ -162,7 +158,14 @@ export default function ZoomLine({
       const tooltipY = containerRect.top + my + 1.5;
       tooltipRef.current &&
         tooltipRef.current.show(
-          { ...p.region, fullData: p.fullData, counts: p.counts, layer: p.layer, score: csn.score, GWAS: p.GWAS },
+          { ...p.region, 
+            fullData: p.fullData, 
+            counts: p.counts, 
+            layer: p.layer, 
+            score: csn.score, 
+            GWAS: p.GWAS,
+            loadingFullNarration: loadingFullNarration
+          },
           p.layer,
           tooltipX,
           tooltipY
@@ -170,19 +173,19 @@ export default function ZoomLine({
     } else {
       tooltipRef.current && tooltipRef.current.hide();
     }
-  }, [csn, path, yScale, rw, offsetX, onHover, tipOrientation, width]);
+  }, [csn, path, yScale, rw, offsetX, onHover, tipOrientation, width, loadingFullNarration]);
 
   const handleLeave = useCallback(() => {
     tooltipRef.current.hide();
   }, []);
 
-  const handleScoreHover = useCallback((e) => {
-    const containerRect = e.currentTarget.getBoundingClientRect();
-    const xoff = tipOrientation === "left" ? -5 : width + 5;
-    const tooltipX = containerRect.left + xoff;
-    const tooltipY = containerRect.top + scoreHeight - (scoreHeight * (csn.score / maxPathScore)) / 2;
-    // scoreTooltipRef.current && scoreTooltipRef.current.show(csn.score, null, tooltipX, tooltipY);
-  }, [csn, maxPathScore, scoreHeight, tipOrientation, width]);
+  // const handleScoreHover = useCallback((e) => {
+  //   const containerRect = e.currentTarget.getBoundingClientRect();
+  //   const xoff = tipOrientation === "left" ? -5 : width + 5;
+  //   const tooltipX = containerRect.left + xoff;
+  //   const tooltipY = containerRect.top + scoreHeight - (scoreHeight * (csn.score / maxPathScore)) / 2;
+  //   // scoreTooltipRef.current && scoreTooltipRef.current.show(csn.score, null, tooltipX, tooltipY);
+  // }, [csn, maxPathScore, scoreHeight, tipOrientation, width]);
 
   // const handleScoreLeave = useCallback(() => {
   //   scoreTooltipRef.current.hide();
@@ -203,8 +206,8 @@ export default function ZoomLine({
               width,
               height: scoreHeight
             }}
-            onMouseMove={handleScoreHover}
-            onMouseLeave={handleScoreLeave}
+            // onMouseMove={handleScoreHover}
+            // onMouseLeave={handleScoreLeave}
           />
           <div
             className="absolute left-0 bg-gray-300 opacity-50"
@@ -213,8 +216,8 @@ export default function ZoomLine({
               width,
               height: scoreHeight * (csn.score / maxPathScore)
             }}
-            onMouseMove={handleScoreHover}
-            onMouseLeave={handleScoreLeave}
+            // onMouseMove={handleScoreHover}
+            // onMouseLeave={handleScoreLeave}
           />
         </>
       )}
@@ -306,7 +309,12 @@ export default function ZoomLine({
         </div>
       )}
       
-      <Tooltip ref={tooltipRef} orientation={tipOrientation} contentFn={tooltipContent} enforceBounds={false} />
+      <Tooltip 
+        ref={tooltipRef} 
+        orientation={tipOrientation} 
+        contentFn={tooltipContent} 
+        enforceBounds={false} 
+      />
       {/* <Tooltip ref={scoreTooltipRef} orientation={tipOrientation} contentFn={scoreTooltipContent} enforceBounds={false} /> */}
     </div>
   );
