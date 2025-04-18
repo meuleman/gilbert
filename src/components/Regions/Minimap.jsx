@@ -58,18 +58,14 @@ const Minimap = ({
   }, [selected])
 
   const handleHover = useCallback((region) => {
-    let hr = {...region}
-    hr.inBbox = false
-    if(hr.x > bbox.x && hr.x < bbox.x + bbox.width && hr.y > bbox.y && hr.y < bbox.y + bbox.height) {
-      hr.inBbox = true
-    }
-    if(hr) setHover(hr)
+    let overlappingRegion = overlaps(region, filteredActiveRegionsRef.current)[0];
+    if (overlappingRegion) setHover(region)
     else setHover(null)
   }, [setHover])
 
   const drawEffectiveFilteredRegions = useCanvasFilteredRegions(filteredRegionsByCurrentOrder, { color: "black", opacity: 1, strokeScale: 1, mask: false, dotFill: true })
   const drawAnnotationRegionSelected = useCanvasAnnotationRegions(minimapResolutionSelected, "selected", {
-    stroke: "red",
+    stroke: "black",
     mask: false,
     radiusMultiplier: 1.25,
     opacity: 1,
@@ -77,7 +73,7 @@ const Minimap = ({
     showGenes: false
   })
   const drawAnnotationRegionHover = useCanvasAnnotationRegions(hover, "selected", {
-    stroke: hover?.inBbox ? "black" : "grey",
+    stroke: "red",
     radiusMultiplier: 1.25,
     mask: false,
     strokeWidthMultiplier: 0.5,
