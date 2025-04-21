@@ -173,13 +173,14 @@ const HilbertGenome = ({
     setCenter = zoomContext.setCenter,
     easeZoom = zoomContext.easeZoom,
     setBbox = zoomContext.setBbox,
+    setScales = zoomContext.setScales,
   } = zoomMethods || {};
-
 
   const scales = useMemo(() => ({ xScale, yScale, sizeScale, orderZoomScale, width, height }), [xScale, yScale, sizeScale, orderZoomScale, width, height])
   useEffect(() => {
     onScales(scales)
-  }, [scales, onScales])
+    setScales(scales)
+  }, [scales, onScales, setScales])
 
   // the layer is controlled outside of this component
   const layer = useMemo(() => {

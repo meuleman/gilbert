@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useReducer, useEffect, useRef, useMemo, useState, useCallback } from 'react';
 
 // import  debounce from 'lodash.debounce';
 import { scaleLinear } from 'd3-scale';
@@ -120,9 +120,15 @@ const MinimapGenome = ({
   onHover = () => { },
   onClick = () => { },
   zoomMethods = {},
+  onBboxDragStart = () => {},
+  onBboxDrag = () => {},
+  onBboxDragEnd = () => {},
+  getBbox = () => null,
   debug = false,
 }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [isDraggingBbox, setIsDraggingBbox] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const canvasRef = useRef();
   const hoverCanvasRef = useRef();
@@ -348,18 +354,85 @@ const MinimapGenome = ({
     setTransform({x: 0, y: 0, k: 1});
   }, []);
 
+  // for dragging Bbox
+  const handleMouseDown = useCallback((event) => {
+    if (!qt) return;
+    const ex = event.nativeEvent?.offsetX;
+    const ey = event.nativeEvent?.offsetY;
+    if (!ex || !ey) return;
+    
+    // Get untransformed coordinates
+    const ut = untransform(ex, ey, transform);
+    const x = xScale.invert(ut.x);
+    const y = yScale.invert(ut.y);
+    
+    // Get current bbox
+    const bbox = getBbox();
+    
+    // Check if click is inside bbox
+    if (bbox && 
+        x >= bbox.x && x <= bbox.x + bbox.width && 
+        y >= bbox.y && y <= bbox.y + bbox.height) {
+      setIsDraggingBbox(true);
+      setDragOffset({ 
+        x: x - bbox.x, 
+        y: y - bbox.y 
+      });
+      onBboxDragStart({ x, y });
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, [qt, transform, xScale, yScale, getBbox, onBboxDragStart]);
+  
   const handleMouseMove = useCallback((event) => {
-    if (!qt) return
-    let ex = event.nativeEvent.offsetX
-    let ey = event.nativeEvent.offsetY
+    const ex = event.nativeEvent?.offsetX;
+    const ey = event.nativeEvent?.offsetY;
+    if (!ex || !ey) return;
+    
+    if (isDraggingBbox) {
+      // Get untransformed coordinates
+      const ut = untransform(ex, ey, transform);
+      const x = xScale.invert(ut.x);
+      const y = yScale.invert(ut.y);
+      
+      // Calculate new center position accounting for the offset
+      const bbox = getBbox();
+      const newCenterX = x - dragOffset.x + bbox.width/2;
+      const newCenterY = y - dragOffset.y + bbox.height/2;
 
-    let ut = untransform(ex, ey, transform)
-    let step = Math.pow(0.5, order)
-    let hover = qt.find(xScale.invert(ut.x), yScale.invert(ut.y), step * 3)
+      const relativeX = newCenterX / (xMax - xMin)
+      const relativeY = newCenterY / (yMax - yMin)
+      
+      onBboxDrag({ x: relativeX, y: relativeY });
+      
+      event.preventDefault();
+      return;
+    }
+    
+    if (!qt) return;
+    const ut = untransform(ex, ey, transform);
+    const step = Math.pow(0.5, order);
+    const hover = qt.find(xScale.invert(ut.x), yScale.invert(ut.y), step * 3);
+    onHover(hover);
+    
+  }, [isDraggingBbox, dragOffset, transform, xScale, yScale, qt, order, onHover, onBboxDrag, getBbox]);
+  
+  const handleMouseUp = useCallback(() => {
+    if (isDraggingBbox) {
+      setIsDraggingBbox(false);
+      onBboxDragEnd();
+    }
+  }, [isDraggingBbox, onBboxDragEnd]);
 
-    onHover(hover)
-
-  }, [untransform, transform, order, qt, xScale, yScale, onHover])
+  useEffect(() => {
+    if (isDraggingBbox) {
+      // keep it global in case mouse up occurrs outside of the component
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDraggingBbox, handleMouseUp]);
 
   // Render the component
   // eslint-disable-next-line no-unreachable
@@ -370,7 +443,8 @@ const MinimapGenome = ({
         width: width + "px",
         height: height + "px"
       }}
-      onClick={handleClick}
+      onClick={!isDraggingBbox ? handleClick : null}
+      onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
     >
 

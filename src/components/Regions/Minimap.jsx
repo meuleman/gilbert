@@ -21,7 +21,7 @@ const Minimap = ({
   height,
 }) => {
 
-  const bbox = useZoom().bbox
+  const { bbox, transform: mainMapTransform, setTransform: setMainMapTransform, scales: mainMapScales } = useZoom()
 
   const { filteredActiveRegions, } = useContext(RegionsContext)
   const { selected, setSelected, setRegion, clearSelected } = SelectedStatesStore()
@@ -32,7 +32,7 @@ const Minimap = ({
   const [filteredRegionsByCurrentOrder, setFilteredRegionsByCurrentOrder] = useState(new Map())
   const [minimapResolutionSelected, setMinimapResolutionSelected] = useState(null)
   const [allRegionsByCurrentOrder, setAllRegionsByCurrentOrder] = useState(new Map())
-  const [transform, setTransform] = useState(zoomIdentity);
+  const [localTransform, setLocalTransform] = useState(zoomIdentity);
   const [panning, setPanning] = useState(false);
 
   // group the top regions found through filtering by the current order
@@ -58,7 +58,7 @@ const Minimap = ({
   }, [selected])
 
   const handleHover = useCallback((region) => {
-    let overlappingRegion = overlaps(region, filteredActiveRegionsRef.current)[0];
+    let overlappingRegion = region ? overlaps(region, filteredActiveRegionsRef.current)[0] : null;
     if (overlappingRegion) setHover(region)
     else setHover(null)
   }, [setHover])
@@ -104,7 +104,7 @@ const Minimap = ({
   ]);
 
   const handleTransform = useCallback((data) => {
-    setTransform({x: 0, y: 0, k: 1})
+    // setLocalTransform({x: 0, y: 0, k: 1})
   }, []);
 
   // use ref to keep track of the filtered active and selected regions for the click handler
@@ -136,6 +136,32 @@ const Minimap = ({
     });
   }, [setSelected, setRegion, clearSelected, filteredActiveRegions])
 
+  const getBbox = useCallback(() => bbox, [bbox]);
+
+  // Handle dragging of the bounding box
+  const lastDragPosRef = useRef({x: null, y: null});
+  const handleBboxDrag = useCallback(({x, y}, renderThreshold = 0.01) => {
+    if (
+      Math.abs(lastDragPosRef.current.x - x) > renderThreshold ||  
+      Math.abs(lastDragPosRef.current.y - y) > renderThreshold
+    ) {
+
+      lastDragPosRef.current = {x, y};
+
+      let xDomain = mainMapScales.xScale.domain()
+      let yDomain = mainMapScales.yScale.domain()
+
+      let newX = (mainMapScales.width/2) - mainMapScales.xScale(x * (xDomain[1] - xDomain[0])) * mainMapTransform.k
+      let newY = (mainMapScales.height/2) - mainMapScales.yScale(y * (yDomain[1] - yDomain[0])) * mainMapTransform.k
+
+      let newTransform = zoomIdentity.translate(newX, newY).scale(mainMapTransform.k)
+
+      requestAnimationFrame(() => {
+        setMainMapTransform(newTransform);
+      });
+    }
+  }, [mainMapTransform.k, mainMapScales.xScale, mainMapScales.yScale, mainMapScales.width, mainMapScales.height, setMainMapTransform]);
+
   return (
     <div className="absolute x0 y0 cursor-pointer">
       {(width > 0 && height > 0) ? <MinimapGenome
@@ -150,7 +176,7 @@ const Minimap = ({
           SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5 }),
         ]}
         zoomMethods={{
-          transform,
+          transform: localTransform,
           order: 4,
           zooming: false,
           orderZoomScale: { invert: (k) => k },
@@ -160,10 +186,12 @@ const Minimap = ({
           setPanning,
           center: () => {},
           setCenter: () => {},
-          easeZoom: (from, to) => { setTransform(from); },
+          easeZoom: (from, to) => { setLocalTransform(from); },
         }}
         onHover={handleHover}
         onClick={handleClick}
+        getBbox={getBbox}
+        onBboxDrag={handleBboxDrag}
       /> : null}
     </div>
   )

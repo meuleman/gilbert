@@ -9,8 +9,8 @@ const useCanvasBbox = (bbox, options = {}) => {
   const opacity = options.opacity || 1
   const strokeScale = options.strokeScale || 1
 
-  const drawBbox = useCallback((canvasRef, scales, state) => {
-    let {xScale ,yScale ,sizeScale} = scales
+  const drawBbox = useCallback((canvasRef, scales) => {
+    let { xScale, yScale, sizeScale } = scales
 
     const ctx = canvasRef.current.getContext('2d');
 
@@ -35,7 +35,6 @@ const useCanvasBbox = (bbox, options = {}) => {
     // create punchout
     temp.fillRect(tX, tY, tWidth, tHeight);
    
-  
     // Reset composite operation to default
     temp.globalCompositeOperation = 'source-over';
     
