@@ -128,6 +128,7 @@ const MinimapGenome = ({
 }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [isDraggingBbox, setIsDraggingBbox] = useState(false);
+  const [selectionDisabled, setSelectionDisabled] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const canvasRef = useRef();
@@ -390,6 +391,9 @@ const MinimapGenome = ({
     if (!ex || !ey) return;
     
     if (isDraggingBbox) {
+      // Disable selection while dragging
+      !selectionDisabled && setSelectionDisabled(true);
+
       // Get untransformed coordinates
       const ut = untransform(ex, ey, transform);
       const x = xScale.invert(ut.x);
@@ -421,6 +425,11 @@ const MinimapGenome = ({
     if (isDraggingBbox) {
       setIsDraggingBbox(false);
       onBboxDragEnd();
+
+      // re-enable selection after a short delay
+      setTimeout(() => {
+        setSelectionDisabled(false);
+      }, 300);
     }
   }, [isDraggingBbox, onBboxDragEnd]);
 
@@ -443,7 +452,7 @@ const MinimapGenome = ({
         width: width + "px",
         height: height + "px"
       }}
-      onClick={!isDraggingBbox ? handleClick : null}
+      onClick={!isDraggingBbox && !selectionDisabled ? handleClick : null}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
     >
