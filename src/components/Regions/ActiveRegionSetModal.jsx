@@ -76,6 +76,7 @@ const ActiveRegionSetModal = () => {
   } = SelectedStatesStore()
 
   const containerRef = useRef(null)
+  const selectedRegionRef = useRef(null);
   const [width, height] = useContainerSize(containerRef, [activeGenesetEnrichment]);
   const minimapContainerRef = useRef(null)
   const [regionSetView, setRegionSetView] = useState("minimap");
@@ -135,31 +136,52 @@ const ActiveRegionSetModal = () => {
   if (!showActiveRegionSet) {
     return null
   }
+
+  const selectedInList = useMemo(() => {
+    if(!selected || !regions) return null
+    let inList = !!regions.find(d => (d.chromosome === selected.chromosome && d.i === selected.i && d.order === selected.order))
+    // check for subregion selection
+    if(!inList) {
+      inList = !!regions.find(d => (d.subregion?.chromosome === selected.chromosome && d.subregion?.i === selected.i && d.subregion?.order === selected.order))
+    }
+    return inList
+  }, [selected, regions])
   
   const listRegions = useMemo(() => {
     if (!regions?.length) return [];
-    let newList = regions;
-    let selectedInList = selected ? !!regions.find(d => (d.chromosome === selected.chromosome && d.i === selected.i && d.order === selected.order)) : false
+    let newList = regions.map(d => ({...d, selected: false}))
     if(selectedInList) {
-      // reorder list to have selected region on top
-      newList = [
-        {...selected, selected: true}, 
-        ...regions.filter(d => !(d.chromosome === selected.chromosome && d.i === selected.i && d.order === selected.order))
-      ]
+      let sil = newList.find(d => (d.chromosome === selected.chromosome && d.i === selected.i && d.order === selected.order))
+      // check for subregion selection
+      if(!sil) {
+        sil = newList.find(d => (d.subregion?.chromosome === selected.chromosome && d.subregion?.i === selected.i && d.subregion?.order === selected.order))
+      }
+      sil.selected = true
     } 
     return newList
-  }, [regions, selected]);
+  }, [regions, selected, selectedInList]);
+
+  // scroll to selected item when view changes
+  useEffect(() => {
+    if (regionSetView === "list" && selectedRegionRef.current) {
+      // wait for DOM to fully render
+      setTimeout(() => {
+        selectedRegionRef.current.scrollIntoView({
+          behavior: 'auto',
+          block: 'center'  // Centers the element in the viewport
+        });
+      }, 150);
+    }
+  }, [regionSetView, selected]);
 
   const [manuallyAddedRegion, setManuallyAddedRegion] = useState(false)
   useEffect(() => {
-    if(!!selected && !!regions) {
-      const selectedInList = !!regions.find(d => (d.chromosome === selected.chromosome && d.i === selected.i && d.order === selected.order))
-      if(!selectedInList) setManuallyAddedRegion(true)
-      else setManuallyAddedRegion(false)
+    if(selectedInList !== null) {
+      setManuallyAddedRegion(!selectedInList)
     } else {
       setManuallyAddedRegion(false)
     }
-  }, [setManuallyAddedRegion, selected, regions])
+  }, [setManuallyAddedRegion, selectedInList])
 
   const [summaryToShowState, setSummaryToShowState] = useState("selected");
   const summaryToShow = useMemo(() => {
@@ -378,10 +400,10 @@ const ActiveRegionSetModal = () => {
             <div className="flex-1 flex flex-col overflow-hidden">
               <div className="grid grid-cols-regionSet gap-y-1.5 py-1">
                 <div className='grid grid-cols-subgrid col-start-1 col-end-4 [&>div:last-child]:pr-1.5'>
-                  <div className="col-span-2 px-1.5">
+                  <div className="col-span-2 pl-3">
                     <strong>Position</strong>
                   </div>
-                  <div className="col-start-3 col-end-4">
+                  <div className="col-start-3 col-end-4 mr-2">
                     <strong>Score</strong>
                   </div>
                 </div>
@@ -391,13 +413,17 @@ const ActiveRegionSetModal = () => {
                 {listRegions.map((region) => {
                   const regionKey = `${region.order}:${region.chromosome}:${region.i}`
                   return (
-                    <div className="grid grid-cols-subgrid col-start-1 col-end-4 border-t-separator border-t-1 pt-1.5 gap-y-1.5 hover:text-red-500" key={regionKey}> 
-                      <div className="px-1.5 col-span-2 underline">
+                    <div 
+                      className="relative grid grid-cols-subgrid col-start-1 col-end-4 border-t-separator border-t-1 pt-1.5 gap-y-1.5 hover:text-red-500"
+                      key={regionKey}
+                      ref={region.selected ? selectedRegionRef : null}
+                    > 
+                      <div className="relative pl-3 col-span-2 underline">
+                        {region.selected ? <div className="absolute left-0 top-0 text-black">▶</div> : null}
                         <a href="#gotoRegion" onClick={(event) => {
                           event.preventDefault()
                           handleSelectActiveRegionSet(region)
                         }}>
-                          {region.selected ? <div className="absolute -left-1.5 text-black">▶</div> : null}
                           {showPosition(region)}
                         </a>
                       </div>
