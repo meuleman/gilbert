@@ -58,7 +58,7 @@ const Minimap = ({
   }, [selected])
 
   const handleHover = useCallback((region) => {
-    let overlappingRegion = region ? overlaps(region, filteredActiveRegionsRef.current)[0] : null;
+    let overlappingRegion = region && filteredActiveRegionsRef?.current ? overlaps(region, filteredActiveRegionsRef.current)[0] : null;
     if (overlappingRegion) setHover(region)
     else setHover(null)
   }, [setHover])
