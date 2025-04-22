@@ -136,7 +136,8 @@ const LinearGenome = ({
       if(region && points && points.length) {
         // figure out scale factor
         const diff = orderRaw - region.order
-        const scaleFactor = 1 + 3 * diff
+        // ensure scale factor is non-negative so track doesn't invert
+        const scaleFactor = Math.max(0, 1 + 3 * diff)
         // Set up the x scale for the whole track
         const bpbw = points[0].end - points[0].start
 
