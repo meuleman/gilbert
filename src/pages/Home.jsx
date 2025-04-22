@@ -349,15 +349,15 @@ function Home() {
     if (set) {
       setExampleRegions(set)
     }
-    if (!initialUpdateRef.current) {
+    if (!initialUpdateRef.current) {  // Only update URL params if not the initial render
       updateUrlParams(regionset, selected)
     }
   }, [regionset, selected, setExampleRegions, updateUrlParams])
+
   useEffect(() => {
-    if (!initialUpdateRef.current) { // Only update URL params if not the initial update
-      updateUrlParams(regionset, selected);
-    }
-  }, [regionset, selected, updateUrlParams]);
+    // After the initial render, set to false so URL updates can occur
+    initialUpdateRef.current = false;
+  }, []);
 
   // cross scale narration
   const handleChangeCSNIndex = (e) => setCrossScaleNarrationIndex(e.target.value)
