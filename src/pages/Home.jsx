@@ -1008,7 +1008,6 @@ function Home() {
           // regionsByOrder={rbos}
           topCSNS={topCSNSFactorByCurrentOrder}
           layer={layer}
-          zoom={zoom}
           showDebug={showDebug}
           showSettings={showSettings}
           orderOffset={orderOffset}

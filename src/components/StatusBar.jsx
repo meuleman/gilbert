@@ -1,11 +1,12 @@
 // A component to display some information below the map when hovering over hilbert cells
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getGenesInCell, getGenesOverCell } from '../lib/genes'
 import { sum } from 'd3-array'
 import './StatusBar.css'
 import { format } from "d3-format"
 import { showPosition } from '../lib/display';
 import SelectedStatesStore from '../states/SelectedStates';
+import { useZoom } from '../contexts/zoomContext';
 
 const StatusBar = ({
   width = 800,
@@ -13,13 +14,13 @@ const StatusBar = ({
   regionsByOrder = {},
   topCSNS = new Map(),
   layer,
-  zoom,
   orderOffset,
   onOrderOffset = () => { },
 } = {}) => {
 
   const { selected, currentPreferred } = SelectedStatesStore();
   const [regionHighlight, setRegionHighlight] = useState(null)
+  const { order } = useZoom()
 
   let sample = null
   let sampleSummary = ""
@@ -46,54 +47,34 @@ const StatusBar = ({
     }
   }
 
-  let inside, outside;
-  let filteredPathCount = 0;
-  let topCSNCount = 0;
-  let topCSNRepresented = 0;
-  if (hover) {
-    inside = getGenesInCell(hover, zoom.order)
-    if (inside.length > 3) {
-      inside = inside.length
-    } else {
-      inside = inside.map(d => d.hgnc).join(", ")
-    }
-    outside = getGenesOverCell(hover, zoom.order)
-    if (outside.length > 3) {
-      outside = outside.length
-    } else {
-      outside = outside.map(d => d.hgnc).join(", ")
-    }
-    if (regionsByOrder?.total) {
-      if (regionsByOrder.chrmsMap[hover.chromosome] && regionsByOrder.chrmsMap[hover.chromosome][hover.i]) {
-        let filteredRegion = regionsByOrder.chrmsMap[hover.chromosome][hover.i]
-        filteredPathCount = filteredRegion?.count
-      }
-    } else {
-      filteredPathCount = 0
-    }
-    let topCSN = topCSNS.get(hover.chromosome + ":" + hover.i)
-    if (topCSN) {
-      topCSNCount = topCSN.length
-      topCSNRepresented = sum(topCSN, d => d.representedPaths)
-    }
-  } else {
-    filteredPathCount = 0
-    topCSNCount = 0
-    topCSNRepresented = 0
-  }
-
   useEffect(() => {
-    if(currentPreferred) setRegionHighlight(currentPreferred.region)
+    if(currentPreferred) setRegionHighlight(currentPreferred)
     else if(!selected && hover) setRegionHighlight(hover)
     else setRegionHighlight(null)
   }, [hover, currentPreferred, selected, setRegionHighlight])
+
+  const inside = useMemo(() => {
+    if (regionHighlight) {
+      const genes = getGenesInCell(regionHighlight, order)
+      return genes.length > 3 ? genes.length : genes.map(d => d.hgnc).join(", ")
+    }
+    return null
+  }, [regionHighlight, order, getGenesInCell])
+
+  const outside = useMemo(() => {
+    if (regionHighlight) {
+      const genes = getGenesOverCell(regionHighlight, order)
+      return genes.length > 3 ? genes.length : genes.map(d => d.hgnc).join(", ")
+    }
+    return null
+  }, [regionHighlight, order, getGenesOverCell])
 
   return (
     <div className="bg-statusBar h-6 px-6 text-xs font-mono font-bold flex gap-6 items-center">
       <div className="grid grid-cols-3 w-full gap-x-2 max-w-5xl mx-auto items-center">
           <div className="justify-self-end min-w-0 overflow-hidden whitespace-nowrap">
-            {inside && (<div>Genes in region: {inside} &nbsp;</div>)}
-            {outside && (<div>Genes overlapping region: {outside}</div>)}
+            {inside && (<span>Genes in region: {inside}{outside ? ";" : null} </span>)}
+            {outside && (<span>Genes overlapping region: {outside}</span>)}
           </div>
           <div className="status-position-override justify-self-center min-w-0 overflow-hidden whitespace-nowrap">
             {regionHighlight ? showPosition(regionHighlight) : null}
@@ -102,7 +83,7 @@ const StatusBar = ({
             <div className="text-center min-w-0 overflow-hidden whitespace-nowrap">
               {currentPreferred?.field ? (
                 <>
-                  <span style={{ color: currentPreferred?.layer?.fieldColor(currentPreferred?.field?.field), marginRight: '4px' }}>
+                  <span style={{ color: currentPreferred?.field?.color, marginRight: '4px' }}>
                     ⏺
                   </span>
                   {currentPreferred?.field?.field} {currentPreferred?.layer?.labelName}

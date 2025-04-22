@@ -36,14 +36,18 @@ const SelectedStatesStore = create((set, get) => {
 
   const collectPathsForSelected = (selected, genesetScoreMapping, determineFactorExclusion, activeSet, activeFilters) => {
     if(selected) {
-      set({ loadingSelectedCSN: true });
-      set({ selectedNarration: null });
+      set({
+        loadingSelectedCSN: true,
+        selectedNarration: null
+      });
       fetchCombinedPathsAndGWAS([selected], true).then((response) => {
         if(!response) { 
-          set({ selectedNarration: null });
-          set({ loadingSelectedCSN: false });
-          set({ loadingRegionCSNS: false });
-          set({ selectedGenesetMembership: [] })
+          set({
+            selectedNarration: null,
+            loadingSelectedCSN: false,
+            loadingRegionCSNS: false,
+            selectedGenesetMembership: []
+          });
           return null
         } else {
           let rehydrated = response.rehydrated[0]
@@ -51,16 +55,20 @@ const SelectedStatesStore = create((set, get) => {
           // add scores to sort for summary
           rehydrated.genesets = rehydrated.genesets.map(g => ({...g, p: genesetScoreMapping[g.geneset]}))
 
-          set({ selectedNarration: rehydrated });
-          set({ selectedGenesetMembership: rehydrated.genesets })
-          set({ loadingRegionCSNS: false });
-          set({ loadingSelectedCSN: false });
+          set({
+            selectedNarration: rehydrated,
+            selectedGenesetMembership: rehydrated.genesets,
+            loadingRegionCSNS: false,
+            loadingSelectedCSN: false 
+          });
           return rehydrated
         }
       }).catch((e) => {
         console.log("error creating top paths for selected region", e)
-        set({ selectedNarration: null });
-        set({ loadingRegionCSNS: false });
+        set({
+          selectedNarration: null,
+          loadingRegionCSNS: false
+        });
         return null
       }).then((response) => {
         // subpath query
@@ -193,8 +201,10 @@ const SelectedStatesStore = create((set, get) => {
     const fullDataResponse = responses[0];
 
     // Set the enriched narration and mark loading as complete.
-    set({ fullNarration: fullDataResponse });
-    set({ loadingFullNarration: false });
+    set({
+      fullNarration: fullDataResponse,
+      loadingFullNarration: false 
+    });
   };
 
   // generate query from narration for summary
@@ -259,8 +269,10 @@ const SelectedStatesStore = create((set, get) => {
 
   // generates a summary for the selected region
   const generateSummary = (providedPrompt = null) => {
-    set({ regionSummary: "" })
-    set({ abstracts: [] })
+    set({
+      regionSummary: "", 
+      abstracts: []
+    })
     let p = providedPrompt || get().prompt
     let query = get().query
     if(query !== "") {
@@ -279,10 +291,12 @@ const SelectedStatesStore = create((set, get) => {
       .then(res => res.json())
       .then(data => {
         console.log("generate", data, query)
-        set({ regionSummary: data.summary.replace(/^"(.*)"$/, '$1') })
-        set({ abstracts: data.results })
-        set({ request_id: data.request_id })
-        set({ summaryLoading: false })
+        set({
+          regionSummary: data.summary.replace(/^"(.*)"$/, '$1'),
+          abstracts: data.results,
+          request_id: data.request_id,
+          summaryLoading: false,
+        })
       })
       .catch(err => {
         console.error(err)

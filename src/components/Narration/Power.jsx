@@ -462,7 +462,7 @@ function PowerModal({
     
     const { transform, order: o, region: r, data: d, or } = transformResult;
     setOrder(o);
-    setCurrentPreferred(d.p);
+    setCurrentPreferred(d?.region);
     
     const meta = d.data.metas?.find(meta => meta.chromosome === r.chromosome) || {};
     const ctx = canvasRef.current.getContext('2d');

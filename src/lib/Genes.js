@@ -19,9 +19,9 @@ export function getGenesInCell(hit, order) {
       && d.length < threshold // gene is smaller than a single hilbert cell
       && (
         // the start of gene falls within this cell
-        (d.start > hit.start && d.start < hit.start + threshold) 
+        (d.start > hit.start && d.start < hit.end) ||
         // the end of the gene falls within this cell
-          || (d.end > hit.start && d.end < hit.start + threshold)
+        (d.end > hit.start && d.end < hit.end)
       )
   })
   return filteredGencode
@@ -35,9 +35,9 @@ export function getGenesOverCell(hit, order) {
       && d.length > threshold // gene is bigger than a single hilbert cell
       && (
         // hilbert cell starts within the gene
-        (hit.start > d.start && hit.start < d.end) 
+        (hit.start > d.start && hit.start < d.end) ||
         // hilbert cell ends within the gene
-          || (hit.start + threshold > d.start && hit.start + threshold < d.end)
+        (hit.end > d.start && hit.end < d.end)
       )
   })
   return filteredGencode 

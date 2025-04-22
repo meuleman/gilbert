@@ -160,7 +160,7 @@ const Minimap = ({
         setMainMapTransform(newTransform);
       });
     }
-  }, [mainMapTransform.k, mainMapScales.xScale, mainMapScales.yScale, mainMapScales.width, mainMapScales.height, setMainMapTransform]);
+  }, [mainMapTransform.k, mainMapScales?.xScale, mainMapScales?.yScale, mainMapScales?.width, mainMapScales?.height, setMainMapTransform]);
 
   return (
     <div className="absolute x0 y0 cursor-pointer">
