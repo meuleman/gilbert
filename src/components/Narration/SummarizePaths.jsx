@@ -49,7 +49,6 @@ const SummarizePaths = ({
   const { 
     activeFilters, setActiveFilters, filteredRegionsLoading, 
     topNarrationsLoading, activeSet, regionSetEnrichments, 
-    regionSetNarrationLoading, regionSetNarration, regionSetArticles,
     topNarrations
   } = useContext(RegionsContext)
 

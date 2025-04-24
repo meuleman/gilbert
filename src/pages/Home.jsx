@@ -216,7 +216,7 @@ function Home() {
     saveSet,
     activeGenesetEnrichment,
     setRegionSetNarration,
-    setRegionSetArticles,
+    setRegionSetAbstracts,
     activeRegions,
     filteredActiveRegions,
     activeFilters
@@ -682,8 +682,8 @@ function Home() {
 
   const clearRegionSetSummaries = useCallback(() => {
     setRegionSetNarration("")
-    setRegionSetArticles([])
-  }, [setRegionSetArticles, setRegionSetNarration])
+    setRegionSetAbstracts([])
+  }, [setRegionSetAbstracts, setRegionSetNarration])
 
   const regionSetStateRef = useRef({ activeFilters, activeRegions, filteredActiveRegions });
   useEffect(() => {

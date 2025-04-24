@@ -59,20 +59,21 @@ const ActiveRegionSetModal = () => {
     activeSet,
     activeRegions, 
     activeFilters,
-    filteredRegionsLoading,
     filteredActiveRegions,
     setActiveSet,
     setActiveFilters,
     regionSetNarration: regionSetSummary,
-    regionSetNarrationLoading,
-    regionSetArticles,
-    activeGenesetEnrichment
+    regionSetAbstracts,
+    activeGenesetEnrichment,
+    prompt: regionSetPrompt,
+    generateRegionSetNarration,
   } = useContext(RegionsContext)
   
   const { showActiveRegionSet } = RegionSetModalStatesStore()
   const { 
     selected, setSelected, setRegion, regionSummary, selectedNarration, query, setQuery,
-    setRegionSummary, generateQuery, generateSummary, feedback: selectedFeedback,
+    setRegionSummary, generateQuery, generateSummary: generateSelectedSummary, feedback: selectedFeedback, 
+    abstracts: selectedAbstracts, prompt: selectedPrompt
   } = SelectedStatesStore()
 
   const containerRef = useRef(null)
@@ -200,10 +201,36 @@ const ActiveRegionSetModal = () => {
   }, [selected])
 
   const [showAbstracts, setShowAbstracts] = useState(false)
-  const handleShowAbstracts = () => {
+  const [showPromptEditor, setShowPromptEditor] = useState(false)
+  const handleShowAbstracts = useCallback(() => {
     setShowAbstracts(!showAbstracts)
-  }
+    setShowPromptEditor(false)
+  }, [setShowAbstracts, showAbstracts, setShowPromptEditor])
 
+  const [abstracts, setAbstracts] = useState([])
+  useEffect(() => {
+    setAbstracts(summaryToShow === "regionSet" ? regionSetAbstracts : selectedAbstracts)
+  }, [regionSetAbstracts, selectedAbstracts, setAbstracts, summaryToShow])
+
+  const handleShowPromptEditor = useCallback(() => {
+    setShowPromptEditor(!showPromptEditor)
+    setShowAbstracts(false)
+  }, [setShowPromptEditor, showPromptEditor, setShowAbstracts])
+
+  const [prompt, setPrompt] = useState("")
+  useEffect(() => {
+    setPrompt(summaryToShow === "regionSet" ? regionSetPrompt : selectedPrompt)
+  }, [selectedPrompt, summaryToShow, setPrompt])
+
+  const handlePrompt = useCallback((prompt) => {
+    setPrompt(prompt)
+  }, [setPrompt])
+
+  const generate = useCallback(() => {
+    summaryToShow === "regionSet" ? generateRegionSetNarration(prompt) : generateSelectedSummary(prompt)
+  }, [summaryToShow, generateRegionSetNarration, generateSelectedSummary, prompt])
+
+  // generate selected region query
   useEffect(() => {
     if(selectedNarration) {
       let query = generateQuery(selectedNarration)
@@ -212,10 +239,10 @@ const ActiveRegionSetModal = () => {
     }
   }, [selectedNarration, selectedNarration?.genesets])
 
-  // generate summary on new query
+  // generate selected summary on new query
   useEffect(() => {
     if(query !== "") {
-      generateSummary()
+      generateSelectedSummary()
     }
   }, [query])
 
@@ -277,7 +304,7 @@ const ActiveRegionSetModal = () => {
                   </div>
                 </div>
               </div>
-              {(summaryToShow === "regionSet" ? !regionSetSummary : regionSummary === "") ? // if regionSummary = null, no narration available
+              {(summaryToShow === "regionSet" ? regionSetSummary === "" : regionSummary === "") ? // if regionSummary = null, no narration available
                 <div className="flex-1 flex justify-center items-center">
                   <Loading />
                 </div>
@@ -288,12 +315,75 @@ const ActiveRegionSetModal = () => {
               }
               <p className="">
                 {((summaryToShow === "regionSet" && regionSetSummary) || (summaryToShow === "selected" && regionSummary)) && (
-                  <span className="text-base flex justify-end pr-4 gap-2">
+                  <span className="text-base flex justify-end pr-4 gap-2 text-xs">
+                    <button 
+                      className="p-1 hover:bg-gray-100 hover:text-red-500 rounded min-w-[130px] text-center"
+                      onClick={handleShowPromptEditor}
+                    >
+                      {showPromptEditor ? "Hide Prompt Editor" : "Show Prompt Editor"}
+                    </button>
+                    <button
+                      className="p-1 hover:bg-gray-100 hover:text-red-500 rounded min-w-[100px] text-center"
+                      onClick={handleShowAbstracts}
+                    >
+                      {showAbstracts ? "Hide Abstracts" : "Show Abstracts"}
+                    </button>
                     <button className="p-1 hover:bg-gray-100 rounded" onClick={() => handleFeedback("👍")}>👍</button>
                     <button className="p-1 hover:bg-gray-100 rounded" onClick={() => handleFeedback("👎")}>👎</button>
                   </span>
                 )}
               </p>
+              {abstracts && showAbstracts && (
+                <div className="relative">
+                  <div className="absolute z-10 left-0 right-0 bg-white border border-gray-300 rounded-md shadow-lg">
+                    <div className="flex justify-between items-center p-2 border-b border-gray-200 sticky top-0 bg-white">
+                      <h3 className="text-sm">
+                        {abstracts.length} PubMed Abstracts Used
+                      </h3>
+                    </div>
+                    <div className="max-h-[250px] overflow-y-auto">
+                      <ul className="text-xs divide-y divide-gray-100">
+                        {abstracts.map((a, i) => (
+                          <li key={a.pmc} className="p-2 hover:bg-gray-50">
+                            <div className="flex">
+                              <span className="text-gray-500 min-w-4 mr-1.5 text-right">{i + 1}.</span>
+                              <a
+                                className="text-blue-600 hover:underline"
+                                href={`https://pmc.ncbi.nlm.nih.gov/articles/${a.pmc}/`}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {a.full_title}
+                              </a>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {showPromptEditor && (
+                <div className="relative">
+                  <div className="absolute z-10 left-0 right-0 bg-white border border-gray-300 rounded-md shadow-lg">
+                    <div className="border border-gray-200 rounded-md p-2 mb-4">
+                      <textarea
+                        value={prompt}
+                        onChange={(e) => handlePrompt(e.target.value)}
+                        rows={10}
+                        className="w-full p-2 border border-gray-200 rounded"
+                      />
+                      <button 
+                        className="px-3 py-1 text-sm border rounded hover:bg-blue-100 mt-2"
+                        onClick={generate} 
+                        // disabled={loading}
+                      >
+                        Regenerate with New Prompt
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : null}
         </div>

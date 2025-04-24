@@ -340,17 +340,14 @@ const SelectedStatesStore = create((set, get) => {
   To aid in functional narration, you are also provided with Gene Ontology genesets (GO) associated with the region, which may constitute important information in combination with all of the above.
   `
 
-  const abstractsAccess = `
-  You also have access to titles and abstracts of research articles that may be relevant to the query, so make sure to use these for additional context and writing style.
+  const abstractsAccess = `You also have access to titles and abstracts of research articles that may be relevant to the query, so make sure to use these for additional context and writing style.
   `
 
-  const tastSection = `
-  Your task is to generate a helpful one-sentence summary of the query, providing a useful narrative of the genomic region.
-  If any of the provided terms do not seem relevant according to literature or otherwise, feel free to skip them in the narrative.	
+  const tastSection = `Your task is to generate a helpful one-sentence summary of the query, providing a useful narrative of the genomic region.
+  If any of the provided terms do not seem relevant according to literature or otherwise, feel free to skip them in the narrative.
   `
 
-  const examplesSection = `
-  Examples
+  const examplesSection = `Examples
   --------
   Query: "1bp SCALE; EWSR1/FLI1 MOTIF enrichment @ 16kbp; Stromal B DHS enrichment @ 1Mbp; Atrial fibrillation GWAS occurrence @ 1bp; Musculoskeletal DHS enrichment @ 64kbp; Cardiac DHS enrichment @ 256kbp; Quiescent/Low CS occurrence @ 256bp; NTMT2 GENE; GORAB GENE; N TERMINAL PROTEIN AMINO ACID MODIFICATION GO; EPIDERMIS MORPHOGENESIS GO; POSITIVE REGULATION OF SMOOTHENED SIGNALING PATHWAY GO.",
   Summary: "This single base pair is a likely causal atrial fibrillation GWAS variant, found inside a cardiac DHS as part of a much larger cardiac and musculoskeletal DHS domain"
@@ -360,8 +357,7 @@ const SelectedStatesStore = create((set, get) => {
   Summary: "This 1bp region is characterized by a weak enhancer element harboring an AP-2 transcription factor motif, residing in a larger domain of interferon-regulatory factor (IRF) protein binding sites and lymphoid DHSs. Co-located with the FOXP3 gene, an important immune system regulator."
   `
 
-  const abstractsSection = `
-  Abstracts
+  const abstractsSection = `Abstracts
   --------
   {% for abstract in abstracts %}
   Title: {{ abstract.full_title }}
@@ -370,8 +366,7 @@ const SelectedStatesStore = create((set, get) => {
   {% endfor %}
   `
 
-  const taskSection = `
-  Task
+  const taskSection = `Task
   --------
 
   Query: {{ query}}
@@ -384,7 +379,7 @@ const SelectedStatesStore = create((set, get) => {
   ${examplesSection}
   ${abstractsSection}
   ${taskSection}
-  `
+  `.trim().split('\n').map(line => line.trimStart()).join('\n');
 
   const toggleIncludeAbstracts = (include) => {
     set({ abstractsIncluded: include })
@@ -394,12 +389,12 @@ const SelectedStatesStore = create((set, get) => {
       ${tastSection}
       ${examplesSection}
       ${abstractsSection}
-      ${taskSection}`
+      ${taskSection}`.trim().split('\n').map(line => line.trimStart()).join('\n')
     : 
     `${termsSection}
       ${tastSection}
       ${examplesSection}
-      ${taskSection}`
+      ${taskSection}`.trim().split('\n').map(line => line.trimStart()).join('\n')
     
     set({ prompt: newPrompt })
     get().generateSummary(newPrompt)

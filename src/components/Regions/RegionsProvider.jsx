@@ -271,17 +271,61 @@ const RegionsProvider = ({ children }) => {
     }
   }, [filteredActiveRegions])
 
+  let initialPrompt = `
+  You are an expert genomics researcher, tasked with narrating a set of genomic regions such that a single short sentence captures the most important information about them.
+  You are given a query consisting of a term-wise description of a set of regions across the human genome.
+
+  These terms may include things like chromatin state calls (CS), DNase I Hypersensitive Site annotations (DHS), transcription factor motif hits (MOTIF), interspersed repeats and low complexity DNA sequences (REPEAT), and Genome-Wide Association Study traits (GWAS).
+  All such terms are observed at a certain genomic scale, ranging from a single basepair (1bp) to a million basepair (1Mbp).
+  They are listed in the query in descending order of prominence, with the percent of regions in the set containing each term also listed, so make sure to take that into account in prioritizing the information to use in your narration.
+  Furthermore, the genomic regions of interest may directly overlap an observed term ('occurrence'), or may overlap a larger region with an abundance of that term ('domain') in which there is not necessarily a direct overlap with a single instance of the term. This is an important distinction.
+
+  Additionally, you are provided information on any genes that directly overlap (GENE_OVL) or are adjacent to (GENE_ADJ) the regions in the set.
+  To aid in the functional narration, you are also provided with Gene Ontology genesets (GO) associated with the regions, including corresponding p-values that quantify the strength of the association, which may constitute important information in combination with all of the above.
+
+  You also have access to titles and abstracts of research articles that may be relevant to the query, so make sure to use these for additional context and writing style.							
+
+  Your task is to generate a helpful one-sentence summary of the query, providing a useful narrative of the genomic regions.
+  If any of the provided terms do not seem relevant according to literature or otherwise, feel free to skip them in the narrative.
+
+  Examples
+  --------
+  Query: "Eosinophil count GWAS  @ 1bp 74%; Lymphoid DHS domain @ 64kbp 30%; Myeloid / erythroid DHS domain @ 64kbp 24%; KLF/SP/2 MOTIF domain @ 16kbp 23%; MECP2 MOTIF domain @ 256kbp 20%; ZNF384/2 MOTIF domain @ 1Mbp 18%; Weak transcription CS domain @ 4kbp 15%; Weak Repressed PolyComb CS domain @ 1kbp 13%; Quiescent/Low CS domain @ 4kbp 13%; Placental / trophoblast DHS domain @ 1Mbp 12%; GO CELL ACTIVATION; GO MONONUCLEAR CELL DIFFERENTIATION; GO LEUKOCYTE DIFFERENTIATION; GENE_OVL IL18R1; GENE_ADJ IL18RAP; GENE_ADJ IL5; GENE_ADJ IL13; GENE_OVL CDK6; GENE_ADJ TSC1; GENE_OVL CEBPE; GENE_OVL BCL2; GENE_ADJ CSF2; GENE_ADJ CCR7; GENE_ADJ SMARCE1; GENE_ADJ TSLP; GENE_OVL SMAD3; GENE_OVL TNFRSF1B; GENE_OVL GATA3; GENE_OVL ICOSLG; GENE_OVL IL17RA; GENE_OVL IRF4; GENE_ADJ BATF; GENE_ADJ LRRC32; GENE_ADJ PLCG2; GENE_OVL PTPRC; GENE_ADJ GATA2; GENE_OVL BCL3; GENE_ADJ IL33; GENE_ADJ FOXP1; GENE_OVL JAK1; GENE_OVL HMGB1; GENE_ADJ GPR183; GENE_ADJ ID2; GENE_OVL PRG3; GENE_OVL JAK2; GENE_ADJ ITGB8; GENE_OVL CLC; GENE_OVL IKZF1",
+  Summary: "This set contains regions with single nucleotide polymorphisms significantly associated with eosinophil count identified through GWAS, DHS domains indicative of regulatory elements involved in lymphoid and myeloid cell activation and differentiation, enrichment for multiple transcription factor motifs, and is linked with pathways related to immune response through overlapping genes such as IL5, IL13, and CEBPE."
+  Query: "Cardiac DHS domain @ 16kbp 100%; HD/18 MOTIF domain @ 1Mbp 28%; EWSR1/FLI1 MOTIF domain @ 64kbp 18%; KLF/SP/2 MOTIF domain @ 64kbp 11%; Placental / trophoblast DHS domain @ 1Mbp 8%; Stromal B DHS domain @ 1Mbp 8%; ZFN121 MOTIF domain @ 256kbp 7%; HD/2 MOTIF domain @ 1Mbp 5%; Vascular / endothelial DHS domain @ 1Mbp 5%; Digestive DHS domain @ 1Mbp 5%; GO STRIATED MUSCLE TISSUE DEVELOPMENT; GO HEART DEVELOPMENT; GO CARDIAC CHAMBER DEVELOPMENT; GENE_OVL SLC8A1; GENE_ADJ PDLIM3; GENE_OVL SORBS2; GENE_OVL PLN; GENE_OVL BMP5; GENE_OVL AKAP6; GENE_OVL RBM24; GENE_OVL TBX20; GENE_OVL POPDC2; GENE_OVL GATA6; GENE_OVL LDB3; GENE_ADJ BMPR1A; GENE_ADJ GATA5; GENE_OVL ACTN2; GENE_OVL GATA4; GENE_OVL ZFPM2; GENE_ADJ GJA5; GENE_OVL TNNT2; GENE_OVL HAND2; GENE_OVL CACNA1C; GENE_OVL MIB1; GENE_OVL HEY2; GENE_OVL MYH6; GENE_OVL MYH7; GENE_OVL NDST1; GENE_OVL NKX2-5; GENE_ADJ TBX5; GENE_ADJ TBX3; GENE_OVL MYOCD; GENE_ADJ MTPN; GENE_OVL PROX1; GENE_ADJ SMYD2; GENE_ADJ FZD1; GENE_ADJ TMEM65; GENE_ADJ ANKRD1; GENE_OVL NEBL",
+  Summary: "The genomic regions predominantly feature cardiac DHS domains at 16kbp, enrichments for various transcription factor motifs, and significant overlaps with crucial cardiac genes like NKX2-5 and MYH6, reflecting their role in striated muscle tissue and cardiac chamber development."
+  Query: "Active Enhancer 1 CS domain @ 256bp 100%; Active Enhancer 1 CS occurrence @ 64bp 98%; CTCF MOTIF occurrence @ 16bp 89%; KLF/SP/2 MOTIF domain @ 16kbp 18%; Primitive / embryonic DHS occurrence @ 64bp 17%; ZNF384/2 MOTIF domain @ 1Mbp 14%; MECP2 MOTIF domain @ 256kbp 13%; ZFN121 MOTIF domain @ 1Mbp 9%; ZNF768 MOTIF domain @ 1Mbp 9%; Placental / trophoblast DHS domain @ 64kbp 9%; GO POSITIVE REGULATION OF NUCLEAR TRANSCRIBED MRNA CATABOLIC PROCESS DEADENYLATION DEPENDENT DECAY; GO REGULATION OF NUCLEAR TRANSCRIBED MRNA CATABOLIC PROCESS DEADENYLATION DEPENDENT DECAY; GO ARTERY DEVELOPMENT; GENE_ADJ TNRC6C; GENE_ADJ TOB1; GENE_ADJ ZFP36L2; GENE_ADJ NAGLU; GENE_OVL SMAD7; GENE_OVL ZMIZ1; GENE_ADJ ZFP36L1; GENE_ADJ PLXND1; GENE_OVL SMAD6; GENE_ADJ HES1; GENE_OVL SUFU",
+  Summary: "These regions comprise highly active enhancer chromatin state domains and significant CTCF motif occurrences, with adjacent genes involved in mRNA regulation and developmental processes, suggesting a complex interplay of transcriptional control and enhancer dynamics."
+
+  Abstracts
+  --------
+
+  {% for abstract in abstracts %}
+  Title: {{ abstract.full_title }}
+  Abstract: {{ abstract.abstract }}
+
+  {% endfor %}
+  Task
+  --------
+
+  Query: {{ query}}
+  Summary:`.trim().split('\n').map(line => line.trimStart()).join('\n');
+
+  const [prompt, setPrompt] = useState(initialPrompt)
   const [regionSetNarration, setRegionSetNarration] = useState("")
   const [regionSetNarrationLoading, setRegionSetNarrationLoading] = useState(false)
-  const [regionSetArticles, setRegionSetArticles] = useState([])
-  const generateRegionSetNarration = useCallback((query) => {
-    fetchRegionSetNarration(query).then((data) => {
+  const [regionSetAbstracts, setRegionSetAbstracts] = useState([])
+  const [regionSetQuery, setRegionSetQuery] = useState("")
+  const generateRegionSetNarration = useCallback((providedPrompt = null) => {
+    setRegionSetNarration("")
+    const p = providedPrompt || prompt
+    fetchRegionSetNarration(regionSetQuery, p).then((data) => {
       setRegionSetNarration(data.summary)
-      setRegionSetArticles(data.results)
+      setRegionSetAbstracts(data.results)
       setRegionSetNarrationLoading(false)
       // console.log("REGION SET NARRATION:", data.summary)
     }) 
-  }, [])
+  }, [prompt, regionSetQuery])
 
   // generates query for region set summary
   const generateRegionSetQuery = useCallback((narrations) => {
@@ -351,7 +395,7 @@ const RegionsProvider = ({ children }) => {
     return query
   }, [activeGenesetEnrichment])
 
-  const [regionSetQuery, setRegionSetQuery] = useState("")
+  
   useEffect(() => {
     // only generate query if topNarrations and activeGenesetEnrichment are available
     if (topNarrations.length && activeGenesetEnrichment !== null) {
@@ -366,10 +410,10 @@ const RegionsProvider = ({ children }) => {
   useEffect(() => {
     if(regionSetQuery !== "") {
       setRegionSetNarrationLoading(true)
-      generateRegionSetNarration(regionSetQuery)
+      generateRegionSetNarration()
     } else {
-      setRegionSetNarration("")
-      setRegionSetArticles([])
+      setRegionSetNarration(null)
+      setRegionSetAbstracts([])
       setRegionSetNarrationLoading(false)
     }
   }, [regionSetQuery])
@@ -389,11 +433,14 @@ const RegionsProvider = ({ children }) => {
       regionSetEnrichments,
       regionSetEnrichmentsLoading,
       activeGenesetEnrichment,
+      prompt, 
+      setPrompt,
+      generateRegionSetNarration,
       regionSetNarration,
       setRegionSetNarration,
       regionSetNarrationLoading,
-      regionSetArticles,
-      setRegionSetArticles,
+      regionSetAbstracts,
+      setRegionSetAbstracts,
       topNarrations,
       numTopRegions,
       setNumTopRegions,

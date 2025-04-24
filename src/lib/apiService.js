@@ -129,17 +129,17 @@ function fetchSingleRegionFactorOverlap({region, factorExclusion = []}) {
 /* Narrations */
 /* ================================================================ */
 
-const fetchRegionSetNarration = (query) => {
+const fetchRegionSetNarration = (query, prompt = null) => {
   const url = `${baseAPIUrl}/api/pubmedSummary/pubmed_region_set_summary`
+  const postBody = {query}
+  prompt && (postBody["prompt"] = prompt)
   return axios({
     method: "POST",
     url: url,
     headers: {
       "Content-Type": "application/json"
     },
-    data: {
-      query: query,
-    }
+    data: postBody
   }).then(response => {
     return response.data
   }).catch(error => {
