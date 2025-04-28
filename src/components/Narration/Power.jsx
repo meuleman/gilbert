@@ -345,6 +345,7 @@ function PowerModal({
           const fetchAllData = async () => {
             // Generate order points for all orders
             const allOrderPoints = range(4, 15)
+              .reverse()  // load the highest orders first
               .filter(o => o !== currentOrder) // Skip the already fetched order
               .map(prepareOrderPoint);
             
