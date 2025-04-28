@@ -317,7 +317,7 @@ function PowerModal({
     dataDebounce(
       // First fetch data for the current order
       async () => {
-        const currentOrder = csn.order //Math.floor(percentScale(percent));
+        const currentOrder = Math.max(...csn?.path?.map(d => d?.order)) || csn.order  // Math.floor(percentScale(percent));
         setLoading(true);
         setPowerDataLoaded(false);
         
@@ -341,12 +341,12 @@ function PowerModal({
           setPowerDataLoaded(true);
           kickoff = Date.now()
           console.log("kick off fetchAllData")
-            // Now lazily fetch the rest of the data
+          // Now lazily fetch the rest of the data
           const fetchAllData = async () => {
             // Generate order points for all orders
             const allOrderPoints = range(4, 15)
               .reverse()  // load the highest orders first
-              .filter(o => o !== currentOrder) // Skip the already fetched order
+              .filter(o => o !== currentOrder)  // Skip the already fetched order
               .map(prepareOrderPoint);
             
             // Fetch data for each order point
