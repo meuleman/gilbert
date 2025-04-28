@@ -313,63 +313,68 @@ function PowerModal({
       };
     };
     
-    // First fetch data for the current order
-    const currentOrder = csn.order //Math.floor(percentScale(percent));
-    setLoading(true);
-    setPowerDataLoaded(false);
-    
-    // Prepare the order point for the current order
-    const currentOrderPoint = prepareOrderPoint(currentOrder);
-    
-    let kickoff = Date.now()
-    console.log("kick off target fetchData", currentOrderPoint)
-    // Fetch data for the current order
-    fetchDataForOrderPoint(currentOrderPoint).then(response => {
-      console.log("finished target fetchData", currentOrderPoint, Date.now() - kickoff)
-      // Process the current order data
-      const processedData = processOrderData(currentOrderPoint, response);
-      // Update the data state for just this order
-      setData(prevData => {
-        if (!prevData) return [processedData];
-        return prevData.map(d => d.order === currentOrder ? processedData : d);
-      });
-      
-      setLoading(false);
-      setPowerDataLoaded(true);
-      kickoff = Date.now()
-      console.log("kick off fetchAllData")
-        // Now lazily fetch the rest of the data
-      const fetchAllData = async () => {
-        // Generate order points for all orders
-        const allOrderPoints = range(4, 15)
-          .filter(o => o !== currentOrder) // Skip the already fetched order
-          .map(prepareOrderPoint);
+    // debounce multiple requests
+    dataDebounce(
+      // First fetch data for the current order
+      async () => {
+        const currentOrder = csn.order //Math.floor(percentScale(percent));
+        setLoading(true);
+        setPowerDataLoaded(false);
         
-        // Fetch data for each order point
-        for (const orderPoint of allOrderPoints) {
-          try {
-            const response = await fetchDataForOrderPoint(orderPoint);
-            const processedData = processOrderData(orderPoint, response);
+        // Prepare the order point for the current order
+        const currentOrderPoint = prepareOrderPoint(currentOrder);
+        
+        let kickoff = Date.now()
+        console.log("kick off target fetchData", currentOrderPoint)
+        // Fetch data for the current order
+        fetchDataForOrderPoint(currentOrderPoint).then(response => {
+          console.log("finished target fetchData", currentOrderPoint, Date.now() - kickoff)
+          // Process the current order data
+          const processedData = processOrderData(currentOrderPoint, response);
+          // Update the data state for just this order
+          setData(prevData => {
+            if (!prevData) return [processedData];
+            return prevData.map(d => d.order === currentOrder ? processedData : d);
+          });
+          
+          setLoading(false);
+          setPowerDataLoaded(true);
+          kickoff = Date.now()
+          console.log("kick off fetchAllData")
+            // Now lazily fetch the rest of the data
+          const fetchAllData = async () => {
+            // Generate order points for all orders
+            const allOrderPoints = range(4, 15)
+              .filter(o => o !== currentOrder) // Skip the already fetched order
+              .map(prepareOrderPoint);
             
-            // Update the data state for this order
-            setData(prevData => {
-              if (!prevData) return [processedData];
-              return prevData.map(d => d.order === orderPoint.order ? processedData : d);
-            });
-          } catch (error) {
-            console.error(`Error fetching data for order ${orderPoint.order}:`, error);
-          }
-        }
-        console.log("finished fetchAllData", Date.now() - kickoff)
-      };
-      // Start fetching all data in the background
-      fetchAllData();
-    }).catch(error => {
-      console.error("Error fetching initial data:", error);
-      setLoading(false);
-    });
-    
-    
+            // Fetch data for each order point
+            for (const orderPoint of allOrderPoints) {
+              try {
+                const response = await fetchDataForOrderPoint(orderPoint);
+                const processedData = processOrderData(orderPoint, response);
+                
+                // Update the data state for this order
+                setData(prevData => {
+                  if (!prevData) return [processedData];
+                  return prevData.map(d => d.order === orderPoint.order ? processedData : d);
+                });
+              } catch (error) {
+                console.error(`Error fetching data for order ${orderPoint.order}:`, error);
+              }
+            }
+            console.log("finished fetchAllData", Date.now() - kickoff)
+          };
+          // Start fetching all data in the background
+          fetchAllData();
+        }).catch(error => {
+          console.error("Error fetching initial data:", error);
+          setLoading(false);
+        })
+      },
+      () => {},
+      150
+    )
   }, [csn]);
 
   const throttledWheel = useCallback(
