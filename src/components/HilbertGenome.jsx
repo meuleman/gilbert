@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useReducer, useEffect, useRef, useMemo, useCallback, useState } from 'react';
 
 // import  debounce from 'lodash.debounce';
 import { scaleLinear } from 'd3-scale';
@@ -14,6 +14,11 @@ import Data from '../lib/data';
 import { debouncer, debouncerTimed } from '../lib/debounce'
 import scaleCanvas from '../lib/canvas';
 import { Renderer as CanvasRenderer } from './Canvas/Renderer';
+import { Tooltip } from 'react-tooltip';
+import Loading from './Loading';
+import { showPosition } from '../lib/display';
+import { getGenesInCell, getGenesOverCell } from '../lib/genes'
+import HoverStatesStore from '../states/HoverStates'
 
 import { useZoom } from '../contexts/zoomContext';
 
@@ -108,6 +113,7 @@ function reducer(state, action) {
 const dataDebounceTimed = debouncerTimed()
 const dataDebounce = debouncer()
 const zoomDebounce = debouncer()
+const hoverContentDebounce = debouncer()
 
 const HilbertGenome = ({
   orderMin = 4,
@@ -175,6 +181,27 @@ const HilbertGenome = ({
     setBbox = zoomContext.setBbox,
     setScales = zoomContext.setScales,
   } = zoomMethods || {};
+
+  const { 
+    hover: globalHover, setHover: setGlobalHover, collectPathForHover,
+    hoverNarration, setHoverNarration, generateQuery, setQuery, 
+    generateSummary, regionSummary: hoverSummary, setRegionSummary: setHoverSummary,
+    genesInside, setGenesInside, genesOutside, setGenesOutside,
+  } = HoverStatesStore()
+  const [hover, setHover] = useState(null)
+  const [shiftPressed, setShiftPressed] = useState(false);
+  const [shiftForRegion, setShiftForRegion] = useState(false);
+  useEffect(() => {
+    const handleKeyDown = (e) => e.key === 'Shift' && setShiftPressed(true);
+    const handleKeyUp = (e) => e.key === 'Shift' && setShiftPressed(false);
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   const scales = useMemo(() => ({ xScale, yScale, sizeScale, orderZoomScale, width, height }), [xScale, yScale, sizeScale, orderZoomScale, width, height])
   useEffect(() => {
@@ -674,9 +701,60 @@ const HilbertGenome = ({
       ey = event.nativeEvent.offsetY
     }
     let hover = regionFromXY(ex, ey)
-    if (hover)
+    if (hover) {
+      setHover({
+        ...hover,
+        tx: ex,
+        ty: ey,
+      });
       onHover(hover);
-  }, [order, regionFromXY])
+    }
+  }, [order, regionFromXY, setGlobalHover, qt, onHover])
+
+  // generating CSN and summary for hover
+  useEffect(() => {
+    setHoverNarration(null);
+    setQuery(null);
+    setHoverSummary("");
+    !shiftPressed && setShiftForRegion(false);
+
+    if (!hover) {
+      setGlobalHover(null);
+      return;
+    }
+    setGlobalHover(hover)
+    setGenesInside(getGenesInCell(hover, hover.order))
+    setGenesOutside(getGenesOverCell(hover, hover.order))
+  }, [hover]);
+
+  useEffect(() => {
+    // only set if true so shift can be toggled without requerying the csn
+    // set to false when a new region is hovered
+    if(shiftPressed) setShiftForRegion(true);
+  }, [shiftPressed])
+
+  useEffect(() => {
+    hoverContentDebounce(
+      async () => {
+        // ensures that when shiftForRegion is set to false, no extra path is collected
+        shiftForRegion ? collectPathForHover(hover) : null
+      },
+      () => {},
+      1000
+    )
+  }, [shiftForRegion, hover])
+
+  useEffect(() => {
+    if(!hoverNarration) return;
+    console.log("HOVER NARRATION CHANGED", hoverNarration)
+    const hoverQuery = generateQuery(hoverNarration);
+    setQuery(hoverQuery);
+    if(!hoverQuery) {
+      setHoverSummary(null);
+      return;
+    };
+    generateSummary()
+  }, [hoverNarration])
 
   const handleClick = useCallback((event) => {
     if (!qt) return
@@ -806,9 +884,54 @@ const HilbertGenome = ({
         <div className="debug-item">points: {state.points.length}</div>
         <div className="debug-item">zoom: {transform.k}</div>
       </div>}
+      {/* tooltip */}
+      {shiftPressed && globalHover && (
+        <div>
+          <div 
+            style={{
+              position: "absolute",
+              left: globalHover.tx + "px",
+              top: globalHover.ty + "px",
+              pointerEvents: "none"
+            }} 
+            data-tooltip-id="hilbert-genome-tooltip"
+          />
+          <Tooltip 
+            id="hilbert-genome-tooltip"
+            isOpen={!!globalHover}
+            delayShow={0}
+            delayHide={0}
+            delayUpdate={0}
+            place="top"
+            border="1px solid gray"
+            style={{
+              backgroundColor: "white",
+              color: "black",
+              fontSize: "12px",
+              padding: "6px",
+              zIndex: 1000,
+              pointerEvents: 'none'
+            }}
+          >
+          <div className="text-base text-black text-xs max-w-[400px]">
+            <div><strong>{showPosition(globalHover)}</strong></div>
+            <div>Genes In Region: {genesInside.map(d => d.hgnc).join(", ")}</div>
+            <div>Genes Overlapping Region: {genesOutside.map(d => d.hgnc).join(", ")}</div>
+            <div>Summary:</div>
+            {
+              hoverSummary !== "" ? 
+              <p className="overflow-auto">
+                {hoverSummary}
+              </p> : 
+              <div className="flex-1 flex justify-center items-center">
+                <Loading />
+              </div>
+            }
+          </div>
+          </Tooltip>
+        </div>
+      )}
     </div>
-
-
   );
 };
 
