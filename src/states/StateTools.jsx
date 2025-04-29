@@ -88,7 +88,6 @@ export const createGenerateSummary = ({ set, get }) => (providedPrompt = null) =
       })
     })
     .then(res => {
-      console.log("RES", res)
       return res.json()
     })
     .then(data => {
