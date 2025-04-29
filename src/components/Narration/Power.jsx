@@ -523,7 +523,7 @@ function PowerModal({
     ctx.globalAlpha = 1; // Ensure full opacity for the outline
     renderSquares(ctx, [r], transform, o, scales, false, "black");
     
-  }, [transformResult, width, height, scales, data, oscale]);
+  }, [transformResult, transformResult?.region, width, height, scales, data, oscale]);
 
   const linearCenter = useMemo(() => {
     let center = csn?.path.find(d => d.order === order)?.region;
