@@ -200,8 +200,9 @@ const HeaderRegionSetModal = ({
       <div>
         {searchShowing && (
           <div>
+            {/* 4rem represents the heights of the status bar and the header combined */}
             <div 
-              className="absolute z-10 top-full left-0 right-0 border border-separator bg-white p-3 max-h-[60vh] overflow-y-auto rounded-b-lg"
+              className="absolute z-10 top-full left-0 right-0 border border-separator bg-white p-3 max-h-[calc(100vh-4rem)] overflow-y-auto rounded-b-lg"
               tabIndex={0}
               ref={dropdownRef}
             >
