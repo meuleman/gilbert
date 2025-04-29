@@ -16,6 +16,7 @@ import scaleCanvas from '../lib/canvas';
 import { Renderer as CanvasRenderer } from './Canvas/Renderer';
 import { Tooltip } from 'react-tooltip';
 import Loading from './Loading';
+import ZoomInspector from '../components/ZoomInspector'
 import { showPosition } from '../lib/display';
 import { getGenesInCell, getGenesOverCell } from '../lib/genes'
 import HoverStatesStore from '../states/HoverStates'
@@ -189,6 +190,8 @@ const HilbertGenome = ({
     genesInside, setGenesInside, genesOutside, setGenesOutside,
   } = HoverStatesStore()
   const [hover, setHover] = useState(null)
+  const [hoverXY, setHoverXY] = useState([0, 0])
+  const prevHoverRef = useRef(null);
   const [shiftPressed, setShiftPressed] = useState(false);
   const [shiftForRegion, setShiftForRegion] = useState(false);
   useEffect(() => {
@@ -702,11 +705,16 @@ const HilbertGenome = ({
     }
     let hover = regionFromXY(ex, ey)
     if (hover) {
-      setHover({
-        ...hover,
-        tx: ex,
-        ty: ey,
-      });
+      setHoverXY([ex, ey])
+      if (
+        prevHoverRef.current &&
+        prevHoverRef.current.i === hover.i &&
+        prevHoverRef.current.chromosome === hover.chromosome &&
+        prevHoverRef.current.order === hover.order
+      ) {
+        return;  // The region is the same; do not update hover state
+      }
+      setHover(hover);
       onHover(hover);
     }
   }, [order, regionFromXY, setGlobalHover, qt, onHover])
@@ -890,8 +898,8 @@ const HilbertGenome = ({
           <div 
             style={{
               position: "absolute",
-              left: globalHover.tx + "px",
-              top: globalHover.ty + "px",
+              left: hoverXY[0] + "px",
+              top: hoverXY[1] + "px",
               pointerEvents: "none"
             }} 
             data-tooltip-id="hilbert-genome-tooltip"
@@ -904,6 +912,7 @@ const HilbertGenome = ({
             delayUpdate={0}
             place="top"
             border="1px solid gray"
+            opacity={1}
             style={{
               backgroundColor: "white",
               color: "black",
@@ -913,21 +922,44 @@ const HilbertGenome = ({
               pointerEvents: 'none'
             }}
           >
-          <div className="text-base text-black text-xs max-w-[400px]">
-            <div><strong>{showPosition(globalHover)}</strong></div>
-            <div>Genes In Region: {genesInside.map(d => d.hgnc).join(", ")}</div>
-            <div>Genes Overlapping Region: {genesOutside.map(d => d.hgnc).join(", ")}</div>
-            <div>Summary:</div>
-            {
-              hoverSummary !== "" ? 
-              <p className="overflow-auto">
-                {hoverSummary}
-              </p> : 
-              <div className="flex-1 flex justify-center items-center">
-                <Loading />
+          <div className="text-black text-xs w-[400px]">
+            <div className="text-sm border-b-1 border-black mb-2"><strong>{showPosition(globalHover)}</strong></div>
+            <div className="flex flex-row">
+              <div className="w-[250px] pr-2">
+                {genesInside.length ? <div>
+                  <strong>Genes In Region:</strong> {genesInside.map(d => d.hgnc).join(", ")}
+                </div> : null}
+                {genesOutside.length ? <div>
+                  <strong>Genes Overlapping Region:</strong> {genesOutside.map(d => d.hgnc).join(", ")}
+                </div> : null}
+                <strong>Summary:</strong>
+                {
+                  hoverSummary !== "" ? 
+                  <p className="overflow-auto">
+                    {hoverSummary}
+                  </p> : 
+                  <div className="flex-1 flex justify-center items-center">
+                    <Loading />
+                  </div>
+                }
               </div>
-            }
+              <div className="h-[350px] w-[150px]">
+                {hoverNarration ? 
+                <div className="h-[350px] flex">
+                  <ZoomInspector 
+                    providedNarration={hoverNarration} 
+                    providedScoreBarWidth={130}
+                    providedSideBarWidth={20}
+                  />
+                </div> : 
+                <div className="h-[350px] flex-1 flex justify-center items-center">
+                  <Loading />
+                </div>
+                }
+              </div>
+            </div>
           </div>
+          
           </Tooltip>
         </div>
       )}

@@ -15,7 +15,10 @@ import { useZoom } from '../contexts/zoomContext';
  *   - onClick:              (Optional) Function callback for click events.
  */
 function ZoomInspector({
-  maxPathScore,
+  maxPathScore = null,
+  providedNarration = null,
+  providedScoreBarWidth = null,
+  providedSideBarWidth = null,
   onClick = (c) => { console.log("narration", c); },
 }) {
   // zoom order
@@ -30,16 +33,16 @@ function ZoomInspector({
 
   const [csn, setCsn] = useState(selectedNarration);
   useEffect(() => {
-    setCsn(loadingFullNarration ? selectedNarration : fullNarration);
-  }, [loadingFullNarration, selectedNarration, fullNarration]);
+    setCsn(providedNarration ? providedNarration : loadingFullNarration ? selectedNarration : fullNarration);
+  }, [loadingFullNarration, selectedNarration, fullNarration, providedNarration]);
 
   // When narration changes, reset the enriched narration data while new data loads.
   useEffect(() => {
-    setFullNarration(selectedNarration);
-  }, [selectedNarration]);
+    setFullNarration(providedNarration ? providedNarration : selectedNarration);
+  }, [selectedNarration, providedNarration]);
 
   useEffect(() => {
-    if(powerDataLoaded) {
+    if(!providedNarration && powerDataLoaded) {
       setLoadingFullNarration(true);
       collectFullData(selectedNarration);
       setPowerDataLoaded(false); // reset this so we dont eagerly collect full data next selected narration change
@@ -47,26 +50,27 @@ function ZoomInspector({
   }, [selectedNarration, powerDataLoaded, collectFullData])
 
   const tipOrientation = "left";
-  const sidebarWidth = 30;
-  const scoreBarWidth = 150;
+  const sidebarWidth = providedSideBarWidth || 30;
+  const scoreBarWidth = providedScoreBarWidth || 150;
 
   return (
     <div className="flex h-full flex-row relative">
       {/* ZoomLine component - fixed width */}
-      <div className="h-full flex-none" style={{ width: '34px' }}>
+      <div className="h-full flex-none" style={{ width: `${sidebarWidth + 4}px` }}>
         <ZoomLine 
           csn={narrationPreview ? narrationPreview : csn} 
-          order={order}
+          order={!providedNarration ? order : null}
+          showOrderLine={!providedNarration}
           maxPathScore={maxPathScore}
           highlight={true}
           selected={true}
           text={true}
           loadingFullNarration={loadingFullNarration}
-          width={34}
+          width={sidebarWidth + 4}
           height="100%"
           offsetX={0}
           tipOrientation={tipOrientation}
-          onHover={onHover}
+          onHover={!providedNarration ? onHover : () => {}}
           showScore={false}
           onClick={onClick || ((c) => { console.log("ZoomLine clicked:", c); })}
         />
@@ -76,7 +80,8 @@ function ZoomInspector({
       <div className="h-full flex-none relative" style={{ width: `${scoreBarWidth}px` }}>
         <ScoreBars
           csn={slicedNarrationPreview ? slicedNarrationPreview : csn} 
-          order={order}
+          order={!providedNarration ? order : null}
+          showOrderLine={!providedNarration}
           highlight={true}
           selected={true}
           text={true}
@@ -85,29 +90,32 @@ function ZoomInspector({
           height="100%"
           offsetX={sidebarWidth}
           tipOrientation={tipOrientation}
-          onHover={onHover}
+          onHover={!providedNarration ? onHover : () => {}}
           showScore={false}
           onClick={onClick || ((c) => { console.log("ScoreBars clicked:", c); })}
+          allowViewingSecondaryFactors={!providedNarration}
         />
         
         {/* SubPaths positioned absolutely over ScoreBars */}
-        <div className="absolute top-0 left-0 h-full w-full pointer-events-none">
-          <SubPaths 
-            csn={csn}
-            preview={slicedNarrationPreview}
-            order={order}
-            maxPathScore={maxPathScore}
-            highlight={true}
-            selected={true}
-            text={true}
-            width={scoreBarWidth}
-            height="100%"
-            offsetX={0}
-            tipOrientation={tipOrientation}
-            onHover={onHover}
-            showScore={false}
-          />
-        </div>
+        {!providedNarration ? 
+          <div className="absolute top-0 left-0 h-full w-full pointer-events-none">
+            <SubPaths 
+              csn={csn}
+              preview={slicedNarrationPreview}
+              order={order}
+              maxPathScore={maxPathScore}
+              highlight={true}
+              selected={true}
+              text={true}
+              width={scoreBarWidth}
+              height="100%"
+              offsetX={0}
+              tipOrientation={tipOrientation}
+              onHover={onHover}
+              showScore={false}
+            />
+          </div> : null
+        }
       </div>
     </div>
   );

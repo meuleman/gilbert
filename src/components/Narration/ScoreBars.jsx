@@ -40,7 +40,8 @@ export default function ScoreBars({
   showScore=true,
   tipOrientation="left",
   onHover = () => {},
-  onClick = () => {}
+  onClick = () => {},
+  allowViewingSecondaryFactors=true,
 }) {
   const tooltipRef = useRef(null);
   const containerRef = useRef(null);
@@ -224,7 +225,7 @@ export default function ScoreBars({
                       backgroundColor: p && p.field ? p.field.color : "white"
                     }}
                   />
-                  <div
+                  {allowViewingSecondaryFactors ? <div
                     className={`absolute font-mono cursor-pointer right-0 top-0 -translate-x-1.5 translate-y-1.5 text-[${fontSize}px]`}
                   >
                     <span
@@ -235,7 +236,7 @@ export default function ScoreBars({
                     >
                       ?
                     </span>
-                  </div> 
+                  </div> : null}
                 </div>
               ) : null}
             </div>
