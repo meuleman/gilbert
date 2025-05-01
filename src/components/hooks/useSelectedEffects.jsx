@@ -20,6 +20,7 @@ function useSelectedEffects() {
     addCurrentStateToSnapshots,
     regionSummary,
     subpaths, 
+    powerData,
   } = SelectedStatesStore();
 
   const {
@@ -68,7 +69,7 @@ function useSelectedEffects() {
     if(selectedNarration) {
       addCurrentStateToSnapshots();
     }
-  }, [ selectedNarration, subpaths, regionSummary ]);
+  }, [ selectedNarration, subpaths, regionSummary, powerData ]);
 }
 
 export default useSelectedEffects;

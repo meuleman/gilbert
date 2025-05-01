@@ -123,6 +123,7 @@ function PowerModal({
     narrationPreview, selectedNarration, selected, 
     setCurrentPreferred: setCurrentPreferredGlobal,
     setPowerDataLoaded, regionSnapshots, popRegionFromSnapshots,
+    powerData: globalPowerData, setPowerData: setGlobalPowerData, 
     switchSnapshots
   } = SelectedStatesStore();
   
@@ -132,9 +133,11 @@ function PowerModal({
     setCurrentPreferredGlobal(currentPreferred);
   }, [currentPreferred]);
 
-  const [isPreview, setIsPreview] = useState(false);
-  useEffect(() => setIsPreview(!!narrationPreview), [narrationPreview]);
   const [csn, setCsn] = useState(selectedNarration);
+  const isPreviewRef = useRef(false);
+  useEffect(() => {
+    isPreviewRef.current = !!narrationPreview
+  }, [narrationPreview]);
 
   useEffect(() => {
     setCsn(narrationPreview ? narrationPreview : selectedNarration);
@@ -223,6 +226,14 @@ function PowerModal({
   useEffect(() => {
     if (!csn || !csn.path || !csn.path.length) return;
     
+    // check if data has already been collected
+    if(!isPreviewRef.current && globalPowerData && globalPowerData.filter(d => d.collected).length === 11) {
+      console.log("WE HAVE GLOBAL POWER DATA", globalPowerData)
+      setData(globalPowerData);
+      setPowerDataLoaded(true);
+      return;
+    }
+    
     // Function to prepare an orderPoint for a specific order
     const prepareOrderPoint = (o) => {
       let p = csn.path.find(d => d.order === o);
@@ -310,7 +321,8 @@ function PowerModal({
         points: orderPoint.points, 
         region: orderPoint.region, 
         p: orderPoint.p, 
-        data: processedData 
+        data: processedData,
+        collected: true
       };
     };
     
@@ -345,10 +357,19 @@ function PowerModal({
           // Now lazily fetch the rest of the data
           const fetchAllData = async () => {
             // Generate order points for all orders
-            const allOrderPoints = range(4, 15)
-              .reverse()  // load the highest orders first
-              .filter(o => o !== currentOrder)  // Skip the already fetched order
-              .map(prepareOrderPoint);
+            const allOrderPoints = (
+              // if preview, load only the current order and its neighbors
+              isPreviewRef.current ? 
+                // load extra orders around the current order so the transform
+                // can anchor to a position when it approaches the next order
+                // and doesn't look off when a neighboring order is suddenly hovered 
+                // over
+                [currentOrder - 1, currentOrder + 1, currentOrder - 2, currentOrder + 2]
+                .filter(o => o !== currentOrder && o >= 4 && o <= 14)
+              : range(4, 15)
+                .reverse()  // load the highest orders first
+                .filter(o => o !== currentOrder)  // Skip the already fetched order
+            ).map(prepareOrderPoint);
             
             // Fetch data for each order point
             for (const orderPoint of allOrderPoints) {
@@ -378,6 +399,14 @@ function PowerModal({
       150
     )
   }, [csn]);
+
+  useEffect(() => {
+    if(!isPreviewRef.current) {
+      // Update the global power data when local data changes
+      // only track data changes if the data is not a preview
+      setGlobalPowerData(data);
+    }
+  }, [data, setGlobalPowerData])
 
   const throttledWheel = useCallback(
     throttle((delta) => {

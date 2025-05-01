@@ -10,6 +10,8 @@ const useCanvasBbox = (bbox, options = {}) => {
   const strokeScale = options.strokeScale || 1
 
   const drawBbox = useCallback((canvasRef, scales) => {
+    if(!bbox) return;
+    
     let { xScale, yScale, sizeScale } = scales
 
     const ctx = canvasRef.current.getContext('2d');

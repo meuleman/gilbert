@@ -233,7 +233,8 @@ const SelectedStatesStore = create((set, get) => {
       query,
       request_id,
       regionSummary,
-      abstracts
+      abstracts,
+      powerData
     } = get();
     
     const snapshotKey = `${selected.chromosome},${selected.i},${selected.order}`;
@@ -254,7 +255,8 @@ const SelectedStatesStore = create((set, get) => {
       query,
       request_id,
       regionSummary,
-      abstracts
+      abstracts,
+      powerData
     };
 
     const existingIndex = regionSnapshots.findIndex(s => s.id === snapshotKey);
@@ -313,6 +315,7 @@ const SelectedStatesStore = create((set, get) => {
         request_id: snapshot.request_id,
         regionSummary: snapshot.regionSummary,
         abstracts: snapshot.abstracts,
+        powerData: snapshot.powerData,
       });
     }
   }
@@ -369,6 +372,7 @@ const SelectedStatesStore = create((set, get) => {
       prompt: defaultPrompt,
       abstractsIncluded: true,
       currentPreferred: null,
+      powerData: null,
     }, false, { type: 'selected/clear' });
 
     // Execute the callback function if provided
@@ -410,6 +414,8 @@ const SelectedStatesStore = create((set, get) => {
     setSelectedGenesetMembership: (genesets) => set({ selectedGenesetMembership: genesets }),
     currentPreferred: null,
     setCurrentPreferred: (preferred) => set({ currentPreferred: preferred }),
+    powerData: null,
+    setPowerData: (powerData) => set({ powerData }),
 
     // subpaths
     findSubpaths,
