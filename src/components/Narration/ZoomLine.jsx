@@ -46,7 +46,8 @@ export default function ZoomLine({
   tipOrientation="left",
   onClick = () => {},
   onHover = () => {},
-  onFactor= () => {}
+  onFactor= () => {},
+  backtrack= () => {},
 }) {
   const tooltipRef = useRef(null);
   // const scoreTooltipRef = useRef(null);
@@ -179,6 +180,12 @@ export default function ZoomLine({
     tooltipRef.current.hide();
   }, []);
 
+  const handleDoubleClick = useCallback((o) => {
+    if(Math.max(...path.map(d => d.order)) > o) {
+      backtrack(o);
+    }
+  }, [path]);
+
   // const handleScoreHover = useCallback((e) => {
   //   const containerRect = e.currentTarget.getBoundingClientRect();
   //   const xoff = tipOrientation === "left" ? -5 : width + 5;
@@ -242,6 +249,7 @@ export default function ZoomLine({
             }}
             onMouseMove={(e) => {isShiftPressed ? handleMoreInfoHover(e, o) : handleHover(e, o)}}
             onMouseLeave={handleLeave}
+            onDoubleClick={() => handleDoubleClick(o)}
           >
             <div
               className="absolute top-0 left-0 opacity-10 bg-white"

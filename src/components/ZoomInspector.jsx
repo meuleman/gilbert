@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useContext } from 'react';
 import ZoomLine from './Narration/ZoomLine';
 import ScoreBars from './Narration/ScoreBars';
 import SubPaths from './Narration/SubPaths';
 import SelectedStatesStore from '../states/SelectedStates';
+import RegionsContext from './Regions/RegionsContext'
 import { useZoom } from '../contexts/zoomContext';
 
 /**
@@ -25,10 +26,16 @@ function ZoomInspector({
   const { selectedZoomOrder: order, handleSelectedZoom: onHover } = useZoom();
 
   const { 
+    activeSet,
+    activeFilters,
+  } = useContext(RegionsContext)
+
+  const { 
     selectedNarration, fullNarration, loadingFullNarration,
     narrationPreview, slicedNarrationPreview, collectFullData, 
     setFullNarration, setLoadingFullNarration,
-    powerDataLoaded, setPowerDataLoaded
+    powerDataLoaded, setPowerDataLoaded,
+    spawnRegionBacktrack,
   } = SelectedStatesStore();
 
   const [csn, setCsn] = useState(selectedNarration);
@@ -48,6 +55,10 @@ function ZoomInspector({
       setPowerDataLoaded(false); // reset this so we dont eagerly collect full data next selected narration change
     }
   }, [selectedNarration, powerDataLoaded, collectFullData])
+
+  const regionBacktrack = useCallback((order) => {
+    spawnRegionBacktrack(order, activeSet, activeFilters)
+  }, [activeSet, activeFilters]);
 
   const tipOrientation = "left";
   const sidebarWidth = providedSideBarWidth || 30;
@@ -73,6 +84,7 @@ function ZoomInspector({
           onHover={!providedNarration ? onHover : () => {}}
           showScore={false}
           onClick={onClick || ((c) => { console.log("ZoomLine clicked:", c); })}
+          backtrack={regionBacktrack}
         />
       </div>
       
@@ -94,6 +106,7 @@ function ZoomInspector({
           showScore={false}
           onClick={onClick || ((c) => { console.log("ScoreBars clicked:", c); })}
           allowViewingSecondaryFactors={!providedNarration}
+          backtrack={regionBacktrack}
         />
         
         {/* SubPaths positioned absolutely over ScoreBars */}

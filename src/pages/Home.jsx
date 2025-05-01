@@ -39,6 +39,8 @@ import SummarizePaths from '../components/Narration/SummarizePaths'
 import ZoomInspector from '../components/ZoomInspector'
 import Power from '../components/Narration/Power'
 
+// custom hooks
+import useSelectedEffects from '../components/hooks/useSelectedEffects'
 
 // layer configurations
 import { fullList as layers, dropdownList, csnLayers, variantLayers, countLayers } from '../layers'
@@ -196,9 +198,11 @@ function Home() {
   const { setShowActiveRegionSet, setShowSummary } = RegionSetModalStatesStore()
   const { 
     selected, setSelected, region, setRegion, clearSelected,
-    selectedNarration, setSelectedNarration, 
-    collectPathsForSelected, determineFactorExclusion
+    selectedNarration, setSelectedNarration, clearSnapshots,
   } = SelectedStatesStore()
+  // selected summary effects
+  useSelectedEffects()
+
   // only on initial mount
   useEffect(() => {
     // selected powers the sidebar modal and the 1D track
@@ -499,20 +503,8 @@ function Home() {
   const [hoveredTopCSN, setHoveredTopCSN] = useState(null)
   const [csnSort, setCSNSort] = useState("factor")
   // const [regionCSNS, setRegionCSNS] = useState([])
-
-
-  // Create a mapping from geneset to its score for quick lookup
-  const genesetScoreMapping = useMemo(() => {
-    return activeGenesetEnrichment
-      ? activeGenesetEnrichment.reduce((acc, g) => {
-          acc[g.geneset] = g.p;
-          return acc;
-        }, {})
-      : {};
-  }, [activeGenesetEnrichment]);
   
   useEffect(() => {
-    collectPathsForSelected(selected, genesetScoreMapping, determineFactorExclusion, activeSet, activeFilters)
     !activeSet && setShowActiveRegionSet(!!selected)  // if selected but no region set, show the minimap anyway
   }, [selected])
 
@@ -709,6 +701,7 @@ function Home() {
   // TODO: consistent clear state
   const handleModalClose = useCallback(() => {
     clearSelectedState()
+    clearSnapshots()
   }, [clearSelectedState])
 
   const handleClear = useCallback(() => {
@@ -887,7 +880,7 @@ function Home() {
               <div className="w-full flex-1 flex flex-col">
                 <div className="relative flex-1">
                   {/*<div className="absolute top-0 left-1/4 w-1/2 h-full overflow-hidden p-2">*/}
-                  <div className="absolute top-1.5 w-full h-full overflow-hidden p-2 pt-5">
+                  <div className="absolute top-1 w-full h-full overflow-hidden px-2 pt-6 pb-4 cursor-default">
                     <Power onClose={handleModalClose}/>
                   </div>
                 </div>

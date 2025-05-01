@@ -78,10 +78,13 @@ const SelectedStatesStore = create((set, get) => {
         });
         return null
       }).then((response) => {
-        // subpath query
-        let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null, activeSet, activeFilters)
-        // find and set subpaths
-        get().findSubpaths(selected, factorExclusion)
+        const { findSubpaths, subpaths } = get()
+        if(!subpaths) {
+          // subpath query
+          let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null, activeSet, activeFilters)
+          // find and set subpaths
+          findSubpaths(selected, factorExclusion)
+        }
       })
     } else {
       // selected is cleared
@@ -214,7 +217,132 @@ const SelectedStatesStore = create((set, get) => {
     });
   };
 
+  const addCurrentStateToSnapshots = () => {
+    const {
+      regionSnapshots,
+      selected,
+      selectedNarration,
+      fullNarration,
+      region,
+      subpaths,
+      narrationCollection,
+      subpathCollection,
+      narrationPreview,
+      slicedNarrationPreview,
+      currentPreferred,
+      query,
+      request_id,
+      regionSummary,
+      abstracts
+    } = get();
+    
+    const snapshotKey = `${selected.chromosome},${selected.i},${selected.order}`;
+
+    // add information to snapshot
+    const snapshot = {
+      id: snapshotKey,
+      // snapshot: regionSnapshots.length,
+      selected,
+      selectedNarration,
+      fullNarration,
+      subpaths,
+      narrationCollection,
+      subpathCollection,
+      narrationPreview,
+      slicedNarrationPreview,
+      currentPreferred,
+      query,
+      request_id,
+      regionSummary,
+      abstracts
+    };
+
+    const existingIndex = regionSnapshots.findIndex(s => s.id === snapshotKey);
+
+    if (existingIndex >= 0) {
+      // Update existing snapshot
+      const newSnapshots = [...regionSnapshots];
+      newSnapshots[existingIndex] = snapshot;
+      set({ regionSnapshots: newSnapshots });
+      console.log("Snapshot updated:", snapshot, newSnapshots.length, newSnapshots);
+    } else {
+      // add snapshot to regionSnapshots
+      set({ regionSnapshots: [...regionSnapshots, snapshot] });
+      console.log("Snapshot added:", snapshot, [...regionSnapshots, snapshot].length, [...regionSnapshots, snapshot]);
+    }
+  }
+
+  const popRegionFromSnapshots = (snapshotKey) => {
+    const { selected, regionSnapshots } = get();
+    // remove snapshot from regionSnapshots
+    const existingIndex = regionSnapshots.findIndex(s => s.id === snapshotKey);
+
+    if (existingIndex >= 0) {
+      const selectedKey = `${selected.chromosome},${selected.i},${selected.order}`;
+      if(snapshotKey === selectedKey) {
+        // switch to a different snapshot
+        const indexToSwitchTo = existingIndex === 0 ? 1 : existingIndex - 1;
+        const snapshotToSwitchTo = regionSnapshots[indexToSwitchTo];
+        switchSnapshots(snapshotToSwitchTo.id);
+      }
+      const newSnapshots = [...regionSnapshots];
+      newSnapshots.splice(existingIndex, 1);
+      set({ regionSnapshots: newSnapshots });
+      console.log("Snapshot removed:", snapshotKey, newSnapshots.length, newSnapshots);
+    }
+  }
+
+  const switchSnapshots = (snapshotKey) => {
+    const { regionSnapshots } = get();
+    const existingIndex = regionSnapshots.findIndex(s => s.id === snapshotKey);
+    console.log("Switching to snapshot:", snapshotKey, existingIndex);
+    if (existingIndex >= 0) {
+      const snapshot = regionSnapshots[existingIndex];
+      set({
+        selected: snapshot.selected,
+        selectedNarration: snapshot.selectedNarration,
+        fullNarration: snapshot.fullNarration,
+        region: snapshot.region,
+        subpaths: snapshot.subpaths,
+        narrationCollection: snapshot.narrationCollection,
+        subpathCollection: snapshot.subpathCollection,
+        narrationPreview: snapshot.narrationPreview,
+        slicedNarrationPreview: snapshot.slicedNarrationPreview,
+        currentPreferred: snapshot.currentPreferred,
+        query: snapshot.query,
+        request_id: snapshot.request_id,
+        regionSummary: snapshot.regionSummary,
+        abstracts: snapshot.abstracts,
+      });
+    }
+  }
+
+  const spawnRegionBacktrack = (order, activeSet, activeFilters) => {
+
+    // create new region from selectedNarration
+    const { selectedNarration, clearSelected } = get();
+    const path = selectedNarration.path;
+    let newRegion = {...path.find(d => d.order === order)?.region}
+
+    const newNarration = {
+      // Basic narration properties
+      ...newRegion,
+      path: path.filter(d => d.order <= order),
+      region: newRegion,
+      genes: selectedNarration.genes,
+      genesets: selectedNarration.genesets
+    };
+
+    clearSelected()
+
+    // set new region
+    set({ selected: newRegion, selectedNarration: newNarration });
   
+    // subpath query for backtracked region
+    let factorExclusion = determineFactorExclusion(newNarration, activeSet, activeFilters)
+    // find and set subpaths for new backtracked region
+    get().findSubpaths(newRegion, factorExclusion)
+  }
 
   const clearSelected = (callback) => {
     set({ 
@@ -325,6 +453,15 @@ const SelectedStatesStore = create((set, get) => {
 
     // clear selected
     clearSelected,
+
+    // spawning new regions
+    regionSnapshots: [],
+    setRegionSnapshots: (snapshots) => set({ regionSnapshots: snapshots }),
+    spawnRegionBacktrack,
+    addCurrentStateToSnapshots,
+    popRegionFromSnapshots,
+    clearSnapshots: () => set({ regionSnapshots: [] }),
+    switchSnapshots,
 }})
 
 export default SelectedStatesStore;

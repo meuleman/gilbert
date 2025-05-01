@@ -230,22 +230,6 @@ const ActiveRegionSetModal = () => {
     summaryToShow === "regionSet" ? generateRegionSetNarration(prompt) : generateSelectedSummary(prompt)
   }, [summaryToShow, generateRegionSetNarration, generateSelectedSummary, prompt])
 
-  // generate selected region query
-  useEffect(() => {
-    if(selectedNarration) {
-      let query = generateQuery(selectedNarration)
-      if(!!query) setQuery(query)
-      else setRegionSummary(null)
-    }
-  }, [selectedNarration, selectedNarration?.genesets])
-
-  // generate selected summary on new query
-  useEffect(() => {
-    if(query !== "") {
-      generateSelectedSummary()
-    }
-  }, [query])
-
   const handleFeedback = useCallback((feedback) => {
     if(summaryToShow === "regionSet") {
       // TODO: send region set feedback, api endpoint should be available

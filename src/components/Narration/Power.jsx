@@ -122,7 +122,8 @@ function PowerModal({
   const { 
     narrationPreview, selectedNarration, selected, 
     setCurrentPreferred: setCurrentPreferredGlobal,
-    setPowerDataLoaded
+    setPowerDataLoaded, regionSnapshots, popRegionFromSnapshots,
+    switchSnapshots
   } = SelectedStatesStore();
   
   const [currentPreferred, setCurrentPreferred] = useState(null);
@@ -545,23 +546,61 @@ function PowerModal({
     return data.find(d => d.order === order)?.layer
   }, [data, order])
 
+  const handleClose = useCallback((index) => {
+    if (regionSnapshots?.length > 1) {
+      let toClose = regionSnapshots[index].selected;
+      const id = `${toClose.chromosome},${toClose.i},${toClose.order}`;
+      popRegionFromSnapshots(id);
+    } else {
+      onClose();
+    }
+  }, [onClose, regionSnapshots])
+
+  const handleTabClick = useCallback((index) => {
+    console.log("handleTabClick", index, regionSnapshots)
+    if (regionSnapshots?.length > 1) {
+      let toSwitchTo = regionSnapshots[index].selected;
+      const id = `${toSwitchTo.chromosome},${toSwitchTo.i},${toSwitchTo.order}`;
+      switchSnapshots(id);
+    }
+  }, [regionSnapshots, switchSnapshots])
+
   return (
-    <div ref={containerRef} className="power w-full h-full border-[2px] border-separator p-0">
+    <div ref={containerRef} className="relative power h-full w-full border-[2px] border-gray-400 mt-2">
       <div>
         <div className="relative">
-          {/* Close button */}
-          <div className="absolute -top-1.5 left-0 -ml-0.5 -mt-4.5 px-1 flex flex-row items-center space-x-2 bg-separator text-black text-[10px] cursor-default">
-            <div className="group flex items-center">
-              <X 
-                width="10" 
-                role="button" 
-                className="cursor-pointer group-hover:[&_path]:stroke-red-500" 
-                onClick={onClose}
-              />
-            </div>
-            <div className="flex items-center">
-              {showPosition(selected)}
-            </div>
+          {/* Tabs */}
+          <div className="flex flex-row cursor-default">
+            {(regionSnapshots?.length ? regionSnapshots : (selected ? [{selected}] : [])).map((d, index) => {
+              let isSelected = (
+                d.selected.chromosome === selected.chromosome && 
+                d.selected.i === selected.i && 
+                d.selected.order === selected.order
+              );
+              return (
+                <div 
+                  className={`
+                    relative -top-0.5 left-0 -ml-0.5 -mt-7 px-1 flex flex-row items-center space-x-2 
+                    text-[10px] rounded-t-lg mx-0.5 cursor-pointer
+                    border-t border-l border-r ${isSelected ? 'border-gray-400' : 'border-gray-200'}
+                    ${isSelected ? 'bg-gray-400 text-white z-10' : 'bg-gray-100 text-black'}
+                  `}
+                  onClick={() => handleTabClick(index)}
+                >
+                  <div className="group flex items-center">
+                    <X 
+                      width="10" 
+                      role="button" 
+                      className="cursor-pointer group-hover:[&_path]:stroke-red-500" 
+                      onClick={() => handleClose(index)}
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    {showPosition(d.selected)}
+                  </div>
+                </div>
+              )
+            })}
           </div>
           {loading && (
             //  bg-white bg-opacity-60
@@ -578,7 +617,7 @@ function PowerModal({
           />
         </div>
         {data && (
-          <div className="relative h-24 border-separator">
+          <div className="relative border-separator" style={{ height: `${sheight}px` }}>
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
               <LinearGenome
                 center={linearCenter} 

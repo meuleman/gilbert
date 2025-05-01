@@ -42,6 +42,7 @@ export default function ScoreBars({
   onHover = () => {},
   onClick = () => {},
   allowViewingSecondaryFactors=true,
+  backtrack= () => {},
 }) {
   const tooltipRef = useRef(null);
   const containerRef = useRef(null);
@@ -180,6 +181,12 @@ export default function ScoreBars({
     tooltipRef.current.hide()
   }, [])
 
+  const handleDoubleClick = useCallback((o) => {
+    if(Math.max(...path.map(d => d.order)) > o) {
+      backtrack(o);
+    }
+  }, [path]);
+
   return (
     <div
       ref={containerRef}
@@ -207,6 +214,7 @@ export default function ScoreBars({
               }}
               onMouseMove={(e) => {isShiftPressed ? handleMoreInfoHover(e, o) : handleHover(e, o)}}
               onMouseLeave={handleLeave}
+              onDoubleClick={() => handleDoubleClick(o)}
             >
               <div
                 className="absolute top-0 left-0 opacity-[0.01] bg-white"
@@ -232,6 +240,7 @@ export default function ScoreBars({
                       className="pointer-events-auto"
                       onMouseMove={(e) => handleMoreInfoHover(e, o)}
                       onMouseLeave={handleLeave}
+                      onDoubleClick={() => handleDoubleClick(o)}
                       onClick={(e) => handleClick(e, o)}
                     >
                       ?
