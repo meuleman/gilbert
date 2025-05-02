@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useRef, useMemo, useCallback, useState } from 'react';
+import { useReducer, useEffect, useRef, useMemo, useCallback, useState, useContext } from 'react';
 
 // import  debounce from 'lodash.debounce';
 import { scaleLinear } from 'd3-scale';
@@ -7,6 +7,7 @@ import { select } from 'd3-selection';
 import { quadtree } from 'd3-quadtree';
 import { sum, range } from 'd3-array';
 import { easeLinear, easePolyOut, easeExpOut, easeQuadOut } from 'd3-ease';
+import { overlaps } from '../lib/regions'
 
 import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome';
 import { getBboxDomain, untransform } from '../lib/bbox';
@@ -20,6 +21,7 @@ import ZoomInspector from '../components/ZoomInspector'
 import { showPosition } from '../lib/display';
 import { getGenesInCell, getGenesOverCell } from '../lib/genes'
 import HoverStatesStore from '../states/HoverStates'
+import RegionsContext from '../components/Regions/RegionsContext';
 
 import { useZoom } from '../contexts/zoomContext';
 
@@ -182,6 +184,8 @@ const HilbertGenome = ({
     setBbox = zoomContext.setBbox,
     setScales = zoomContext.setScales,
   } = zoomMethods || {};
+
+  const { filteredActiveRegions } = useContext(RegionsContext)
 
   const { 
     hover: globalHover, setHover: setGlobalHover, collectPathForHover,
@@ -719,6 +723,11 @@ const HilbertGenome = ({
     }
   }, [order, regionFromXY, setGlobalHover, qt, onHover])
 
+  const filteredActiveRegionsRef = useRef(filteredActiveRegions);
+  useEffect(() => {
+    filteredActiveRegionsRef.current = filteredActiveRegions;
+  }, [filteredActiveRegions])
+
   // generating CSN and summary for hover
   useEffect(() => {
     setHoverNarration(null);
@@ -730,9 +739,17 @@ const HilbertGenome = ({
       setGlobalHover(null);
       return;
     }
-    setGlobalHover(hover)
-    setGenesInside(getGenesInCell(hover, hover.order))
-    setGenesOutside(getGenesOverCell(hover, hover.order))
+
+    let region = hover
+    // test for overlap of region set region
+    if(filteredActiveRegionsRef.current?.length) {
+      let overlappingRegion = overlaps(hover, filteredActiveRegionsRef.current)[0] || hover
+      overlappingRegion.subregion ? overlappingRegion = overlappingRegion.subregion : null
+      region = overlappingRegion.order > hover.order ? overlappingRegion : hover
+    } 
+    setGlobalHover(region)
+    setGenesInside(getGenesInCell(region, region.order))
+    setGenesOutside(getGenesOverCell(region, region.order))
   }, [hover]);
 
   useEffect(() => {
@@ -745,12 +762,12 @@ const HilbertGenome = ({
     hoverContentDebounce(
       async () => {
         // ensures that when shiftForRegion is set to false, no extra path is collected
-        shiftForRegion ? collectPathForHover(hover) : null
+        shiftForRegion ? collectPathForHover(globalHover) : null
       },
       () => {},
       1000
     )
-  }, [shiftForRegion, hover])
+  }, [shiftForRegion, globalHover])
 
   useEffect(() => {
     if(!hoverNarration) return;
