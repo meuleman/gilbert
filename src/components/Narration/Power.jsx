@@ -359,14 +359,14 @@ function PowerModal({
             // Generate order points for all orders
             const allOrderPoints = (
               // if preview, load only the current order and its neighbors
-              isPreviewRef.current ? 
+              // isPreviewRef.current ? 
                 // load extra orders around the current order so the transform
                 // can anchor to a position when it approaches the next order
                 // and doesn't look off when a neighboring order is suddenly hovered 
                 // over
-                [currentOrder + 1, currentOrder - 1, currentOrder + 2]
-                .filter(o => o !== currentOrder && o >= 4 && o <= 14)
-              : range(4, 15)
+                // [currentOrder + 1, currentOrder - 1, currentOrder + 2]
+                // .filter(o => o !== currentOrder && o >= 4 && o <= 14)
+              range(4, 15)
                 .reverse()  // load the highest orders first
                 .filter(o => o !== currentOrder)  // Skip the already fetched order
             ).map(prepareOrderPoint);
