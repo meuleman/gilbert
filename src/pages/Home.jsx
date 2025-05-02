@@ -198,7 +198,8 @@ function Home() {
   const { setShowActiveRegionSet, setShowSummary } = RegionSetModalStatesStore()
   const { 
     selected, setSelected, region, setRegion, clearSelected,
-    selectedNarration, setSelectedNarration, clearSnapshots,
+    selectedNarration, setSelectedNarration, clearSnapshots, 
+    regionSnapshots, popRegionFromSnapshots
   } = SelectedStatesStore()
   // selected summary effects
   useSelectedEffects()
@@ -756,7 +757,13 @@ function Home() {
   useEffect(() => {
     function handleKeyDown(e) {
       if (e.key === "Escape") {
-        handleModalClose()
+        if(regionSnapshots.length > 1) {
+          // remove all tabs except the originally selected region
+          regionSnapshots.slice(1).forEach(d => popRegionFromSnapshots(d.id))
+        } else {
+          // close modal if only one tab open
+          handleModalClose()
+        }
       }
       if (e.key == "/") {
         if (autocompleteRef.current) {
@@ -768,7 +775,7 @@ function Home() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     }
-  }, [handleModalClose])
+  }, [handleModalClose, regionSnapshots])
 
   const [showLayerLegend, setShowLayerLegend] = useState(false)
   const [showSpectrum, setShowSpectrum] = useState(false)
