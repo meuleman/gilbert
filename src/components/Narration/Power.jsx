@@ -364,7 +364,7 @@ function PowerModal({
                 // can anchor to a position when it approaches the next order
                 // and doesn't look off when a neighboring order is suddenly hovered 
                 // over
-                [currentOrder - 1, currentOrder + 1, currentOrder - 2, currentOrder + 2]
+                [currentOrder + 1, currentOrder - 1, currentOrder + 2]
                 .filter(o => o !== currentOrder && o >= 4 && o <= 14)
               : range(4, 15)
                 .reverse()  // load the highest orders first
