@@ -35,7 +35,7 @@ function ZoomInspector({
     narrationPreview, slicedNarrationPreview, collectFullData, 
     setFullNarration, setLoadingFullNarration,
     powerDataLoaded, setPowerDataLoaded,
-    spawnRegionBacktrack,
+    spawnRegionBacktrack, setFactorSelection
   } = SelectedStatesStore();
 
   const [csn, setCsn] = useState(selectedNarration);
@@ -59,6 +59,10 @@ function ZoomInspector({
   const regionBacktrack = useCallback((order) => {
     spawnRegionBacktrack(order, activeSet, activeFilters)
   }, [activeSet, activeFilters]);
+
+  const subpathSelection = useCallback((factor) => {
+    setFactorSelection(factor, activeSet, activeFilters);
+  }, [setFactorSelection, activeSet, activeFilters]);
 
   const tipOrientation = "left";
   const sidebarWidth = providedSideBarWidth || 30;
@@ -126,6 +130,7 @@ function ZoomInspector({
               tipOrientation={tipOrientation}
               onHover={onHover}
               showScore={false}
+              selectSubpath={subpathSelection}
             />
           </div> : null
         }

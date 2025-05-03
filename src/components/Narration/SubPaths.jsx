@@ -60,6 +60,7 @@ export default function SubPaths({
   tipOrientation="left",
   onClick = () => {},
   onHover = () => {},
+  selectSubpath = () => {},
 }) {
   const containerRef = useRef(null);
   const [containerHeight, setContainerHeight] = useState(0);
@@ -82,10 +83,7 @@ export default function SubPaths({
     };
   }, []);
 
-  const { 
-    subpathGoBack: onSubpathBack, setFactorSelection: onFactor, subpathCollection,
-    subpaths, removeNarrationPreview, handleNarrationPreview,
-  } = SelectedStatesStore()
+  const { subpaths, removeNarrationPreview, handleNarrationPreview } = SelectedStatesStore()
   
   const tooltipRef = useRef(null)
   
@@ -149,9 +147,9 @@ export default function SubPaths({
   const rw = useMemo(() => yScale(5) - yScale(4) - 2, [yScale]);
 
   const handleClick = useCallback((e, f) => {
-    onFactor(f)
+    selectSubpath(f)
     tooltipRef.current.hide()
-  }, [onFactor])
+  }, [selectSubpath])
 
   const handleSubpathHover = useCallback((e, f) => {
     handleNarrationPreview(f)
@@ -242,30 +240,6 @@ export default function SubPaths({
           return null
         })
       }
-
-      {chosenFactorOrder && subpathCollection?.length && containerHeight > 0 ? (
-        <div
-          className="absolute pointer-events-auto rounded border border-white"
-          style={{
-            left: rw * 0.25 - 4,
-            top: yScale(chosenFactorOrder) + rw - 2 * fontSize - 4,
-            width: fontSize * 8,
-            height: fontSize + 6,
-            backgroundColor: "rgba(255, 0, 0, 0.1)",
-          }}
-        >
-          <span
-            className="block text-center cursor-pointer pointer-events-auto opacity-100"
-            style={{
-              fontSize: fontSize,
-              lineHeight: `${fontSize + 6}px`,
-            }}
-            onClick={onSubpathBack}
-          >
-            ❌ remove pin
-          </span>
-        </div>
-      ) : null}
 
       <Tooltip ref={tooltipRef} orientation={tipOrientation} contentFn={factorTooltipContent} enforceBounds={false} />
     </div>

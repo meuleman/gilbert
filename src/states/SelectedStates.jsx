@@ -3,6 +3,7 @@ import {
   fetchSingleRegionFactorOverlap 
 } from '../lib/apiService';
 import { createSubregionPaths } from '../lib/subregionPaths'
+import { fromIndex } from '../lib/regions'
 import { fullList as layers } from '../layers'
 import { retrieveFullDataForCSN, fetchCombinedPathsAndGWAS } from '../lib/csn'
 import { 
@@ -155,38 +156,39 @@ const SelectedStatesStore = create((set, get) => {
   };
 
   // updates the narration with a factor's subpath selection.
-  const setFactorSelection = (factor, activeSet = null, activeFilters = []) => {
+  const setFactorSelection = (f, activeSet = null, activeFilters = []) => {
 
-    let selectedNarration = get().selectedNarration;
-    if (!selectedNarration || !factor?.path?.path) return;
-    
-    let subpaths = get().subpaths;
-    let narrationCollection = get().narrationCollection;
-    let subpathCollection = get().subpathCollection;
+    const {removeNarrationPreview, clearSelected, selectedNarration } = get(); 
+    if (!selectedNarration || !f?.path?.path) return;
 
-    // Save current narration to collection.
-    set({ narrationCollection: [...narrationCollection, selectedNarration] });
+    // create region
+    let factor = f.path;
+    let region = {
+      ...fromIndex(factor.chromosome, factor.i, factor.order),
+      ...factor
+    };
 
-    const newNarration = { ...selectedNarration };
-    let newPath = factor.path.path;
+    const newNarration = JSON.parse(JSON.stringify(selectedNarration));
+    let newPath = factor.path;
 
+    // clear previous selected information set 
+    clearSelected()
+    removeNarrationPreview();
+
+    // Add full data to the new path
     if (newNarration?.path?.length && newPath?.length) {
-      // clear preview if it exists
-      get().removeNarrationPreview();
 
       // add previously collected fullData and counts to segments of the new path
       newNarration.path.forEach(d => {
         let correspondingSegment = newPath.find(e => e.order === d.order);
-        if (correspondingSegment.length === 1) {
-          d.fullData ? correspondingSegment[0]["fullData"] = d.fullData : null;
-          d.counts ? correspondingSegment[0]["counts"] = d.counts : null;
+        if (!!correspondingSegment) {
+          d.fullData ? correspondingSegment["fullData"] = d.fullData : null;
+          d.counts ? correspondingSegment["counts"] = d.counts : null;
         }
       });
       newNarration.path = newPath;
-      set({ 
-        subpathCollection: [...subpathCollection, subpaths], 
-        selectedNarration: newNarration 
-      });
+      // Save current region and narration to collection.
+      set({ selected: region, selectedNarration: newNarration });
 
       // Determine which factors to exclude based on the updated narration,
       // and then search for new subpaths from the latest region.

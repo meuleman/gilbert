@@ -624,7 +624,7 @@ function PowerModal({
                       onClick={() => handleClose(index)}
                     />
                   </div>
-                  <div className="flex items-center">
+                  <div className={`flex items-center ${!isSelected ? 'hover:text-red-500' : '' }`}>
                     {showPosition(d.selected)}
                   </div>
                 </div>
