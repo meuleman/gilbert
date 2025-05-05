@@ -4,7 +4,7 @@ import {
 } from '../lib/apiService';
 import { createSubregionPaths } from '../lib/subregionPaths'
 import { fromIndex } from '../lib/regions'
-import { fullList as layers } from '../layers'
+import { csnLayerList as layers } from '../layers'
 import { retrieveFullDataForCSN, fetchCombinedPathsAndGWAS } from '../lib/csn'
 import { 
   generateQuery, 
@@ -323,17 +323,73 @@ const SelectedStatesStore = create((set, get) => {
     }
   }
 
+  // reconstructs the preferred path based on the full data collected
+  const recalculatePreferred = (path) => {
+    let fullData = []
+    path.forEach(d => {
+      const order = d.order;
+      if(d.fullData) {
+        Object.entries(d.fullData).forEach(e => {
+          const [key, score] = e;
+          const [datasetIndex, factorIndex] = key.split(",");
+          const layer = layers[datasetIndex];
+          const field = layer.fieldColor.domain()[factorIndex];
+          const newData = {
+            order, index: factorIndex, layer,
+            field, score
+          };
+          fullData.push(newData);
+        })
+      } 
+    })
+    fullData = fullData.sort((a, b) => b.score - a.score);
+    
+    let newPath = JSON.parse(JSON.stringify(path));
+    
+    while(fullData.length) {
+      const factor = fullData.shift();
+      const order = factor.order;
+      // find the segment in the path
+      let segment = newPath.find(d => d.order === order);
+
+      let field = {
+        color: factor.layer.fieldColor(factor.field),
+        field: factor.field, 
+        index: factor.index,
+        value: factor.score
+      }
+      // add field to segment
+      segment.field = field;
+      segment.region.field = field;
+      // add layer to segment
+      segment.layer = factor.layer;
+
+      // filter full data
+      fullData = fullData.filter(d => 
+        !(
+          (d.order === order) || 
+          (
+            (d.layer.datasetName === factor.layer.datasetName) && 
+            (d.index === factor.index)
+          )
+        )
+      );
+    }
+    return newPath;
+  }
+
   const spawnRegionBacktrack = (order, activeSet, activeFilters) => {
 
     // create new region from selectedNarration
     const { selected, selectedNarration, clearSelected } = get();
-    const path = selectedNarration.path;
-    let newRegion = {...path.find(d => d.order === order)?.region, derivedFrom: selected };
+    const path = selectedNarration.path.filter(d => d.order <= order);
+    const newPath = recalculatePreferred(path);
+    let newRegion = {...newPath.find(d => d.order === order)?.region, derivedFrom: selected };
 
     const newNarration = {
       // Basic narration properties
       ...newRegion,
-      path: path.filter(d => d.order <= order),
+      path: newPath,
       region: newRegion,
       genes: selectedNarration.genes,
       genesets: selectedNarration.genesets
