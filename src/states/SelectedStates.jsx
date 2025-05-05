@@ -527,6 +527,7 @@ const SelectedStatesStore = create((set, get) => {
     popRegionFromSnapshots,
     clearSnapshots: () => set({ regionSnapshots: [] }),
     switchSnapshots,
+    recalculatePreferred,
 }})
 
 export default SelectedStatesStore;
