@@ -169,8 +169,16 @@ const SelectedStatesStore = create((set, get) => {
       derivedFrom: selected,
     };
 
-    const newNarration = JSON.parse(JSON.stringify(selectedNarration));
     let newPath = factor.path;
+
+    const newNarration = {
+      // Basic narration properties
+      ...region,
+      path: newPath,
+      region,
+      genes: selectedNarration.genes,
+      genesets: selectedNarration.genesets
+    };
 
     // clear previous selected information set 
     clearSelected()
