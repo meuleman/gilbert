@@ -757,9 +757,10 @@ function Home() {
   useEffect(() => {
     function handleKeyDown(e) {
       if (e.key === "Escape") {
-        if(regionSnapshots.length > 1) {
+        const derivedRegions = regionSnapshots?.filter(d => !!d?.selected?.derivedFrom)
+        if(derivedRegions?.length) {
           // remove all tabs except the originally selected region
-          regionSnapshots.slice(1).forEach(d => popRegionFromSnapshots(d.id))
+          derivedRegions.forEach(d => popRegionFromSnapshots(d.id))
         } else {
           // close modal if only one tab open
           handleModalClose()

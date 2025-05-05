@@ -158,14 +158,15 @@ const SelectedStatesStore = create((set, get) => {
   // updates the narration with a factor's subpath selection.
   const setFactorSelection = (f, activeSet = null, activeFilters = []) => {
 
-    const {removeNarrationPreview, clearSelected, selectedNarration } = get(); 
+    const { selected, removeNarrationPreview, clearSelected, selectedNarration } = get(); 
     if (!selectedNarration || !f?.path?.path) return;
 
     // create region
     let factor = f.path;
     let region = {
       ...fromIndex(factor.chromosome, factor.i, factor.order),
-      ...factor
+      ...factor,
+      derivedFrom: selected,
     };
 
     const newNarration = JSON.parse(JSON.stringify(selectedNarration));
@@ -239,7 +240,7 @@ const SelectedStatesStore = create((set, get) => {
       powerData
     } = get();
     
-    const snapshotKey = `${selected.chromosome},${selected.i},${selected.order}`;
+    const snapshotKey = `${selected?.chromosome},${selected?.i},${selected?.order}`;
 
     // add information to snapshot
     const snapshot = {
@@ -325,9 +326,9 @@ const SelectedStatesStore = create((set, get) => {
   const spawnRegionBacktrack = (order, activeSet, activeFilters) => {
 
     // create new region from selectedNarration
-    const { selectedNarration, clearSelected } = get();
+    const { selected, selectedNarration, clearSelected } = get();
     const path = selectedNarration.path;
-    let newRegion = {...path.find(d => d.order === order)?.region}
+    let newRegion = {...path.find(d => d.order === order)?.region, derivedFrom: selected };
 
     const newNarration = {
       // Basic narration properties

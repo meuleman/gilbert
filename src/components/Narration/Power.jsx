@@ -602,9 +602,9 @@ function PowerModal({
           <div className="flex flex-row cursor-default">
             {(regionSnapshots?.length ? regionSnapshots : (selected ? [{selected}] : [])).map((d, index) => {
               let isSelected = (
-                d.selected.chromosome === selected.chromosome && 
-                d.selected.i === selected.i && 
-                d.selected.order === selected.order
+                d.selected?.chromosome === selected?.chromosome && 
+                d.selected?.i === selected?.i && 
+                d.selected?.order === selected?.order
               );
               return (
                 <div 
@@ -625,7 +625,7 @@ function PowerModal({
                     />
                   </div>
                   <div className={`flex items-center ${!isSelected ? 'hover:text-red-500' : '' }`}>
-                    {showPosition(d.selected)}
+                    {showPosition(d.selected)}{!!d.selected?.derivedFrom ? "*" : ""}
                   </div>
                 </div>
               )
