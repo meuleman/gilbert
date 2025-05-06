@@ -161,8 +161,13 @@ const SelectedStatesStore = create((set, get) => {
   // updates the narration with a factor's subpath selection.
   const setFactorSelection = (f, activeSet = null, activeFilters = []) => {
 
-    const { selected, removeNarrationPreview, clearSelected, selectedNarration, updateSnapshotAndState } = get(); 
-    if (!selectedNarration || !f?.path?.path) return;
+    const { 
+      selected, removeNarrationPreview, clearSelected, 
+      selectedNarration, updateSnapshotAndState, preventDerivation
+    } = get(); 
+    if (!selectedNarration || !f?.path?.path || preventDerivation) return;
+
+    set({ preventDerivation: true });
 
     // create region
     let factor = f.path;
@@ -417,7 +422,10 @@ const SelectedStatesStore = create((set, get) => {
   const spawnRegionBacktrack = (order, activeSet, activeFilters) => {
 
     // create new region from selectedNarration
-    const { selected, selectedNarration, clearSelected } = get();
+    const { selected, selectedNarration, clearSelected, preventDerivation } = get();
+
+    if(preventDerivation) return;
+    set({ preventDerivation: true });
 
     const path = selectedNarration.path.filter(d => d.order <= order);
     const newPath = recalculatePreferred(path);
@@ -525,7 +533,7 @@ const SelectedStatesStore = create((set, get) => {
 
   return {
     selected: null,
-    setSelected: (selected) => set({ selected: selected }),
+    setSelected: (selected) => set({ selected: selected, preventDerivation: true }),
     region: null,
     setRegion: (region) => set({ region: region }),
     subpaths: null,
@@ -613,6 +621,8 @@ const SelectedStatesStore = create((set, get) => {
     updateSnapshot,
     createKey,
     updateSnapshotAndState,
+    preventDerivation: false,
+    setPreventDerivation: (prevent) => set({ preventDerivation: prevent }),
 }})
 
 export default SelectedStatesStore;

@@ -124,7 +124,7 @@ function PowerModal({
     setCurrentPreferred: setCurrentPreferredGlobal,
     setPowerDataLoaded, regionSnapshots, popRegionFromSnapshots,
     powerData: globalPowerData, setPowerData: setGlobalPowerData, 
-    switchSnapshots
+    switchSnapshots, setPreventDerivation,
   } = SelectedStatesStore();
   
   const [currentPreferred, setCurrentPreferred] = useState(null);
@@ -406,6 +406,11 @@ function PowerModal({
       // only track data changes if the data is not a preview
       const dataRegion = data.filter(d => !!d?.p).sort((a, b) => b.order - a.order).shift()?.region;
       setGlobalPowerData(dataRegion, data);
+
+      // wait until power data loads to allow derivation
+      if(data.filter(d => d.collected).length === 11) {
+        setPreventDerivation(false);
+      }
     }
   }, [data, setGlobalPowerData])
 
