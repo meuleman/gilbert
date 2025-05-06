@@ -454,6 +454,22 @@ const SelectedStatesStore = create((set, get) => {
     get().findSubpaths(newRegion, factorExclusion)
   }
 
+  const spawnRegionSidetrack = (region) => {
+
+    const { selected, clearSelected, preventDerivation } = get();
+
+    if(preventDerivation) return;
+    set({ preventDerivation: true });
+
+    clearSelected()
+
+    // set new region
+    set({ selected: {...region, derivedFrom: selected} });
+
+    // add new region to snapshot
+    addCurrentStateToSnapshots()
+  }
+
   const generateSummary = (region, providedPrompt = null) => {
     const { createKey, updateSnapshotAndState } = get();
     const regionKey = createKey(region);
@@ -613,6 +629,7 @@ const SelectedStatesStore = create((set, get) => {
     regionSnapshots: [],
     setRegionSnapshots: (snapshots) => set({ regionSnapshots: snapshots }),
     spawnRegionBacktrack,
+    spawnRegionSidetrack,
     addCurrentStateToSnapshots,
     popRegionFromSnapshots,
     clearSnapshots: () => set({ regionSnapshots: [] }),

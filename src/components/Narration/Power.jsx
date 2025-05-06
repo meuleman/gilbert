@@ -24,7 +24,7 @@ import { Renderer as CanvasRenderer } from '../Canvas/Renderer';
 
 import { useZoom } from '../../contexts/zoomContext';
 import SelectedStatesStore from '../../states/SelectedStates';
-import LinearGenome from '../../components/LinearGenome'
+import LinearGenome from '../../components/LinearGenome';
 
 import Tooltip from '../Tooltips/Tooltip';
 import PropTypes from 'prop-types';
@@ -124,7 +124,7 @@ function PowerModal({
     setCurrentPreferred: setCurrentPreferredGlobal,
     setPowerDataLoaded, regionSnapshots, popRegionFromSnapshots,
     powerData: globalPowerData, setPowerData: setGlobalPowerData, 
-    switchSnapshots, setPreventDerivation,
+    switchSnapshots, setPreventDerivation, spawnRegionSidetrack,
   } = SelectedStatesStore();
   
   const [currentPreferred, setCurrentPreferred] = useState(null);
@@ -599,6 +599,58 @@ function PowerModal({
       switchSnapshots(id);
     }
   }, [regionSnapshots, switchSnapshots])
+
+
+  const handleCanvasClick = useCallback((event) => {
+    if (!transformResult) return;
+    
+    // canvas relative coordinates
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    // current transform and data
+    const { transform, order, data } = transformResult;
+    
+    // find which segment was clicked
+    const clickedSegment = findClickedSegment(x, y, data.points, transform, order, scales);
+    if (clickedSegment) handleSegmentClick(clickedSegment)
+  }, [transformResult, scales]);
+
+  const findClickedSegment = (x, y, points, t, order, scales) => {
+    const step = Math.pow(0.5, order);
+    const rw = scales.sizeScale(step) * t.k * 1 - 1;
+    
+    for (let i = 0; i < points.length; i++) {
+      const d = points[i];
+      const xx = t.x + scales.xScale(d.x) * t.k;
+      const yy = t.y + scales.yScale(d.y) * t.k;
+      
+      // Check if click is within this segment
+      if (
+        x >= xx - rw/2 && 
+        x <= xx + rw/2 && 
+        y >= yy - rw/2 && 
+        y <= yy + rw/2
+      ) {
+        return { ...d, index: i };
+      }
+    }
+    return null;
+  };
+
+  const handleSegmentClick = useCallback((segment) => {
+    if(!!selected.derivedFrom) return;
+    spawnRegionSidetrack(segment);
+  }, [selected, spawnRegionSidetrack]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.addEventListener('dblclick', handleCanvasClick);
+      return () => canvas.removeEventListener('dblclick', handleCanvasClick);
+    }
+  }, [handleCanvasClick]);
 
   return (
     <div ref={containerRef} className="relative power h-full w-full border-[2px] border-gray-400 mt-2">
