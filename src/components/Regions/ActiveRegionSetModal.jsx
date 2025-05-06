@@ -71,17 +71,22 @@ const ActiveRegionSetModal = () => {
   
   const { showActiveRegionSet } = RegionSetModalStatesStore()
   const { 
-    selected, setSelected, setRegion, regionSummary, selectedNarration, query, setQuery,
-    setRegionSummary, generateQuery, generateSummary: generateSelectedSummary, feedback: selectedFeedback, 
+    selected, setSelected, setRegion, regionSummary,
+    generateSummary: generateSelectedSummary, feedback: selectedFeedback, 
     abstracts: selectedAbstracts, prompt: selectedPrompt
   } = SelectedStatesStore()
 
   const containerRef = useRef(null)
+  const selectedRef = useRef(null);
   const selectedRegionRef = useRef(null);
   const [width, height] = useContainerSize(containerRef, [activeGenesetEnrichment]);
   const minimapContainerRef = useRef(null)
   const [regionSetView, setRegionSetView] = useState("minimap");
   const [minimapWidth, minimapHeight] = useContainerSize(minimapContainerRef, [regionSetView]);
+
+  useEffect(() => {
+    selectedRef.current = selected;
+  }, [selected])
 
   const handleSelectActiveRegionSet = useCallback((region) => {
     setSelected(region?.subregion || region)  // set selected with implied region
@@ -227,7 +232,7 @@ const ActiveRegionSetModal = () => {
   }, [setPrompt])
 
   const generate = useCallback(() => {
-    summaryToShow === "regionSet" ? generateRegionSetNarration(prompt) : generateSelectedSummary(prompt)
+    summaryToShow === "regionSet" ? generateRegionSetNarration(prompt) : generateSelectedSummary(selectedRef.current, prompt)
   }, [summaryToShow, generateRegionSetNarration, generateSelectedSummary, prompt])
 
   const handleFeedback = useCallback((feedback) => {

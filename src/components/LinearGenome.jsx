@@ -293,7 +293,7 @@ const LinearGenome = ({
         })
 
         // Render the data track
-        if(data && layer && data[0]) {
+        if(data && layer && data[0] && !!layer.fieldChoice) {
           ctx.globalAlpha = 1  
           const meta = metas?.find((meta) => meta.chromosome === region.chromosome)
           let { min, max, fields } = Data.getDataBounds(meta)

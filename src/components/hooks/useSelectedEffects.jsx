@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useContext } from 'react';
+import { useEffect, useMemo, useContext, useRef } from 'react';
 import SelectedStatesStore from '../../states/SelectedStates';
 import RegionsContext from '../../components/Regions/RegionsContext';
 
@@ -29,6 +29,17 @@ function useSelectedEffects() {
     activeFilters
   } = useContext(RegionsContext)
 
+  useEffect(() => {
+    if(selected) {
+      addCurrentStateToSnapshots();
+    }
+  }, [ selected ]);
+
+  const selectedRef = useRef(null);
+  useEffect(() => {
+    selectedRef.current = selected;
+  }, [selected]);
+
   // Create a mapping from geneset to its score for quick lookup
   const genesetScoreMapping = useMemo(() => {
     return activeGenesetEnrichment
@@ -40,7 +51,7 @@ function useSelectedEffects() {
   }, [activeGenesetEnrichment]);
 
   useEffect(() => {
-    if(!(selectedNarration)) {
+    if(selected && !(selectedNarration)) {
       collectPathsForSelected(selected, genesetScoreMapping, determineFactorExclusion, activeSet, activeFilters)
     }
   }, [selected, subpaths, selectedNarration])
@@ -49,27 +60,16 @@ function useSelectedEffects() {
   useEffect(() => {
     // don't collect again if we are already have the summary
     if (selectedNarration && !regionSummary) {
-      const generatedQuery = generateQuery(selectedNarration);
-      if (!!generatedQuery) {
-        setQuery(generatedQuery);
-      } else {
-        setRegionSummary(null);
-      }
+      generateQuery(selectedRef.current, selectedNarration);
     }
-  }, [selectedNarration, selectedNarration?.genesets, generateQuery, setQuery, setRegionSummary, regionSummary]);
+  }, [selectedNarration, selectedNarration?.genesets, generateQuery, regionSummary]);
 
   // Generate summary when query changes
   useEffect(() => {
     if (query !== "" && !regionSummary) {
-      generateSummary();
+      generateSummary(selectedRef.current);
     }
   }, [query, generateSummary, regionSummary]);
-
-  useEffect(() => {
-    if(selectedNarration) {
-      addCurrentStateToSnapshots();
-    }
-  }, [ selectedNarration, subpaths, regionSummary, powerData ]);
 }
 
 export default useSelectedEffects;

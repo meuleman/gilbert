@@ -7,7 +7,7 @@ import { fromIndex } from '../lib/regions'
 import { csnLayerList as layers } from '../layers'
 import { retrieveFullDataForCSN, fetchCombinedPathsAndGWAS } from '../lib/csn'
 import { 
-  generateQuery, 
+  createGenerateQuery, 
   createGenerateSummary, 
   feedback, 
   defaultPrompt, 
@@ -17,8 +17,23 @@ import {
 } from './StateTools'
 
 const SelectedStatesStore = create((set, get) => {
+  const createKey = (region) => {
+    if(!region) return "";
+    return `${region.chromosome},${region.i},${region.order}`;
+  };
+
+  const updateSnapshotAndState = (regionKey, update, force = false) => {
+    const { createKey, updateSnapshot } = get();
+    updateSnapshot(regionKey, update)
+    if(force || regionKey === createKey(get().selected)) set(update);
+  }
+
   const findSubpaths = (region, factorExclusion) => {
-    set({ subpaths: null });
+    const { createKey, updateSnapshotAndState } = get();
+    const regionKey = createKey(region);
+    
+    updateSnapshotAndState(regionKey, { loadingRegionCSNS: true });
+
     if (region) {
       fetchSingleRegionFactorOverlap({ region, factorExclusion })
         .then((response) => {
@@ -36,21 +51,24 @@ const SelectedStatesStore = create((set, get) => {
           // look at the below surface segments and create subregion paths
           createSubregionPaths(topSubregionFactors, region)
             .then((subpathResponse) => {
-              set({ subpaths: subpathResponse });
+              updateSnapshotAndState(regionKey, { subpaths: subpathResponse });
             });
         });
     }
   };
 
-  const collectPathsForSelected = (selected, genesetScoreMapping, determineFactorExclusion, activeSet, activeFilters) => {
-    if(selected) {
-      set({
+  const collectPathsForSelected = (region, genesetScoreMapping, determineFactorExclusion, activeSet, activeFilters) => {
+    const { createKey, updateSnapshotAndState } = get();
+    const regionKey = createKey(region);
+
+    if(region) {
+      updateSnapshotAndState(regionKey, {
         loadingSelectedCSN: true,
         selectedNarration: null
       });
-      fetchCombinedPathsAndGWAS([selected], true).then((response) => {
+      fetchCombinedPathsAndGWAS([region], true).then((response) => {
         if(!response) { 
-          set({
+          updateSnapshotAndState(regionKey, {
             selectedNarration: null,
             loadingSelectedCSN: false,
             loadingRegionCSNS: false,
@@ -59,11 +77,11 @@ const SelectedStatesStore = create((set, get) => {
           return null
         } else {
           let rehydrated = response.rehydrated[0]
-          rehydrated["region"] = selected
+          rehydrated["region"] = region
           // add scores to sort for summary
           rehydrated.genesets = rehydrated.genesets.map(g => ({...g, p: genesetScoreMapping[g.geneset]}))
 
-          set({
+          updateSnapshotAndState(regionKey, {
             selectedNarration: rehydrated,
             selectedGenesetMembership: rehydrated.genesets,
             loadingRegionCSNS: false,
@@ -73,10 +91,10 @@ const SelectedStatesStore = create((set, get) => {
         }
       }).catch((e) => {
         console.log("error creating top paths for selected region", e)
-        set({
+        updateSnapshotAndState(regionKey, {
           selectedNarration: null,
           loadingRegionCSNS: false
-        });
+        })
         return null
       }).then((response) => {
         const { findSubpaths, subpaths } = get()
@@ -84,12 +102,12 @@ const SelectedStatesStore = create((set, get) => {
           // subpath query
           let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null, activeSet, activeFilters)
           // find and set subpaths
-          findSubpaths(selected, factorExclusion)
+          findSubpaths(region, factorExclusion)
         }
       })
     } else {
       // selected is cleared
-      set({ selectedGenesetMembership: [] })
+      updateSnapshotAndState(regionKey, { selectedGenesetMembership: [] })
       get().findSubpaths(null, [])
     }
   };
@@ -140,25 +158,10 @@ const SelectedStatesStore = create((set, get) => {
     return uniqueFactors
   }
 
-  // reverts the most recent factor subpath selection.
-  const subpathGoBack = () => {
-    let narrationCollection = get().narrationCollection;
-    let subpathCollection = get().subpathCollection;
-    if (narrationCollection?.length) {
-      // Restore previous factor subpaths and update subpaths collections.
-      set({
-        selectedNarration: narrationCollection.slice(-1)[0],
-        narrationCollection: narrationCollection.slice(0, -1),
-        subpaths: subpathCollection.length ? subpathCollection.slice(-1)[0] : null,
-        subpathCollection: subpathCollection.slice(0, -1)
-      })
-    }
-  };
-
   // updates the narration with a factor's subpath selection.
   const setFactorSelection = (f, activeSet = null, activeFilters = []) => {
 
-    const { selected, removeNarrationPreview, clearSelected, selectedNarration } = get(); 
+    const { selected, removeNarrationPreview, clearSelected, selectedNarration, updateSnapshotAndState } = get(); 
     if (!selectedNarration || !f?.path?.path) return;
 
     // create region
@@ -197,7 +200,7 @@ const SelectedStatesStore = create((set, get) => {
       });
       newNarration.path = newPath;
       // Save current region and narration to collection.
-      set({ selected: region, selectedNarration: newNarration });
+      updateSnapshotAndState(null, { selected: region, selectedNarration: newNarration }, true);
 
       // Determine which factors to exclude based on the updated narration,
       // and then search for new subpaths from the latest region.
@@ -208,11 +211,13 @@ const SelectedStatesStore = create((set, get) => {
 
   // Called when the "power" data (enriched CSN data) is ready.
   // It updates geneset membership and merges additional data such as GWAS.
-  const collectFullData = async () => {
+  const collectFullData = async (region, selectedNarration) => {
 
-    let selectedNarration = get().selectedNarration;
+    const { createKey, updateSnapshotAndState } = get();
+    const regionKey = createKey(region);
 
-    set({ loadingFullNarration: true });
+    updateSnapshotAndState(regionKey, { loadingFullNarration: true });
+    
     // Prepare data fetch promises; if region order is 14 then also fetch GWAS data.
     const promises = [
       retrieveFullDataForCSN(selectedNarration),
@@ -222,10 +227,31 @@ const SelectedStatesStore = create((set, get) => {
     const fullDataResponse = responses[0];
 
     // Set the enriched narration and mark loading as complete.
-    set({
+    updateSnapshotAndState(regionKey, {
       fullNarration: fullDataResponse,
       loadingFullNarration: false 
     });
+  };
+
+  const updateSnapshot = (id, updateData = {}) => {
+    const { regionSnapshots } = get();
+    const existingIndex = regionSnapshots.findIndex(s => s.id === id);
+    
+    if (existingIndex >= 0) {
+      // Create a copy of the snapshots array
+      const newSnapshots = [...regionSnapshots];
+      
+      // Update only the specified fields, preserving other fields
+      newSnapshots[existingIndex] = {
+        ...newSnapshots[existingIndex], // Keep existing properties
+        ...updateData // Overwrite with new properties
+      };
+      
+      set({ regionSnapshots: newSnapshots });
+      // console.log(`Snapshot ${id} updated with:`, updateData);
+      return null;
+    }
+    return null;
   };
 
   const addCurrentStateToSnapshots = () => {
@@ -245,15 +271,15 @@ const SelectedStatesStore = create((set, get) => {
       request_id,
       regionSummary,
       abstracts,
-      powerData
+      powerData,
+      createKey
     } = get();
     
-    const snapshotKey = `${selected?.chromosome},${selected?.i},${selected?.order}`;
+    const snapshotKey = createKey(selected);
 
     // add information to snapshot
     const snapshot = {
       id: snapshotKey,
-      // snapshot: regionSnapshots.length,
       selected,
       selectedNarration,
       fullNarration,
@@ -286,12 +312,12 @@ const SelectedStatesStore = create((set, get) => {
   }
 
   const popRegionFromSnapshots = (snapshotKey) => {
-    const { selected, regionSnapshots } = get();
+    const { selected, regionSnapshots, createKey } = get();
     // remove snapshot from regionSnapshots
     const existingIndex = regionSnapshots.findIndex(s => s.id === snapshotKey);
 
     if (existingIndex >= 0) {
-      const selectedKey = `${selected.chromosome},${selected.i},${selected.order}`;
+      const selectedKey = createKey(selected);
       if(snapshotKey === selectedKey) {
         // switch to a different snapshot
         const indexToSwitchTo = existingIndex === 0 ? 1 : existingIndex - 1;
@@ -327,7 +353,9 @@ const SelectedStatesStore = create((set, get) => {
         regionSummary: snapshot.regionSummary,
         abstracts: snapshot.abstracts,
         powerData: snapshot.powerData,
+        currentSnapshot: snapshot
       });
+
     }
   }
 
@@ -390,6 +418,7 @@ const SelectedStatesStore = create((set, get) => {
 
     // create new region from selectedNarration
     const { selected, selectedNarration, clearSelected } = get();
+
     const path = selectedNarration.path.filter(d => d.order <= order);
     const newPath = recalculatePreferred(path);
     let newRegion = {...newPath.find(d => d.order === order)?.region, derivedFrom: selected };
@@ -407,11 +436,57 @@ const SelectedStatesStore = create((set, get) => {
 
     // set new region
     set({ selected: newRegion, selectedNarration: newNarration });
+
+    // add new region to snapshot
+    addCurrentStateToSnapshots()
   
     // subpath query for backtracked region
     let factorExclusion = determineFactorExclusion(newNarration, activeSet, activeFilters)
     // find and set subpaths for new backtracked region
     get().findSubpaths(newRegion, factorExclusion)
+  }
+
+  const generateSummary = (region, providedPrompt = null) => {
+    const { createKey, updateSnapshotAndState } = get();
+    const regionKey = createKey(region);
+    updateSnapshotAndState(regionKey, { 
+      summaryLoading: true, 
+      regionSummary: "", 
+      abstracts: [] 
+    })
+    const generateSummary = createGenerateSummary({ get });
+
+    generateSummary(providedPrompt).then(data => {
+      if(data === null) {
+        updateSnapshotAndState(regionKey, { regionSummary: null });
+        return;
+      }
+      updateSnapshotAndState(regionKey, { 
+        summaryLoading: false, 
+        request_id: data.request_id,
+        regionSummary: data.summary.replace(/^"(.*)"$/, '$1'), 
+        abstracts: data.results,
+      })
+    });
+  }
+
+  const generateQuery = (region, narration) => {
+    const { createKey, updateSnapshotAndState } = get();
+    const regionKey = createKey(region);
+    updateSnapshotAndState(regionKey, { query: "" });
+    const generateQuery = createGenerateQuery;
+
+    const generatedQuery = generateQuery(narration);
+    updateSnapshotAndState(regionKey, { query: generatedQuery });
+    if(!generatedQuery) {
+      updateSnapshotAndState(regionKey, { regionSummary: null });
+    }
+  }
+
+  const setPowerData = (region, powerData) => {
+    const { createKey, updateSnapshotAndState } = get();
+    const regionKey = createKey(region);
+    updateSnapshotAndState(regionKey, { powerData: powerData });
   }
 
   const clearSelected = (callback) => {
@@ -482,11 +557,10 @@ const SelectedStatesStore = create((set, get) => {
     currentPreferred: null,
     setCurrentPreferred: (preferred) => set({ currentPreferred: preferred }),
     powerData: null,
-    setPowerData: (powerData) => set({ powerData }),
+    setPowerData,
 
     // subpaths
     findSubpaths,
-    subpathGoBack,
 
     // collect information for single region
     determineFactorExclusion,
@@ -520,7 +594,7 @@ const SelectedStatesStore = create((set, get) => {
     abstractsIncluded: true,
     setAbstractsIncluded: (included) => set({ abstractsIncluded: included }),
     generateQuery,
-    generateSummary: createGenerateSummary({ set, get }),
+    generateSummary,
     feedback,
     toggleIncludeAbstracts: createToggleIncludeAbstracts({ set, get }),
 
@@ -536,6 +610,9 @@ const SelectedStatesStore = create((set, get) => {
     clearSnapshots: () => set({ regionSnapshots: [] }),
     switchSnapshots,
     recalculatePreferred,
+    updateSnapshot,
+    createKey,
+    updateSnapshotAndState,
 }})
 
 export default SelectedStatesStore;

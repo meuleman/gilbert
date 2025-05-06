@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useContext } from 'react';
+import React, { useCallback, useEffect, useState, useContext, useRef } from 'react';
 import ZoomLine from './Narration/ZoomLine';
 import ScoreBars from './Narration/ScoreBars';
 import SubPaths from './Narration/SubPaths';
@@ -38,6 +38,11 @@ function ZoomInspector({
     spawnRegionBacktrack, setFactorSelection, selected
   } = SelectedStatesStore();
 
+  const selectedRef = useRef(null);
+  useEffect(() => {
+    selectedRef.current = selected;
+  }, [selected]);
+
   const [csn, setCsn] = useState(selectedNarration);
   useEffect(() => {
     setCsn(providedNarration ? providedNarration : loadingFullNarration ? selectedNarration : fullNarration);
@@ -51,7 +56,7 @@ function ZoomInspector({
   useEffect(() => {
     if(!providedNarration && powerDataLoaded) {
       setLoadingFullNarration(true);
-      collectFullData(selectedNarration);
+      collectFullData(selectedRef.current, selectedNarration);
       setPowerDataLoaded(false); // reset this so we dont eagerly collect full data next selected narration change
     }
   }, [selectedNarration, powerDataLoaded, collectFullData])

@@ -77,7 +77,7 @@ export default function CanvasScaledValueComponent({ canvasRef, state, scales, l
       xx = t.x + xScale(d.x) * t.k
       yy = t.y + yScale(d.y) * t.k
       // ctx.strokeRect(xx - rw/2, yy - rw/2, rw, rw)
-      if(d.data) {
+      if(d.data && fieldChoice) {
         const sample = fieldChoice(d);
         if(sample) {
           if(min.length) {

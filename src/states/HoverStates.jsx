@@ -5,7 +5,7 @@ import {
 } from '../lib/apiService';
 import { fetchCombinedPathsAndGWAS } from '../lib/csn'
 import { 
-  generateQuery, 
+  createGenerateQuery, 
   createGenerateSummary, 
   defaultPrompt, 
   url, 
@@ -57,6 +57,28 @@ const HoverStatesStore = create((set, get) => {
     }
   }
 
+  const generateSummary = () => {
+    set({
+      regionSummary: "", 
+      abstracts: [],
+      summaryLoading: true
+    })
+    const generateSummary = createGenerateSummary({ get });
+
+    generateSummary().then(data => {
+      if(data === null) {
+        set({ summaryLoading: false })
+        return;
+      }
+      set({
+        regionSummary: data.summary.replace(/^"(.*)"$/, '$1'),
+        abstracts: data.results,
+        request_id: data.request_id,
+        summaryLoading: false,
+      })
+    });
+  }
+
   return {
     // hover
     hover: null,
@@ -93,8 +115,8 @@ const HoverStatesStore = create((set, get) => {
     setPrompt: (prompt) => set({ prompt }),
     abstractsIncluded: true,
     setAbstractsIncluded: (included) => set({ abstractsIncluded: included }),
-    generateQuery,
-    generateSummary: createGenerateSummary({ set, get }),
+    generateQuery: createGenerateQuery,
+    generateSummary,
     // feedback,
     // toggleIncludeAbstracts: createToggleIncludeAbstracts({ set, get }),
 

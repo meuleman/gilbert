@@ -404,7 +404,8 @@ function PowerModal({
     if(!isPreviewRef.current) {
       // Update the global power data when local data changes
       // only track data changes if the data is not a preview
-      setGlobalPowerData(data);
+      const dataRegion = data.filter(d => !!d?.p).sort((a, b) => b.order - a.order).shift()?.region;
+      setGlobalPowerData(dataRegion, data);
     }
   }, [data, setGlobalPowerData])
 
@@ -615,6 +616,7 @@ function PowerModal({
                     ${isSelected ? 'bg-gray-400 text-white z-10' : 'bg-gray-100 text-black'}
                   `}
                   onClick={() => handleTabClick(index)}
+                  key={`power-tab-${index}`}
                 >
                   <div className="group flex items-center">
                     <X 

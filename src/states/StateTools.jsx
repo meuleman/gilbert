@@ -7,7 +7,7 @@ export const url = `${baseAPIUrl}/api/pubmedSummary/pubmed_summary`
 export const url_feedback = `${baseAPIUrl}/api/pubmedSummary/feedback`
 
 // generate query from narration for summary
-export const generateQuery = (narration) => {
+export const createGenerateQuery = (narration) => {
   let order = Math.max(...narration.path.map(d => d.order))
   let scale = showKb(4 ** (14 - order)).join("") + " SCALE"
   
@@ -67,16 +67,11 @@ export const generateQuery = (narration) => {
 }
 
 // generates a summary for the selected region
-export const createGenerateSummary = ({ set, get }) => (providedPrompt = null) => {
-  set({
-    regionSummary: "", 
-    abstracts: []
-  })
+export const createGenerateSummary = ({ get }) => (providedPrompt = null) => {
   let p = providedPrompt || get().prompt
   let query = get().query
   if(query !== "") {
-    set({ summaryLoading: true })
-    fetch(`${get().url}`, {
+    return fetch(`${get().url}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -92,18 +87,14 @@ export const createGenerateSummary = ({ set, get }) => (providedPrompt = null) =
     })
     .then(data => {
       console.log("generate", data, query)
-      set({
-        regionSummary: data.summary.replace(/^"(.*)"$/, '$1'),
-        abstracts: data.results,
-        request_id: data.request_id,
-        summaryLoading: false,
-      })
+      return data;
     })
     .catch(err => {
       console.error(err)
-      set({ summaryLoading: false })
+      return null;
     })
-  }
+  } 
+  return null;
 }
 
 export const feedback = (feedback) => {
