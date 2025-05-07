@@ -120,6 +120,7 @@ const LinearGenome = ({
   // the final 1d track data as calculated by the data1D use effect
   // This updates when the data is done loading, after we receive new data from the 2d map
   const [dataPoints, setDataPoints] = useState([])
+  const dataPointsRef = useRef([])
   const [targetRegions, setTargetRegions] = useState(250)
   const [renderPoints, setRenderPoints] = useState([])
 
@@ -434,7 +435,27 @@ const LinearGenome = ({
     }
     // console.log("set data points")
     // if empty order, still show points without layer data
-    dataPoints?.length ? setDataPoints(dataPoints) : setDataPoints(missing)
+    const pointsToUse = dataPoints?.length ? dataPoints : missing;
+    // check if we need to update
+    if(pointsToUse?.length !== dataPointsRef.current?.length) {
+      setDataPoints(pointsToUse)
+      dataPointsRef.current = pointsToUse
+    } else {
+      if (
+        // checks for empty array of data points
+        (pointsToUse.length !== 0) &&
+        // checks if the first point is different from the previous iteration
+        !(
+          (pointsToUse[0].chromosome === dataPointsRef.current[0].chromosome) &&
+          (pointsToUse[0].i === dataPointsRef.current[0].i) &&
+          (pointsToUse[0].order === dataPointsRef.current[0].order)
+        )
+      ) {
+        setDataPoints(pointsToUse)
+        dataPointsRef.current = pointsToUse
+      }
+    }
+    
   }, [data])
   
   useEffect(() => {

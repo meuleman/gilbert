@@ -127,11 +127,7 @@ function PowerModal({
     switchSnapshots, setPreventDerivation, spawnRegionSidetrack,
   } = SelectedStatesStore();
   
-  const [currentPreferred, setCurrentPreferred] = useState(null);
-  useEffect(() => {
-    // having a local and global (zustand) state for currentPreferred prevents lag with scrollable zoom (too many updates for zustand)
-    setCurrentPreferredGlobal(currentPreferred);
-  }, [currentPreferred]);
+  const currentPreferredRef = useRef(null);
 
   const [csn, setCsn] = useState(selectedNarration);
   const isPreviewRef = useRef(false);
@@ -334,8 +330,11 @@ function PowerModal({
         setLoading(true);
         setPowerDataLoaded(false);
         
-        // Prepare the order point for the current order
-        const currentOrderPoint = prepareOrderPoint(currentOrder);
+        // prepare order points for all orders first for proper initial rendering
+        const allOrderPoints = range(4, 15).map(o => prepareOrderPoint(o))
+
+        // reference to order point in allOrderPoints
+        const currentOrderPoint = allOrderPoints.find(d => d.order === currentOrder);
         
         let kickoff = Date.now()
         console.log("kick off target fetchData", currentOrderPoint)
@@ -343,12 +342,9 @@ function PowerModal({
         fetchDataForOrderPoint(currentOrderPoint).then(response => {
           console.log("finished target fetchData", currentOrderPoint, Date.now() - kickoff)
           // Process the current order data
-          const processedData = processOrderData(currentOrderPoint, response);
+          const orderPointWithData = processOrderData(currentOrderPoint, response);
           // Update the data state for just this order
-          setData(prevData => {
-            if (!prevData) return [processedData];
-            return prevData.map(d => d.order === currentOrder ? processedData : d);
-          });
+          setData(allOrderPoints.map(d => d.order == orderPointWithData.order ? orderPointWithData : d));
           
           setLoading(false);
           setPowerDataLoaded(true);
@@ -357,7 +353,7 @@ function PowerModal({
           // Now lazily fetch the rest of the data
           const fetchAllData = async () => {
             // Generate order points for all orders
-            const allOrderPoints = (
+            // const allOrderPoints = (
               // if preview, load only the current order and its neighbors
               // isPreviewRef.current ? 
                 // load extra orders around the current order so the transform
@@ -366,21 +362,20 @@ function PowerModal({
                 // over
                 // [currentOrder + 1, currentOrder - 1, currentOrder + 2]
                 // .filter(o => o !== currentOrder && o >= 4 && o <= 14)
-              range(4, 15)
-                .reverse()  // load the highest orders first
-                .filter(o => o !== currentOrder)  // Skip the already fetched order
-            ).map(prepareOrderPoint);
+            const remainingOrderPoints = allOrderPoints
+              .reverse()  // load the highest orders first
+              .filter(d => d.order !== currentOrder)  // Skip the already fetched order
             
             // Fetch data for each order point
-            for (const orderPoint of allOrderPoints) {
+            for (const orderPoint of remainingOrderPoints) {
               try {
                 const response = await fetchDataForOrderPoint(orderPoint);
-                const processedData = processOrderData(orderPoint, response);
+                const orderPointWithData = processOrderData(orderPoint, response);
                 
-                // Update the data state for this order
+                // Update the data state with newly collected data for this order
                 setData(prevData => {
-                  if (!prevData) return [processedData];
-                  return prevData.map(d => d.order === orderPoint.order ? processedData : d);
+                  if (!prevData) return allOrderPoints.map(d => d.order == orderPointWithData.order ? orderPointWithData : d);
+                  return prevData.map(d => d.order === orderPointWithData.order ? orderPointWithData : d);
                 });
               } catch (error) {
                 console.error(`Error fetching data for order ${orderPoint.order}:`, error);
@@ -404,15 +399,21 @@ function PowerModal({
     if(!isPreviewRef.current) {
       // Update the global power data when local data changes
       // only track data changes if the data is not a preview
-      const dataRegion = data.filter(d => !!d?.p).sort((a, b) => b.order - a.order).shift()?.region;
-      setGlobalPowerData(dataRegion, data);
+      const collectedCount = data.filter(d => d.collected).length;
+      const globalCollectedCount = (globalPowerData || []).filter(d => d.collected).length;
 
-      // wait until power data loads to allow derivation
-      if(data.filter(d => d.collected).length === 11) {
-        setPreventDerivation(false);
+      // only update if we have more data than before
+      if (collectedCount > globalCollectedCount) {
+        const dataRegion = data.filter(d => !!d?.p).sort((a, b) => b.order - a.order).shift()?.region;
+        setGlobalPowerData(dataRegion, data);
+        
+        if(collectedCount === 11) {
+          // all power data has been collected
+          setPreventDerivation(false);
+        }
       }
     }
-  }, [data, setGlobalPowerData])
+  }, [data, setGlobalPowerData, globalPowerData, setPreventDerivation])
 
   const throttledWheel = useCallback(
     throttle((delta) => {
@@ -504,13 +505,21 @@ function PowerModal({
     
     const { transform, order: o, region: r, data: d, or } = transformResult;
     setOrder(o);
-    setCurrentPreferred(d?.region);
+    if (d?.region && !(
+        currentPreferredRef.current?.chromosome === d.region.chromosome &&
+        currentPreferredRef.current?.i === d.region.i &&
+        currentPreferredRef.current?.order === d.region.order
+      )
+    ) {
+      currentPreferredRef.current = d.region;
+      setCurrentPreferredGlobal(d.region);
+    }
     
-    const meta = d.data.metas?.find(meta => meta.chromosome === r.chromosome) || {};
+    const meta = d.data?.metas?.find(meta => meta.chromosome === r.chromosome) || {};
     const ctx = canvasRef.current.getContext('2d');
     ctx.clearRect(0, 0, width, height);
     
-    if(d.layer) {
+    if(d.layer && d.data) {
       CanvasRenderer(d.layer.renderer, { 
         scales, 
         state: { 
@@ -532,7 +541,7 @@ function PowerModal({
     if(o > 4) {
       const pd = data.find(d => d.order === o - 1);
       ctx.globalAlpha = oscale(or - o);
-      if(pd && pd.layer) {
+      if(pd && pd.layer && pd.data) {
         CanvasRenderer(pd.layer.renderer, { 
           scales,
           state: { 
@@ -559,7 +568,7 @@ function PowerModal({
     ctx.globalAlpha = 1; // Ensure full opacity for the outline
     renderSquares(ctx, [r], transform, o, scales, false, "black");
     
-  }, [transformResult, transformResult?.region, width, height, scales, data, oscale]);
+  }, [transformResult, width, height, scales, data, oscale]);
 
   const linearCenter = useMemo(() => {
     let center = csn?.path.find(d => d.order === order)?.region;
