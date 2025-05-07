@@ -609,22 +609,14 @@ function PowerModal({
     }
   }, [regionSnapshots, switchSnapshots])
 
-
-  const handleCanvasClick = useCallback((event) => {
-    if (!transformResult) return;
-    
-    // canvas relative coordinates
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    
-    // current transform and data
-    const { transform, order, data } = transformResult;
-    
-    // find which segment was clicked
-    const clickedSegment = findClickedSegment(x, y, data.points, transform, order, scales);
-    if (clickedSegment) handleSegmentClick(clickedSegment)
-  }, [transformResult, scales]);
+  const handleSegmentClick = useCallback((segment) => {
+    if(!!selected.derivedFrom || (
+      segment.chromosome === selected?.chromosome &&
+      segment.i === selected?.i &&
+      segment.order === selected?.order
+    )) return;
+    spawnRegionSidetrack(segment);
+  }, [selected, spawnRegionSidetrack]);
 
   const findClickedSegment = (x, y, points, t, order, scales) => {
     const step = Math.pow(0.5, order);
@@ -648,10 +640,21 @@ function PowerModal({
     return null;
   };
 
-  const handleSegmentClick = useCallback((segment) => {
-    if(!!selected.derivedFrom) return;
-    spawnRegionSidetrack(segment);
-  }, [selected, spawnRegionSidetrack]);
+  const handleCanvasClick = useCallback((event) => {
+    if (!transformResult) return;
+    
+    // canvas relative coordinates
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    // current transform and data
+    const { transform, order, data } = transformResult;
+    
+    // find which segment was clicked
+    const clickedSegment = findClickedSegment(x, y, data.points, transform, order, scales);
+    if (clickedSegment) handleSegmentClick(clickedSegment)
+  }, [transformResult, scales, handleSegmentClick, findClickedSegment]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
