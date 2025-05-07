@@ -513,6 +513,11 @@ const SelectedStatesStore = create((set, get) => {
     updateSnapshotAndState(regionKey, { powerData: powerData });
   }
 
+  const setNewSelected = (selected) => {
+    get().clearSelected()
+    set({ regionSnapshots: [], selected: selected, preventDerivation: true })
+  }
+
   const clearSelected = (callback) => {
     set({ 
       selected: null,
@@ -549,7 +554,7 @@ const SelectedStatesStore = create((set, get) => {
 
   return {
     selected: null,
-    setSelected: (selected) => set({ selected: selected, preventDerivation: true }),
+    setSelected: (selected) => setNewSelected(selected),
     region: null,
     setRegion: (region) => set({ region: region }),
     subpaths: null,
