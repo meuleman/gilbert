@@ -706,7 +706,7 @@ function PowerModal({
             </div>
           )}
           <canvas
-            className="power-canvas"
+            className="power-canvas cursor-pointer"
             width={width}
             height={height}
             style={{ width: width + "px", height: height + "px" }}
@@ -728,6 +728,7 @@ function PowerModal({
                 mapHeight={height}
                 loading={loading}
                 hover={null}
+                allowPanning={false}
               />
             </div>
           </div>

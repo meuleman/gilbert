@@ -74,7 +74,8 @@ const LinearGenome = ({
   mapHeight = 640,
   loading = false,
   onHover = () => {},
-  onClick = () => {}
+  onClick = () => {},
+  allowPanning = true
 } = {}) => {
 
   const { 
@@ -699,7 +700,7 @@ const LinearGenome = ({
         ref={svgRef}
         onMouseMove={handleMouseMove}
         onClick={handleMouseClick}
-        style={{ cursor: panning ? 'grabbing' : 'grab' }}
+        style={{ cursor: allowPanning ? panning ? 'grabbing' : 'grab' : 'pointer' }}
         >
         {hoverData && <rect pointerEvents="none" width="2" height={height} x={hoverData.sx} fill="black" />}
       </svg>
