@@ -129,11 +129,13 @@ function PowerModal({
   } = SelectedStatesStore();
   
   const currentPreferredRef = useRef(null);
+  const selectedRef = useRef(null);
+  const hoverRef = useRef(null);
+  const isPreviewRef = useRef(false);
 
   const [csn, setCsn] = useState(selectedNarration);
   const [hover, setHover] = useState(null);
-  const hoverRef = useRef(null);
-  const isPreviewRef = useRef(false);
+  const [showSelectedSquare, setShowSelectedSquare] = useState(true);
   useEffect(() => {
     isPreviewRef.current = !!narrationPreview
   }, [narrationPreview]);
@@ -141,6 +143,18 @@ function PowerModal({
   useEffect(() => {
     setCsn(narrationPreview ? narrationPreview : selectedNarration);
   }, [narrationPreview, selectedNarration]);
+
+  useEffect(() => {
+    if(selected && !(
+        (selectedRef.current?.chromosome === selected.chromosome) &&
+        (selectedRef.current?.i === selected.i) &&
+        (selectedRef.current?.order === selected.order)
+      )
+    ) {
+      setShowSelectedSquare(true);
+      selectedRef.current = selected;
+    }
+  }, [selected])
 
   const [loading, setLoading] = useState(false);
   const percentScale = useMemo(() => scaleLinear().domain([1, 100]).range([4, 14.999]), []);
@@ -566,10 +580,6 @@ function PowerModal({
       ctx.strokeStyle = "black";
       if(lr) renderSquares(ctx, [lr.region], transform, o - 1, scales, false, "black");
     }
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "black";
-    ctx.globalAlpha = 1; // Ensure full opacity for the outline
-    renderSquares(ctx, [r], transform, o, scales, false, "black");
 
     // render hover square
     if(hover && (hover.chromosome === r.chromosome)) {
@@ -578,8 +588,19 @@ function PowerModal({
       ctx.lineWidth = 2;
       renderSquares(ctx, [hover], transform, o, scales, false, "gray");
     }
-    
-  }, [transformResult, width, height, scales, data, oscale, hover]);
+
+    if(showSelectedSquare && (
+      (r.chromosome === selectedRef.current?.chromosome) && 
+      (r.i === selectedRef.current?.i) && 
+      (r.order === selectedRef.current?.order)
+    )) {
+      // render selected square
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "black";
+      ctx.globalAlpha = 1; // Ensure full opacity for the outline
+      renderSquares(ctx, [r], transform, o, scales, false, "black");
+    }
+  }, [transformResult, width, height, scales, data, oscale, hover, showSelectedSquare]);
 
   const linearCenter = useMemo(() => {
     let center = csn?.path.find(d => d.order === order)?.region;
@@ -669,7 +690,10 @@ function PowerModal({
     
     // find which segment was clicked
     const clickedSegment = findSegmentFromXY(x, y, data.points, transform, order, scales);
-    if (clickedSegment) handleSegmentClick(clickedSegment)
+    if (clickedSegment) {
+      setShowSelectedSquare(false);
+      handleSegmentClick(clickedSegment)
+    }
   }, [transformResult, scales, handleSegmentClick, findSegmentFromXY]);
 
   useEffect(() => {
