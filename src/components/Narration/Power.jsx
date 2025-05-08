@@ -125,6 +125,7 @@ function PowerModal({
     setPowerDataLoaded, regionSnapshots, popRegionFromSnapshots,
     powerData: globalPowerData, setPowerData: setGlobalPowerData, 
     switchSnapshots, setPreventDerivation, spawnRegionSidetrack,
+    createKey,
   } = SelectedStatesStore();
   
   const currentPreferredRef = useRef(null);
@@ -601,13 +602,17 @@ function PowerModal({
   }, [onClose, regionSnapshots])
 
   const handleTabClick = useCallback((index) => {
-    console.log("handleTabClick", index, regionSnapshots)
-    if (regionSnapshots?.length > 1) {
+    if (regionSnapshots?.length) {
       let toSwitchTo = regionSnapshots[index].selected;
-      const id = `${toSwitchTo.chromosome},${toSwitchTo.i},${toSwitchTo.order}`;
-      switchSnapshots(id);
+      const id = createKey(toSwitchTo)
+      const selectedId = createKey(selected)
+      if(id === selectedId) {
+        onOrder(selected.order + 0.5);
+      } else {
+        switchSnapshots(id);
+      }
     }
-  }, [regionSnapshots, switchSnapshots])
+  }, [regionSnapshots, switchSnapshots, selected])
 
   const handleSegmentClick = useCallback((segment) => {
     if(!!selected.derivedFrom || (
