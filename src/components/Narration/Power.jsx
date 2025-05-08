@@ -582,11 +582,15 @@ function PowerModal({
     }
 
     // render hover square
-    if(hover && (hover.chromosome === r.chromosome)) {
-      ctx.globalAlpha = 1;
-      ctx.strokeStyle = "black";
-      ctx.lineWidth = 2;
-      renderSquares(ctx, [hover], transform, o, scales, false, "gray");
+    if(hover && hover?.chromosome === r.chromosome) {
+      if(hover?.order === o) {
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 2;
+        renderSquares(ctx, [hover], transform, o, scales, false, "gray");
+      } else {
+        setHover(null);
+      }
     }
 
     const selectedIndexAtOrder = hilbertPosToOrder(selectedRef.current?.i, { from: selectedRef.current?.order, to: o });
