@@ -131,6 +131,8 @@ function PowerModal({
   const currentPreferredRef = useRef(null);
 
   const [csn, setCsn] = useState(selectedNarration);
+  const [hover, setHover] = useState(null);
+  const hoverRef = useRef(null);
   const isPreviewRef = useRef(false);
   useEffect(() => {
     isPreviewRef.current = !!narrationPreview
@@ -624,7 +626,7 @@ function PowerModal({
     spawnRegionSidetrack(segment);
   }, [selected, spawnRegionSidetrack]);
 
-  const findClickedSegment = (x, y, points, t, order, scales) => {
+  const findSegmentFromXY = (x, y, points, t, order, scales) => {
     const step = Math.pow(0.5, order);
     const rw = scales.sizeScale(step) * t.k * 1 - 1;
     
@@ -658,9 +660,9 @@ function PowerModal({
     const { transform, order, data } = transformResult;
     
     // find which segment was clicked
-    const clickedSegment = findClickedSegment(x, y, data.points, transform, order, scales);
+    const clickedSegment = findSegmentFromXY(x, y, data.points, transform, order, scales);
     if (clickedSegment) handleSegmentClick(clickedSegment)
-  }, [transformResult, scales, handleSegmentClick, findClickedSegment]);
+  }, [transformResult, scales, handleSegmentClick, findSegmentFromXY]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -669,6 +671,44 @@ function PowerModal({
       return () => canvas.removeEventListener('dblclick', handleCanvasClick);
     }
   }, [handleCanvasClick]);
+
+  const handleSegmentHover = useCallback((hit) => {
+    if(
+      (hoverRef.current !== hit) &&
+      !(
+        (hoverRef.current?.chromosome === hit?.chromosome) &&
+        (hoverRef.current?.i === hit?.i) &&
+        (hoverRef.current?.order === hit?.order)
+      )
+    ) {
+      setHover(hit)
+      hoverRef.current = hit;
+    }
+  }, [setHover])
+
+  const handleCanvasHover = useCallback((event) => {
+    if (!transformResult) return;
+    
+    // canvas relative coordinates
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    // current transform and data
+    const { transform, order, data } = transformResult;
+    
+    // find which segment was hovered over
+    const hoverSegment = findSegmentFromXY(x, y, data.points, transform, order, scales);
+    handleSegmentHover(hoverSegment)
+  }, [transformResult, scales, handleSegmentHover, findSegmentFromXY]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.addEventListener('mousemove', handleCanvasHover);
+      return () => canvas.removeEventListener('mousemove', handleCanvasHover);
+    }
+  }, [handleCanvasHover]);
 
   return (
     <div ref={containerRef} className="relative power h-full w-full border-[2px] border-gray-400 mt-2">
@@ -736,8 +776,10 @@ function PowerModal({
                 mapWidth={width}
                 mapHeight={height}
                 loading={loading}
-                hover={null}
+                hover={hover}
                 allowPanning={false}
+                onClick={handleSegmentClick}
+                activeRegions={new Map()}
               />
             </div>
           </div>

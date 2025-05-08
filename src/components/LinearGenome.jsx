@@ -472,6 +472,7 @@ const LinearGenome = ({
 
 
   const [hoverData, setHoverData] = useState(null)
+  const hoverDataRef = useRef(null)
   // const [bandwidth, setBandwidth] = useState(1)
 
   const processHover = useCallback((hover) =>{
@@ -499,14 +500,32 @@ const LinearGenome = ({
     return hd
   }, [width, dataOrder, activeRegions])
 
+  // reflects changes in hover on 2d map
   useEffect(() => {
-    // console.log("hover updated")
     let hd = processHover(hover)
     if(center && panning) {
       hd = processHover(center)
     }
-    setHoverData(hd)
-  }, [center, hover, processHover, panning])
+    if(
+      !(
+        (hd?.chromosome === hoverDataRef.current?.chromosome) && 
+        (hd?.i === hoverDataRef.current?.i) && 
+        (hd?.order === hoverDataRef.current?.order)
+      )
+    ) {
+      // collect data for point if not already found
+      if(!!hd && !hd?.data) {
+        let data = dataPoints.find(d => (
+          (d.chromosome === hd?.chromosome) &&
+          (d.i === hd?.i) &&
+          (d.order === hd?.order)
+        ))?.data
+        hd['data'] = data
+      }
+      setHoverData(hd)
+      hoverDataRef.current = hd
+    }
+  }, [center, hover, processHover, panning, dataPoints])
 
   const zoom2D = useCallback((hit) => {
     let newX = mapXScale(hit?.x)
@@ -532,13 +551,22 @@ const LinearGenome = ({
       let data = dataPoints.filter(d => d.start <= x && d.end >= x)
       // console.log("mouse move", ex, x, data[0])
       let hd = processHover(data[0])
-      setHoverData(hd)
-      onHover(hd)
+      if (
+        !(
+          (hd?.chromosome === hoverDataRef.current?.chromosome) && 
+          (hd?.i === hoverDataRef.current?.i) && 
+          (hd?.order === hoverDataRef.current?.order)
+        )
+      ) {
+        setHoverData(hd)
+        hoverDataRef.current = hd
+        onHover(hd)
+      }
     }
   }, [dataPoints, processHover, onHover, panning])
 
   const handleMouseClick = useCallback((event) => {
-    console.log("clicked", event)
+    // console.log("clicked", event)
     if(panning) return
     if(xScaleRef.current) {
       const rect = event.target.getBoundingClientRect();
@@ -546,8 +574,8 @@ const LinearGenome = ({
       let x = xScaleRef.current.invert(ex)
       let data = dataPoints.filter(d => d.start <= x && d.end >= x)
       let hd = processHover(data[0])
-      console.log("clicked", hd)
-      // onClick(hd, hd.order)
+      // console.log("clicked", hd)
+      onClick(hd, hd.order)
       if(hd) {
         const newTransform = zoom2D(hd)
         setTransform(newTransform)
@@ -687,7 +715,6 @@ const LinearGenome = ({
     }
   }, [transform, zoomBehavior]);
 
-
   return (
     <div className="linear-genome">
       {loading && (
@@ -737,7 +764,7 @@ const LinearGenome = ({
           padding: "6px",
         }}
         >
-          {defaultContent(hoverData, layer, "")}
+          {layer ? defaultContent(hoverData, layer, "") : null}
         </Tooltip>: null}
     </div>
   )

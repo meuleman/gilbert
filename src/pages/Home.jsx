@@ -964,7 +964,7 @@ function Home() {
                           hover={hover}
                           onHover={handleHover}
                           onClick={(hit) => {
-                            setRegion(hit)
+                            // setRegion(hit)
                           }}
                         />
                       </div>

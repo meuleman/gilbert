@@ -6,10 +6,10 @@ export function defaultContent(region, layer, orientation) {
   let fields = []
   if(!region?.data) return 
   if(region.data.max_field >= 0 && region.data.max_value >= 0) {
-    fields.push(layer.fieldChoice(region))
+    fields.push(layer?.fieldChoice(region))
     // fields.push({ field: region.data.max_field, value: region.data.max_value })
   } else if(region.data.bp) {
-    fields.push(layer.fieldChoice(region))
+    fields.push(layer?.fieldChoice(region))
   } else {
     fields = Object.keys(region.data).map(key => ({ field: key, value: region.data[key] }))
   }
@@ -32,13 +32,13 @@ export function defaultContent(region, layer, orientation) {
             ))}
           </div> : null}
 
-          <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
+          <span style={{borderBottom: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer?.name}</span>
         </div> : null}
 
         {fields.map((f,i) => (
           <div key={i} style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
             <span>
-              <span style={{color: layer.fieldColor(f.field), marginRight: '4px'}}>⏺</span>
+              <span style={{color: layer?.fieldColor(f.field), marginRight: '4px'}}>⏺</span>
               {f.field} 
             </span>
             <span>
@@ -49,7 +49,7 @@ export function defaultContent(region, layer, orientation) {
         {!fields?.length ? <span>N/A</span> : null}
 
         {orientation !== "bottom" ? <div>
-          <span style={{borderTop: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer.name}</span>
+          <span style={{borderTop: "1px solid gray", padding: "4px", margin: "4px 0"}}>{layer?.name}</span>
           <br/>
           {region.genes?.length ? <div>
             {region.genes.map(g => (
