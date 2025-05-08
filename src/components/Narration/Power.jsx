@@ -647,10 +647,12 @@ function PowerModal({
 
   const handleSegmentClick = useCallback((segment) => {
     // prevent selecting the same segment again
-    if(
-      segment.chromosome === selected?.chromosome &&
-      segment.i === selected?.i &&
-      segment.order === selected?.order
+    if(!segment ||
+      (
+        segment?.chromosome === selected?.chromosome &&
+        segment?.i === selected?.i &&
+        segment?.order === selected?.order
+      )
     ) return;
     spawnRegionSidetrack(segment);
   }, [selected, spawnRegionSidetrack]);

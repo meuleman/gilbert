@@ -575,8 +575,8 @@ const LinearGenome = ({
       let data = dataPoints.filter(d => d.start <= x && d.end >= x)
       let hd = processHover(data[0])
       // console.log("clicked", hd)
-      onClick(hd, hd.order)
       if(hd) {
+        onClick(hd, hd?.order)
         const newTransform = zoom2D(hd)
         setTransform(newTransform)
       }
