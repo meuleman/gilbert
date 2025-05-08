@@ -615,11 +615,12 @@ function PowerModal({
   }, [regionSnapshots, switchSnapshots, selected])
 
   const handleSegmentClick = useCallback((segment) => {
-    if(!!selected.derivedFrom || (
+    // prevent selecting the same segment again
+    if(
       segment.chromosome === selected?.chromosome &&
       segment.i === selected?.i &&
       segment.order === selected?.order
-    )) return;
+    ) return;
     spawnRegionSidetrack(segment);
   }, [selected, spawnRegionSidetrack]);
 

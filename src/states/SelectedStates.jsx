@@ -162,10 +162,14 @@ const SelectedStatesStore = create((set, get) => {
   const setFactorSelection = (f, activeSet = null, activeFilters = []) => {
 
     const { 
-      selected, removeNarrationPreview, clearSelected, 
-      selectedNarration, updateSnapshotAndState, preventDerivation
+      selected, removeNarrationPreview, clearSelected, createKey,
+      selectedNarration, preventDerivation,
+      replaceSnapshot,
     } = get(); 
     if (!selectedNarration || !f?.path?.path || preventDerivation) return;
+
+    const idToReplace = !!selected.derivedFrom ? createKey(selected) : null;
+    const derivedFrom = !!selected.derivedFrom ? selected.derivedFrom : selected
 
     set({ preventDerivation: true });
 
@@ -174,7 +178,7 @@ const SelectedStatesStore = create((set, get) => {
     let region = {
       ...fromIndex(factor.chromosome, factor.i, factor.order),
       ...factor,
-      derivedFrom: selected,
+      derivedFrom,
     };
 
     let newPath = factor.path;
@@ -205,7 +209,10 @@ const SelectedStatesStore = create((set, get) => {
       });
       newNarration.path = newPath;
       // Save current region and narration to collection.
-      updateSnapshotAndState(null, { selected: region, selectedNarration: newNarration }, true);
+
+      set({ selected: region, selectedNarration: newNarration });
+      // add new region to snapshot (or replace existing snapshot)
+      !!idToReplace ? replaceSnapshot(idToReplace) : addCurrentStateToSnapshots();
 
       // Determine which factors to exclude based on the updated narration,
       // and then search for new subpaths from the latest region.
@@ -259,13 +266,11 @@ const SelectedStatesStore = create((set, get) => {
     return null;
   };
 
-  const addCurrentStateToSnapshots = () => {
+  const createSnapshot = () => {
     const {
-      regionSnapshots,
       selected,
       selectedNarration,
       fullNarration,
-      region,
       subpaths,
       narrationCollection,
       subpathCollection,
@@ -277,9 +282,9 @@ const SelectedStatesStore = create((set, get) => {
       regionSummary,
       abstracts,
       powerData,
-      createKey
+      createKey,
     } = get();
-    
+
     const snapshotKey = createKey(selected);
 
     // add information to snapshot
@@ -300,6 +305,45 @@ const SelectedStatesStore = create((set, get) => {
       abstracts,
       powerData
     };
+
+    return snapshot
+  }
+
+  const replaceSnapshot = (idToReplace) => {
+    const {
+      regionSnapshots,
+      createSnapshot,
+    } = get();
+
+    // create snapshot
+    const snapshot = createSnapshot()
+
+    const existingIndex = regionSnapshots.findIndex(s => s.id === idToReplace);
+    
+    if (existingIndex >= 0) {
+      // create a copy of the snapshots array
+      const newSnapshots = [...regionSnapshots];
+      
+      // replace the snapshot at the specified index
+      newSnapshots[existingIndex] = snapshot;
+      
+      set({ regionSnapshots: newSnapshots });
+      return;
+    }
+    return;
+  }
+
+  const addCurrentStateToSnapshots = () => {
+    const {
+      regionSnapshots,
+      selected,
+      createKey
+    } = get();
+    
+    const snapshotKey = createKey(selected);
+
+    // create snapshot
+    const snapshot = createSnapshot()
 
     const existingIndex = regionSnapshots.findIndex(s => s.id === snapshotKey);
 
@@ -423,13 +467,15 @@ const SelectedStatesStore = create((set, get) => {
 
     // create new region from selectedNarration
     const { selected, selectedNarration, clearSelected, preventDerivation } = get();
+    const idToReplace = !!selected.derivedFrom ? createKey(selected) : null;
+    const derivedFrom = !!selected.derivedFrom ? selected.derivedFrom : selected
 
     if(preventDerivation) return;
     set({ preventDerivation: true });
 
     const path = selectedNarration.path.filter(d => d.order <= order);
     const newPath = recalculatePreferred(path);
-    let newRegion = {...newPath.find(d => d.order === order)?.region, derivedFrom: selected };
+    let newRegion = {...newPath.find(d => d.order === order)?.region, derivedFrom };
 
     const newNarration = {
       // Basic narration properties
@@ -445,8 +491,8 @@ const SelectedStatesStore = create((set, get) => {
     // set new region
     set({ selected: newRegion, selectedNarration: newNarration });
 
-    // add new region to snapshot
-    addCurrentStateToSnapshots()
+    // add new region to snapshot (or replace existing snapshot)
+    !!idToReplace ? replaceSnapshot(idToReplace) : addCurrentStateToSnapshots()
   
     // subpath query for backtracked region
     let factorExclusion = determineFactorExclusion(newNarration, activeSet, activeFilters)
@@ -456,7 +502,9 @@ const SelectedStatesStore = create((set, get) => {
 
   const spawnRegionSidetrack = (region) => {
 
-    const { selected, clearSelected, preventDerivation } = get();
+    const { selected, clearSelected, preventDerivation, replaceSnapshot } = get();
+    const idToReplace = !!selected.derivedFrom ? createKey(selected) : null;
+    const derivedFrom = !!selected.derivedFrom ? selected.derivedFrom : selected
 
     if(preventDerivation) return;
     set({ preventDerivation: true });
@@ -464,10 +512,10 @@ const SelectedStatesStore = create((set, get) => {
     clearSelected()
 
     // set new region
-    set({ selected: {...region, derivedFrom: selected} });
+    set({ selected: { ...region, derivedFrom }});
 
-    // add new region to snapshot
-    addCurrentStateToSnapshots()
+    // add new region to snapshot (or replace existing snapshot)
+    !!idToReplace ? replaceSnapshot(idToReplace) : addCurrentStateToSnapshots()
   }
 
   const generateSummary = (region, providedPrompt = null) => {
@@ -645,6 +693,8 @@ const SelectedStatesStore = create((set, get) => {
     updateSnapshotAndState,
     preventDerivation: false,
     setPreventDerivation: (prevent) => set({ preventDerivation: prevent }),
+    replaceSnapshot,
+    createSnapshot,
 }})
 
 export default SelectedStatesStore;
