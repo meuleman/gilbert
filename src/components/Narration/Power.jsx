@@ -570,8 +570,16 @@ function PowerModal({
     ctx.strokeStyle = "black";
     ctx.globalAlpha = 1; // Ensure full opacity for the outline
     renderSquares(ctx, [r], transform, o, scales, false, "black");
+
+    // render hover square
+    if(hover && (hover.chromosome === r.chromosome)) {
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      renderSquares(ctx, [hover], transform, o, scales, false, "gray");
+    }
     
-  }, [transformResult, width, height, scales, data, oscale]);
+  }, [transformResult, width, height, scales, data, oscale, hover]);
 
   const linearCenter = useMemo(() => {
     let center = csn?.path.find(d => d.order === order)?.region;
@@ -755,7 +763,7 @@ function PowerModal({
             </div>
           )}
           <canvas
-            className="power-canvas cursor-pointer"
+            className={`power-canvas ${!!hover ? "cursor-pointer" : "cursor-default"}`}
             width={width}
             height={height}
             style={{ width: width + "px", height: height + "px" }}
@@ -780,6 +788,7 @@ function PowerModal({
                 allowPanning={false}
                 onClick={handleSegmentClick}
                 activeRegions={new Map()}
+                onHover={setHover}
               />
             </div>
           </div>
