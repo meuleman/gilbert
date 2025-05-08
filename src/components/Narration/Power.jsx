@@ -589,11 +589,13 @@ function PowerModal({
       renderSquares(ctx, [hover], transform, o, scales, false, "gray");
     }
 
+    const selectedIndexAtOrder = hilbertPosToOrder(selectedRef.current?.i, { from: selectedRef.current?.order, to: o });
     if(showSelectedSquare && (
-      (r.chromosome === selectedRef.current?.chromosome) && 
-      (r.i === selectedRef.current?.i) && 
-      (r.order === selectedRef.current?.order)
-    )) {
+      isPreviewRef.current ||
+        ((r.chromosome === selectedRef.current?.chromosome) && 
+        (r.i === selectedIndexAtOrder))
+      )
+    ) {
       // render selected square
       ctx.lineWidth = 2;
       ctx.strokeStyle = "black";
