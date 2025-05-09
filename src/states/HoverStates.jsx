@@ -1,16 +1,6 @@
 import { create } from 'zustand';
-import { 
-  baseAPIUrl, 
-  fetchSingleRegionFactorOverlap 
-} from '../lib/apiService';
 import { fetchCombinedPathsAndGWAS } from '../lib/csn'
-import { 
-  createGenerateQuery, 
-  createGenerateSummary, 
-  defaultPrompt, 
-  url, 
-  url_feedback
-} from './StateTools'
+import SummaryGeneration from './Slices/SummaryGeneration'
 
 const HoverStatesStore = create((set, get) => {
 
@@ -47,25 +37,15 @@ const HoverStatesStore = create((set, get) => {
     }
   };
 
-  const clearSelected = (callback) => {
-    set({ 
-    }, false, { type: 'selected/clear' });
-
-    // Execute the callback function if provided
-    if (callback && typeof callback === 'function') {
-      callback();
-    }
-  }
-
   const generateSummary = () => {
+    const {generateSummaryFromQuery} = get();
     set({
       regionSummary: "", 
       abstracts: [],
       summaryLoading: true
     })
-    const generateSummary = createGenerateSummary({ get });
 
-    generateSummary().then(data => {
+    generateSummaryFromQuery().then(data => {
       if(data === null) {
         set({ summaryLoading: false })
         return;
@@ -79,7 +59,15 @@ const HoverStatesStore = create((set, get) => {
     });
   }
 
+  const generateQuery = (narration) => {
+    const {generateQueryFromNarration} = get();
+    const query = generateQueryFromNarration(narration)
+    return query
+  }
+
   return {
+    ...SummaryGeneration(set, get),
+    
     // hover
     hover: null,
     setHover: (hover) => set({ hover: hover }),
@@ -97,31 +85,9 @@ const HoverStatesStore = create((set, get) => {
     setHoverNarration: (narration) => set({ hoverNarration: narration }),
     collectPathForHover,
 
-
-    // summary  
-    url,
-    url_feedback,  
-    query: "",
-    setQuery: (query) => set({ query }),
-    summaryLoading: false,
-    setSummaryLoading: (loading) => set({ summaryLoading: loading }),
-    request_id: null,
-    setRequest_id: (id) => set({ request_id: id }),
-    regionSummary: "",
-    setRegionSummary: (regionSummary) => set({ regionSummary }),
-    abstracts: [],
-    setAbstracts: (abstracts) => set({ abstracts }),
-    prompt: defaultPrompt,
-    setPrompt: (prompt) => set({ prompt }),
-    abstractsIncluded: true,
-    setAbstractsIncluded: (included) => set({ abstractsIncluded: included }),
-    generateQuery: createGenerateQuery,
+    // summary
     generateSummary,
-    // feedback,
-    // toggleIncludeAbstracts: createToggleIncludeAbstracts({ set, get }),
-
-    // clear selected
-    clearSelected,
+    generateQuery,
 }})
 
 export default HoverStatesStore;

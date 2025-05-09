@@ -13,7 +13,7 @@ import PropTypes from 'prop-types';
 
 ZoomLine.propTypes = {
   csn: PropTypes.object,
-  order: PropTypes.number.isRequired,
+  order: PropTypes.number,
   maxPathScore: PropTypes.number,
   highlight: PropTypes.bool,
   selected: PropTypes.bool,

@@ -12,7 +12,7 @@ import PropTypes from 'prop-types';
 
 ScoreBars.propTypes = {
   csn: PropTypes.object,
-  order: PropTypes.number.isRequired,
+  order: PropTypes.number,
   highlight: PropTypes.bool,
   selected: PropTypes.bool,
   loadingFullNarration: PropTypes.bool,
