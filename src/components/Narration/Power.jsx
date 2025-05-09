@@ -117,6 +117,7 @@ function PowerModal({
 
   const canvasRef = useRef(null);
   const tooltipRef = useRef(null);
+  const dataRequestRef = useRef(null);
 
   const { handleSelectedZoom: onOrder, selectedZoomOrder: userOrder } = useZoom();
   const { 
@@ -238,12 +239,17 @@ function PowerModal({
   // Data fetching
   useEffect(() => {
     if (!csn || !csn.path || !csn.path.length) return;
-    
+
+    // ID for request cycle
+    const currentId = Date.now();
+    dataRequestRef.current = currentId;
+
     // check if data has already been collected
     if(!isPreviewRef.current && globalPowerData && globalPowerData.filter(d => d.collected).length === 11) {
       console.log("WE HAVE GLOBAL POWER DATA", globalPowerData)
       setData(globalPowerData);
       setPowerDataLoaded(true);
+      setLoading(false);
       return;
     }
     
@@ -343,6 +349,9 @@ function PowerModal({
     dataDebounce(
       // First fetch data for the current order
       async () => {
+        // check if still the current request
+        if (dataRequestRef.current !== currentId) return;
+
         const currentOrder = Math.max(...csn?.path?.map(d => d?.order)) || csn.order  // Math.floor(percentScale(percent));
         setLoading(true);
         setPowerDataLoaded(false);
@@ -360,6 +369,8 @@ function PowerModal({
           console.log("finished target fetchData", currentOrderPoint, Date.now() - kickoff)
           // Process the current order data
           const orderPointWithData = processOrderData(currentOrderPoint, response);
+          // check if still the current request
+          if (dataRequestRef.current !== currentId) return;
           // Update the data state for just this order
           setData(allOrderPoints.map(d => d.order == orderPointWithData.order ? orderPointWithData : d));
           
@@ -388,6 +399,8 @@ function PowerModal({
               try {
                 const response = await fetchDataForOrderPoint(orderPoint);
                 const orderPointWithData = processOrderData(orderPoint, response);
+                // check if still the current request
+                if (dataRequestRef.current !== currentId) return;
                 
                 // Update the data state with newly collected data for this order
                 setData(prevData => {
@@ -410,6 +423,9 @@ function PowerModal({
       () => {},
       150
     )
+    return () => {
+      dataRequestRef.current = null;
+    };
   }, [csn]);
 
   useEffect(() => {
@@ -605,7 +621,10 @@ function PowerModal({
       ctx.strokeStyle = "black";
       ctx.globalAlpha = 1; // Ensure full opacity for the outline
       renderSquares(ctx, [r], transform, o, scales, false, "black");
+    } else {
+      ctx.globalAlpha = 1; // Ensure full opacity
     }
+    
   }, [transformResult, width, height, scales, data, oscale, hover, showSelectedSquare]);
 
   const linearCenter = useMemo(() => {

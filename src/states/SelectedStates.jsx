@@ -113,16 +113,21 @@ const SelectedStatesStore = create((set, get) => {
   };
 
   const handleNarrationPreview = (factor) => {
-    const newNarration = { ...get().selectedNarration };
+    const { selectedNarration, narrationPreview, handleSlicedNarrationPreview } = get();
+    const newNarration = { ...selectedNarration };
     let newPath = factor.path.path;
     if (newNarration?.path?.length && newPath?.length) {
       newNarration.path = newPath;
-      if (JSON.stringify(newNarration) !== JSON.stringify(get().narrationPreview)) {
+      if (JSON.stringify(newNarration) !== JSON.stringify(narrationPreview)) {
         set({ narrationPreview: newNarration });
-        get().handleSlicedNarrationPreview(newNarration)
+        handleSlicedNarrationPreview(newNarration)
       }
     }
   };
+
+  const removeNarrationPreview = () => {
+    set({ narrationPreview: null, slicedNarrationPreview: null })
+  }
 
   const handleSlicedNarrationPreview = (narrationPreview) => {
     if(narrationPreview) {
@@ -622,7 +627,7 @@ const SelectedStatesStore = create((set, get) => {
     setLoadingFullNarration: (loading) => set({ loadingFullNarration: loading }),
     narrationPreview: null,
     setNarrationPreview: (preview) => set({ narrationPreview: preview }),
-    removeNarrationPreview: () => set({ narrationPreview: null, slicedNarrationPreview: null }),
+    removeNarrationPreview,
     handleNarrationPreview,
     slicedNarrationPreview: null,
     setSlicedNarrationPreview: (preview) => set({ slicedNarrationPreview: preview }),
