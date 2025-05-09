@@ -134,12 +134,12 @@ export default function ScoreBars({
   
   const rw = useMemo(() => yScale(5) - yScale(4) - 2, [yScale]);
 
-  const handleClick = useCallback((e, o) => {
+  // const handleClick = useCallback((e, o) => {
     // const p = path.find(d => d.order === o)
     // if(p) {
     //   onClick(p)
     // }
-  }, [path, onClick])
+  // }, [path, onClick])
 
   const handleHover = useCallback((e, o) => {
     const containerRect = containerRef.current.getBoundingClientRect();
@@ -181,7 +181,7 @@ export default function ScoreBars({
     tooltipRef.current.hide()
   }, [])
 
-  const handleDoubleClick = useCallback((o) => {
+  const handleClick = useCallback((o) => {
     if(Math.max(...path.map(d => d.order)) > o) {
       backtrack(o);
     }
@@ -214,7 +214,7 @@ export default function ScoreBars({
               }}
               onMouseMove={(e) => {isShiftPressed ? handleMoreInfoHover(e, o) : handleHover(e, o)}}
               onMouseLeave={handleLeave}
-              onDoubleClick={() => handleDoubleClick(o)}
+              onClick={() => handleClick(o)}
             >
               <div
                 className="absolute top-0 left-0 opacity-[0.01] bg-white"
@@ -240,8 +240,7 @@ export default function ScoreBars({
                       className="pointer-events-auto"
                       onMouseMove={(e) => handleMoreInfoHover(e, o)}
                       onMouseLeave={handleLeave}
-                      onDoubleClick={() => handleDoubleClick(o)}
-                      onClick={(e) => handleClick(e, o)}
+                      onClick={() => handleClick(o)}
                     >
                       ?
                     </span>

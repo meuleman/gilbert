@@ -707,8 +707,8 @@ function PowerModal({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
-      canvas.addEventListener('dblclick', handleCanvasClick);
-      return () => canvas.removeEventListener('dblclick', handleCanvasClick);
+      canvas.addEventListener('click', handleCanvasClick);
+      return () => canvas.removeEventListener('click', handleCanvasClick);
     }
   }, [handleCanvasClick]);
 
@@ -766,7 +766,7 @@ function PowerModal({
                 <div 
                   className={`
                     relative -top-0.5 left-0 -ml-0.5 -mt-7 px-1 flex flex-row items-center space-x-2 
-                    text-[10px] rounded-t-lg mx-0.5 cursor-pointer
+                    text-[10px] rounded-t-lg mx-0.5 cursor-pointer whitespace-nowrap
                     border-t border-l border-r ${isSelected ? 'border-gray-400' : 'border-gray-200'}
                     ${isSelected ? 'bg-gray-400 text-white z-10' : 'bg-gray-100 text-black'}
                   `}

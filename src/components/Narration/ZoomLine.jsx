@@ -133,12 +133,12 @@ export default function ZoomLine({
   
   const rw = useMemo(() => yScale(5) - yScale(4), [yScale]);
 
-  const handleClick = useCallback((e, o) => {
-    const p = path.find(d => d.order === o);
-    if(p) {
-      onFactor(p);
-    }
-  }, [path, onFactor]);
+  // const handleClick = useCallback((e, o) => {
+  //   const p = path.find(d => d.order === o);
+  //   if(p) {
+  //     onFactor(p);
+  //   }
+  // }, [path, onFactor]);
 
   const handleHover = useCallback((e, o) => {
     const containerRect = containerRef.current.getBoundingClientRect();
@@ -180,7 +180,7 @@ export default function ZoomLine({
     tooltipRef.current.hide();
   }, []);
 
-  const handleDoubleClick = useCallback((o) => {
+  const handleClick = useCallback((o) => {
     if(Math.max(...path.map(d => d.order)) > o) {
       backtrack(o);
     }
@@ -249,7 +249,7 @@ export default function ZoomLine({
             }}
             onMouseMove={(e) => {isShiftPressed ? handleMoreInfoHover(e, o) : handleHover(e, o)}}
             onMouseLeave={handleLeave}
-            onDoubleClick={() => handleDoubleClick(o)}
+            onClick={() => handleClick(o)}
           >
             <div
               className="absolute top-0 left-0 opacity-10 bg-white"
