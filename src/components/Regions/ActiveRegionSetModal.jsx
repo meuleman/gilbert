@@ -9,7 +9,7 @@ import SelectedStatesStore from '../../states/SelectedStates'
 import FactorSearch from '../FactorSearch';
 import Loading from '../Loading';
 import AccordionArrow from '@/assets/accordion-circle-arrow.svg?react';
-import Spectrum from '../../components/Narration/Spectrum';
+import Spectrum from '../../components/Narration/Spectrum/Spectrum';
 import Minimap from './Minimap';
 import MinimapIcon from "@/assets/minimap.svg?react";
 import ListviewIcon from "@/assets/listview.svg?react";
