@@ -8,6 +8,7 @@ import genesetOrder from '../../../../data/genesetOrder2023.json';
 // drawing functions for spectrum
 import { Curve, SpectrumBar, Membership, Labels } from './drawingFunctions';
 
+
 // construct scaling functions
 export const useSpectrumScales = ({smoothData, scales}) => {
 	const {plotXStart, plotXStop, plotYStart, plotYStop} = scales
@@ -40,6 +41,7 @@ export const useSpectrumScales = ({smoothData, scales}) => {
 	};
 }
 
+
 // tooltip functions
 export const useTooltipHandling = ({enrichments, scales, dimensions, setTooltip}) => {
 
@@ -59,7 +61,6 @@ export const useTooltipHandling = ({enrichments, scales, dimensions, setTooltip}
 	const isHoveringSpectrumBar = useCallback((x, y) => {
 		return x >= plotXStart && x <= plotXStop && y >= plotYStop && y <= height;
 	}, [plotXStart, plotXStop, plotYStop, height]);
-	
 
 	// Memoize mouse event handlers
 	const handleMouseLeave = useCallback(() => {
@@ -89,9 +90,9 @@ export const useTooltipHandling = ({enrichments, scales, dimensions, setTooltip}
   return { isHoveringCurve, isHoveringSpectrumBar, handleMouseLeave, determineGeneset };
 };
 
+
 // smooth enrichment data
 export const useEnrichmentData = ({genesetInfo, windowSize}) => {
-
 
 	const [enrichments, setEnrichments] = useState(new Array(genesetOrder.length).fill(0));
 	const [smoothData, setSmoothData] = useState(new Array(genesetOrder.length).fill(0));
@@ -132,6 +133,7 @@ export const useEnrichmentData = ({genesetInfo, windowSize}) => {
 
 	return {enrichments, smoothData};
 }
+
 
 // add mouse move and leave functions to canvas
 export const useCanvasInteraction = ({
@@ -180,12 +182,14 @@ export const useCanvasInteraction = ({
   }, [canvasRef, smoothData, height, isHoveringSpectrumBar, isHoveringCurve, determineGeneset, handleMouseLeave, setTooltip]);
 };
 
+
 // scale canvas
 export const useCanvasSize = ({canvasRef, width, height}) => {
 	useEffect(() => {
 		scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height);
 	}, [canvasRef, width, height]);
 }
+
 
 // create the spectrum
 export const useCanvasDrawing = ({canvasRef, smoothData, scales, selectedGenesetMembership, dimensions}) => {
@@ -204,6 +208,7 @@ export const useCanvasDrawing = ({canvasRef, smoothData, scales, selectedGeneset
 		Labels({ labels, ctx, xScale });
 	}, [canvasRef, smoothData, xScale, yScale, plotYStop, spectrumBarHeight, labels, selectedGenesetMembership, height, genesetOrder]);
 }
+
 
 // get container size
 export const useContainerSize = (containerRef) => {
@@ -232,6 +237,7 @@ export const useContainerSize = (containerRef) => {
 
 	return containerSize;
 }
+
 
 // define dimensions
 export const usePlotDimensions = ({
