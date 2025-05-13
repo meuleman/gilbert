@@ -1,7 +1,5 @@
 import React, { useRef, useContext, useState } from 'react';
 
-
-
 // selected and region set information
 import RegionsContext from '../../Regions/RegionsContext';
 import SelectedStatesStore from '../../../states/SelectedStates';
