@@ -217,7 +217,19 @@ const CSN = (set, get) => {
     ];
 
     const responses = await Promise.all(promises);
-    const fullDataResponse = responses[0];
+    let fullDataResponse = responses[0];
+
+    let order14Data = fullDataResponse?.path?.find(d => d.order === 14);
+    if(fullDataResponse?.order === 14 && !order14Data?.field) {
+      // recalculate preferred factor for inclusion of non-gwas variant data
+      let newOrder14Data = recalculatePreferred([order14Data])
+      let newPath = fullDataResponse.path.map(d => d.order === 14 ? newOrder14Data[0] : d);
+      fullDataResponse = {
+        ...fullDataResponse,
+        path: newPath
+      };
+
+    }
 
     // Set the enriched narration and mark loading as complete.
     updateSnapshotAndState(regionKey, {
