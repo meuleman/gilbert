@@ -19,7 +19,6 @@ function factorTooltipContent(factor) {
         <span className="inline-block w-2.5 h-2.5 mr-1" style={{ backgroundColor: factor.color }}></span>
         <span>{factor.factorName} ({factor.topSegment.score.toFixed(2)})</span>
        </span>
-       <span>{showKbOrder(factor.topSegment.order)}</span>
        <span>{factor.layer.name}</span>
     </div>
   )
