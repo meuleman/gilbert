@@ -1,5 +1,6 @@
 const Power = (set, get) => {
 
+  // Function to set power data for a specific region
 	const setPowerData = (region, powerData) => {
     const { createKey, updateSnapshotAndState } = get();
     const regionKey = createKey(region);

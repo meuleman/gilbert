@@ -1,16 +1,19 @@
 const SnapshotManagement = (set, get) => {
 
+  // Function to create a unique key for a region
   const createKey = (region) => {
     if(!region) return "";
     return `${region.chromosome},${region.i},${region.order}`;
   };
 
+  // Function to update the snapshot and state
   const updateSnapshotAndState = (regionKey, update, force = false) => {
     const { createKey, updateSnapshot } = get();
     updateSnapshot(regionKey, update)
     if(force || regionKey === createKey(get().selected)) set(update);
   }
 
+  // Function to update a specific snapshot by ID
   const updateSnapshot = (id, updateData = {}) => {
     const { regionSnapshots } = get();
     const existingIndex = regionSnapshots.findIndex(s => s.id === id);
@@ -32,6 +35,7 @@ const SnapshotManagement = (set, get) => {
     return null;
   };
 
+  // Function to create snapshot from current state
   const createSnapshot = () => {
     const {
       selected,
@@ -75,6 +79,7 @@ const SnapshotManagement = (set, get) => {
     return snapshot
   }
 
+  // Function to replace a snapshot by ID
   const replaceSnapshot = (idToReplace) => {
     const {
       regionSnapshots,
@@ -99,6 +104,7 @@ const SnapshotManagement = (set, get) => {
     return;
   }
 
+  // Function to add the current state to snapshot
   const addCurrentStateToSnapshots = () => {
     const {
       regionSnapshots,
@@ -126,6 +132,7 @@ const SnapshotManagement = (set, get) => {
     }
   }
 
+  // Function to remove a snapshot
   const popRegionFromSnapshots = (snapshotKey) => {
     const { selected, regionSnapshots, createKey } = get();
     // remove snapshot from regionSnapshots
@@ -146,6 +153,7 @@ const SnapshotManagement = (set, get) => {
     }
   }
 
+  // Function to switch to a different snapshot
   const switchSnapshots = (snapshotKey) => {
     const { regionSnapshots } = get();
     const existingIndex = regionSnapshots.findIndex(s => s.id === snapshotKey);
@@ -175,7 +183,6 @@ const SnapshotManagement = (set, get) => {
   }
 
   return {
-
     // spawning new regions
     regionSnapshots: [],
     setRegionSnapshots: (snapshots) => set({ regionSnapshots: snapshots }),
@@ -190,7 +197,6 @@ const SnapshotManagement = (set, get) => {
     setPreventDerivation: (prevent) => set({ preventDerivation: prevent }),
     replaceSnapshot,
     createSnapshot,
-    
   }
 }
 

@@ -1,6 +1,7 @@
 import { fetchCombinedPathsAndGWAS } from '../../lib/csn'
 
 const Hover = (set, get) => {
+  // This function collects paths for a hover region and updates the state.
 	const collectPathForHover = (hover) => {
     if(hover) {
       set({

@@ -1,8 +1,8 @@
 import { fromIndex } from '../../lib/regions'
 
 const SpawningRegions = (set, get) => {
-// updates the narration with a factor's subpath selection.
-const setFactorSelection = (f, activeSet = null, activeFilters = []) => {
+  // Function to spawn a new region by clicking on a subpath
+  const setFactorSelection = (f, activeSet = null, activeFilters = []) => {
 
     const { 
       selected, removeNarrationPreview, clearSelected, createKey,
@@ -64,6 +64,7 @@ const setFactorSelection = (f, activeSet = null, activeFilters = []) => {
     }
   };
 
+  // Function to spawn a new region by clicking on a segment in 2D and 1D maps
   const spawnRegionSidetrack = (region) => {
 
     const { 
@@ -85,6 +86,7 @@ const setFactorSelection = (f, activeSet = null, activeFilters = []) => {
     !!idToReplace ? replaceSnapshot(idToReplace) : addCurrentStateToSnapshots()
   }
 
+  // Function to spawn a new region by backtracking to a lower order
   const spawnRegionBacktrack = (order, activeSet, activeFilters) => {
 
     // create new region from selectedNarration

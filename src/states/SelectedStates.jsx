@@ -5,45 +5,10 @@ import SummaryGeneration from './Slices/SummaryGeneration'
 import CSN from './Slices/CSN'
 import Power from './Slices/Power'
 import SpawningRegions from './Slices/SpawningRegions';
+import SelectedSummaryGeneration from './Slices/SelectedSummaryGeneration';
 
 
 const SelectedStatesStore = create((set, get) => {
-
-  const generateSummary = (region, providedPrompt = null) => {
-    const { createKey, updateSnapshotAndState, generateSummaryFromQuery } = get();
-    const regionKey = createKey(region);
-    updateSnapshotAndState(regionKey, { 
-      summaryLoading: true, 
-      regionSummary: "", 
-      abstracts: [] 
-    })
-
-    generateSummaryFromQuery(providedPrompt).then(data => {
-      if(data === null) {
-        updateSnapshotAndState(regionKey, { regionSummary: null });
-        return;
-      }
-      updateSnapshotAndState(regionKey, { 
-        summaryLoading: false, 
-        request_id: data.request_id,
-        regionSummary: data.summary.replace(/^"(.*)"$/, '$1'), 
-        abstracts: data.results,
-      })
-    });
-  }
-
-  const generateQuery = (region, narration) => {
-    const { createKey, updateSnapshotAndState, generateQueryFromNarration } = get();
-    const regionKey = createKey(region);
-    updateSnapshotAndState(regionKey, { query: "" });
-
-    const generatedQuery = generateQueryFromNarration(narration);
-    updateSnapshotAndState(regionKey, { query: generatedQuery });
-    if(!generatedQuery) {
-      updateSnapshotAndState(regionKey, { regionSummary: null });
-    }
-  }
-
   return {
     ...RegionSelection(set, get),
     ...SnapshotManagement(set, get),
@@ -51,9 +16,7 @@ const SelectedStatesStore = create((set, get) => {
     ...CSN(set, get),
     ...Power(set, get),
     ...SpawningRegions(set, get),
-
-    generateSummary,
-    generateQuery
+    ...SelectedSummaryGeneration(set, get),
 }})
 
 export default SelectedStatesStore;

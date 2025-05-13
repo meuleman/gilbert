@@ -7,6 +7,7 @@ import { createSubregionPaths } from '../../lib/subregionPaths'
 
 const CSN = (set, get) => {
 
+  // This function fetches subpaths for a given region and factor exclusion list.
   const findSubpaths = (region, factorExclusion) => {
     const { createKey, updateSnapshotAndState } = get();
     const regionKey = createKey(region);
@@ -36,6 +37,7 @@ const CSN = (set, get) => {
     }
   };
 
+  // This function collects paths for a selected region and updates the state.
   const collectPathsForSelected = (region, genesetScoreMapping, determineFactorExclusion, activeSet, activeFilters) => {
     const { createKey, updateSnapshotAndState } = get();
     const regionKey = createKey(region);
@@ -91,6 +93,7 @@ const CSN = (set, get) => {
     }
   };
 
+  // This function handles the narration preview by updating the state with the new narration.
   const handleNarrationPreview = (factor) => {
     const { selectedNarration, narrationPreview, handleSlicedNarrationPreview } = get();
     const newNarration = { ...selectedNarration };
@@ -104,10 +107,12 @@ const CSN = (set, get) => {
     }
   };
 
+  // This function removes the narration preview by setting it to null.
   const removeNarrationPreview = () => {
     set({ narrationPreview: null, slicedNarrationPreview: null })
   }
 
+  // This function handles the sliced narration preview by updating the state with the new sliced narration.
   const handleSlicedNarrationPreview = (narrationPreview) => {
     if(narrationPreview) {
       let withSlicedPath = { ...narrationPreview };

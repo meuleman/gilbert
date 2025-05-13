@@ -1,10 +1,12 @@
 const RegionSelection = (set, get) => {
 
+  // Function to set the selected region and clear previous selections
   const setNewSelected = (selected) => {
     get().clearSelected()
     set({ regionSnapshots: [], selected: selected, preventDerivation: true })
   }
 
+  // Function to clear the selected region and reset state
   const clearSelected = (callback) => {
     const { defaultPrompt } = get();
     set({ 

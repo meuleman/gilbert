@@ -77,8 +77,6 @@ const SummaryGeneration = (set, get) => {
     return query
   }
 
-  
-
   // generates a summary for the selected region
   const generateSummaryFromQuery = (providedPrompt = null) => {
     let p = providedPrompt || get().prompt
@@ -110,6 +108,7 @@ const SummaryGeneration = (set, get) => {
     return null;
   }
 
+  // Function to provide feedback to the model
   const feedback = (feedback) => {
     let url_feedback = get().url_feedback
     let request_id = get().request_id
@@ -187,6 +186,7 @@ const SummaryGeneration = (set, get) => {
   ${taskSection}
   `.trim().split('\n').map(line => line.trimStart()).join('\n');
 
+  // Function to include/exclude abstracts in the prompt
   const toggleIncludeAbstracts = (include) => {
     set({ abstractsIncluded: include })
     let newPrompt = include ? 
@@ -222,8 +222,6 @@ const SummaryGeneration = (set, get) => {
     abstracts: [],
     setAbstracts: (abstracts) => set({ abstracts }),
     generateQueryFromNarration,
-    // generateQuery,
-    // generateSummary,
     generateSummaryFromQuery,
     feedback,
     defaultPrompt,
