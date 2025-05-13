@@ -8,6 +8,7 @@ import SpawningRegions from './Slices/SpawningRegions';
 import SelectedSummaryGeneration from './Slices/SelectedSummaryGeneration';
 
 
+// This store manages the state of selected regions and their associated data.
 const SelectedStatesStore = create((set, get) => {
   return {
     ...RegionSelection(set, get),
