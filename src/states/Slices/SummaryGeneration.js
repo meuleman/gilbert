@@ -48,14 +48,26 @@ const SummaryGeneration = (set, get) => {
     })
 
     let genes = narration.genes ? narration.genes.map(d => d.in_gene ? `GENE_OVL ${d.name}` : `GENE_ADJ ${d.name}`) : []
-    
-    // Sort genesets by p-value (region set p-values) and take top 3
-    let filteredGenesets = narration.genesets?.filter(d => d.p).sort((a,b) => a.p - b.p)?.slice(0, 3)
-    // If no genesets with p-values, take first 3 genesets
-    let genesets = (filteredGenesets?.length > 0 ? filteredGenesets : narration.genesets?.slice(0, 3))
+    let geneNames = narration.genes ? narration.genes.map(d => d.name) : []
+    // // Sort genesets by p-value (region set p-values) and take top 3
+    // let filteredGenesets = narration.genesets?.filter(d => d.p).sort((a,b) => a.p - b.p)?.slice(0, 3)
+    // // If no genesets with p-values, take first 3 genesets
+    // let genesets = (filteredGenesets?.length > 0 ? filteredGenesets : narration.genesets?.slice(0, 3))
+    //   ?.map(d => {
+    //     const term = d.geneset.split('_').slice(1).join(' ')
+    //     return `GO ${term.toUpperCase()}`
+    //   })
+    // if(!fields.length && !genesets.length && !genes.length) return null;
+
+    // Sort genesets by p-value (region set p-values)
+    let filteredGenesets = narration.genesets?.filter(d => d.p).sort((a,b) => a.p - b.p)
+    // If no genesets with p-values (ie no region set), use all
+    let genesets = (filteredGenesets?.length > 0 ? filteredGenesets : narration.genesets)
       ?.map(d => {
         const term = d.geneset.split('_').slice(1).join(' ')
-        return `GO ${term.toUpperCase()}`
+        // only relevant genes are included as tags for the genesets
+        const termGenes = d.genes.filter(g => geneNames.includes(g))
+        return `GO ${term.toUpperCase()} (${termGenes.join(", ")})`
       })
     if(!fields.length && !genesets.length && !genes.length) return null;
 
@@ -130,7 +142,8 @@ const SummaryGeneration = (set, get) => {
 
   The size (SCALE) of the region the narration will be generated for is also provided, make sure to state the region's size in your summary.
   Additionally, you are provided information on any genes that directly overlap (GENE_OVL) or are adjacent to (GENE_ADJ) the region.
-  To aid in functional narration, you are also provided with Gene Ontology genesets (GO) associated with the region, which may constitute important information in combination with all of the above.
+  To aid in functional narration, you are also provided with Gene Ontology genesets (GO) associated with the region (along with a tag of the overlapping or adjacent genes that belong to each geneset), which may constitute important information in combination with all of the above.
+  If you choose to highlight a geneset, make sure the genes you highlight in addition are members of the geneset.
   `
 
   const abstractsAccess = `You also have access to titles and abstracts of research articles that may be relevant to the query, so make sure to use these for additional context and writing style.
