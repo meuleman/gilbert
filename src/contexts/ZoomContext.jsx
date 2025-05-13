@@ -44,7 +44,7 @@ export function ZoomProvider({ children}) {
     }
   }, [transform, orderZoomScale, orderMin, orderMax, orderOffset, orderRaw]);
 
-  const easeZoom = useCallback((oldTransform,newTransform, callback, duration = 750, ease = easeCubicInOut, rateLimit = 1) => {
+  const easeZoom = useCallback((oldTransform,newTransform, callback, duration = 750, ease = easeCubicInOut, rateLimit = 20) => {
     const startTime = Date.now();
     const interpolator = interpolateObject(oldTransform, newTransform);
     // console.log("interpolator", interpolator(0.5))

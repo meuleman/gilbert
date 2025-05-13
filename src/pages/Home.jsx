@@ -426,6 +426,7 @@ function Home() {
     }
     // const mid = range[Math.floor(range.length / 2)]
     // Find the region closest to the midpoint of the x,y coordinates in the range
+    if(!range.length) return;
     const midX = (range[0].x + range[range.length - 1].x) / 2;
     const midY = (range[0].y + range[range.length - 1].y) / 2;
     const mid = range.reduce((closest, current) => {
@@ -434,8 +435,8 @@ function Home() {
       return currentDist < closestDist ? current : closest;
     }, range[0]);
     // console.log("MID", mid)
-    // setRegion(mid)
-    setSelected(mid)
+    setRegion(mid)
+    // setSelected(mid)
     // console.log("autocomplete range", range)
     // saveSet(selected.value, range, { activate: true, type: "search"})
     // }
