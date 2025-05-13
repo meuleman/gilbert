@@ -253,6 +253,8 @@ const RegionsProvider = ({ children }) => {
   useEffect(() => {
     if(filteredActiveRegions?.length) {
       setTopNarrationsLoading(true)
+      setRegionSetNarration("")
+      setRegionSetQuery("")
       // if subregion exists, use for narration
       let narrationRegions = filteredActiveRegions.map(d => d.subregion ? {...d, ...d.subregion} : d)
       fetchCombinedPathsAndGWAS(narrationRegions).then((response) => {
@@ -268,6 +270,9 @@ const RegionsProvider = ({ children }) => {
     } else {
       setTopNarrations([])
       setTopNarrationsLoading(false)
+      setRegionSetQuery("")
+      setRegionSetNarration(null)
+      setRegionSetNarrationLoading(false)
     }
   }, [filteredActiveRegions])
 
@@ -395,15 +400,12 @@ const RegionsProvider = ({ children }) => {
     return query
   }, [activeGenesetEnrichment])
 
-  
   useEffect(() => {
+    setRegionSetNarrationLoading(true)
     // only generate query if topNarrations and activeGenesetEnrichment are available
     if (topNarrations.length && activeGenesetEnrichment !== null) {
       let query = generateRegionSetQuery(topNarrations)
-      // console.log(query)
       setRegionSetQuery(query)
-    } else {
-      setRegionSetQuery("")
     }
   }, [topNarrations, activeGenesetEnrichment])
 
@@ -411,10 +413,6 @@ const RegionsProvider = ({ children }) => {
     if(regionSetQuery !== "") {
       setRegionSetNarrationLoading(true)
       generateRegionSetNarration()
-    } else {
-      setRegionSetNarration(null)
-      setRegionSetAbstracts([])
-      setRegionSetNarrationLoading(false)
     }
   }, [regionSetQuery])
 
