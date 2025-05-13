@@ -278,9 +278,8 @@ const ZoomLegend = ({
                         display: "inline-block",
                         cursor: `${CSNView ? "pointer" : "default"}`
                       }}
-                    >
-                      {d.field && d.field.field}
-                    </div>
+                    />
+                    {d.field && d.field.field}
                   </div>
                 </div>
               </div>
