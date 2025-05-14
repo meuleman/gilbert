@@ -1,5 +1,5 @@
 import { useState, useEffect, memo, useMemo, useRef } from 'react';
-
+import SelectedStatesStore from '../states/SelectedStates';
 import { AutoComplete } from 'antd';
 
 const genomicPositionRegex = /^chr(\d{1,2}|X|Y):(\d+)-(\d+)$/;
@@ -30,6 +30,8 @@ const GeneSearch = memo(({
 
   const [searchValue, setSearchValue] = useState('');
   const [inputValue, setInputValue] = useState('');
+
+  const { selected } = SelectedStatesStore();
 
   const filteredOptions = useMemo(() => {
     // find the genes that match the input
@@ -152,6 +154,7 @@ const GeneSearch = memo(({
   return (
     <div ref={autocompleteWrapperRef}>
       <AutoComplete
+        disabled={!!selected}
         options={filteredOptions}
         value={inputValue}
         onSearch={handleSearch}
