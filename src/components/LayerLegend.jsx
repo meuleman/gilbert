@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 
 const LayerLegend = ({
-  data,
-  hover,
-  selected,
+  topFactorData = null,
+  data = null,
+  hover = null,
+  selected = null,
   show = true,
   onShow = () => { },
   handleFactorClick,
@@ -18,7 +19,6 @@ const LayerLegend = ({
 
   useEffect(() => {
     let fullFactorList = [];
-    let layerName = data?.layer.name;
     let SBFFactors = null;
 
     if (SBFFactors) {
@@ -27,7 +27,9 @@ const LayerLegend = ({
       setSBFFactorInds(SBFFactors.map(f => f.ind));
     }
 
-    if (data) {
+    if (topFactorData) {
+      fullFactorList = topFactorData?.layer?.fieldColor?.domain();
+    } else if (data) {
       let meta = data.meta;
       if (meta) {
         fullFactorList = (
@@ -65,6 +67,10 @@ const LayerLegend = ({
           let factorValuesFiltered = factorValues.filter((f, i) => (f.value > 0) && (i < maxNumFactors));
           setFactorsToShow(factorValuesFiltered.map(f => f.factor));
         }
+      } else if (topFactorData?.field) {
+        setFactorsToShow([topFactorData?.field]);
+      } else {
+        setFactorsToShow([]);
       }
     }
 
@@ -77,7 +83,7 @@ const LayerLegend = ({
       }
       setFactorsToHighlight(fullFactorList?.filter((f) => hoverData[f] > 0));
     }
-  }, [data, hover, selected, maxNumFactors]);
+  }, [topFactorData, data, hover, selected, maxNumFactors]);
 
   const handleClick = (factor) => {
     if (SBFFactors) {
@@ -104,7 +110,7 @@ const LayerLegend = ({
       <div>
         <strong>Factor Legend</strong>
       </div>
-      <ul className="[&>li]:mt-2.5">
+      <ul className="[&>li]:mt-0">
         {factorsToShow.map((f) => (
           <li key={f}
             className="relative grid grid-cols-[max-content_minmax(0,max-content)] gap-y-3.5 gap-x-2 items-center"
@@ -113,7 +119,7 @@ const LayerLegend = ({
             <span
               className="inline-block size-3 border"
               style={{
-                backgroundColor: data.layer.fieldColor(f)
+                backgroundColor: topFactorData?.layer?.fieldColor(f) || data?.layer?.fieldColor(f)
               }}
             />
             <span>{f}</span>

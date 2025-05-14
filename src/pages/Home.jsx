@@ -890,7 +890,7 @@ function Home() {
                 <div className="relative flex-1">
                   {/*<div className="absolute top-0 left-1/4 w-1/2 h-full overflow-hidden p-2">*/}
                   <div className="absolute top-1 w-full h-full overflow-hidden px-2 pt-6 pb-4 cursor-default">
-                    <Power onClose={handleModalClose}/>
+                    <Power onClose={handleModalClose} showLayerLegend={showLayerLegend}/>
                   </div>
                 </div>
               </div>

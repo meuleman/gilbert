@@ -25,6 +25,7 @@ import { Renderer as CanvasRenderer } from '../Canvas/Renderer';
 import { useZoom } from '../../contexts/zoomContext';
 import SelectedStatesStore from '../../states/SelectedStates';
 import LinearGenome from '../../components/LinearGenome';
+import LayerLegend from '../../components/LayerLegend'
 
 import Tooltip from '../Tooltips/Tooltip';
 import PropTypes from 'prop-types';
@@ -91,7 +92,8 @@ function PowerModal({
   width: propWidth, 
   height: propHeight, 
   sheight = linearGenomeHeight, 
-  onClose = () => {} 
+  onClose = () => {},
+  showLayerLegend = false,
 }) {
   const containerRef = useRef(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
@@ -769,6 +771,61 @@ function PowerModal({
     }
   }, [handleCanvasHover]);
 
+  // layer legend data for previews, selected, and hover
+  const topFactorData = useMemo(() => {
+    if (!data || !transformResult) return { layer: null, field: null };
+    
+    const order = data.find(d => d.order === transformResult.order);
+    if (!order?.data) return { layer: order?.layer, field: null };
+    
+    const region = (
+      narrationPreview?.path?.find(d => d.order === transformResult.order)?.region ||
+      hover ||
+      selected
+    );
+    if (!region) return { layer: order.layer, field: null };
+
+    // find region data
+    const regionData = order.data.find(d => 
+      (
+        (d.chromosome === region.chromosome) && 
+        (d.i === hilbertPosToOrder(
+          region.i, { 
+            from: region.order, 
+            to: transformResult.order 
+          }
+        ))
+      )
+    )?.data;
+    if (!regionData) return { layer: order.layer, field: null };
+
+    // max field layers
+    if(Object.keys(regionData)[0] === "max_field" && Object.keys(regionData)[1] === "max_value") {
+      if(regionData?.max_value > 0) {
+        let field = order.layer.fieldColor.domain()[regionData.max_field];
+        return {layer: order.layer, field}
+      } else {
+        return {layer: order.layer, field: null};
+      }
+    }
+
+    // find the top factor
+    let maxKey = null;
+    let maxValue = -Infinity;
+    for (const key in regionData) {
+      const value = regionData[key];
+      if (value > maxValue) {
+        maxValue = value;
+        maxKey = key;
+      }
+    }
+    
+    return {
+      layer: order.layer,
+      field: maxKey
+    };
+  }, [hover, selected, narrationPreview, data, transformResult?.order]);
+
   return (
     <div ref={containerRef} className="relative power h-full w-full border-[2px] border-gray-400 mt-2">
       <div>
@@ -819,6 +876,12 @@ function PowerModal({
             height={height}
             style={{ width: width + "px", height: height + "px" }}
             ref={canvasRef}
+          />
+          <LayerLegend
+            topFactorData={topFactorData}
+            show={showLayerLegend}
+            onShow={() => {}}
+            searchByFactorInds={() => {}}
           />
         </div>
         {data && (
