@@ -106,7 +106,7 @@ const LayerLegend = ({
   }
 
   return (
-    <div className="absolute z-10 left-2.5 bottom-2.5 bg-white border border-primary rounded-lg flex flex-col justify-center p-2.5">
+    <div className="absolute z-10 left-2.5 bottom-2.5 bg-white border border-gray-400 rounded-lg flex flex-col justify-center p-2.5 text-xs">
       <div>
         <strong>Factor Legend</strong>
       </div>
