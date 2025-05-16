@@ -903,6 +903,7 @@ function PowerModal({
                 onClick={handleSegmentClick}
                 activeRegions={new Map()}
                 onHover={setHover}
+                showCoordinates={false}
               />
             </div>
           </div>

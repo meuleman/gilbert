@@ -75,7 +75,8 @@ const LinearGenome = ({
   loading = false,
   onHover = () => {},
   onClick = () => {},
-  allowPanning = true
+  allowPanning = true,
+  showCoordinates = true,
 } = {}) => {
 
   const { 
@@ -99,9 +100,17 @@ const LinearGenome = ({
 
   let zoomExtent = useMemo(() => [zoomMin, zoomMax], [zoomMin, zoomMax])
 
-  let geneHeight = useMemo(() => height * .40, [height])
-  let trackHeight = useMemo(() => height * .40, [height])
-  let axisHeight = useMemo(() => height * .20, [height])
+  let geneHeight, trackHeight, axisHeight;
+  if(showCoordinates) {
+    geneHeight = useMemo(() => height * .4, [height])
+    trackHeight = useMemo(() => height * .4, [height])
+    axisHeight = useMemo(() => height * .2, [height])
+  } else {
+    geneHeight = useMemo(() => height * .5, [height])
+    trackHeight = useMemo(() => height * .5, [height])
+    axisHeight = 0
+  }
+  
 
   const canvasRef = useRef(null)
   const xScaleRef = useRef(null)
@@ -188,43 +197,44 @@ const LinearGenome = ({
         
 
         // Render the "axis"
-        // render the center point location
-        ctx.textAlign = "center";
-        ctx.fillStyle = "black"
-        ctx.font = "10px monospace"
-        let cx = xScale(region.start) + bw / 2
-        // render the left most point location and boundary
-        let lx = xScale(points[0].start)
-        let rx = xScale(points[points.length - 1].end)
-        if(cx - lx < 120) {
-          ctx.textAlign = "right";
-          lx -= 10
-          ctx.fillText(points[0].chromosome + ":" + points[0].start, lx, geneHeight + trackHeight + axisHeight - 2);
-          ctx.textAlign = "left";
-          ctx.fillText(region.chromosome + ":" + region.start, cx, geneHeight + trackHeight + axisHeight - 2);
-        } else if (rx - cx < 120) {
-          ctx.textAlign = "left";
-          lx += 1
-          rx += 10
-          ctx.fillText(points[0].chromosome + ":" + points[0].start, lx, geneHeight + trackHeight + axisHeight - 2);
-          ctx.textAlign = "right";
-          ctx.fillText(region.chromosome + ":" + region.start, cx, geneHeight + trackHeight + axisHeight - 2);
-          ctx.textAlign = "left";
-          rx += 1
-          ctx.fillText(points[points.length - 1].chromosome + ":" + points[points.length - 1].end, rx, geneHeight + trackHeight + axisHeight - 2);
-        } else{ 
-          ctx.textAlign = "left";
-          lx += 1
-          ctx.fillText(points[0].chromosome + ":" + points[0].start, lx, geneHeight + trackHeight + axisHeight - 2);
+        if(showCoordinates) {
+          // render the center point location
           ctx.textAlign = "center";
-          ctx.fillText(region.chromosome + ":" + region.start, cx, geneHeight + trackHeight + axisHeight - 2);
-          ctx.textAlign = "right";
-          rx -= 1
-          ctx.fillText(points[points.length - 1].chromosome + ":" + points[points.length - 1].end, rx, geneHeight + trackHeight + axisHeight - 2);
+          ctx.fillStyle = "black"
+          ctx.font = "10px monospace"
+          let cx = xScale(region.start) + bw / 2
+          // render the left most point location and boundary
+          let lx = xScale(points[0].start)
+          let rx = xScale(points[points.length - 1].end)
+          if(cx - lx < 120) {
+            ctx.textAlign = "right";
+            lx -= 10
+            ctx.fillText(points[0].chromosome + ":" + points[0].start, lx, geneHeight + trackHeight + axisHeight - 2);
+            ctx.textAlign = "left";
+            ctx.fillText(region.chromosome + ":" + region.start, cx, geneHeight + trackHeight + axisHeight - 2);
+          } else if (rx - cx < 120) {
+            ctx.textAlign = "left";
+            lx += 1
+            rx += 10
+            ctx.fillText(points[0].chromosome + ":" + points[0].start, lx, geneHeight + trackHeight + axisHeight - 2);
+            ctx.textAlign = "right";
+            ctx.fillText(region.chromosome + ":" + region.start, cx, geneHeight + trackHeight + axisHeight - 2);
+            ctx.textAlign = "left";
+            rx += 1
+            ctx.fillText(points[points.length - 1].chromosome + ":" + points[points.length - 1].end, rx, geneHeight + trackHeight + axisHeight - 2);
+          } else{ 
+            ctx.textAlign = "left";
+            lx += 1
+            ctx.fillText(points[0].chromosome + ":" + points[0].start, lx, geneHeight + trackHeight + axisHeight - 2);
+            ctx.textAlign = "center";
+            ctx.fillText(region.chromosome + ":" + region.start, cx, geneHeight + trackHeight + axisHeight - 2);
+            ctx.textAlign = "right";
+            rx -= 1
+            ctx.fillText(points[points.length - 1].chromosome + ":" + points[points.length - 1].end, rx, geneHeight + trackHeight + axisHeight - 2);
+          }
+          // make sure it starts at left if far from center, or aligns right if its close to center
+          // render the right most point location
         }
-        // make sure it starts at left if far from center, or aligns right if its close to center
-        // render the right most point location
-        
 
         // Render the gene track
         let minw = points[0].end - points[0].start
