@@ -377,46 +377,46 @@ function fetchCombinedPathsAndGWAS(regions, membership = false, threshold = 0.1)
   });
 }
 
-// function to generate narration results for a provided region with Genomic Narration tool. 
-function narrateRegion(selected, order) {
-  const maxSimSearchOrder = 11
-  if(selected) {
-    if(order <= maxSimSearchOrder) {
-      const regionMethod = 'hilbert_sfc'
-      let url = `${baseAPIUrl}/narration`
+// // function to generate narration results for a provided region with Genomic Narration tool. 
+// function narrateRegion(selected, order) {
+//   const maxSimSearchOrder = 11
+//   if(selected) {
+//     if(order <= maxSimSearchOrder) {
+//       const regionMethod = 'hilbert_sfc'
+//       let url = `${baseAPIUrl}/narration`
 
-      const chromosome = selected.chromosome
-      const start = selected.start
-      const stop = start + 1
+//       const chromosome = selected.chromosome
+//       const start = selected.start
+//       const stop = start + 1
 
-      const postBody = {
-        location: `${chromosome}:${start}-${stop}`,
-        scale: order,
-        regionMethod: regionMethod,
-      };
+//       const postBody = {
+//         location: `${chromosome}:${start}-${stop}`,
+//         scale: order,
+//         regionMethod: regionMethod,
+//       };
 
-      const narration = axios({
-        method: 'POST',
-        url: url,
-        data: postBody
-      }).then((response) => {
-        const data = response.data[0];
-        return {narrationRanks: data.percentiles, coordinates: data.coordinates}
-      })
-      .catch((err) => {
-        console.error(`error:     ${JSON.stringify(err)}`);
-        console.error(`post body: ${JSON.stringify(postBody)}`);
-        // alert('Query Failed: Try another region.');
-        return null
-      });
+//       const narration = axios({
+//         method: 'POST',
+//         url: url,
+//         data: postBody
+//       }).then((response) => {
+//         const data = response.data[0];
+//         return {narrationRanks: data.percentiles, coordinates: data.coordinates}
+//       })
+//       .catch((err) => {
+//         console.error(`error:     ${JSON.stringify(err)}`);
+//         console.error(`post body: ${JSON.stringify(postBody)}`);
+//         // alert('Query Failed: Try another region.');
+//         return null
+//       });
 
-      return narration
-    } else {
-      const narration = {narrationRanks: null, coordinates: null}
-      return Promise.resolve(narration)
-    }
-  }
-}
+//       return narration
+//     } else {
+//       const narration = {narrationRanks: null, coordinates: null}
+//       return Promise.resolve(narration)
+//     }
+//   }
+// }
 
 
 export default async function layerSuggestion(data, layers) {
@@ -507,7 +507,7 @@ function findUniquePaths(paths) {
 export {
   calculateCrossScaleNarration,
   calculateCrossScaleNarrationInWorker,
-  narrateRegion,
+  // narrateRegion,
   layerSuggestion,
   walkTree,
   findUniquePaths,
