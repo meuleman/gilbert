@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import RegionSelection from './Slices/RegionSelection'
-import SnapshotManagement from './Slices/snapshotManagement'
+import SnapshotManagement from './Slices/SnapshotManagement'
 import SummaryGeneration from './Slices/SummaryGeneration'
 import CSN from './Slices/CSN'
 import Power from './Slices/Power'
