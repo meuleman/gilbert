@@ -268,7 +268,7 @@ const YC240322 = () => {
   // const [sharedFactorLoading, setSharedFactorLoading] = useState(null)
   // useEffect(() => {
   //   if(selectedRegionSample.length > 0){
-  //     let url = `${baseAPIUrl}/get_shared_factor`
+  //     let url = `${baseAPIUrl}umap/get_shared_factor`
   //     const postBody = {
   //       chr_strs: selectedRegionSample.map(d => d.chromosome + ":" + d.start + "-" + d.end),
   //     };
@@ -299,7 +299,7 @@ const YC240322 = () => {
   const [GroupNarrationLoading, setGroupNarrationLoading] = useState(null)
   useEffect(() => {
     if(selectedRegionSample.length > 0){
-      let url = `${baseAPIUrl}/narrate_regions`
+      let url = `${baseAPIUrl}/api/umap/narrate_regions`
       const postBody = {
         chr_strs: selectedRegionSample.map(d => d.chromosome + ":" + d.start + "-" + d.end),
       };
@@ -332,7 +332,7 @@ const YC240322 = () => {
     if(selectedRegionSample.length > 10){
       console.log('Starting UMAP')
       console.log('umapOrder',umapOrder)
-      let url = `${baseAPIUrl}/get_filtered_umap`
+      let url = `${baseAPIUrl}/api/umap/get_filtered_umap`
       const postBody = {
         chr_strs: selectedRegionSample.map(d => d.chromosome + ":" + d.start + "-" + d.end),
         current_order: umapOrder,
