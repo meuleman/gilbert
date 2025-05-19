@@ -19,7 +19,7 @@ import useCanvasAnnotationRegions from '../components/Canvas/Annotation';
 
 
 
-import { useZoom } from '../contexts/zoomContext';
+import { useZoom } from '../contexts/ZoomContext';
 
 import { hilbertPosToOrder } from '../lib/HilbertChromosome';
 import { showPosition } from '../lib/display';

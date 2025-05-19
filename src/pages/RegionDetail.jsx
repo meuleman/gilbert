@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { range, max } from 'd3-array';
-import { ZoomProvider, useZoom } from '../contexts/zoomContext';
+import { ZoomProvider, useZoom } from '../contexts/ZoomContext';
 
 import { showFloat, showPosition, showKb } from '../lib/display';
 import { urlify, jsonify, parsePosition, fromPosition, sameHilbertRegion } from '../lib/regions';

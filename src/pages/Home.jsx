@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo, useContext } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { useZoom } from '../contexts/zoomContext';
+import { useZoom } from '../contexts/ZoomContext';
 
 import { urlify, jsonify, fromPosition, fromRange, fromCountOrder, overlaps } from '../lib/regions'
 import { hilbertPosToOrder } from '../lib/HilbertChromosome'

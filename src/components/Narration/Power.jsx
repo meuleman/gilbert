@@ -22,7 +22,7 @@ import order_14 from '../../layers/order_14';
 import Loading from '../Loading';
 import { Renderer as CanvasRenderer } from '../Canvas/Renderer';
 
-import { useZoom } from '../../contexts/zoomContext';
+import { useZoom } from '../../contexts/ZoomContext';
 import SelectedStatesStore from '../../states/SelectedStates';
 import LinearGenome from '../../components/LinearGenome';
 import LayerLegend from '../../components/LayerLegend'

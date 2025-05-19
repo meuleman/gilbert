@@ -23,7 +23,7 @@ import { getGenesInCell, getGenesOverCell } from '../lib/genes'
 import HoverStatesStore from '../states/HoverStates'
 import RegionsContext from '../components/Regions/RegionsContext';
 
-import { useZoom } from '../contexts/zoomContext';
+import { useZoom } from '../contexts/ZoomContext';
 
 import './HilbertGenome.css';
 

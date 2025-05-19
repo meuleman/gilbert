@@ -14,7 +14,7 @@ import { debouncer } from '../lib/debounce'
 import { defaultContent } from './Tooltips/Content';
 import { getGencodesInView } from '../lib/genes';
 
-import { useZoom } from '../contexts/zoomContext';
+import { useZoom } from '../contexts/ZoomContext';
 import Loading from './Loading';
 
 const zoomDebounce = debouncer()

@@ -15,7 +15,7 @@ import { debouncer, debouncerTimed } from '../../lib/debounce'
 import scaleCanvas from '../../lib/canvas';
 import { Renderer as CanvasRenderer } from '../Canvas/Renderer';
 
-import { useZoom } from '../../contexts/zoomContext';
+import { useZoom } from '../../contexts/ZoomContext';
 
 // import './MinimapGenome.css';
 

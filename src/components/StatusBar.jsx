@@ -6,7 +6,7 @@ import './StatusBar.css'
 import { format } from "d3-format"
 import { showPosition } from '../lib/display';
 import SelectedStatesStore from '../states/SelectedStates';
-import { useZoom } from '../contexts/zoomContext';
+import { useZoom } from '../contexts/ZoomContext';
 
 const StatusBar = ({
   width = 800,

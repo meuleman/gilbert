@@ -13,7 +13,7 @@ import SVGHilbertPaths from '../../components/SVGHilbertPaths'
 import { zoomIdentity } from 'd3-zoom';
 import { range, group } from 'd3-array'
 
-import { useZoom } from '../../contexts/zoomContext';
+import { useZoom } from '../../contexts/ZoomContext';
 
 
 const Minimap = ({

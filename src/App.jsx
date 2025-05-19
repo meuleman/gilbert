@@ -7,7 +7,7 @@ import RegionCSN from './pages/CSNS'
 import YC240322 from './pages/YC240322'
 
 import RegionsProvider from './components/Regions/RegionsProvider';
-import { ZoomProvider } from './contexts/zoomContext';
+import { ZoomProvider } from './contexts/ZoomContext';
 
 import 'antd/dist/reset.css';
 
