@@ -5,7 +5,7 @@ import { useZoom } from '../contexts/ZoomContext';
 
 import { urlify, jsonify, fromPosition, fromRange, fromCountOrder, overlaps } from '../lib/regions'
 import { hilbertPosToOrder } from '../lib/HilbertChromosome'
-import { getRangesOverCell } from "../lib/genes"
+import { getRangesOverCell } from "../lib/Genes"
 
 import { calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
 import { range, group } from 'd3-array'

@@ -12,7 +12,7 @@ import scaleCanvas from '../lib/canvas'
 import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome';
 import { debouncer } from '../lib/debounce'
 import { defaultContent } from './Tooltips/Content';
-import { getGencodesInView } from '../lib/genes';
+import { getGencodesInView } from '../lib/Genes';
 
 import { useZoom } from '../contexts/ZoomContext';
 import Loading from './Loading';

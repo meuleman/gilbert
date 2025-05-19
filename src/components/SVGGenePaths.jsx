@@ -1,5 +1,5 @@
 import { line } from "d3-shape"
-import { getGenesInView } from "../lib/genes"
+import { getGenesInView } from "../lib/Genes"
 
 // A simple component to render the hilbert curve
 export default function GenePaths({ 

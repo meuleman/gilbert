@@ -19,7 +19,7 @@ import { Tooltip } from 'react-tooltip';
 import Loading from './Loading';
 import ZoomInspector from '../components/ZoomInspector'
 import { showPosition } from '../lib/display';
-import { getGenesInCell, getGenesOverCell } from '../lib/genes'
+import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import HoverStatesStore from '../states/HoverStates'
 import RegionsContext from '../components/Regions/RegionsContext';
 

@@ -5,7 +5,7 @@ import { AutoComplete } from 'antd';
 const genomicPositionRegex = /^chr(\d{1,2}|X|Y):(\d+)-(\d+)$/;
 const genomicPositionRegex2 = /^chr(\d{1,2}|X|Y)(\s+)(\d+)(\s+)(\d+)$/;
 
-import { gencode } from '../lib/genes';
+import { gencode } from '../lib/Genes';
 
 const geneLabel = (g) => {
   return (

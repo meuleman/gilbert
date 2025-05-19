@@ -14,7 +14,6 @@ import { showPosition } from '../../lib/display';
 import scaleCanvas from '../../lib/canvas';
 import { getOffsets } from '../../lib/segments';
 import { variantChooser } from '../../lib/csn';
-// import { getGencodesInView } from '../../lib/genes';
 import { linearGenomeHeight } from '../Constants/Constants';
 
 import order_14 from '../../layers/order_14';

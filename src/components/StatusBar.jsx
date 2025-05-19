@@ -1,6 +1,6 @@
 // A component to display some information below the map when hovering over hilbert cells
 import { useEffect, useMemo, useState } from 'react';
-import { getGenesInCell, getGenesOverCell } from '../lib/genes'
+import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import { sum } from 'd3-array'
 import './StatusBar.css'
 import { format } from "d3-format"
