@@ -15,7 +15,7 @@ export default defineConfig({
     port: 5173,             // adjust if needed
     strictPort: true,       // fail if 5173 is taken
 
-    allowedHosts: 'all'
+    allowedHosts: true
     //allowedHosts: ['.amazonaws.com']
   },
   build: {
