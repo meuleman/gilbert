@@ -210,35 +210,6 @@ export const useCanvasDrawing = ({canvasRef, smoothData, scales, selectedGeneset
 }
 
 
-// get container size
-export const useContainerSize = (containerRef) => {
-	const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-  useLayoutEffect(() => {
-
-		if (!containerRef?.current) return;
-
-    const resizeObserver = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        setContainerSize({
-          width: entry.contentRect.width,
-          height: entry.contentRect.height
-        });
-      }
-    });
-    
-    resizeObserver.observe(containerRef.current);
-    // Initial measurement
-    setContainerSize({
-      width: containerRef?.current.clientWidth,
-      height: containerRef?.current.clientHeight
-    });
-    return () => resizeObserver.disconnect();
-  }, [containerRef]);
-
-	return containerSize;
-}
-
-
 // define dimensions
 export const usePlotDimensions = ({
   propWidth,

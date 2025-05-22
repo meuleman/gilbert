@@ -6,6 +6,7 @@ import './StatusBar.css'
 import { format } from "d3-format"
 import { showPosition } from '../lib/display';
 import SelectedStatesStore from '../states/SelectedStates';
+import ComponentSizeStore from '../states/ComponentSizes';
 import { useZoom } from '../contexts/ZoomContext';
 
 const StatusBar = ({
@@ -18,9 +19,24 @@ const StatusBar = ({
   onOrderOffset = () => { },
 } = {}) => {
 
+  const { 
+    leftToolbarSize, mainMapSize, zoomLegendSize, 
+    powerSize, csnSize, activeRegionSetModalSize 
+  } = ComponentSizeStore();
   const { selected, currentPreferred } = SelectedStatesStore();
   const [regionHighlight, setRegionHighlight] = useState(null)
   const { order } = useZoom()
+
+  // calculate the position to align status bar regional content
+  const centerPosition = useMemo(() => {
+    let position = leftToolbarSize.width
+    if(selected) {
+      position += powerSize.width / 2
+    } else {
+      position += mainMapSize.width / 2
+    }
+    return position
+  }, [leftToolbarSize, mainMapSize, powerSize, selected])
 
   let sample = null
   let sampleSummary = ""
@@ -70,28 +86,34 @@ const StatusBar = ({
   }, [regionHighlight, order, getGenesOverCell])
 
   return (
-    <div className="bg-statusBar h-6 px-6 text-xs font-mono font-bold flex gap-6 items-center">
-      <div className="grid grid-cols-3 w-full gap-x-2 max-w-5xl mx-auto items-center">
-          <div className="justify-self-end min-w-0 overflow-hidden whitespace-nowrap">
-            {inside && (<span>Genes in region: {inside}{outside ? ";" : null} </span>)}
-            {outside && (<span>Genes overlapping region: {outside}</span>)}
-          </div>
-          <div className="status-position-override justify-self-center min-w-0 overflow-hidden whitespace-nowrap">
-            {regionHighlight ? showPosition(regionHighlight) : null}
-          </div>
-          <div className="justify-self-start">
-            <div className="text-center min-w-0 overflow-hidden whitespace-nowrap">
-              {currentPreferred?.field ? (
-                <>
-                  <span style={{ color: currentPreferred?.field?.color, marginRight: '4px' }}>
-                    ⏺
-                  </span>
-                  {currentPreferred?.field?.field} {currentPreferred?.layer?.labelName}
-                </>
-              ) : null}
-            </div>
+    <div className="bg-statusBar h-6 px-6 text-xs font-mono font-bold flex gap-6 items-center relative">
+      <div 
+        className="grid grid-cols-3 w-full gap-x-2 max-w-5xl mx-auto items-center absolute"
+        style={{ 
+          left: `${centerPosition}px`, 
+          transform: 'translateX(-50%)', 
+        }}
+      >
+        <div className="justify-self-end min-w-0 overflow-hidden whitespace-nowrap">
+          {inside && (<span>Genes in region: {inside}{outside ? ";" : null} </span>)}
+          {outside && (<span>Genes overlapping region: {outside}</span>)}
+        </div>
+        <div className="status-position-override justify-self-center min-w-0 overflow-hidden whitespace-nowrap">
+          {regionHighlight ? showPosition(regionHighlight) : null}
+        </div>
+        <div className="justify-self-start">
+          <div className="text-center min-w-0 overflow-hidden whitespace-nowrap">
+            {currentPreferred?.field ? (
+              <>
+                <span style={{ color: currentPreferred?.field?.color, marginRight: '4px' }}>
+                  ⏺
+                </span>
+                {currentPreferred?.field?.field} {currentPreferred?.layer?.labelName}
+              </>
+            ) : null}
           </div>
         </div>
+      </div>
 
       {!selected ? <div className="absolute right-6">
         <div className="flex gap-1">

@@ -8,6 +8,7 @@ import { hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { getRangesOverCell } from "../lib/Genes"
 
 import { calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
+import { useContainerSize } from '../lib/utils';
 import { range, group } from 'd3-array'
 import { Tooltip } from 'react-tooltip'
 
@@ -30,6 +31,7 @@ import SVGChromosomeNames from '../components/SVGChromosomeNames'
 import RegionsContext from '../components/Regions/RegionsContext';
 import RegionSetModalStatesStore from '../states/RegionSetModalStates'
 import SelectedStatesStore from '../states/SelectedStates'
+import ComponentSizeStore from '../states/ComponentSizes';
 
 import SankeyModal from '../components/Narration/SankeyModal';
 import HeaderRegionSetModal from '../components/Regions/HeaderRegionSetModal';
@@ -114,38 +116,6 @@ function Home() {
   }, [layerOrder])
 
   const [lensHovering, setLensHovering] = useState(false)
-  const [width, height] = useWindowSize()
-
-  function useWindowSize() {
-    const [size, setSize] = useState([1, 1]);  // helps with initial render
-
-    useEffect(() => {
-      const container = containerRef.current;
-      if (!container) return;
-
-      // Create a new ResizeObserver instance
-      const resizeObserver = new ResizeObserver((entries) => {
-        for (let entry of entries) {
-          // The contentRect provides the new dimensions
-          const { width, height } = entry.contentRect;
-          setSize([width, height - linearGenomeHeight]);
-        }
-      });
-
-      // Start observing the container element
-      resizeObserver.observe(container);
-
-      // Cleanup: unobserve the element and disconnect the observer when component unmounts
-      return () => {
-        resizeObserver.unobserve(container);
-        resizeObserver.disconnect();
-      };
-    }, []);
-
-    return size;
-  }
-
-  // console.log("outer width, height", width, height)
 
   // Zoom duration for programmatic zoom
   const [duration, setDuration] = useState(1000)
@@ -203,6 +173,18 @@ function Home() {
   } = SelectedStatesStore()
   // selected summary effects
   useSelectedEffects()
+
+  const { setMainMapSize } = ComponentSizeStore()
+
+  // determine window size
+  const [width, setWidth] = useState(1)
+  const [height, setHeight] = useState(1)
+  const containerSize = useContainerSize(containerRef)
+  useEffect(() => {
+    setMainMapSize(containerSize)
+    setWidth(containerSize.width)
+    setHeight(containerSize.height)
+  }, [containerSize, setMainMapSize, setWidth, setHeight])
 
   // only on initial mount
   useEffect(() => {

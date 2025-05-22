@@ -3,9 +3,11 @@ import { useState, useCallback, useEffect, useContext, memo, useRef, useMemo } f
 import { showPosition, showKbOrder } from '../../lib/display'
 import { Tooltip } from 'react-tooltip';
 import { download } from '../../lib/regionsets'
+import { useContainerSize } from '../../lib/utils';
 import RegionsContext from './RegionsContext'
 import RegionSetModalStatesStore from '../../states/RegionSetModalStates'
 import SelectedStatesStore from '../../states/SelectedStates'
+import ComponentSizeStore from '../../states/ComponentSizes';
 import FactorSearch from '../FactorSearch';
 import Loading from '../Loading';
 import AccordionArrow from '@/assets/accordion-circle-arrow.svg?react';
@@ -21,35 +23,6 @@ function filterMatch(f1, f2) {
 }
 function inFilters(filters, f) {
   return filters.some(filter => filterMatch(filter, f))
-}
-
-function useContainerSize(containerRef, dependencies) {
-  const [size, setSize] = useState([0, 0]);  // helps with initial render
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    // Create a new ResizeObserver instance
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        // The contentRect provides the new dimensions
-        const { width, height } = entry.contentRect;
-        setSize([width, height]);
-      }
-    });
-
-    // Start observing the container element
-    resizeObserver.observe(container);
-
-    // Cleanup: unobserve the element and disconnect the observer when component unmounts
-    return () => {
-      resizeObserver.unobserve(container);
-      resizeObserver.disconnect();
-    };
-  }, [containerRef, ...dependencies]);
-
-  return size;
 }
 
 
@@ -75,14 +48,27 @@ const ActiveRegionSetModal = () => {
     generateSummary: generateSelectedSummary, feedback: selectedFeedback, 
     abstracts: selectedAbstracts, prompt: selectedPrompt
   } = SelectedStatesStore()
+  const { setActiveRegionSetModalSize } = ComponentSizeStore()
 
   const containerRef = useRef(null)
   const selectedRef = useRef(null);
   const selectedRegionRef = useRef(null);
-  const [width, height] = useContainerSize(containerRef, [activeGenesetEnrichment]);
   const minimapContainerRef = useRef(null)
   const [regionSetView, setRegionSetView] = useState("minimap");
-  const [minimapWidth, minimapHeight] = useContainerSize(minimapContainerRef, [regionSetView]);
+
+  const [minimapHeight, setMinimapHeight] = useState(1);
+  const [width, setWidth] = useState(1);
+  const minimapContainerSize = useContainerSize(minimapContainerRef)
+  const containerSize = useContainerSize(containerRef);
+
+  useEffect(() => {
+    setWidth(containerSize.width)
+    setActiveRegionSetModalSize(containerSize)
+  }, [containerSize, setActiveRegionSetModalSize, setWidth])
+
+  useEffect(() => {
+    setMinimapHeight(minimapContainerSize.height)
+  }, [minimapContainerSize, setMinimapHeight])
 
   useEffect(() => {
     selectedRef.current = selected;

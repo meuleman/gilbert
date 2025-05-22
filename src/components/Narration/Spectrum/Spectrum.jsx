@@ -1,4 +1,5 @@
 import React, { useRef, useContext, useState } from 'react';
+import { useContainerSize } from '../../../lib/utils';
 
 // selected and region set information
 import RegionsContext from '../../Regions/RegionsContext';
@@ -13,7 +14,6 @@ import {
   useCanvasInteraction, 
   useCanvasSize, 
   useCanvasDrawing,
-  useContainerSize,
   usePlotDimensions
 } from './utils/spectrumHooks';
 

@@ -5,6 +5,8 @@ import SubPaths from './Narration/SubPaths';
 import SelectedStatesStore from '../states/SelectedStates';
 import RegionsContext from './Regions/RegionsContext'
 import { useZoom } from '../contexts/ZoomContext';
+import { useContainerSize } from '../lib/utils';
+import ComponentSizeStore from '../states/ComponentSizes';
 
 /**
  * ZoomInspector consolidates the ZoomLine, ScoreBars, and SubPaths
@@ -37,6 +39,14 @@ function ZoomInspector({
     powerDataLoaded, setPowerDataLoaded,
     spawnRegionBacktrack, setFactorSelection, selected
   } = SelectedStatesStore();
+
+  const { setCsnSize } = ComponentSizeStore();
+
+  const containerRef = useRef(null);
+  const containerSize = useContainerSize(containerRef);
+  useEffect(() => {
+    setCsnSize(containerSize);
+  }, [containerSize, setCsnSize]);
 
   const selectedRef = useRef(null);
   useEffect(() => {
@@ -74,7 +84,7 @@ function ZoomInspector({
   const scoreBarWidth = providedScoreBarWidth || 150;
 
   return (
-    <div className="flex h-full flex-row relative">
+    <div className="flex h-full flex-row relative" ref={containerRef}>
       {/* ZoomLine component - fixed width */}
       <div className="h-full flex-none" style={{ width: `${sidebarWidth + 4}px` }}>
         <ZoomLine 

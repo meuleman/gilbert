@@ -14,6 +14,7 @@ import { showPosition } from '../../lib/display';
 import scaleCanvas from '../../lib/canvas';
 import { getOffsets } from '../../lib/segments';
 import { variantChooser } from '../../lib/csn';
+import { useContainerSize } from '../../lib/utils';
 import { linearGenomeHeight } from '../Constants/Constants';
 
 import order_14 from '../../layers/order_14';
@@ -23,6 +24,7 @@ import { Renderer as CanvasRenderer } from '../Canvas/Renderer';
 
 import { useZoom } from '../../contexts/ZoomContext';
 import SelectedStatesStore from '../../states/SelectedStates';
+import ComponentSizeStore from '../../states/ComponentSizes';
 import LinearGenome from '../../components/LinearGenome';
 import LayerLegend from '../../components/LayerLegend'
 
@@ -94,31 +96,6 @@ function PowerModal({
   onClose = () => {},
   showLayerLegend = false,
 }) {
-  const containerRef = useRef(null);
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-  useLayoutEffect(() => {
-    const resizeObserver = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        setContainerSize({
-          width: entry.contentRect.width,
-          height: entry.contentRect.height
-        });
-      }
-    });
-    resizeObserver.observe(containerRef.current);
-    setContainerSize({
-      width: containerRef.current.clientWidth,
-      height: containerRef.current.clientHeight
-    });
-    return () => resizeObserver.disconnect();
-  }, []);
-  
-  const width = propWidth || containerSize.width;
-  const height = propHeight || (containerSize.height - sheight);
-
-  const canvasRef = useRef(null);
-  const tooltipRef = useRef(null);
-  const dataRequestRef = useRef(null);
 
   const { handleSelectedZoom: onOrder, selectedZoomOrder: userOrder } = useZoom();
   const { 
@@ -129,6 +106,21 @@ function PowerModal({
     switchSnapshots, setPreventDerivation, spawnRegionSidetrack,
     createKey,
   } = SelectedStatesStore();
+
+  const { setPowerSize } = ComponentSizeStore()
+  
+  const containerRef = useRef(null);
+  const containerSize = useContainerSize(containerRef);
+  useEffect(() => {
+    setPowerSize(containerSize)
+  }, [containerSize, setPowerSize])
+  
+  const width = propWidth || containerSize.width;
+  const height = propHeight || (containerSize.height - sheight);
+
+  const canvasRef = useRef(null);
+  const tooltipRef = useRef(null);
+  const dataRequestRef = useRef(null);
   
   const currentPreferredRef = useRef(null);
   const selectedRef = useRef(null);
