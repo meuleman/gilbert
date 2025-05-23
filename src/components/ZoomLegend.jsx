@@ -250,6 +250,40 @@ const ZoomLegend = ({
     return `${Math.min(maxHeight, availableHeight)}px`;
   }, [statusBarSize]);
 
+  useEffect(() => {
+    // Only add listener if any dropdown is open
+    if (Object.keys(openDropdowns).length === 0) return;
+    
+    function handleClickOutside(event) {
+      // Check if click was inside any dropdown or its button
+      const isDropdownClick = Object.keys(openDropdowns).some(orderId => {
+        // Skip if dropdown isn't open
+        if (!openDropdowns[orderId]) return false;
+        
+        // Check if click was on the dropdown button
+        const buttonEl = dropdownRefs.current[orderId];
+        if (buttonEl && buttonEl.contains(event.target)) return true;
+        
+        // Check if click was inside a dropdown menu
+        // We identify dropdown menus by their data attribute
+        const dropdownMenu = document.querySelector(`[data-dropdown-for="${orderId}"]`);
+        if (dropdownMenu && dropdownMenu.contains(event.target)) return true;
+        
+        return false;
+      });
+      
+      // If click was outside all dropdowns and their buttons, close all dropdowns
+      if (!isDropdownClick) {
+        setOpenDropdowns({});
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside, true);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside, true);
+    };
+  }, [openDropdowns]);
+
   return (
     <div className="w-[12.5rem] overflow-hidden">
       <div className="h-full relative w-[12.5rem] grid grid-cols-1">
@@ -313,6 +347,7 @@ const ZoomLegend = ({
                     {openDropdowns[d.order] && createPortal(
                       <div 
                         className="fixed shadow-lg rounded-md bg-white ring-1 ring-black ring-opacity-5"
+                        data-dropdown-for={d.order}
                         style={{
                           top: dropdownRefs.current[d.order]?.getBoundingClientRect().bottom,
                           left: dropdownRefs.current[d.order]?.getBoundingClientRect().left,
