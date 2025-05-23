@@ -67,6 +67,7 @@ BT ADDED IMPORTS
 import { cn } from '@/lib/utils'
 import CloseIcon from "@/assets/close.svg?react"
 import DebugIcon from "@/assets/debug.svg?react"
+import RevertIcon from "@/assets/revert.svg?react"
 import DownloadIcon from "@/assets/download.svg?react"
 import GilbertG from "@/assets/gilbert-logo-g.svg?react"
 import SearchIcon from "@/assets/search.svg?react"
@@ -104,7 +105,7 @@ function Home() {
 
   // effects for handling the layer order and setting the layer
   const { 
-    setLayerOrder, layerOrder, layer, setLayer
+    setLayerOrder, layerOrder, layer, setLayer, handleRevertLayerOrder, layerOrderDeviated
   } = useLayerEffects()
 
   // Zoom duration for programmatic zoom
@@ -788,8 +789,17 @@ function Home() {
           <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center border-separator border-r-1 ">
             <SettingsIcon />
           </div>
-          <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center">
+          <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center border-separator border-r-1">
             <DebugIcon />
+          </div>
+          <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center">
+            <button 
+              className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!layerOrderDeviated}
+              onClick={handleRevertLayerOrder}
+            >
+              <RevertIcon className="w-5 h-5"/>
+            </button>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useZoom } from '../../contexts/ZoomContext';
 import lenses from '../../components/Lenses/lenses.json'
 import { dropdownList as layers } from '../../layers'
@@ -13,6 +13,7 @@ function useLayerEffects() {
 	const [layerOrder, setLayerOrder] = useState(null)
 	const [layer, setLayer] = useState(layers[0])
 	const layerOrderRef = useRef(layerOrder)
+	const [currentLens, setCurrentLens] = useState(lenses["Default"])
 
 	// function to create the layer order based on the lens
 	const createLayerOrder = useCallback((lens) => {
@@ -39,8 +40,8 @@ function useLayerEffects() {
 
 	// set the layer order when lenses change or on mount
 	useEffect(() => {
-		setLayerOrder(createLayerOrder(lenses["Default"]))
-	}, [lenses])
+		setLayerOrder(createLayerOrder(currentLens))
+	}, [currentLens])
 
 	// reset the layer when the layer order changes
 	useEffect(() => {
@@ -50,11 +51,27 @@ function useLayerEffects() {
 		}
 	}, [layerOrder])
 
+	// function to revert the layer back to the current lens
+	const handleRevertLayerOrder = useCallback(() => {
+		setLayerOrder(createLayerOrder(currentLens))
+	}, [currentLens, setLayerOrder])
+
+	// check if the layer order has deviated from the lens
+	const layerOrderDeviated = useMemo(() => {
+		if (layerOrder) {
+			const defaultLayerOrder = createLayerOrder(currentLens);
+			return JSON.stringify(layerOrder) !== JSON.stringify(defaultLayerOrder);
+		}
+		return false;
+	}, [layerOrder, currentLens])
+
 	return {
 		layerOrder, 
 		setLayerOrder,
 		layer,
 		setLayer,
+		handleRevertLayerOrder,
+		layerOrderDeviated
 	}
 }
 
