@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { scaleLinear } from 'd3-scale';
 import { group, range } from 'd3-array';
 import { cn } from "@/lib/utils"
@@ -8,6 +9,8 @@ import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import Data from '../lib/data'
 import { getKb, showKb } from '../lib/display'
 import { showKbHTML } from '../lib/display'
+import { dropdownList } from '../layers/index'
+import ComponentSizeStore from '../states/ComponentSizes';
 
 import './ZoomLegend.css';
 
@@ -23,27 +26,18 @@ const ZoomLegend = ({
   hovered,
   layerOrder,
   layer,
-  layerLock,
-  lensHovering,
   crossScaleNarration,
   onZoom = () => { },
   setLayer = () => { },
   setLayerOrder = () => { }
 } = {}) => {
 
-  const [CSNView, setCSNView] = useState(false)
-  // const [naturalLayerOrder, setNaturalLayerOrder] = useState(null)
-  // useEffect(() => {
-  //   let newLayerOrder = Object.assign({}, layerOrder)
-  //   if(CSNView) {
-  //     crossScaleNarration.forEach(d => {
-  //       newLayerOrder[d?.order] = d?.layer
-  //     })
-  //   }
-  //   console.log("new layer order use effect", newLayerOrder)
-  //   setInternalLayerOrder(newLayerOrder)
-  // }, [CSNView, layerOrder, crossScaleNarration, setInternalLayerOrder])
+  const { 
+    statusBarSize
+  } = ComponentSizeStore();
 
+  const [CSNView, setCSNView] = useState(false)
+  const dropdownRefs = useRef({});
 
   const [stations, setStations] = useState([])
   // this debounced function fetches the data and updates the state
@@ -150,8 +144,8 @@ const ZoomLegend = ({
 
   const [activeLayer, setActiveLayer] = useState(null)
   useEffect(() => {
-    setActiveLayer((layerLock && !lensHovering) ? layer : layerOrder && layerOrder[order])
-  }, [layer, layerOrder, layerLock, lensHovering, order])
+    setActiveLayer(layerOrder ? layerOrder[order] : layer)
+  }, [layerOrder, order])
 
   // calculate order data for plotting
   const [orders, setOrders] = useState([])
@@ -206,10 +200,6 @@ const ZoomLegend = ({
     setOrders(ords)
   }, [order, zoomExtent, orderDomain, orderZoomScale, stations, CSNView, crossScaleNarration, activeLayer, selected, hovered])
 
-  // console.log("station map", stationsMap)
-  // console.log("ORDERS", orders)
-
-
   const orderHeight = useMemo(() => {
     return 100 / (orderDomain[1] - orderDomain[0] + 1)
   }, [orderDomain])
@@ -230,6 +220,35 @@ const ZoomLegend = ({
   const minPercent = (order - orderDomain[0]) * orderHeightPercent
   const orderPercent = orderHeightPercent * (orderRaw - order)
   const markerPosition = minPercent + orderPercent
+
+  // tracks the open state of dropdowns
+  const [openDropdowns, setOpenDropdowns] = useState({});
+
+  // handles changing the layer for a given order
+  const handleLayerChange = (order, newLayer) => {
+    // Create a new layerOrder object with the updated layer for the specific order
+    const updatedLayerOrder = {
+      ...layerOrder,
+      [order]: newLayer
+    };
+    
+    // Call the setLayerOrder function from props to update the parent state
+    setLayerOrder(updatedLayerOrder);
+  };
+
+  // calculate the max height of a dropdown
+  const calculateMaxHeight = useCallback((element, maxHeight = 300) => {
+    if (!element) return `${maxHeight}px`;
+    
+    // Get bottom position of trigger element
+    const dropdown = element.getBoundingClientRect();
+    
+    // Calculate available space (viewport height minus dropdown top position minus status bar)
+    const availableHeight = window.innerHeight - dropdown.bottom - statusBarSize.height;
+    
+    // Return the smaller of desired height or available height
+    return `${Math.min(maxHeight, availableHeight)}px`;
+  }, [statusBarSize]);
 
   return (
     <div className="w-[12.5rem] overflow-hidden">
@@ -261,11 +280,70 @@ const ZoomLegend = ({
                   <p className="text-2xs">{scaleSuffix}</p>
                 </div>
                 <div className={cn(
-                  "flex-1 h-full border-l-separator border-l-1 py-1.5 px-2.5 text-2xs",
+                  "flex-1 h-full border-l-separator border-l-1 py-1.5 px-1 text-2xs truncate",
                   d.order == order && "font-bold"
                 )}>
-                  <div>
-                    {(layerLock && !lensHovering) ? layer?.name : layerOrder && layerOrder[d.order]?.name}
+                  {/* <div>
+                    <></>
+                    {layerOrder ? layerOrder[d.order]?.name : layer?.name}
+                  </div> */}
+                  <div className="relative w-full" ref={ref => dropdownRefs.current[d.order] = ref}>
+                    <button 
+                      className="flex items-center gap-1 focus:outline-none"
+                      onClick={() => setOpenDropdowns(prev => ({
+                        // ...prev,
+                        [d.order]: !prev[d.order]
+                      }))}
+                    >
+                      <svg 
+                        className={`h-3 w-3 transition-transform ${openDropdowns[d.order] ? 'rotate-180' : ''}`} 
+                        viewBox="0 0 20 20" 
+                        fill="currentColor"
+                      >
+                        <path 
+                          fillRule="evenodd" 
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
+                          clipRule="evenodd" 
+                        />
+                      </svg>
+                      {layerOrder ? layerOrder[d.order]?.name : layer?.name}
+                    </button>
+                  
+                    {/* Dropdown menu */}
+                    {openDropdowns[d.order] && createPortal(
+                      <div 
+                        className="fixed shadow-lg rounded-md bg-white ring-1 ring-black ring-opacity-5"
+                        style={{
+                          top: dropdownRefs.current[d.order]?.getBoundingClientRect().bottom,
+                          left: dropdownRefs.current[d.order]?.getBoundingClientRect().left,
+                          width: dropdownRefs.current[d.order]?.offsetWidth,
+                          maxHeight: calculateMaxHeight(dropdownRefs.current[d.order]),
+                        }}
+                      >
+                        <div key={`${d.order}-dropdown-menu`} className="py-1 overflow-y-auto" style={{ maxHeight: "inherit" }}>
+                          {dropdownList.map((layerOption) => (
+                            <div key={`${d.order}-dropdown-element-${layerOption.name}`}>
+                              {layerOption?.orders[0] <= d.order && layerOption?.orders[1] >= d.order && (
+                                <button
+                                  key={layerOption.name}
+                                  onClick={() => {
+                                    handleLayerChange(d.order, layerOption);
+                                    setOpenDropdowns(prev => ({...prev, [d.order]: false}));
+                                  }}
+                                  className={cn(
+                                    'block px-4 py-2 text-2xs w-full text-left hover:bg-gray-100',
+                                    layerOption.name === (layerOrder?.[d.order]?.name || layer?.name) && 'font-bold'
+                                  )}
+                                >
+                                  {layerOption.name}
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>,
+                      document.body
+                    )}
                   </div>
                   <div className="station">
                     <div
@@ -287,105 +365,6 @@ const ZoomLegend = ({
           )
         })}
       </div>
-    </div>
-  )
-
-  // eslint-disable-next-line no-unreachable
-  return (
-    <div>
-      <div className="zoom-indicator-arrow" style={{
-        position: "relative",
-        display: "block",
-        height: "1px",
-        borderBottom: "2px solid black",
-        top: `${orderHeight * (orderRaw - orderDomain[0]) - 1.5}px`,
-        zIndex: 1000
-      }}></div>
-      <div className="zoom-legend-orders" style={{
-        position: "relative",
-        marginTop: "-3px"
-      }}>
-        {orders && orders.map(d => {
-          return <div key={"order" + d.order} className="zoom-legend-order" style={{
-            width: "100%",
-            height: `${orderHeight}px`,
-            display: "flex",
-            flexDirection: "row",
-          }}>
-
-            <div className="zoom-indicator" style={{
-              backgroundColor: `rgba(0.5, 0.5, 0.5, ${d.order == effectiveOrder ? 0.4 : 0.3})`,
-              // height: "100%",
-              width: "40px",
-              maxWidth: "40px",
-              // fontFamily: "Gilbert",
-              fontFamily: "monospace",
-              fontSize: d.order == effectiveOrder ? "12px" : "10px",
-              //fontWeight: d.order == effectiveOrder ? "bold" : "normal",
-              color: d.order == effectiveOrder ? "black" : "white",
-              //color: "white",
-              // stroke: d.order == effectiveOrder ? "white" : "none",
-              //strokeWidth: d.order == effectiveOrder ? "15px" : "0px",
-              textShadow: d.order == effectiveOrder ? "0px 0px 10px gold" : "none",
-              // textAlign: "center",
-              borderTop: "1px solid lightgray",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              // display: "inline-block"
-            }}>
-              {/* {d.order}  */}
-              {showKbHTML(4 ** (14 - d.order))}
-            </div>
-
-            <div className="label-box"
-              style={{
-                backgroundColor: `rgba(0.5, 0.5, 0.5, ${d.order == effectiveOrder ? 0.4 : 0.1})`,
-                width: "100%",
-              }}
-            >
-              {/* <div className="basepair-size">{showKb(4 ** (14 - d.order))}</div> */}
-              <div className="dataset-label"
-                style={{
-                  fontWeight: (d.order == effectiveOrder && !CSNView) ? "bold" : "normal",
-                  color: d.order == effectiveOrder ? "black" : "gray",
-                }}
-              >
-                {(layerLock && !lensHovering) ? layer?.name : layerOrder && layerOrder[d.order]?.name}
-              </div>
-
-              <div className="station" style={{
-                // color: d.color
-              }}>
-                <div className="station-square" onClick={() => CSNView && handleSelectStation(d)} style={{
-                  backgroundColor: d.color,
-                  marginRight: "5px",
-                  width: "10px",
-                  height: "10px",
-                  display: "inline-block",
-                  // border: "1px solid gray"
-                  cursor: `${CSNView ? "pointer" : "default"}`
-                }}></div>
-                {d.field && d.field.field}
-                {/* {d.field && d.field.value} */}
-              </div>
-              {/* <div className='cross-scale-narration-layer'>{crossScaleNarrationPerOrder[d.order]?.layer}</div>
-              <div className='cross-scale-narration-field'>{crossScaleNarrationPerOrder[d.order]?.field}</div> */}
-              {
-                // (
-                //   csnPerOrder[d.order] ? 
-                //   <div className='csn-box' onClick={handleCSNClick} style={{cursor: 'pointer'}}>...</div> 
-                //   :null
-                // )
-              }
-              {/* <div className='csn-box'>...</div> */}
-            </div>
-
-          </div>
-        })}
-      </div>
-
     </div>
   )
 };

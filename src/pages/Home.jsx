@@ -24,7 +24,6 @@ import LayerDropdown from '../components/LayerDropdown'
 import StatusBar from '../components/StatusBar'
 import LeftToolbar from '../components/LeftToolbar'
 import SettingsPanel from '../components/SettingsPanel';
-import LensModal from '../components/LensModal'
 import LayerLegend from '../components/LayerLegend'
 import SVGChromosomeNames from '../components/SVGChromosomeNames'
 
@@ -43,6 +42,7 @@ import Power from '../components/Narration/Power'
 
 // custom hooks
 import useSelectedEffects from '../components/hooks/useSelectedEffects'
+import useLayerEffects from '../components/hooks/useLayerEffects';
 
 // layer configurations
 import { fullList as layers, dropdownList, csnLayers, variantLayers, countLayers } from '../layers'
@@ -96,26 +96,16 @@ function Home() {
 
   const navigate = useNavigate();
 
-  const { order, orderRaw, transform, orderOffset, setOrderOffset, zoomMin, zoomMax, orderMin, orderMax, setSelectedZoomOrder } = useZoom()
+  const { order, transform, orderOffset, setOrderOffset, zoomMin, zoomMax, orderMin, orderMax, setSelectedZoomOrder } = useZoom()
   const zoomExtent = useMemo(() => [zoomMin, zoomMax], [zoomMin, zoomMax])
   const orderDomain = useMemo(() => [orderMin, orderMax], [orderMin, orderMax])
 
   const containerRef = useRef()
 
-  const [layerOrderNatural, setLayerOrderNatural] = useState(null)
-  const [layerOrder, setLayerOrder] = useState(null)
-  const layerOrderRef = useRef(layerOrder)
-  useEffect(() => {
-    if (layerOrderNatural) {
-      setLayerOrder(layerOrderNatural)
-      layerOrderRef.current = layerOrderNatural
-    }
-  }, [layerOrderNatural])
-  useEffect(() => {
-    layerOrderRef.current = layerOrder
-  }, [layerOrder])
-
-  const [lensHovering, setLensHovering] = useState(false)
+  // effects for handling the layer order and setting the layer
+  const { 
+    setLayerOrder, layerOrder, layer, setLayer
+  } = useLayerEffects()
 
   // Zoom duration for programmatic zoom
   const [duration, setDuration] = useState(1000)
@@ -126,41 +116,12 @@ function Home() {
   const [isZooming, setIsZooming] = useState(false)
   const [mapLoading, setMapLoading] = useState(false)
 
-  const [layerLock, setLayerLock] = useState(false)
-  const [layerLockFromIcon, setLayerLockFromIcon] = useState(null)
-  const [layer, setLayer] = useState(dropdownList[0])
-  function handleLayer(l) {
-    setLayer(l)
-    setLayerLock(true)
-    setLayerLockFromIcon(false)
-    setSearchByFactorInds([])
-  }
-
-  const layerLockRef = useRef(layerLock)
-  useEffect(() => {
-    layerLockRef.current = layerLock
-  }, [layerLock])
-  const layerRef = useRef(layer)
-  useEffect(() => {
-    layerRef.current = layer
-  }, [layer])
-
   // We want to keep track of the zoom state
   const [zoom, setZoom] = useState({ points: [], bbox: {} })
   const zoomRef = useRef(zoom)
   useEffect(() => {
     zoomRef.current = zoom
   }, [zoom])
-
-  const orderRef = useRef(order)
-  useEffect(() => {
-    if (orderRef.current !== order && !layerLockRef.current) {
-      setLayer(layerOrderRef.current[order])
-    }
-    orderRef.current = order
-    console.log("order", order)
-  }, [order])
-
   
   const [showSankey, setShowSankey] = useState(false)
 
@@ -220,15 +181,6 @@ function Home() {
       return []
     }
   }, [activeRegions])//, filteredActiveRegions])
-
-  useEffect(() => {
-    if (layerOrderNatural) {
-      // console.log("setting layer order back to natural", layerOrderNatural)
-      // setLayerLock(false)
-      setLayerOrder(layerOrderNatural)
-      setLayer(layerOrderNatural[orderRef.current])
-    }
-  }, [layerOrderNatural])
 
   const handleZoom = useCallback((newZoom) => {
     // if(zoomRef.current.order !== newZoom.order && !layerLockRef.current) {
@@ -966,9 +918,8 @@ function Home() {
                   zoomExtent={zoomExtent}
                   orderDomain={orderDomain}
                   layerOrder={layerOrder}
+                  setLayerOrder={setLayerOrder}
                   layer={layer}
-                  layerLock={layerLock}
-                  lensHovering={lensHovering}
                   selected={selected}
                   hovered={hover}
                   // crossScaleNarration={csn}
@@ -1010,33 +961,6 @@ function Home() {
          
         <GeneSearch
           onSelect={handleChangeLocationViaGeneSearch}
-        />
-
-        <LensModal
-          layers={layers}
-          currentLayer={layer}
-          setLayerOrder={useCallback((lo) => {
-            setLayerOrderNatural(lo)
-          }, [setLayerOrderNatural])}
-          setLayer={setLayer}
-          setLayerLock={setLayerLock}
-          layerLock={layerLock}
-          setLayerLockFromIcon={setLayerLockFromIcon}
-          layerLockFromIcon={layerLockFromIcon}
-          setSearchByFactorInds={setSearchByFactorInds}
-          setLensHovering={setLensHovering}
-          lensHovering={lensHovering}
-          order={order}
-        />
-
-        <LayerDropdown
-          layers={dropdownList}
-          activeLayer={layer}
-          onLayer={handleLayer}
-          order={order}
-          layerLock={layerLock}
-          setLayerLock={setLayerLock}
-          setLayerLockFromIcon={setLayerLockFromIcon}
         />
 
         <LayerLegend

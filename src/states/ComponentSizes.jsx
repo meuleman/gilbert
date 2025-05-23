@@ -15,6 +15,8 @@ const ComponentSizeStore = create((set) => {
     setCsnSize: (size) => set(() => ({ csnSize: size})),
     activeRegionSetModalSize: { width: 0, height: 0 },
     setActiveRegionSetModalSize: (size) => set(() => ({ activeRegionSetModalSize: size})),
+    statusBarSize: { width: 0, height: 0 },
+    setStatusBarSize: (size) => set(() => ({ statusBarSize: size})),
 }})
 
 export default ComponentSizeStore;

@@ -1,10 +1,11 @@
 // A component to display some information below the map when hovering over hilbert cells
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import { sum } from 'd3-array'
 import './StatusBar.css'
 import { format } from "d3-format"
 import { showPosition } from '../lib/display';
+import { useContainerSize } from '../lib/utils';
 import SelectedStatesStore from '../states/SelectedStates';
 import ComponentSizeStore from '../states/ComponentSizes';
 import { useZoom } from '../contexts/ZoomContext';
@@ -20,12 +21,18 @@ const StatusBar = ({
 } = {}) => {
 
   const { 
-    leftToolbarSize, mainMapSize, zoomLegendSize, 
-    powerSize, csnSize, activeRegionSetModalSize 
+    leftToolbarSize, mainMapSize, powerSize, setStatusBarSize
   } = ComponentSizeStore();
   const { selected, currentPreferred } = SelectedStatesStore();
   const [regionHighlight, setRegionHighlight] = useState(null)
   const { order } = useZoom()
+
+  // measure size of status bar
+  const containerRef = useRef(null)
+  const statusBarSize = useContainerSize(containerRef)
+  useEffect(() => {
+    setStatusBarSize(statusBarSize)
+  }, [statusBarSize])
 
   // calculate the position to align status bar regional content
   const centerPosition = useMemo(() => {
@@ -86,7 +93,7 @@ const StatusBar = ({
   }, [regionHighlight, order, getGenesOverCell])
 
   return (
-    <div className="bg-statusBar h-6 px-6 text-xs font-mono font-bold flex gap-6 items-center relative">
+    <div ref={containerRef} className="bg-statusBar h-6 px-6 text-xs font-mono font-bold flex gap-6 items-center relative">
       <div 
         className="grid grid-cols-3 w-full gap-x-2 max-w-5xl mx-auto items-center absolute"
         style={{ 
