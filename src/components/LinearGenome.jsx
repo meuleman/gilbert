@@ -642,7 +642,6 @@ const LinearGenome = ({
             }
           } else {
             // handling the zoom via scroll
-            console.log("1d zooming")
             dragAnchor.current = null;
             setPanning(false);
             setZooming(true);

@@ -97,7 +97,12 @@ function Home() {
 
   const navigate = useNavigate();
 
-  const { order, transform, orderOffset, setOrderOffset, zoomMin, zoomMax, orderMin, orderMax, setSelectedZoomOrder } = useZoom()
+  const { 
+    order, orderZoomScale, transform, 
+    setTransform, orderOffset, setOrderOffset, 
+    zoomMin, zoomMax, orderMin, orderMax, 
+    setSelectedZoomOrder, easeZoom
+  } = useZoom()
   const zoomExtent = useMemo(() => [zoomMin, zoomMax], [zoomMin, zoomMax])
   const orderDomain = useMemo(() => [orderMin, orderMax], [orderMin, orderMax])
 
@@ -336,46 +341,83 @@ function Home() {
     setShowGaps(!showGaps)
   }
 
-  const handleChangeLocationViaGeneSearch = useCallback((selected) => {
-    if (!selected) return
-    console.log("selected", selected)
-    let range = []
-    // console.log("gencode", gencode)
-    // if(selected.factor) {
-    //   // query for the paths for the factor
-    //   let f = selected.factor
-    //   fetchFilteringWithoutOrder([{factor: f.index, dataset: f.layer.datasetName}], null)
-    //     .then((response) => {
-    //       console.log("FILTERING WITHOUT ORDER", response)
-    //       let regions = response.regions.map(r => {
-    //         return {...fromIndex(r.chromosome, r.i, r.order), score: r.score}
-    //       })
-    //       saveSet(selected.factor.label, regions, { activate: true, type: "search", factor: selected.factor })
-    //     })
 
-    // } else {
-    if (selected.gene) {
-      range = fromRange(selected.gene.chromosome, selected.gene.start, selected.gene.end, 200)
-    } else {
-      range = fromRange(selected.chromosome, selected.start, selected.end, 200)
+  const fill1DTrack = useCallback((start, end) => {
+    // target number of regions at the start of each order
+    const targetRegionsStart = 500
+    // for order 14, match the scaling factor in LinearGenome
+    const ranges = range(4, 15).map(d => {
+      const size = 4 ** (14 - d)
+      const atStart = d !== 14 ? size * targetRegionsStart : size * targetRegionsStart * 0.2
+      const atEnd = d !== 14 ? (size * targetRegionsStart) / 4 : (size * targetRegionsStart) / 4 * 0.2
+      return {
+        order: d,
+        atStart,
+        atEnd,
+      }
+    })
+    
+    const regionSize = end - start
+    const order = ranges.find(d => d.atStart >= regionSize && d.atEnd <= regionSize)
+
+    if(order) {
+      const logAtStart = Math.log2(order.atStart)
+      const logAtEnd = Math.log2(order.atEnd)
+      const logRegionSize = Math.log2(regionSize)
+      // TODO: This calculation is slightly off for ranges between atStart and atEnd for order, zooms in too far
+      const percent = (logAtStart - logRegionSize) / (logAtStart - logAtEnd)
+      return percent + order.order
+    } else if(regionSize > ranges.find(d => d.order === 4).atStart) {
+      // if the region size is larger than the max range at order 4, return 4
+      return ranges[0].order
+    } else if(regionSize > ranges.find(d => d.order === 14).atStart) {
+      // if region size in between order 14 and 13 ranges (due to order 14 scaling factor), return 14 (zoomed out)
+      return 14
+    } else if(regionSize < ranges.find(d => d.order === 14).atEnd) {
+      // if the region size is smaller than the smallest range at order 14, return 14 (zoomed in)
+      return 15
     }
-    // const mid = range[Math.floor(range.length / 2)]
-    // Find the region closest to the midpoint of the x,y coordinates in the range
-    if(!range.length) return;
-    const midX = (range[0].x + range[range.length - 1].x) / 2;
-    const midY = (range[0].y + range[range.length - 1].y) / 2;
-    const mid = range.reduce((closest, current) => {
-      const closestDist = Math.sqrt(Math.pow(closest.x - midX, 2) + Math.pow(closest.y - midY, 2));
-      const currentDist = Math.sqrt(Math.pow(current.x - midX, 2) + Math.pow(current.y - midY, 2));
-      return currentDist < closestDist ? current : closest;
-    }, range[0]);
-    // console.log("MID", mid)
-    setRegion(mid)
-    // setSelected(mid)
-    // console.log("autocomplete range", range)
-    // saveSet(selected.value, range, { activate: true, type: "search"})
-    // }
-  }, [setRegion, saveSet])
+    return null
+  }, [])
+
+  const zoomToCoordinateRange = useCallback((chromosome, start, end, buffer = 0.2) => {
+    // calculate center point and raw order value
+    const centerPosition = Math.floor((start + end) / 2);
+    const bufferSize = Math.floor((end - start) * buffer);
+    const rawOrder = fill1DTrack(start - bufferSize, end + bufferSize);
+    if (!rawOrder) return;
+    
+    console.log(`Zooming to ${chromosome}:${start}-${end} at order ${rawOrder}`);
+    
+    // find center region
+    const intOrder = Math.floor(rawOrder);
+    const region = fromPosition(chromosome, centerPosition, centerPosition, intOrder);
+
+    // calculate k value from the raw order
+    const targetK = orderZoomScale.invert(Math.pow(2, rawOrder - orderMin));
+    
+    // create new transform that zooms to center point
+    const mapCenterX = width / 2;
+    const mapCenterY = height / 2;
+    const pointX = scales.xScale(region.x);
+    const pointY = scales.yScale(region.y);
+    
+    const newTransform = {
+      k: targetK,
+      x: mapCenterX - pointX * targetK,
+      y: mapCenterY - pointY * targetK
+    };
+    easeZoom(transform, newTransform, () => {})
+    
+  }, [fill1DTrack, setRegion, scales, orderZoomScale, orderMin, width, height, setTransform, transform]);
+
+  const handleChangeLocationViaGeneSearch = useCallback((selected) => {
+    if (selected.gene) {
+      zoomToCoordinateRange(selected.gene.chromosome, selected.gene.start, selected.gene.end)
+    } else {
+      zoomToCoordinateRange(selected.chromosome, selected.start, selected.end)
+    }
+  }, [zoomToCoordinateRange])
 
   // const handleChangeLocationViaAutocomplete = useCallback((autocompleteRegion) => {
   //   if (!autocompleteRegion) return
