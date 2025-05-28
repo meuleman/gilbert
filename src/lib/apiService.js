@@ -85,7 +85,7 @@ function fetchRegionSetEnrichments({regions, N = null, factorExclusion = [], enr
     url: url,
     data: postBody
   }).then(response => {
-    console.log("REGION SET ENRICHMENTS", response.data)
+    // console.log("REGION SET ENRICHMENTS", response.data)
     return response.data
   }).catch(error => {
     console.error(`error:     ${JSON.stringify(error)}`);

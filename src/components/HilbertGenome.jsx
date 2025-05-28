@@ -322,7 +322,6 @@ const HilbertGenome = ({
   useEffect(() => {
     // we want to fetch after every time the points recalculate
     // this will be often but the fetch is debounced
-    // console.log("fetchData", panning)
     if (!panning) {
       fetchData()
     }
@@ -471,14 +470,7 @@ const HilbertGenome = ({
     // update the parent component
     onZoom(payload)
     // we want to update our canvas renderer immediately with new transform
-  }, [
-    xScale, yScale,
-    width, height,
-    onZoom,
-  ]);
-
-
-
+  }, [ xScale, yScale, width, height, onZoom ]);
 
   // we rerender the canvas anytime the transform or points change
   // but we only want to do it if they actually change
@@ -488,6 +480,7 @@ const HilbertGenome = ({
   const prevDataRef = useRef(state.data)
   const prevLayerRef = useRef(state.dataLayer)
   const prevOrder = useRef(order)
+  const prevSize = useRef({ width, height });
   function pointSummary(points) {
     // return points[0]?.i + sum(points, p => p.i)
     return points[0]?.i + points[points.length - 1]?.i
@@ -497,15 +490,17 @@ const HilbertGenome = ({
   useEffect(() => {
     const hasTransformChanged = JSON.stringify(transform) !== JSON.stringify(prevTransformRefSVG.current);
     const hasOrderChanged = order !== prevOrder.current
-    if (hasTransformChanged || hasOrderChanged) {
+    const hasSizeChanged = (width !== prevSize.current.width || height !== prevSize.current.height);
+    if (hasTransformChanged || hasOrderChanged || hasSizeChanged) {
       // console.log("HG: handleTransform", +new Date())
       handleTransform(transform, order)
       // zoomBehavior.transform(select(svgRef.current), transform)
       zoomBehavior.transform(select(svgRef.current), zoomIdentity.translate(transform.x, transform.y).scale(transform.k))
       prevOrder.current = order
       prevTransformRefSVG.current = transform
+      prevSize.current = { width, height }
     }
-  }, [transform, order, handleTransform, zoomBehavior])
+  }, [transform, order, handleTransform, zoomBehavior, width, height])
 
   // we re-render our canvas (with whatever data is currently in state)
   // this allows us to still show something while the data is loading
@@ -541,17 +536,18 @@ const HilbertGenome = ({
     renderHovers(prevTransformRefRender.current, prevPointsRef.current);
   }, [HoverRenderers])
 
-
-
   // setup the event handlers for zoom and attach it to the DOM
   const handleZoom = useCallback((event) => {
+
+    const { sourceEvent } = event;
+    // Check if this is a drag event (mouse move with button pressed)
+    // If we drag, we are updating the 2D map center based on the data point 
+    if (sourceEvent && sourceEvent.type === 'mousemove' && sourceEvent.buttons === 1) {
+      setPanning(true)
+    }
+
+    // debounce transform updates
     zoomDebounce(() => new Promise((resolve, reject) => { resolve() }), () => {
-      const { sourceEvent } = event;
-      // Check if this is a drag event (mouse move with button pressed)
-      // If we drag, we are updating the 2D map center based on the data point 
-      if (sourceEvent && sourceEvent.type === 'mousemove' && sourceEvent.buttons === 1) {
-        setPanning(true)
-      }
       setZooming(true)
       setTransform(event.transform)
     }, 1)
@@ -817,9 +813,6 @@ const HilbertGenome = ({
   const onMouseLeave = useCallback((event) => {
     onHover(null);
   }, [onHover])
-
-  // console.log("width", width)
-  // console.log("height", height)
 
   useEffect(() => {
     // Force initial render with the proper transform (only for minimap)
