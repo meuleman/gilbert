@@ -187,13 +187,14 @@ export default function SubPaths({
       {path.length && yScale && containerHeight > 0 &&
         subpathsLoading ? 
         <div
-          className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2"
+          className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-3 items-center justify-center text-base"
           style={{
             // midpoint between end of max order and end of order 14
             top: yScale((Math.max(...path.map(d => d.order)) + 14) / 2 + 1),
           }}
         >
-          <Loading/>
+          <div className="text-center">Retrieving Annotations...</div>
+          <Loading />
         </div> :
         range(4, 15).map(o => {
           let facs = factorsByOrder[o]

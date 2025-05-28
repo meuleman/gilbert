@@ -280,7 +280,8 @@ const ActiveRegionSetModal = () => {
                 </div>
               </div>
               {(summaryToShow === "regionSet" ? regionSetSummary === "" : regionSummary === "") ? // if regionSummary = null, no narration available
-                <div className="flex-1 flex justify-center items-center">
+                <div className="flex-1 flex flex-col justify-center items-center text-base gap-3">
+                  <div>Generating Narration...</div>
                   <Loading />
                 </div>
               : 
@@ -290,7 +291,7 @@ const ActiveRegionSetModal = () => {
               }
               <p className="">
                 {((summaryToShow === "regionSet" && regionSetSummary) || (summaryToShow === "selected" && regionSummary)) && (
-                  <span className="text-base flex justify-end pr-4 gap-2 text-xs">
+                  <span className="flex justify-end pr-4 gap-2 text-xs">
                     <button 
                       className="p-1 hover:bg-gray-100 hover:text-red-500 rounded min-w-[130px] text-center"
                       onClick={handleShowPromptEditor}
@@ -378,7 +379,8 @@ const ActiveRegionSetModal = () => {
                   </div>
                 </div>
                 : 
-                <div className="flex justify-center h-full">
+                <div className="flex flex-col justify-center items-center h-full gap-3 text-base">
+                  <div>Generating Functional Spectrum...</div>
                   <Loading />
                 </div>
               }
@@ -406,7 +408,7 @@ const ActiveRegionSetModal = () => {
                   fields.push(...activeFilters.map(f => f.field));
                   filterInfo = ` showing ${fields.join(", ")}`;
                 }
-                let manuallyAddedText = manuallyAddedRegion ? " +1 manually selected region" : "";
+                let manuallyAddedText = manuallyAddedRegion ? " + 1 manually selected region" : "";
                 // Return the full string
                 return `${regionCount} selected ${regionText}${filterInfo}${manuallyAddedText}`;
               })()
