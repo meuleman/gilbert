@@ -136,7 +136,7 @@ function Home() {
   const { 
     selected, setSelected, region, setRegion, clearSelected,
     selectedNarration, setSelectedNarration, clearSnapshots, 
-    regionSnapshots, popRegionFromSnapshots
+    regionSnapshots, popRegionFromSnapshots, createKey,
   } = SelectedStatesStore()
   // selected summary effects
   useSelectedEffects()
@@ -735,12 +735,12 @@ function Home() {
   useEffect(() => {
     function handleKeyDown(e) {
       if (e.key === "Escape") {
-        const derivedRegions = regionSnapshots?.filter(d => !!d?.selected?.derivedFrom)
-        if(derivedRegions?.length) {
-          // remove all tabs except the originally selected region
-          derivedRegions.forEach(d => popRegionFromSnapshots(d.id))
+        if(!!selectedRef.current?.derivedFrom) {
+          // if the selected region is derived, pop it from the snapshots
+          const selectedKey = createKey(selectedRef.current)
+          popRegionFromSnapshots(selectedKey)
         } else {
-          // close modal if only one tab open
+          // if the selected is original region (not derived), close the modal
           handleModalClose()
         }
       }
