@@ -71,7 +71,9 @@ function useLayerEffects() {
 		layer,
 		setLayer,
 		handleRevertLayerOrder,
-		layerOrderDeviated
+		layerOrderDeviated,
+		createLayerOrder,
+		currentLens
 	}
 }
 

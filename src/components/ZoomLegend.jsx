@@ -11,6 +11,9 @@ import { getKb, showKb } from '../lib/display'
 import { showKbHTML } from '../lib/display'
 import { dropdownList } from '../layers/index'
 import ComponentSizeStore from '../states/ComponentSizes';
+import useLayerEffects from './hooks/useLayerEffects';
+
+import LockIcon from "@/assets/lock.svg?react"
 
 import './ZoomLegend.css';
 
@@ -38,6 +41,8 @@ const ZoomLegend = ({
 
   const [CSNView, setCSNView] = useState(false)
   const dropdownRefs = useRef({});
+
+  const { createLayerOrder, currentLens } = useLayerEffects();
 
   const [stations, setStations] = useState([])
   // this debounced function fetches the data and updates the state
@@ -284,6 +289,39 @@ const ZoomLegend = ({
     };
   }, [openDropdowns]);
 
+  const [ordersLocked, setOrdersLocked] = useState({});
+  const lockLayer = useCallback((order) => {
+    // find layer for order
+    const layer = layerOrder ? layerOrder[order] : null;
+    if (!layer) return;
+
+    let newLayerOrder = { ...layerOrder };
+    let newOrdersLocked = { ...ordersLocked }
+
+    // if the layer is not locked, we lock it
+    if (ordersLocked[order]) {
+      // reset relevant orders to the lens layer order
+      const lensLayers = createLayerOrder(currentLens)
+      range(layer.orders[0], layer.orders[1] + 1).forEach(o => {
+        newLayerOrder[o] = lensLayers[o] || layerOrder[o];
+        newOrdersLocked[o] = false;
+      })
+    } else {
+      // lock the layer for the range of orders
+      range(layer.orders[0], layer.orders[1] + 1).forEach(o => {
+        newLayerOrder[o] = layer
+        newOrdersLocked[o] = true;
+      });
+    }
+
+    setLayerOrder(newLayerOrder);
+    setOrdersLocked(prev => ({
+      ...prev,
+      ...newOrdersLocked
+    }));
+  }, [layerOrder, setLayerOrder, ordersLocked, setOrdersLocked]);
+  
+
   return (
     <div className="w-[12.5rem] overflow-hidden">
       <div className="h-full relative w-[12.5rem] grid grid-cols-1">
@@ -321,32 +359,42 @@ const ZoomLegend = ({
                     <></>
                     {layerOrder ? layerOrder[d.order]?.name : layer?.name}
                   </div> */}
-                  <div className="relative w-full" ref={ref => dropdownRefs.current[d.order] = ref}>
-                    <button 
-                      className="flex items-center gap-1 focus:outline-none"
-                      onClick={() => setOpenDropdowns(prev => ({
-                        // ...prev,
-                        [d.order]: !prev[d.order]
-                      }))}
+                  <div className="relative w-full flex flex-row gap-1" ref={ref => dropdownRefs.current[d.order] = ref}>
+                    <div 
+                      className="cursor-pointer"
+                      onClick={() => lockLayer(d.order)}
                     >
-                      <svg 
-                        className={`h-3 w-3 transition-transform ${openDropdowns[d.order] ? 'rotate-180' : ''}`} 
-                        viewBox="0 0 20 20" 
-                        fill="currentColor"
+                      <LockIcon className="w-3 h-3 flex-shrink-0 hover:text-red-500" style={{strokeWidth: ordersLocked[d.order] ? 1 : 2.5}}/>
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <button 
+                        className="flex items-center gap-1 focus:outline-none w-full"
+                        onClick={() => setOpenDropdowns(prev => ({
+                          // ...prev,
+                          [d.order]: !prev[d.order]
+                        }))}
                       >
-                        <path 
-                          fillRule="evenodd" 
-                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
-                          clipRule="evenodd" 
-                        />
-                      </svg>
-                      {layerOrder ? layerOrder[d.order]?.name : layer?.name}
-                    </button>
+                        <svg 
+                          className={`h-3 w-3 flex-shrink-0 transition-transform ${openDropdowns[d.order] ? 'rotate-180' : ''}`} 
+                          viewBox="0 0 20 20" 
+                          fill="currentColor"
+                        >
+                          <path 
+                            fillRule="evenodd" 
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
+                            clipRule="evenodd" 
+                          />
+                        </svg>
+                        <span className="truncate">
+                          {layerOrder ? layerOrder[d.order]?.name : layer?.name}
+                        </span>
+                      </button>
+                    </div>
                   
                     {/* Dropdown menu */}
                     {openDropdowns[d.order] && createPortal(
                       <div 
-                        className="fixed shadow-lg rounded-md bg-white ring-1 ring-black ring-opacity-5"
+                        className="fixed shadow-lg rounded-md bg-white ring-1 ring-black ring-opacity-5 z-[100]"
                         data-dropdown-for={d.order}
                         style={{
                           top: dropdownRefs.current[d.order]?.getBoundingClientRect().bottom,
