@@ -95,6 +95,7 @@ function PowerModal({
   sheight = linearGenomeHeight, 
   onClose = () => {},
   showLayerLegend = false,
+  maxTabSize = 230
 }) {
 
   const { handleSelectedZoom: onOrder, selectedZoomOrder: userOrder } = useZoom();
@@ -104,7 +105,7 @@ function PowerModal({
     setPowerDataLoaded, regionSnapshots, popRegionFromSnapshots,
     powerData: globalPowerData, setPowerData: setGlobalPowerData, 
     switchSnapshots, setPreventDerivation, spawnRegionSidetrack,
-    createKey,
+    createKey, setMaxNumSnapshots
   } = SelectedStatesStore();
 
   const { setPowerSize } = ComponentSizeStore()
@@ -114,6 +115,10 @@ function PowerModal({
   useEffect(() => {
     setPowerSize(containerSize)
   }, [containerSize, setPowerSize])
+
+  useEffect(() => {
+    setMaxNumSnapshots(Math.max(1, Math.floor(containerSize?.width / maxTabSize)))
+  }, [containerSize])
   
   const width = propWidth || containerSize.width;
   const height = propHeight || (containerSize.height - sheight);
@@ -641,11 +646,13 @@ function PowerModal({
   }, [data, order])
 
   const handleClose = useCallback((index) => {
-    if (regionSnapshots?.length > 1) {
+    // if there are multiple snapshots and the current snapshot is not the original
+    if (regionSnapshots?.length > 1 && !!regionSnapshots[index]?.selected?.derivedFrom) {
+      // close tab
       let toClose = regionSnapshots[index].selected;
-      const id = `${toClose.chromosome},${toClose.i},${toClose.order}`;
-      popRegionFromSnapshots(id);
+      popRegionFromSnapshots(createKey(toClose));
     } else {
+      // close the modal
       onClose();
     }
   }, [onClose, regionSnapshots])
@@ -837,19 +844,27 @@ function PowerModal({
                     border-t border-l border-r ${isSelected ? 'border-gray-400' : 'border-gray-200'}
                     ${isSelected ? 'bg-gray-400 text-white z-10' : 'bg-gray-100 text-black'}
                   `}
+                  style={{ maxWidth: `${maxTabSize}px` }}
                   onClick={() => handleTabClick(index)}
                   key={`power-tab-${index}`}
                 >
-                  <div className="group flex items-center">
+                  <div className="group flex flex-shrink-0">
                     <X 
                       width="10" 
                       role="button" 
                       className="cursor-pointer group-hover:[&_path]:stroke-red-500" 
-                      onClick={() => handleClose(index)}
+                      onClick={(e) => { e.stopPropagation(); handleClose(index); }}
                     />
                   </div>
-                  <div className={`flex items-center ${!isSelected ? 'hover:text-red-500' : '' }`}>
-                    {showPosition(d.selected)}{!!d.selected?.derivedFrom ? "*" : ""}
+                  <div className={`flex flex-row items-center min-w-0 flex-1 ${!isSelected ? 'hover:text-red-500' : ''}`}>
+                    <div className="truncate min-w-0 flex-1">
+                      {showPosition(d.selected)}
+                    </div>
+                    {!!d.selected?.derivedFrom && (
+                      <div className="flex-shrink-0 pl-0.5">
+                        *
+                      </div>
+                    )}
                   </div>
                 </div>
               )

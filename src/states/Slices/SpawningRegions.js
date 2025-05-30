@@ -7,25 +7,46 @@ const SpawningRegions = (set, get) => {
     const { 
       selected, removeNarrationPreview, clearSelected, createKey,
       selectedNarration, preventDerivation, findSubpaths,
-      replaceSnapshot, addCurrentStateToSnapshots, determineFactorExclusion
+      replaceSnapshot, addCurrentStateToSnapshots, determineFactorExclusion,
+      maxNumSnapshots, regionSnapshots, switchSnapshots
     } = get(); 
-    if (!selectedNarration || !f?.path?.path || preventDerivation) return;
 
     const idToReplace = !!selected.derivedFrom ? createKey(selected) : null;
     const derivedFrom = !!selected.derivedFrom ? selected.derivedFrom : selected
 
-    set({ preventDerivation: true });
-
     // create region
-    let factor = f.path;
+    let factor = f?.path;
     let region = {
       ...fromIndex(factor.chromosome, factor.i, factor.order),
       ...factor,
       derivedFrom,
     };
 
-    let newPath = factor.path;
+    // test for existing snapshot for the new region
+    const existingSnapshot = regionSnapshots.find(s => s.id === createKey(region));
+    if (
+      !selectedNarration || 
+      !factor?.path || 
+      preventDerivation || 
+      (
+        // if there is no more space for tabs, we're not replacing a tab, and not 
+        // switching to an already existing tab
+        regionSnapshots.length === maxNumSnapshots && 
+        !idToReplace && 
+        !existingSnapshot
+      )
+    ) return;
 
+    // clear narration preview
+    removeNarrationPreview();
+
+    // switch to existing snapshot if it exists
+    if( !!existingSnapshot) {
+      switchSnapshots(existingSnapshot.id)
+      return;
+    }
+
+    let newPath = factor.path;
     const newNarration = {
       // Basic narration properties
       ...region,
@@ -37,7 +58,6 @@ const SpawningRegions = (set, get) => {
 
     // clear previous selected information set 
     clearSelected()
-    removeNarrationPreview();
 
     // Add full data to the new path
     if (newNarration?.path?.length && newPath?.length) {
@@ -51,9 +71,10 @@ const SpawningRegions = (set, get) => {
         }
       });
       newNarration.path = newPath;
-      // Save current region and narration to collection.
 
-      set({ selected: region, selectedNarration: newNarration });
+      // Save current region and narration to collection.
+      set({ selected: region, selectedNarration: newNarration, preventDerivation: true });
+
       // add new region to snapshot (or replace existing snapshot)
       !!idToReplace ? replaceSnapshot(idToReplace) : addCurrentStateToSnapshots();
 
@@ -68,19 +89,36 @@ const SpawningRegions = (set, get) => {
   const spawnRegionSidetrack = (region) => {
 
     const { 
-        selected, clearSelected, preventDerivation, replaceSnapshot, 
-        createKey, addCurrentStateToSnapshots
+      selected, clearSelected, preventDerivation, replaceSnapshot, 
+      createKey, addCurrentStateToSnapshots, maxNumSnapshots, regionSnapshots, 
+      switchSnapshots
     } = get();
     const idToReplace = !!selected.derivedFrom ? createKey(selected) : null;
     const derivedFrom = !!selected.derivedFrom ? selected.derivedFrom : selected
+    
+    // test for existing snapshot for the new region
+    const existingSnapshot = regionSnapshots.find(s => s.id === createKey(region));
 
-    if(preventDerivation) return;
-    set({ preventDerivation: true });
+    if(
+      preventDerivation || 
+      (
+        // if there is no more space for tabs, we're not replacing a tab, and not 
+        // switching to an already existing tab
+        regionSnapshots.length === maxNumSnapshots && 
+        !idToReplace && 
+        !existingSnapshot
+      )
+    ) return;
 
+    // switch to existing snapshot if it exists
+    if(!!existingSnapshot) {
+      switchSnapshots(existingSnapshot.id)
+      return;
+    }
     clearSelected()
 
     // set new region
-    set({ selected: { ...region, derivedFrom }});
+    set({ selected: { ...region, derivedFrom }, preventDerivation: true});
 
     // add new region to snapshot (or replace existing snapshot)
     !!idToReplace ? replaceSnapshot(idToReplace) : addCurrentStateToSnapshots()
@@ -91,20 +129,37 @@ const SpawningRegions = (set, get) => {
 
     // create new region from selectedNarration
     const { 
-        selected, selectedNarration, clearSelected, preventDerivation, createKey,
-        recalculatePreferred, addCurrentStateToSnapshots, determineFactorExclusion,
-        replaceSnapshot
+      selected, selectedNarration, clearSelected, preventDerivation, createKey,
+      recalculatePreferred, addCurrentStateToSnapshots, determineFactorExclusion,
+      replaceSnapshot, regionSnapshots, maxNumSnapshots, switchSnapshots
     } = get();
     const idToReplace = !!selected.derivedFrom ? createKey(selected) : null;
     const derivedFrom = !!selected.derivedFrom ? selected.derivedFrom : selected
 
-    if(preventDerivation) return;
-    set({ preventDerivation: true });
-
     const path = selectedNarration.path.filter(d => d.order <= order);
     const newPath = recalculatePreferred(path);
-    let newRegion = {...newPath.find(d => d.order === order)?.region, derivedFrom };
+    const newRegion = {...newPath.find(d => d.order === order)?.region, derivedFrom };
 
+    // test for existing snapshot for the new region
+    const existingSnapshot = regionSnapshots.find(s => s.id === createKey(newRegion));
+
+    if(
+      preventDerivation || 
+      (
+        // if there is no more space for tabs, we're not replacing a tab, and not 
+        // switching to an already existing tab
+        regionSnapshots.length === maxNumSnapshots && 
+        !idToReplace && 
+        !existingSnapshot
+      )
+    ) return;
+
+    // switch to existing snapshot if it exists
+    if(!!existingSnapshot) {
+      switchSnapshots(existingSnapshot.id)
+      return;
+    }
+    
     const newNarration = {
       // Basic narration properties
       ...newRegion,
@@ -117,11 +172,11 @@ const SpawningRegions = (set, get) => {
     clearSelected()
 
     // set new region
-    set({ selected: newRegion, selectedNarration: newNarration });
+    set({ selected: newRegion, selectedNarration: newNarration, preventDerivation: true });
 
     // add new region to snapshot (or replace existing snapshot)
     !!idToReplace ? replaceSnapshot(idToReplace) : addCurrentStateToSnapshots()
-  
+
     // subpath query for backtracked region
     let factorExclusion = determineFactorExclusion(newNarration, activeSet, activeFilters)
     // find and set subpaths for new backtracked region

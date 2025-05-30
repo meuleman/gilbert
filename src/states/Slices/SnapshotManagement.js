@@ -197,6 +197,8 @@ const SnapshotManagement = (set, get) => {
     setPreventDerivation: (prevent) => set({ preventDerivation: prevent }),
     replaceSnapshot,
     createSnapshot,
+    maxNumSnapshots: 1,
+    setMaxNumSnapshots: (num) => set({ maxNumSnapshots: num }),
   }
 }
 

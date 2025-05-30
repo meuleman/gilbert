@@ -22,7 +22,7 @@ Returns:
 function fetchPartialPathsForRegions(regions, membership=false, threshold=0.1) {
   const url = `${baseAPIUrl}/api/csns/paths_by_order`
   const postBody = {regions, threshold, membership}
-  console.log("PARTIAL PATHS POST BODY", postBody)
+  // console.log("PARTIAL PATHS POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
@@ -79,7 +79,7 @@ function fetchRegionSetEnrichments({regions, N = null, factorExclusion = [], enr
   const postBody = {regions, factor_exclusion: factorExclusion}
   N && (postBody.N = N)
   enrichmentThreshold && (postBody.enrichment_threshold = enrichmentThreshold)
-  console.log("REGION SET ENRICHMENT POST BODY", postBody)
+  // console.log("REGION SET ENRICHMENT POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
@@ -109,7 +109,7 @@ Returns:
 function fetchSingleRegionFactorOverlap({region, factorExclusion = []}) {
   const url = `${baseAPIUrl}/api/regionSetEnrichment/single_region_factor_query`
   const postBody = {region, factor_exclusion: factorExclusion}
-  console.log("SINGLE REGION FACTOR OVERLAP POST BODY", postBody)
+  // console.log("SINGLE REGION FACTOR OVERLAP POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
@@ -192,7 +192,7 @@ Returns:
 function fetchGenes(regions) {
   const url = `${baseAPIUrl}/api/genes/fetch_genes`
   const postBody = {regions}
-  console.log("FETCH GENES POST BODY", postBody)
+  // console.log("FETCH GENES POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
@@ -220,7 +220,7 @@ Returns:
 function fetchBackfillFiltering(regions, filters, N=100) {
   const url = `${baseAPIUrl}/api/filteringWithoutOrder/backfill_region_filtering`
   const postBody = {regions, filters, N}
-  console.log("REGION BACKFILL FILTERING POST BODY", postBody)
+  // console.log("REGION BACKFILL FILTERING POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
@@ -250,13 +250,13 @@ function fetchRegionSetFromFactor(factor, maxRegions=null) {
   const url = `${baseAPIUrl}/api/filteringWithoutOrder/generate_region_set_from_factor`
   const postBody = {factor}
   maxRegions && (postBody.max_regions = maxRegions)
-  console.log("REGION SET FROM FACTOR POST BODY", postBody)
+  // console.log("REGION SET FROM FACTOR POST BODY", postBody)
   return axios({
     method: 'POST',
     url: url,
     data: postBody
   }).then(response => {
-    console.log("REGION SET FROM FACTOR", response.data)
+    // console.log("REGION SET FROM FACTOR", response.data)
     return response.data
   }).catch(error => {
     console.error(`error:     ${JSON.stringify(error.status)}`);

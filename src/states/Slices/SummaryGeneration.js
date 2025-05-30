@@ -97,7 +97,7 @@ const SummaryGeneration = (set, get) => {
         return res.json()
       })
       .then(data => {
-        console.log("generate", data, query)
+        // console.log("generate", data, query)
         return data;
       })
       .catch(err => {
