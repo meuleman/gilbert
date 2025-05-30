@@ -13,7 +13,8 @@ import { dropdownList } from '../layers/index'
 import ComponentSizeStore from '../states/ComponentSizes';
 import useLayerEffects from './hooks/useLayerEffects';
 
-import LockIcon from "@/assets/lock.svg?react"
+import LockOpenIcon from "@/assets/lock-open.svg?react"
+import LockClosedIcon from "@/assets/lock-closed.svg?react"
 
 import './ZoomLegend.css';
 
@@ -355,16 +356,16 @@ const ZoomLegend = ({
                   "flex-1 h-full border-l-separator border-l-1 py-1.5 px-1 text-2xs truncate",
                   d.order == order && "font-bold"
                 )}>
-                  {/* <div>
-                    <></>
-                    {layerOrder ? layerOrder[d.order]?.name : layer?.name}
-                  </div> */}
                   <div className="relative w-full flex flex-row gap-1" ref={ref => dropdownRefs.current[d.order] = ref}>
                     <div 
                       className="cursor-pointer"
                       onClick={() => lockLayer(d.order)}
                     >
-                      <LockIcon className="w-3 h-3 flex-shrink-0 hover:text-red-500" style={{strokeWidth: ordersLocked[d.order] ? 1 : 2.5}}/>
+                      {
+                        ordersLocked[d.order] ? 
+                        <LockClosedIcon className="w-3 h-3 flex-shrink-0 hover:text-red-500"/> : 
+                        <LockOpenIcon className="w-3 h-3 flex-shrink-0 hover:text-red-500"/>
+                      }
                     </div>
                     <div className="flex-1 overflow-hidden">
                       <button 
