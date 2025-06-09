@@ -1,5 +1,4 @@
 export const baseURLPrefix = "https://d2ppfzsmmsvu7l.cloudfront.net";
-export const baseAltiusURLPrefix = "https://resources.altius.org/~ctrader/public/gilbert/data";
 
 export const FILTER_MAX_REGIONS = 100; // 1000
 
