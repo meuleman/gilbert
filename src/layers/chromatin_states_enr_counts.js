@@ -11,7 +11,7 @@ export default {
   name: "Chromatin States (ENR, Counts)",
   datasetName: "cs_enr_counts",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseS3URLPrefix}/20240327`,
+  baseURL: `${constants.baseURLPrefix}/20240327`,
   orders: [4,10],
   renderer: "CanvasScaledValue",
   fieldChoice: topValue,

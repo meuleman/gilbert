@@ -9,7 +9,7 @@ export default {
   datasetName: "cs_rank_occ",
   labelName: "Chromatin State Occurrence",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseS3URLPrefix}/20241127`,
+  baseURL: `${constants.baseURLPrefix}/20241127`,
   orders: [4,13],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,

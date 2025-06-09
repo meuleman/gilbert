@@ -11,7 +11,7 @@ export default {
   datasetName: "dhs_enr",
   labelName: "DHS Domain",
   // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
-  baseURL: `${constants.baseS3URLPrefix}/20240327`,
+  baseURL: `${constants.baseURLPrefix}/20240327`,
   orders: [4,12],
   renderer: "CanvasScaledValue",
   fieldChoice: topValue,

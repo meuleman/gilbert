@@ -7,7 +7,7 @@ export default {
   name: "Variants (UKBB, 94 Traits)",
   datasetName: "ukbb_94_traits",
   labelName: "UKBB Variant",
-  baseURL: `${constants.baseS3URLPrefix}/20241021`,
+  baseURL: `${constants.baseURLPrefix}/20241021`,
   orders: [14,14],
   renderer: "CanvasSimpleValue",
   fieldChoice: decodeValue,

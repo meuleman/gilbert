@@ -6,7 +6,7 @@ export default {
   name: "TF Motifs (OCC, Ranked)",
   datasetName: "tf_1en6_rank_occ",
   labelName: "TF Motif Occurrence",
-  baseURL: `${constants.baseS3URLPrefix}/20241127`,
+  baseURL: `${constants.baseURLPrefix}/20241127`,
   orders: [4,13],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,

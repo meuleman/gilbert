@@ -11,7 +11,7 @@ export default {
   name: "Chromatin States (ENR)",
   datasetName: "cs_enr_max",
   labelName: "Chromatin State Domain",
-  baseURL: `${constants.baseS3URLPrefix}/20240327`,
+  baseURL: `${constants.baseURLPrefix}/20240327`,
   orders: [4,10],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,

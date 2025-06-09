@@ -8,7 +8,7 @@ export default {
   name: "DHS Components (OCC)",
   datasetName: "dhs_occ",
   labelName: "DHS Occurrence",
-  baseURL: `${constants.baseS3URLPrefix}/20241127`,
+  baseURL: `${constants.baseURLPrefix}/20241127`,
   orders: [4,13],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
