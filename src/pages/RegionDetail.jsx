@@ -12,9 +12,6 @@ import Data from '../lib/data';
 
 import { csnLayerList, csnLayers, variantLayers, countLayers } from '../layers'
 
-import DHS_Components_Sfc_max from '../layers/dhs_components_sfc_max'
-import Chromatin_States_Sfc_max from '../layers/chromatin_states_sfc_max';
-
 import LogoNav from '../components/LogoNav';
 import CSNSentence from '../components/Narration/Sentence'
 import RegionThumb from '../components/RegionThumb';

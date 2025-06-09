@@ -25,9 +25,9 @@ import { hilbertPosToOrder } from '../lib/HilbertChromosome';
 import { showPosition } from '../lib/display';
 import { urlify, fromPosition } from '../lib/regions';
 
-import dhs from '../layers/dhs_components_sfc_max';
-import chromatin_states from '../layers/chromatin_states_sfc_max';
-import tf from '../layers/tf_motifs_sfc_max';
+import dhs from '../layers/dhs_components_enr_max';
+import chromatin_states from '../layers/chromatin_states_enr_max';
+import tf from '../layers/tf_motifs_1en6_enr_max';
 const layers = {
   "DHS": dhs,
   "chromatin_states": chromatin_states,
