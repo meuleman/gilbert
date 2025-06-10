@@ -20,7 +20,7 @@ Returns:
 }
 */
 function fetchPartialPathsForRegions(regions, membership=false, threshold=0.1) {
-  const url = `${baseAPIUrl}/api/csns/paths_by_order`
+  const url = `/api/csns/paths_by_order`
   const postBody = {regions, threshold, membership}
   // console.log("PARTIAL PATHS POST BODY", postBody)
   return axios({
@@ -46,7 +46,7 @@ Returns:
 [ { chromosome: chromosome, index: index, trait_names: [], scores: [] }, ...]
 */
 function fetchGWASforPositions(positions) {
-  const url = `${baseAPIUrl}/api/gwas/gwas_for_positions`
+  const url = `/api/gwas/gwas_for_positions`
   const postBody = {'positions': positions}
   // console.log("GWAS POST BODY", postBody)
   return axios({
@@ -75,7 +75,7 @@ Returns:
 [{dataset, factor, enrichment, count}, ...]
 */
 function fetchRegionSetEnrichments({regions, N = null, factorExclusion = [], enrichmentThreshold = null}) {
-  const url = `${baseAPIUrl}/api/regionSetEnrichment/region_set_enrichment`
+  const url = `/api/regionSetEnrichment/region_set_enrichment`
   const postBody = {regions, factor_exclusion: factorExclusion}
   N && (postBody.N = N)
   enrichmentThreshold && (postBody.enrichment_threshold = enrichmentThreshold)
@@ -107,7 +107,7 @@ Returns:
 [{dataset, factor, segments: [{order, chromosome, i, score}, ...]}, ...]
 */
 function fetchSingleRegionFactorOverlap({region, factorExclusion = []}) {
-  const url = `${baseAPIUrl}/api/regionSetEnrichment/single_region_factor_query`
+  const url = `/api/regionSetEnrichment/single_region_factor_query`
   const postBody = {region, factor_exclusion: factorExclusion}
   // console.log("SINGLE REGION FACTOR OVERLAP POST BODY", postBody)
   return axios({
@@ -130,7 +130,7 @@ function fetchSingleRegionFactorOverlap({region, factorExclusion = []}) {
 /* ================================================================ */
 
 const fetchRegionSetNarration = (query, prompt = null) => {
-  const url = `${baseAPIUrl}/api/pubmedSummary/pubmed_region_set_summary`
+  const url = `/api/pubmedSummary/pubmed_region_set_summary`
   const postBody = {query}
   prompt && (postBody["prompt"] = prompt)
   return axios({
@@ -165,7 +165,7 @@ Returns: [{geneset}, ...] if membership=true
 */
 function fetchGenesetEnrichment(genes, membership=false) {
 
-  const url = `${baseAPIUrl}/api/genesetEnrichment/geneset_enrichment`
+  const url = `/api/genesetEnrichment/geneset_enrichment`
   const postBody = {genes, threshold: 0.01, membership}
   // console.log("GENESET POST BODY", postBody)
   return axios({
@@ -190,7 +190,7 @@ Returns:
 [{chromosome, domain_start, domain_end, name, stable_ID, strand, start, end, description, in_gene}, ...]
 */
 function fetchGenes(regions) {
-  const url = `${baseAPIUrl}/api/genes/fetch_genes`
+  const url = `/api/genes/fetch_genes`
   const postBody = {regions}
   // console.log("FETCH GENES POST BODY", postBody)
   return axios({
@@ -218,7 +218,7 @@ Returns:
 [{chromosome, i, order, score, ranges, subregion}, ...]
 */
 function fetchBackfillFiltering(regions, filters, N=100) {
-  const url = `${baseAPIUrl}/api/filteringWithoutOrder/backfill_region_filtering`
+  const url = `/api/filteringWithoutOrder/backfill_region_filtering`
   const postBody = {regions, filters, N}
   // console.log("REGION BACKFILL FILTERING POST BODY", postBody)
   return axios({
@@ -247,7 +247,7 @@ Returns:
 [{chromosome, i, order, score}, ...]
 */
 function fetchRegionSetFromFactor(factor, maxRegions=null) {
-  const url = `${baseAPIUrl}/api/filteringWithoutOrder/generate_region_set_from_factor`
+  const url = `/api/filteringWithoutOrder/generate_region_set_from_factor`
   const postBody = {factor}
   maxRegions && (postBody.max_regions = maxRegions)
   // console.log("REGION SET FROM FACTOR POST BODY", postBody)
