@@ -230,8 +230,8 @@ const SummaryGeneration = (set, get) => {
     toggleIncludeAbstracts,
     abstractsIncluded: true,
     setAbstractsIncluded: (included) => set({ abstractsIncluded: included }),
-    url: `${baseAPIUrl}/api/pubmedSummary/pubmed_summary`,
-    url_feedback: `${baseAPIUrl}/api/pubmedSummary/feedback`
+    url: `/api/pubmedSummary/pubmed_summary`,
+    url_feedback: `/api/pubmedSummary/feedback`
   }
 }
 
