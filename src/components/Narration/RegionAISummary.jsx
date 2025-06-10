@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { Tooltip } from 'react-tooltip'
 import { showKbOrder, showKb } from '../../lib/display'
 import SelectedStatesStore from '../../states/SelectedStates'
-import { baseAPIUrl } from '../../lib/apiService';
 
 import styles from './RegionAISummary.module.css'
 import Checkbox from 'antd/es/checkbox/Checkbox'
@@ -131,8 +130,8 @@ import Checkbox from 'antd/es/checkbox/Checkbox'
 
 
 const RegionAISummary = ({} = {}) => {
-  // const url = `${baseAPIUrl}/api/pubmedSummary/pubmed_summary`
-  // const url_feedback = `${baseAPIUrl}/api/pubmedSummary/feedback`
+  // const url = `/api/pubmedSummary/pubmed_summary`
+  // const url_feedback = `/api/pubmedSummary/feedback`
 
   // const { 
   //   selectedNarration: narration, query, setQuery, showQuery, setShowQuery,

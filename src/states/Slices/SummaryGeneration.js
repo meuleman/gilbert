@@ -1,7 +1,4 @@
 import { showKbOrder, showKb } from '../../lib/display'
-import { 
-  baseAPIUrl, 
-} from '../../lib/apiService';
 
 const SummaryGeneration = (set, get) => {
 

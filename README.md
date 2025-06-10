@@ -18,7 +18,7 @@ npm run dev
 
 ## Setting up the API
 
-The API that provides the data can be found at [gilbert-api](), follow the setup instructions and then modify the `VITE_API_URL` in `.env.development` to point to the API.
+The API that provides the data can be found at [gilbertApi](), follow the setup instructions.
 
 
 ## Overview

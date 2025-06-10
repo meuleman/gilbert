@@ -2,8 +2,6 @@ import axios from 'axios'
 
 import { GWASLayer } from '../layers'
 
-const baseAPIUrl = import.meta.env.VITE_API_URL
-
 /* ================================================================ */
 /* CSNs */
 /* ================================================================ */
@@ -267,7 +265,6 @@ function fetchRegionSetFromFactor(factor, maxRegions=null) {
 
 
 export {
-  baseAPIUrl,
   fetchGWASforPositions,
   fetchPartialPathsForRegions,
   fetchSingleRegionFactorOverlap,

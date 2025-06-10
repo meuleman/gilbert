@@ -2,7 +2,6 @@ import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import GilbertLogo from '../assets/gilbert-logo.svg?react';
 import axios from "axios";
-import { baseAPIUrl } from '../lib/apiService';
 import { extent, group } from 'd3-array';
 
 import './YC240322.css';
@@ -268,7 +267,7 @@ const YC240322 = () => {
   // const [sharedFactorLoading, setSharedFactorLoading] = useState(null)
   // useEffect(() => {
   //   if(selectedRegionSample.length > 0){
-  //     let url = `${baseAPIUrl}umap/get_shared_factor`
+  //     let url = `/api/umap/get_shared_factor`
   //     const postBody = {
   //       chr_strs: selectedRegionSample.map(d => d.chromosome + ":" + d.start + "-" + d.end),
   //     };

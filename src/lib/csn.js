@@ -1,7 +1,7 @@
 import Data from './data';
 import axios from "axios";
 import { range } from 'd3-array';
-import { baseAPIUrl, fetchGWASforPositions, fetchPartialPathsForRegions } from './apiService';
+import { fetchGWASforPositions, fetchPartialPathsForRegions } from './apiService';
 
 import { fullList as layers, countLayers, fullDataLayers, rehydrate, csnLayerList } from '../layers'
 
@@ -383,7 +383,7 @@ function fetchCombinedPathsAndGWAS(regions, membership = false, threshold = 0.1)
 //   if(selected) {
 //     if(order <= maxSimSearchOrder) {
 //       const regionMethod = 'hilbert_sfc'
-//       let url = `${baseAPIUrl}/narration`
+//       let url = `/api/narration`
 
 //       const chromosome = selected.chromosome
 //       const start = selected.start
