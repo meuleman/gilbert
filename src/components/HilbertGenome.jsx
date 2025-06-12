@@ -191,7 +191,7 @@ const HilbertGenome = ({
     hover: globalHover, setHover: setGlobalHover, collectPathForHover,
     hoverNarration, setHoverNarration, generateQuery, setQuery, 
     generateSummary, regionSummary: hoverSummary, setRegionSummary: setHoverSummary,
-    genesInside, setGenesInside, genesOutside, setGenesOutside,
+    genesInside, setGenesInside, genesOutside, setGenesOutside, setShow1DTooltip,
   } = HoverStatesStore()
   const [hover, setHover] = useState(null)
   const [hoverXY, setHoverXY] = useState([0, 0])
@@ -208,7 +208,7 @@ const HilbertGenome = ({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [setShiftPressed]);
 
   const scales = useMemo(() => ({ xScale, yScale, sizeScale, orderZoomScale, width, height }), [xScale, yScale, sizeScale, orderZoomScale, width, height])
   useEffect(() => {
@@ -751,6 +751,7 @@ const HilbertGenome = ({
   useEffect(() => {
     // only set if true so shift can be toggled without requerying the csn
     // set to false when a new region is hovered
+    setShow1DTooltip(shiftPressed);
     if(shiftPressed) setShiftForRegion(true);
   }, [shiftPressed])
 
@@ -763,11 +764,11 @@ const HilbertGenome = ({
       () => {},
       1000
     )
-  }, [shiftForRegion, globalHover])
+  }, [shiftForRegion, globalHover, setShow1DTooltip])
 
   useEffect(() => {
     if(!hoverNarration) return;
-    console.log("HOVER NARRATION CHANGED", hoverNarration)
+    // console.log("HOVER NARRATION CHANGED", hoverNarration)
     const hoverQuery = generateQuery(hoverNarration);
     setQuery(hoverQuery);
     if(!hoverQuery) {

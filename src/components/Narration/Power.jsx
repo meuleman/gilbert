@@ -25,6 +25,7 @@ import { Renderer as CanvasRenderer } from '../Canvas/Renderer';
 import { useZoom } from '../../contexts/ZoomContext';
 import SelectedStatesStore from '../../states/SelectedStates';
 import ComponentSizeStore from '../../states/ComponentSizes';
+import HoverStatesStore from '../../states/HoverStates'
 import LinearGenome from '../../components/LinearGenome';
 import LayerLegend from '../../components/LayerLegend'
 
@@ -112,6 +113,8 @@ function PowerModal({
   } = SelectedStatesStore();
 
   const { setPowerSize } = ComponentSizeStore()
+
+  const { setShow1DTooltip } = HoverStatesStore()
   
   const containerRef = useRef(null);
   const containerSize = useContainerSize(containerRef);
@@ -809,6 +812,25 @@ function PowerModal({
       field: maxKey
     };
   }, [hover, selected, narrationPreview, data, transformResult?.order]);
+
+  // Shift key handling
+  const [shiftPressed, setShiftPressed] = useState(false);
+  useEffect(() => {
+    const handleKeyDown = (e) => e.key === 'Shift' && setShiftPressed(true);
+    const handleKeyUp = (e) => e.key === 'Shift' && setShiftPressed(false);
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [setShiftPressed]);
+
+  useEffect(() => {
+    // if shift is pressed, show the 1D tooltip
+    setShow1DTooltip(shiftPressed);
+  }, [shiftPressed])
 
   return (
     <div ref={containerRef} className="relative power h-full w-full border-[2px] border-gray-400 mt-2">

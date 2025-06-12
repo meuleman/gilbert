@@ -15,6 +15,7 @@ import { defaultContent } from './Tooltips/Content';
 import { getGencodesInView } from '../lib/Genes';
 
 import SelectedStatesStore from '../states/SelectedStates';
+import HoverStatesStore from '../states/HoverStates'
 import { useZoom } from '../contexts/ZoomContext';
 import Loading from './Loading';
 
@@ -82,6 +83,7 @@ const LinearGenome = ({
 } = {}) => {
 
   const { selected } = SelectedStatesStore()
+  const { show1DTooltip, setShow1DTooltip } = HoverStatesStore()
 
   const { 
     transform: zoomTransform, 
@@ -569,6 +571,8 @@ const LinearGenome = ({
 
   const handleMouseMove = useCallback((event) => {
     if(panning) return
+
+    if(!show1DTooltip) setShow1DTooltip(true);
     if(xScaleRef.current) {
       const rect = event.target.getBoundingClientRect();
       const ex = event.clientX - rect.x; // x position within the element.
@@ -588,7 +592,11 @@ const LinearGenome = ({
         onHover(hd)
       }
     }
-  }, [dataPoints, processHover, onHover, panning])
+  }, [dataPoints, processHover, onHover, panning, show1DTooltip, setShow1DTooltip])
+
+  const handleMouseLeave = useCallback(() => {
+    setShow1DTooltip(false)
+  }, [setShow1DTooltip])
 
   const handleMouseClick = useCallback((event) => {
     // console.log("clicked", event)
@@ -788,6 +796,7 @@ const LinearGenome = ({
       <svg className="linear-genome-svg" width={width} height={height} 
         ref={svgRef}
         onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
         onClick={handleMouseClick}
         style={{ cursor: allowPanning ? panning ? 'grabbing' : 'grab' : 'pointer' }}
         >
@@ -808,7 +817,7 @@ const LinearGenome = ({
         pointerEvents: "none"
       }} data-tooltip-id="linear-genome-hovered">
       </div>
-      {hoverData ? <Tooltip id="linear-genome-hovered"
+      {hoverData && show1DTooltip ? <Tooltip id="linear-genome-hovered"
         isOpen={!!hoverData}
         delayShow={0}
         delayHide={0}

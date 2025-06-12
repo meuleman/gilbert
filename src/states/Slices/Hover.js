@@ -51,6 +51,10 @@ const Hover = (set, get) => {
     hoverNarration: null,
     setHoverNarration: (narration) => set({ hoverNarration: narration }),
     collectPathForHover,
+
+    // linear genome tooltip
+    show1DTooltip: false,
+    setShow1DTooltip: (show) => set({ show1DTooltip: show }),
 	}
 }
 
