@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useContext, useRef } from 'react';
 import SelectedStatesStore from '../../states/SelectedStates';
 import RegionsContext from '../../components/Regions/RegionsContext';
+import { useZoom } from '../../contexts/ZoomContext';
 
 /**
  * Custom hook to handle narration-to-summary pipeline
@@ -29,9 +30,12 @@ function useSelectedEffects() {
     activeFilters
   } = useContext(RegionsContext)
 
+  const { setSelectedOrderRaw } = useZoom();
+
   useEffect(() => {
     if(selected) {
       addCurrentStateToSnapshots();
+      setSelectedOrderRaw(selected ? selected.order + 0.5 : 4.5);
     }
   }, [ selected ]);
 

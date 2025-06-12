@@ -14,6 +14,7 @@ import { debouncer } from '../lib/debounce'
 import { defaultContent } from './Tooltips/Content';
 import { getGencodesInView } from '../lib/Genes';
 
+import SelectedStatesStore from '../states/SelectedStates';
 import { useZoom } from '../contexts/ZoomContext';
 import Loading from './Loading';
 
@@ -77,26 +78,36 @@ const LinearGenome = ({
   onClick = () => {},
   allowPanning = true,
   showCoordinates = true,
+  setTransform: propSetTransform = null,
 } = {}) => {
 
+  const { selected } = SelectedStatesStore()
+
   const { 
-    transform, 
+    transform: zoomTransform, 
+    selectedTransform: zoomSelectedTransform,
     order, 
-    orderZoomScale, 
     orderRaw: zoomOrderRaw, 
+    selectedOrderRaw: zoomSelectedOrderRaw,
     zoomMin,
     zoomMax,
-    setTransform, 
-    zooming, 
+    orderMin,
+    setTransform: zoomSetTransform, 
+    setSelectedTransform: zoomSetSelectedTransform,
+    handleSelectedZoom,
+    orderZoomScale,
     setZooming, 
     panning,
     setPanning,
     center: zoomCenter,
-    setCenter
+    selectedCenter: zoomSelectedCenter,
   } = useZoom()
 
-  const center = propCenter || zoomCenter;
-  const orderRaw = propOrderRaw || zoomOrderRaw;
+  const center = propCenter || !!selected ? zoomSelectedCenter : zoomCenter;
+  const orderRaw = propOrderRaw || !!selected ? zoomSelectedOrderRaw : zoomOrderRaw;
+  const setTransform  = propSetTransform || !!selected ? zoomSetSelectedTransform : zoomSetTransform;
+  const transform = !!selected ? zoomSelectedTransform : zoomTransform;
+  const handleZoom = !!selected ? handleSelectedZoom : () => {}
 
   let zoomExtent = useMemo(() => [zoomMin, zoomMax], [zoomMin, zoomMax])
 
@@ -258,6 +269,7 @@ const LinearGenome = ({
 
         ctx.globalAlpha = 1
         ctx.textAlign = "center"
+        ctx.font = "10px monospace"
         // we want a global coordinate system essentially for the 1D visualization
         rows.map((r,i) => {
           r.map((g,j) => {
@@ -316,11 +328,9 @@ const LinearGenome = ({
 
           data.map(d => {
             const sample = layer.fieldChoice(d);
-            
             if(sample && sample.field){
               const x = xScale(d.start);
               const w = Math.max(1, bw - 0.5);
-
               if(layer.datasetName == "badges" && d.data?.nucleotide) {
                 const y = geneHeight;
                 const h = trackHeight;
@@ -406,7 +416,9 @@ const LinearGenome = ({
     trackHeight, 
     axisHeight, 
     genes, 
-    orderRaw
+    orderRaw,
+    showCoordinates,
+    data
   ])
 
   // we update the renderpoints when the center changes
@@ -430,10 +442,10 @@ const LinearGenome = ({
   // TODO: please doublecheck
   // when data changes, we want to match them to the current 1D points
   useEffect(() => {
-    if(!renderPointsRef.current || !data) return
+    if(!renderPoints || !data) return;
     let missing = []
     let dataPoints = []
-    renderPointsRef.current.forEach(p => {
+    renderPoints.forEach(p => {
       let d = data.find(d => d.chromosome == p.chromosome && d.i == p.i)
       if(d) {
         dataPoints.push(d)
@@ -456,10 +468,13 @@ const LinearGenome = ({
         // checks for empty array of data points
         (pointsToUse.length !== 0) &&
         // checks if the first point is different from the previous iteration
-        !(
-          (pointsToUse[0].chromosome === dataPointsRef.current[0].chromosome) &&
-          (pointsToUse[0].i === dataPointsRef.current[0].i) &&
-          (pointsToUse[0].order === dataPointsRef.current[0].order)
+        (
+          !(
+            (pointsToUse[0].chromosome === dataPointsRef.current[0].chromosome) &&
+            (pointsToUse[0].i === dataPointsRef.current[0].i) &&
+            (pointsToUse[0].order === dataPointsRef.current[0].order)
+          ) ||
+          (pointsToUse[0].data && !dataPointsRef.current[0].data)
         )
       ) {
         setDataPoints(pointsToUse)
@@ -467,7 +482,7 @@ const LinearGenome = ({
       }
     }
     
-  }, [data])
+  }, [data, renderPoints])
   
   useEffect(() => {
     // clear the canvas when layer or data changes
@@ -609,6 +624,10 @@ const LinearGenome = ({
           // Check if this is a drag event (mouse move with button pressed)
           // If we drag, we are updating the 2D map center based on the data point 
           if (sourceEvent && sourceEvent.type === 'mousemove' && sourceEvent.buttons === 1) {
+
+            // check if panning allowed
+            if(!allowPanning) return;
+
             setPanning(true);
             setZooming(true);
             
@@ -664,6 +683,8 @@ const LinearGenome = ({
             if(data[0] && JSON.stringify(transform) !== JSON.stringify(nt)) {
               requestAnimationFrame(() => {
                 setTransform(nt);
+                // power relies on zoom level
+                handleZoom(orderMin + Math.log2(orderZoomScale(nt.k)))
               });
             }
           }
@@ -683,6 +704,10 @@ const LinearGenome = ({
     setPanning,
     onHover,
     processHover,
+    allowPanning,
+    orderMin,
+    orderZoomScale,
+    handleZoom,
   ])
 
   const zoomBehavior = useMemo(() => {
@@ -717,12 +742,40 @@ const LinearGenome = ({
     };
   }, [zoomBehavior]);
 
-  // update the SVG's transform when the transform changes
+  // track the last applied transform
+  const lastAppliedTransformRef = useRef(null);
   useEffect(() => {
     if(svgRef.current) {
-      zoomBehavior.transform(select(svgRef.current), zoomIdentity.translate(transform.x, 0).scale(transform.k));
+      // check if the transform is different from the last one we applied
+      if (!lastAppliedTransformRef.current || 
+          lastAppliedTransformRef.current.k !== transform.k || 
+          lastAppliedTransformRef.current.x !== transform.x || 
+          lastAppliedTransformRef.current.y !== transform.y) {
+        
+        // create the new transform
+        const newTransform = zoomIdentity.translate(transform.x, 0).scale(transform.k);
+        
+        // apply it to D3's zoom behavior
+        zoomBehavior.transform(select(svgRef.current), newTransform);
+        
+        // store it as the last applied transform
+        lastAppliedTransformRef.current = {...transform};
+      } else {
+        // otherwise, use orderRaw to create new transform 
+        const k = orderZoomScale.invert(Math.pow(2, orderRaw - orderMin));
+      
+        // create a new transform that maintains x position but updates scale
+        const newTransform = zoomIdentity
+          .translate(transform.x, transform.y)
+          .scale(k);
+
+        zoomBehavior.transform(select(svgRef.current), newTransform);
+
+        // Store it as the last applied transform
+        lastAppliedTransformRef.current = {...transform};
+      }
     }
-  }, [transform, zoomBehavior]);
+  }, [transform, zoomBehavior, orderRaw, orderMin]);
 
   return (
     <div className="linear-genome">

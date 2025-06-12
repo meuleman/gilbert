@@ -101,7 +101,7 @@ function Home() {
     order, orderZoomScale, transform, 
     setTransform, orderOffset, setOrderOffset, 
     zoomMin, zoomMax, orderMin, orderMax, 
-    setSelectedZoomOrder, easeZoom
+    setSelectedOrder, easeZoom
   } = useZoom()
   const zoomExtent = useMemo(() => [zoomMin, zoomMax], [zoomMin, zoomMax])
   const orderDomain = useMemo(() => [orderMin, orderMax], [orderMin, orderMax])
@@ -796,7 +796,7 @@ function Home() {
     if (!selectedNarration) return;
     let newZoom = selectedNarration.region.order + 0.5;
     if (newZoom < 4) newZoom = 4;
-    setSelectedZoomOrder(newZoom);
+    setSelectedOrder(newZoom);
   }, [selectedNarration]);
 
   return (

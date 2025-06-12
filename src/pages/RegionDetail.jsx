@@ -34,7 +34,7 @@ const RegionDetailContent = () => {
   const fetchData = useMemo(() => Data({debug: false}).fetchData, []);
   
   // Get access to zoom context
-  const { setSelectedZoomOrder } = useZoom();
+  const { setSelectedOrder } = useZoom();
 
   const [inside, setInside] = useState([]);
   const [outside, setOutside] = useState([]);
@@ -98,7 +98,7 @@ const RegionDetailContent = () => {
       
       // Update selected zoom order based on region
       if (region && region.order) {
-        setSelectedZoomOrder(region.order);
+        setSelectedOrder(region.order);
       }
 
       // fetch data for each layer
@@ -145,7 +145,7 @@ const RegionDetailContent = () => {
         })
       } 
     }
-  }, [region, fetchData, csnMethod, setSelectedZoomOrder]);
+  }, [region, fetchData, csnMethod, setSelectedOrder]);
 
   // We have special logic for making a "CSN" path from order 14
   // it's mostly about finding the highest factor for every region "above" the order 14 region

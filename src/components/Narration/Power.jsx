@@ -98,7 +98,10 @@ function PowerModal({
   maxTabSize = 230
 }) {
 
-  const { handleSelectedZoom: onOrder, selectedZoomOrder: userOrder } = useZoom();
+  const { 
+    handleSelectedZoom: onOrder, selectedOrderRaw: userOrder, setSelectedCenter
+  } = useZoom();
+
   const { 
     narrationPreview, selectedNarration, selected, 
     setCurrentPreferred: setCurrentPreferredGlobal,
@@ -468,23 +471,6 @@ function PowerModal({
     throttledWheel(-event.deltaY);
   }, [throttledWheel]);
 
-  // const handleWheel = useCallback(event => {
-  //   event.preventDefault();
-  //   const delta = -event.deltaY;
-  //   setPercent(prev => {
-  //     let newP = prev + delta * 0.01;
-  //     newP = Math.max(0, Math.min(100, newP));
-      
-  //     // Defer update of ZoomProvider until after render:
-  //     requestAnimationFrame(() => {
-  //       onOrder(percentScale(newP));
-  //     });
-  //     // onOrder(percentScale(newP))
-      
-  //     return newP;
-  //   });
-  // }, [onOrder, percentScale]);
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
@@ -498,7 +484,7 @@ function PowerModal({
   // memoized transform
   const transformResult = useMemo(() => {
     if (!data) return null;
-    
+
     const or = percentScale(percent);
     const o = Math.max(Math.floor(or), 4);
     const hilbert = new HilbertChromosome(o);
@@ -625,7 +611,7 @@ function PowerModal({
     
   }, [transformResult, width, height, scales, data, oscale, hover, showSelectedSquare]);
 
-  const linearCenter = useMemo(() => {
+  useEffect(() => {
     let center = csn?.path.find(d => d.order === order)?.region;
     // if path does not extend to order, extend highest resolution region to order and use that as centerpoint
     if(!!csn?.path.length && !center) {
@@ -633,8 +619,8 @@ function PowerModal({
       const oi = hilbertPosToOrder(largestOrderRegion.i, { from: largestOrderRegion.order, to: order });
       center = fromIndex(largestOrderRegion.chromosome, oi, order)
     }
-    return center; 
-  }, [csn, order])
+    setSelectedCenter(center);
+  }, [csn, order, setSelectedCenter])
 
   const linearData = useMemo(() => {
     return data?.find(d => d.order === order)?.data
@@ -894,7 +880,6 @@ function PowerModal({
           <div className="relative border-separator" style={{ height: `${sheight}px` }}>
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
               <LinearGenome
-                center={linearCenter} 
                 data={linearData}
                 dataOrder={order}
                 orderRaw={userOrder}

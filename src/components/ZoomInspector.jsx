@@ -25,7 +25,7 @@ function ZoomInspector({
   onClick = (c) => { console.log("narration", c); },
 }) {
   // zoom order
-  const { selectedZoomOrder: order, handleSelectedZoom: onHover } = useZoom();
+  const { selectedOrderRaw: order, handleSelectedZoom: onHover } = useZoom();
 
   const { 
     activeSet,

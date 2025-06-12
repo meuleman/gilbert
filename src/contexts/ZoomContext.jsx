@@ -3,6 +3,7 @@ import { scaleLinear } from 'd3-scale';
 import { zoomIdentity } from 'd3-zoom';
 import { interpolateObject } from 'd3-interpolate';
 import { easeCubicInOut } from 'd3-ease';
+import SelectedStatesStore from '../states/SelectedStates';
 
 const ZoomContext = createContext();
 
@@ -12,6 +13,7 @@ export function ZoomProvider({ children}) {
   const zoomMin = 0.85
   const zoomMax = 4000
 
+  // Main Map Zoom States
   const [transform, setTransform] = useState(zoomIdentity);
   const [panning, setPanning] = useState(false);
   const [order, setOrder] = useState(orderMin);
@@ -44,7 +46,7 @@ export function ZoomProvider({ children}) {
     }
   }, [transform, orderZoomScale, orderMin, orderMax, orderOffset, orderRaw]);
 
-  const easeZoom = useCallback((oldTransform,newTransform, callback, duration = 750, ease = easeCubicInOut, rateLimit = 20) => {
+  const easeZoom = useCallback((oldTransform, newTransform, callback, duration = 750, ease = easeCubicInOut, rateLimit = 20) => {
     const startTime = Date.now();
     const interpolator = interpolateObject(oldTransform, newTransform);
     // console.log("interpolator", interpolator(0.5))
@@ -77,13 +79,15 @@ export function ZoomProvider({ children}) {
     requestAnimationFrame(animate);
   }, [setTransform])
 
-  // useEffect(() => {
-  //   console.log("transform has updated", transform)
-  // }, [transform])
-
+  // Selected Zoom States
+  const { selected } = SelectedStatesStore();
 
   // Controls the current zoom order (numeric display level) for selected region in IG
-  const [selectedZoomOrder, setSelectedZoomOrder] = useState(orderMin + 0.5);
+  const [selectedOrder, setSelectedOrder] = useState(selected ? selected.order : orderMin);
+  const [selectedOrderRaw, setSelectedOrderRaw] = useState((selected ? selected.order : orderMin) + 0.5);
+  const [selectedTransform, setSelectedTransform] = useState(zoomIdentity);
+  const previousSelectedOrderRef = useRef(selectedOrder);
+  const [selectedCenter, setSelectedCenter] = useState(null);
 
   // Callback to update the zoom order.
   // Ensures the order never goes below 4.
@@ -91,8 +95,18 @@ export function ZoomProvider({ children}) {
     if (order < 4) {
       order = 4;
     }
-    setSelectedZoomOrder(order);
-  }, []);
+    setSelectedOrderRaw(order);
+  }, [setSelectedOrderRaw]);
+
+  useEffect(() => {
+    let newOrder = Math.floor(selectedOrderRaw);
+    newOrder = Math.max(orderMin, Math.min(newOrder, orderMax));
+    
+    if (newOrder !== previousSelectedOrderRef.current) {
+      setSelectedOrder(newOrder);
+      previousSelectedOrderRef.current = newOrder;
+    }
+  }, [orderMin, orderMax, selectedOrderRaw, setSelectedOrder]);
 
   // bounding box of main map (for use in minimap)
   const [bbox, setBbox] = useState(null);
@@ -118,9 +132,15 @@ export function ZoomProvider({ children}) {
     zoomMin,
     zoomMax,
     easeZoom,
-    selectedZoomOrder,
-    setSelectedZoomOrder,
+    selectedOrder,
+    setSelectedOrder,
+    selectedTransform,
+    setSelectedTransform, 
+    selectedOrderRaw,
     handleSelectedZoom,
+    selectedCenter,
+    setSelectedCenter,
+    setSelectedOrderRaw,
     bbox,
     setBbox,
     scales,
