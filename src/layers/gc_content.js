@@ -1,10 +1,11 @@
 
 import { scaleOrdinal } from "d3-scale";
+import * as constants from "../lib/constants";
 
 export default {
   name: "GC Content",
   datasetName: "gc_content",
-  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
+  baseURL: `${constants.baseURLPrefix}/20250612`,
   orders: [4,13],
   renderer: "CanvasOpacityValue",    
   fieldChoice: d => ({ field: "gc_content", value: d.data?.gc_content}),

@@ -1,10 +1,11 @@
 
 import { scaleOrdinal } from "d3-scale";
+import * as constants from "../lib/constants";
 
 export default {
   name: "Bands",
   datasetName: "bands",
-  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
+  baseURL: `${constants.baseURLPrefix}/20250612`,
   orders: [4,8],
   renderer: "CanvasSimpleValue",    
   fieldChoice: bandsValue,

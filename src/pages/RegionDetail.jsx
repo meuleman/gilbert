@@ -196,7 +196,7 @@ const RegionDetailContent = () => {
           }
         })
         // console.log("top fields by order", topFieldsByOrder)
-        // let nl = layersData.find(d => d.layer.datasetName == "grc")
+        // let nl = layersData.find(d => d.layer.datasetName == "nucleotides")
         // let n = nl.data[1]
         // n.topField = n.field
         // n.layer = nl.layer

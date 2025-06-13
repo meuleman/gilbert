@@ -5,7 +5,6 @@ import fields from "./variants_gwas_fields.json";
 export default {
   name: "Variants (GWAS, Ranked)",
   datasetName: "variants_gwas_rank",
-  // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseURLPrefix}/20240528`,
   orders: [14,14],
   renderer: "CanvasSimpleValue",

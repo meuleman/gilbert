@@ -1,11 +1,12 @@
 import { scaleOrdinal } from "d3-scale";
+import * as constants from "../lib/constants";
 
 const decoder = new TextDecoder('ascii');
 
 export default {
   name: "Nucleotides",
-  datasetName: "grc",
-  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
+  datasetName: "nucleotides",
+  baseURL: `${constants.baseURLPrefix}/20250612`,
   orders: [14,14],
   renderer: "CanvasTextValue",
   fieldChoice: d => ({ field: "basepair", value: decoder.decode(d.bytes)[0] }),

@@ -11,7 +11,6 @@ export default {
   name: "TF Motifs (ENR, Full)",
   datasetName: "tf_1en6_enr",
   labelName: "TF Motif Domain",
-  // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseURLPrefix}/20240621`,
   orders: [4,13],
   renderer: "CanvasScaledValue",

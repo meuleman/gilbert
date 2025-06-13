@@ -126,7 +126,6 @@ const YC240322 = () => {
     if(conn) {
       console.log("query umap")
       setLoading(true)
-      // conn.query("SELECT * FROM 'https://storage.googleapis.com/fun-data/hilbert/YC240322/YC240322_umap_coords.parquet'").then((res) => {
       conn.query(`SELECT * FROM 'https://resources.altius.org/~ychoi/20241101_gilbert_umap/Order-${umapOrder}/YC20241104-umap.parquet'`).then((res) => {
         console.log("got umap rows", res)
         console.log("got umap rows", res.toArray())
@@ -163,7 +162,6 @@ const YC240322 = () => {
     if(conn) {
       console.log("querying annotations", order)
       setLoading(true)
-      // conn.query(`SELECT * FROM 'https://storage.googleapis.com/fun-data/hilbert/YC240322/YC240322_annot-${order}.parquet'`).then((res) => {
       // conn.query(`SELECT * FROM 'https://resources.altius.org/~ychoi/20241016_gilbert_umap/YC20241017-annot-${order}.parquet'`).then((res) => {
       conn.query(`SELECT * FROM 'https://resources.altius.org/~ychoi/20241101_gilbert_umap/Order-${umapOrder}/YC20241104-annot-${order}-factor.parquet'`).then((res) => {
         console.log("got rows", order)

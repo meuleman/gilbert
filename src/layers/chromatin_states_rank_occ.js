@@ -8,7 +8,6 @@ export default {
   name: "Chromatin States (OCC, Ranked)",
   datasetName: "cs_rank_occ",
   labelName: "Chromatin State Occurrence",
-  // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseURLPrefix}/20241127`,
   orders: [4,13],
   renderer: "CanvasScaledValue",

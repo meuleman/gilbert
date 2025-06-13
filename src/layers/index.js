@@ -268,7 +268,7 @@ const variantLayers = [
   fullList.find(d => d.datasetName == "variants_favor_categorical_rank"),
   fullList.find(d => d.datasetName == "variants_favor_apc_rank"),
   fullList.find(d => d.datasetName == "ukbb_94_traits"),
-  // fullList.find(d => d.datasetName == "grc"),
+  // fullList.find(d => d.datasetName == "nucleotides"),
 ]
 const countLayers = [
   fullList.find(d => d.datasetName == "dhs_enr_counts"),

@@ -1,11 +1,12 @@
 
 import { scaleOrdinal } from "d3-scale";
 import { schemeTableau10 } from "d3-scale-chromatic";
+import * as constants from "../lib/constants";
 
 export default {
   name: "Gene Density",
-  datasetName: "gencode",
-  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
+  datasetName: "gene_density",
+  baseURL: `${constants.baseURLPrefix}/20250612`,
   orders: [4,9],
   renderer: "CanvasOpacityValue",    
   fieldChoice: d => ({ field: "protein_coding", value: d.data?.protein_coding}),

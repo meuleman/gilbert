@@ -5,7 +5,7 @@ import { createSegments, joinSegments } from "./segments.js"
 // TODO: alternatively, make these functions part of a class which has configuration options
 
 function Data({
-  baseURL = "https://storage.googleapis.com/fun-data/hilbert/chromosomes",
+  baseURL = null,
   debug = false
 } = {}) {
   async function fetchData(layer, order, points, cachebust = 0) {

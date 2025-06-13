@@ -9,7 +9,6 @@ import * as constants from "../lib/constants";
 export default {
   name: "DHS Components (ENR, Counts)",
   datasetName: "dhs_enr_counts",
-  // baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   baseURL: `${constants.baseURLPrefix}/20240327`,
   orders: [4,12],
   renderer: "CanvasScaledValue",
