@@ -43,7 +43,6 @@ function getGWAS(d) {
 export default {
   name: "Nucleotide Badges",
   datasetName: "badges",
-  baseURL: "https://storage.googleapis.com/fun-data/hilbert/chromosomes_new",
   orders: [14,14],
   renderer: "CanvasOrder14",    
   tooltip: Badge,
