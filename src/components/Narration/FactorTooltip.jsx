@@ -11,9 +11,17 @@ function tooltipContent(region, layer, orientation) {
       fields.push(region.field);
       const regionLayer = region.layer;
       const layerIndex = csnLayerList.findIndex(l => l.datasetName === regionLayer.datasetName);
-      const count = region.counts && region.counts[layerIndex]?.length
-        ? region.counts[layerIndex][region.field.index]
-        : null;
+      let count = null
+      if(region.counts && region.counts[layerIndex]?.counts?.length) {
+        const countInfo = region.counts[layerIndex]
+        if(countInfo.type === "full") {
+          count = countInfo.counts[region.field.index]
+        } else if(countInfo.type === "top") {
+          const indexOfField = countInfo.counts.indexOf(region.field.index);
+          // if top counts, data structured as index, count, index, count...
+          count = indexOfField >= 0 ? countInfo.counts[indexOfField + 1] : null;
+        }
+      }
       region.field.count = count;
     }
   } else if (region.data.max_field >= 0 || region.data.bp) {
@@ -41,10 +49,17 @@ function tooltipContent(region, layer, orientation) {
           const [layerIndex, fieldIndex] = key.split(",").map(Number);
           const fullLayer = fullDataLayers[layerIndex];
           const field = fullLayer.fieldColor.domain()[fieldIndex];
-          const count =
-            region.counts && region.counts[layerIndex]?.length
-              ? region.counts[layerIndex][fieldIndex]
-              : null;
+          let count = null
+          if(region.counts && region.counts[layerIndex]?.counts?.length) {
+            const countInfo = region.counts[layerIndex]
+            if(countInfo.type === "full") {
+              count = countInfo.counts[fieldIndex]
+            } else if(countInfo.type === "top") {
+              const indexOfField = countInfo.counts.indexOf(fieldIndex);
+              // if top counts, data structured as index, count, index, count...
+              count = indexOfField >= 0 ? countInfo.counts[indexOfField + 1] : null;
+            }
+          }
           return { layer: fullLayer, field, value: region.fullData[key], count };
         })
         .sort((a, b) => b.value - a.value)

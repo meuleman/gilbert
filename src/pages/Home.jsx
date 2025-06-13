@@ -3,11 +3,10 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import { useZoom } from '../contexts/ZoomContext';
 
-import { urlify, jsonify, fromPosition, fromRange, fromCountOrder, overlaps } from '../lib/regions'
+import { urlify, jsonify, fromPosition, fromCountOrder, overlaps } from '../lib/regions'
 import { hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { getRangesOverCell } from "../lib/Genes"
 
-import { calculateSegmentOrderSums, urlifyFilters, parseFilters } from '../lib/filters'
 import { useContainerSize } from '../lib/utils';
 import { range, group } from 'd3-array'
 import { Tooltip } from 'react-tooltip'
@@ -20,7 +19,6 @@ import LinearGenome from '../components/LinearGenome'
 import SVGHilbertPaths from '../components/SVGHilbertPaths'
 import SVGGenePaths from '../components/SVGGenePaths'
 import ZoomLegend from '../components/ZoomLegend'
-import LayerDropdown from '../components/LayerDropdown'
 import StatusBar from '../components/StatusBar'
 import LeftToolbar from '../components/LeftToolbar'
 import SettingsPanel from '../components/SettingsPanel';
@@ -45,7 +43,7 @@ import useSelectedEffects from '../components/hooks/useSelectedEffects'
 import useLayerEffects from '../components/hooks/useLayerEffects';
 
 // layer configurations
-import { fullList as layers, dropdownList, csnLayers, variantLayers, countLayers } from '../layers'
+import { fullList as layers } from '../layers'
 
 // import RegionFilesSelect from '../components/Regions/RegionFilesSelect'
 // autocomplete
@@ -64,20 +62,10 @@ import { linearGenomeHeight } from '../components/Constants/Constants'
 /**
 BT ADDED IMPORTS
 */
-import { cn } from '@/lib/utils'
-import CloseIcon from "@/assets/close.svg?react"
 import DebugIcon from "@/assets/debug.svg?react"
 import RevertIcon from "@/assets/revert.svg?react"
-import DownloadIcon from "@/assets/download.svg?react"
 import GilbertG from "@/assets/gilbert-logo-g.svg?react"
-import SearchIcon from "@/assets/search.svg?react"
 import SettingsIcon from "@/assets/settings.svg?react"
-import UpDownChevronIcon from "@/assets/up-down-chevron.svg?react"
-import UploadIcon from "@/assets/upload.svg?react"
-
-
-
-
 
 function Home() {
   const location = useLocation();
@@ -419,69 +407,15 @@ function Home() {
     }
   }, [zoomToCoordinateRange])
 
-  // const handleChangeLocationViaAutocomplete = useCallback((autocompleteRegion) => {
-  //   if (!autocompleteRegion) return
-  //   console.log("autocomplete", autocompleteRegion)
-  //   let range = []
-  //   // console.log("gencode", gencode)
-  //   if(autocompleteRegion.type == "gene") {
-  //     let gene = gencode.find(d => d.hgnc == autocompleteRegion.name)
-  //     // console.log("GENE", gene)
-  //     range = fromRange(gene.chromosome, gene.start, gene.end, 100)
-  //   } else {
-  //     range = fromRange(autocompleteRegion.chrom, autocompleteRegion.start, autocompleteRegion.stop, 100)
-  //   }
-  //   const mid = range[Math.floor(range.length / 2)]
-  //   setRegion(mid)
-  //   // console.log("autocomplete range", range)
-  //   saveSet(autocompleteRegion.name || autocompleteRegion.location, range, { activate: true, type: "search"})
-  // }, [setRegion, saveSet])
-
-
   const onData = useCallback((payload) => {
-    // console.log("data payload", payload)
     setData(payload)
-    // setHover(payload.center)
-
-    // const fetchInChunks = async (data, chunkSize) => {
-    //   let combinedResults = [];
-    //   for (let i = 0; i < data.length; i += chunkSize) {
-    //     const chunk = data.slice(i, i + chunkSize);
-    //     const response = await fetchTopPathsForRegions(chunk.map(toPosition), 1);
-    //     console.log("DATA PAYLOAD PATHS", i, response);
-    //     const tpr = getDehydrated(chunk, response.regions);
-    //     console.log("DATA PAYLOAD TPR",i, tpr);
-    //     combinedResults = combinedResults.concat(tpr);
-    //   }
-    //   return combinedResults;
-    // };
-
-    // fetchInChunks(payload.data, 200).then((combinedResults) => {
-    //   const sortedResults = combinedResults.sort((a, b) => b.score - a.score);
-    //   console.log("COMBINED", sortedResults)
-    //   saveSet("1mb", sortedResults, { type: "file", activate: true });
-    // });
   }, [setData])
 
-  const orderSums = useMemo(() => {
-    // return calculateOrderSums()
-    let os = calculateSegmentOrderSums()
-    // console.log("OS", os)
-    return os
-  }, [])
-  const [filteredIndices, setFilteredIndices] = useState([])
-  const [factorPreviewField, setFactorPreviewField] = useState(null)
-  const [factorPreviewValues, setFactorPreviewValues] = useState(null)
-  // const [filteredRegions, setFilteredRegions] = useState([])
-  // const [rbos, setRbos] = useState({}) // regions by order
   const [numPaths, setNumPaths] = useState(100)
   const [topFullCSNS, setTopFullCSNS] = useState([])
   const [topFactorCSNS, setTopFactorCSNS] = useState([])
-  const [csnLoading, setCSNLoading] = useState("")
-  const [filterLoading, setFilterLoading] = useState("")
   const [hoveredTopCSN, setHoveredTopCSN] = useState(null)
   const [csnSort, setCSNSort] = useState("factor")
-  // const [regionCSNS, setRegionCSNS] = useState([])
   
   useEffect(() => {
     !activeSet && setShowActiveRegionSet(!!selected)  // if selected but no region set, show the minimap anyway

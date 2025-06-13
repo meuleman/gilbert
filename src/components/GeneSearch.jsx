@@ -43,15 +43,6 @@ const GeneSearch = memo(({
       gene: g,
     }))
 
-    // const factorOptions = allFactorFilterFields.filter(f => {
-    //   return f.field.toLowerCase().includes(searchValue.toLowerCase())
-    // }).map(f => ({
-    //   value: f.label,
-    //   label: factorLabel(f),
-    //   factor: f,
-    // }))
-    // console.log("factorOptions", factorOptions)
-
     // Add genomic position option if the input matches the regex
     // and any genes if they also match
     if (genomicPositionRegex.test(searchValue)) {

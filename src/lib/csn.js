@@ -45,11 +45,14 @@ function fillNarration(csn) {
   }
 }
 
-function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
+function retrieveFullDataForCSN(csn) {
   const fetchData = Data({debug: false}).fetchData
-  let countLayerNames = countLayers.map(d => d.datasetName)  // so we can track counts vs full data
+  // so we can track counts vs full data
+  let countLayerData = countLayers.map(d => {
+    return {layerName: d.datasetName, top: !!d.topValues}
+  })
+  let countLayerNames = countLayerData.map(d => d.layerName)
 
-  let singleBPRegion = csn.path.filter(d => d.region.order === 14)[0]?.region
   let timings = {}
   let csnWithFull = Promise.all(csn.path.map(p => {
     if(p.fullData) {
@@ -66,7 +69,6 @@ function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
       // if the layer includes current order
       if((layer.orders[0] <= order) && (layer.orders[1] >= order)) {
         // get hilbert ranges
-        // const orderRange = getRange(singleBPRegion, order)
         const orderRange = [csn.path.find(d => d.order === order)?.region]
         timings[`${layer.datasetName}-${order}`] = { start: +Date.now() }
         // console.log("FETCH", layer.datasetName, order, orderRange)
@@ -82,7 +84,7 @@ function retrieveFullDataForCSN(csn) {//, layers, countLayers) {
             if(!bytesData) return
             if(countLayerNames.includes(layer.datasetName)) {  // count layer
               let layerIndex = countLayerNames.indexOf(layer.datasetName)
-              counts[layerIndex] = bytesData
+              counts[layerIndex] = {counts: bytesData, type: countLayerData[layerIndex].top ? 'top' : 'full'}
             } else if((meta.fields[0] === 'top_fields') && (meta.fields[1] === 'top_values')) {  // top x layer
               for(let i = 0; i < bytesData.length; i+=2) {
                 let index = bytesData[i]

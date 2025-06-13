@@ -23,10 +23,9 @@ import chromatin_states_rank_occ from './chromatin_states_rank_occ'
 import chromatin_states_enr from './chromatin_states_enr'
 import chromatin_states_enr_max from './chromatin_states_enr_max'
 import chromatin_states_enr_counts from './chromatin_states_enr_counts'
-import tf_motifs_1en6_enr from './tf_motifs_1en6_enr'
 import tf_motifs_1en6_enr_max from './tf_motifs_1en6_enr_max'
-import tf_motifs_1en6_enr_counts from './tf_motifs_1en6_enr_counts'
 import tf_motifs_1en6_enr_top10 from './tf_motifs_1en6_enr_top10'
+import tf_motifs_1en6_enr_top10_counts from './tf_motifs_1en6_enr_top10_counts'
 import tf_motifs_1en6_occ from './tf_motifs_1en6_occ'
 import tf_motifs_1en6_rank_occ from './tf_motifs_1en6_rank_occ'
 import Repeats_enr from './repeats_enr'
@@ -67,10 +66,9 @@ const fullList = [
   chromatin_states_enr,
   chromatin_states_enr_max,
   chromatin_states_enr_counts,
-  tf_motifs_1en6_enr,
   tf_motifs_1en6_enr_max,
-  tf_motifs_1en6_enr_counts,
   tf_motifs_1en6_enr_top10,
+  tf_motifs_1en6_enr_top10_counts,
   tf_motifs_1en6_occ,
   tf_motifs_1en6_rank_occ,
   Repeats_enr,
@@ -234,24 +232,11 @@ const csnLayers = [
   fullList.find(d => d.name == "Repeats (OCC, Ranked)"),
 ]
 
-const filterLayers = [
-  fullList.find(d => d.name == "DHS Components (ENR, Full)"),
-  fullList.find(d => d.name == "Chromatin States (ENR, Full)"),
-  fullList.find(d => d.datasetName == "tf_1en6_enr"),
-  fullList.find(d => d.name == "Repeats (ENR, Full)"),
-  fullList.find(d => d.name == "DHS Components (OCC, Ranked)"),
-  fullList.find(d => d.name == "Chromatin States (OCC, Ranked)"),
-  fullList.find(d => d.datasetName == "tf_1en6_rank_occ"),
-  fullList.find(d => d.name == "Repeats (OCC, Ranked)"),
-  fullList.find(d => d.datasetName == "variants_favor_categorical_rank"),
-  fullList.find(d => d.datasetName == "variants_favor_apc_rank"),
-]
-
 // includes GWAS
 const allFactorFilterLayers = [
   fullList.find(d => d.name == "DHS Components (ENR, Full)"),
   fullList.find(d => d.name == "Chromatin States (ENR, Full)"),
-  fullList.find(d => d.datasetName == "tf_1en6_enr"),
+  fullList.find(d => d.datasetName == "tf_1en6_enr_top10"),
   fullList.find(d => d.name == "Repeats (ENR, Full)"),
   fullList.find(d => d.name == "DHS Components (OCC, Ranked)"),
   fullList.find(d => d.name == "Chromatin States (OCC, Ranked)"),
@@ -271,7 +256,7 @@ const variantLayers = [
 const countLayers = [
   fullList.find(d => d.datasetName == "dhs_enr_counts"),
   fullList.find(d => d.datasetName == "cs_enr_counts"),
-  fullList.find(d => d.datasetName == "tf_1en6_enr_counts"),
+  fullList.find(d => d.datasetName == "tf_1en6_enr_top10_counts"),
   fullList.find(d => d.datasetName == "repeats_enr_counts"),
 ]
 
@@ -319,12 +304,7 @@ function rehydrate(index, list) {
 function makeField(layer, fieldNameOrIndex, order) {
   let l = layer
   if(typeof layer === 'string') {
-    l = fullList.find(l => l.datasetName == layer)
-  }
-  // TODO: is this the right place to put this?
-  // currently makeField is only used to make fields for filtering
-  if(l.datasetName == 'tf_1en6_enr_top10') {
-    l = fullList.find(l => l.datasetName == 'tf_1en6_enr')
+    l = fullList.find(l => l.datasetName == layer || l.regionSetName == layer)
   }
   let fieldIndex
   let fieldName
@@ -349,12 +329,6 @@ function makeField(layer, fieldNameOrIndex, order) {
 
 const factorLayers = csnLayers.concat(variantLayers.slice(0,2))
 const fields = factorLayers.flatMap(layer => {
-  let fs = layer.fieldColor.domain().map((f, i) => {
-    return makeField(layer, f)
-  })
-  return fs 
-})
-const filterFields = filterLayers.flatMap(layer => {
   let fs = layer.fieldColor.domain().map((f, i) => {
     return makeField(layer, f)
   })
@@ -385,7 +359,6 @@ export {
   fieldMapping,
   rehydrate,
   fields,
-  filterFields,
   allFactorFilterFields,
   makeField,
 }

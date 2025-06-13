@@ -54,7 +54,6 @@ const SelectedModal = ({
       return {}
     }
     n.path = n.path.filter(d => !!d).sort((a,b) => a.order - b.order)
-    // n.layers = csnLayers.concat(variantLayers).concat(countLayers)
 
     // TODO: add the data (and full data?) to the path
     return n

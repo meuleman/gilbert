@@ -14,7 +14,7 @@ import variants_rank_apc from "../layers/variants_rank_apc";
 import variants_rank_gwas from "../layers/variants_rank_gwas";
 import dhs_components_enr_counts from '../layers/dhs_components_enr_counts';
 import chromatin_states_enr_counts from '../layers/chromatin_states_enr_counts';
-import tf_motifs_1en6_enr_counts from '../layers/tf_motifs_1en6_enr_counts';
+import tf_motifs_1en6_enr_top10_counts from '../layers/tf_motifs_1en6_enr_top10_counts';
 import repeats_enr_counts from '../layers/repeats_enr_counts';
 import tf_motifs_1en6_rank_occ from "../layers/tf_motifs_1en6_rank_occ"
 import tf_motifs_1en6_enr_top10 from "../layers/tf_motifs_1en6_enr_top10"
@@ -32,7 +32,7 @@ const referenceLayers = [
   repeats_rank_occ,
   dhs_components_enr_counts,
   chromatin_states_enr_counts,
-  tf_motifs_1en6_enr_counts,
+  tf_motifs_1en6_enr_top10_counts,
   repeats_enr_counts,
   variants_rank_categorical,
   variants_rank_apc,

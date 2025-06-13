@@ -79,11 +79,10 @@ const HeaderRegionSetModal = ({
     setSearchShowing(false)
     setExpandedGroups({})
     if (!selected) return
-    console.log("selected", selected)
     if (selected.factor) {
       // query for the paths for the factor
       let f = selected.factor
-      fetchRegionSetFromFactor({ factor: f.index, dataset: f.layer.datasetName }, null)
+      fetchRegionSetFromFactor({ factor: f.index, dataset: f.layer.regionSetName || f.layer.datasetName }, null)
         .then((response) => {
           let regions = response.regions.map(r => {
             return { ...fromIndex(r.chromosome, r.i, r.order), score: r.score }
