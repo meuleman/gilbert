@@ -6,6 +6,7 @@ import { zoom, zoomIdentity } from 'd3-zoom';
 import { drag } from 'd3-drag';
 
 import { Tooltip } from 'react-tooltip'
+import { createPortal } from 'react-dom';
 
 import Data from '../lib/data';
 import scaleCanvas from '../lib/canvas'
@@ -79,6 +80,8 @@ const LinearGenome = ({
   onClick = () => {},
   allowPanning = true,
   showCoordinates = true,
+  showCoordinatesInTooltip = true,
+  showLayerNameInTooltip = true,
   setTransform: propSetTransform = null,
 } = {}) => {
 
@@ -449,6 +452,9 @@ const LinearGenome = ({
     let dataPoints = []
     renderPoints.forEach(p => {
       let d = data.find(d => d.chromosome == p.chromosome && d.i == p.i)
+      if(d && layer) {
+        d['layer'] = layer
+      }
       if(d) {
         dataPoints.push(d)
       } else {
@@ -475,16 +481,18 @@ const LinearGenome = ({
             (pointsToUse[0].chromosome === dataPointsRef.current[0].chromosome) &&
             (pointsToUse[0].i === dataPointsRef.current[0].i) &&
             (pointsToUse[0].order === dataPointsRef.current[0].order)
-          ) ||
-          (pointsToUse[0].data && !dataPointsRef.current[0].data)
+          ) || (
+            pointsToUse[0].data && !dataPointsRef.current[0].data
+          ) || (
+            pointsToUse[0].layer?.datasetName !== dataPointsRef.current[0].layer?.datasetName
+          )
         )
       ) {
         setDataPoints(pointsToUse)
         dataPointsRef.current = pointsToUse
       }
     }
-    
-  }, [data, renderPoints])
+  }, [data, renderPoints, layer])
   
   useEffect(() => {
     // clear the canvas when layer or data changes
@@ -810,33 +818,40 @@ const LinearGenome = ({
         // onMouseMove={handleMouseMove}
         // onClick={handleMouseClick}
       />
-      <div style={{
-        position: "absolute",
-        left: hoverData?.sx + "px",
-        top: "5px",
-        pointerEvents: "none"
-      }} data-tooltip-id="linear-genome-hovered">
-      </div>
-      {hoverData && show1DTooltip ? <Tooltip id="linear-genome-hovered"
-        isOpen={!!hoverData}
-        delayShow={0}
-        delayHide={0}
-        delayUpdate={0}
-        place="top"
-        border="1px solid gray"
-        style={{
-          position: 'absolute',
-          left: hoverData.sx + "px",
-          top: "5px",
-          pointerEvents: 'none',
-          backgroundColor: "white",
-          color: "black",
-          fontSize: "12px",
-          padding: "6px",
-        }}
-        >
-          {layer ? defaultContent(hoverData, layer, "") : null}
-        </Tooltip>: null}
+      {hoverData && show1DTooltip && 
+        <>
+          <div style={{
+            position: "absolute",
+            left: hoverData?.sx + "px",
+            top: "0px",
+            pointerEvents: "none",
+            width: "1px",
+            height: "1px"
+          }} id="linear-genome-tooltip-anchor" />
+          
+          {createPortal(
+            <Tooltip 
+              anchorSelect="#linear-genome-tooltip-anchor"
+              isOpen={!!hoverData}
+              delayShow={0}
+              delayHide={0}
+              delayUpdate={0}
+              place="top"
+              offset={0}
+              border="1px solid gray"
+              style={{
+                backgroundColor: "white",
+                color: "black",
+                fontSize: "12px",
+                padding: "6px",
+              }}
+            >
+              {layer ? defaultContent(hoverData, layer, "", showCoordinatesInTooltip, showLayerNameInTooltip) : null}
+            </Tooltip>,
+            document.body
+          )}
+        </>
+    }
     </div>
   )
 }

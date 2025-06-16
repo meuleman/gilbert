@@ -887,6 +887,8 @@ function Home() {
                           onClick={(hit) => {
                             // setRegion(hit)
                           }}
+                          showCoordinatesInTooltip={false}
+                          showLayerNameInTooltip={false}
                         />
                       </div>
                     </div>

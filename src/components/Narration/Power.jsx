@@ -917,6 +917,8 @@ function PowerModal({
                 activeRegions={new Map()}
                 onHover={setHover}
                 showCoordinates={false}
+                showCoordinatesInTooltip={true}
+                showLayerNameInTooltip={false}
               />
             </div>
           </div>
