@@ -29,6 +29,7 @@ import RegionsContext from '../components/Regions/RegionsContext';
 import RegionSetModalStatesStore from '../states/RegionSetModalStates'
 import SelectedStatesStore from '../states/SelectedStates'
 import ComponentSizeStore from '../states/ComponentSizes';
+import useRegionHover from '../components/hooks/useRegionHover';
 
 import SankeyModal from '../components/Narration/SankeyModal';
 import HeaderRegionSetModal from '../components/Regions/HeaderRegionSetModal';
@@ -218,6 +219,8 @@ function Home() {
   const [hover, setHover] = useState(null)
   const [hoveredPosition, setHoveredPosition] = useState({ x: 0, y: 0, sw: 0 })
 
+  useRegionHover({ hover });
+
   useEffect(() => {
     if (!hover || !transform || !scales) {
       setHoveredPosition({ x: 0, y: 0, sw: 0 })
@@ -266,7 +269,6 @@ function Home() {
 
   const [searchByFactorInds, setSearchByFactorInds] = useState([])
 
-
   const updateUrlParams = useCallback((newRegionSet, newSelected, newFilters) => {
     const params = new URLSearchParams();
     if (newRegionSet) params.set('regionset', newRegionSet);
@@ -275,17 +277,11 @@ function Home() {
     navigate({ search: params.toString() }, { replace: true });
   }, [navigate]);
 
-  const [regionset, setRegionSet] = useState(initialRegionset)
-  const [exampleRegions, setExampleRegions] = useState([])
   useEffect(() => {
-    const set = getSet(regionset)
-    if (set) {
-      setExampleRegions(set)
-    }
     if (!initialUpdateRef.current) {  // Only update URL params if not the initial render
-      updateUrlParams(regionset, selected)
+      updateUrlParams(initialRegionset, selected)
     }
-  }, [regionset, selected, setExampleRegions, updateUrlParams])
+  }, [initialRegionset, selected, updateUrlParams])
 
   useEffect(() => {
     // After the initial render, set to false so URL updates can occur

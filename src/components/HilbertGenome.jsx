@@ -5,23 +5,18 @@ import { scaleLinear } from 'd3-scale';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import { select } from 'd3-selection';
 import { quadtree } from 'd3-quadtree';
-import { sum, range } from 'd3-array';
-import { easeLinear, easePolyOut, easeExpOut, easeQuadOut } from 'd3-ease';
-import { overlaps } from '../lib/regions'
+import { range } from 'd3-array';
 
 import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome';
 import { getBboxDomain, untransform } from '../lib/bbox';
 import Data from '../lib/data';
 import { debouncer, debouncerTimed } from '../lib/debounce'
-import scaleCanvas from '../lib/canvas';
 import { Renderer as CanvasRenderer } from './Canvas/Renderer';
 import { Tooltip } from 'react-tooltip';
 import Loading from './Loading';
 import ZoomInspector from '../components/ZoomInspector'
 import { showPosition } from '../lib/display';
-import { getGenesInCell, getGenesOverCell } from '../lib/Genes'
 import HoverStatesStore from '../states/HoverStates'
-import RegionsContext from '../components/Regions/RegionsContext';
 
 import { useZoom } from '../contexts/ZoomContext';
 
@@ -116,7 +111,6 @@ function reducer(state, action) {
 const dataDebounceTimed = debouncerTimed()
 const dataDebounce = debouncer()
 const zoomDebounce = debouncer()
-const hoverContentDebounce = debouncer()
 
 const HilbertGenome = ({
   orderMin = 4,
@@ -185,30 +179,12 @@ const HilbertGenome = ({
     setScales = zoomContext.setScales,
   } = zoomMethods || {};
 
-  const { filteredActiveRegions } = useContext(RegionsContext)
-
   const { 
-    hover: globalHover, setHover: setGlobalHover, collectPathForHover,
-    hoverNarration, setHoverNarration, generateQuery, setQuery, 
-    generateSummary, regionSummary: hoverSummary, setRegionSummary: setHoverSummary,
-    genesInside, setGenesInside, genesOutside, setGenesOutside, setShow1DTooltip,
+    hover: globalHover, hoverNarration,
+    regionSummary: hoverSummary,
+    genesInside, genesOutside, shiftPressed
   } = HoverStatesStore()
-  const [hover, setHover] = useState(null)
-  const [hoverXY, setHoverXY] = useState([0, 0])
   const prevHoverRef = useRef(null);
-  const [shiftPressed, setShiftPressed] = useState(false);
-  const [shiftForRegion, setShiftForRegion] = useState(false);
-  useEffect(() => {
-    const handleKeyDown = (e) => e.key === 'Shift' && setShiftPressed(true);
-    const handleKeyUp = (e) => e.key === 'Shift' && setShiftPressed(false);
-    
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [setShiftPressed]);
 
   const scales = useMemo(() => ({ xScale, yScale, sizeScale, orderZoomScale, width, height }), [xScale, yScale, sizeScale, orderZoomScale, width, height])
   useEffect(() => {
@@ -334,15 +310,6 @@ const HilbertGenome = ({
     zooming,
     layer
   ])
-
-  // useEffect(() => {
-  //   scaleCanvas(canvasRef.current, canvasRef.current.getContext("2d"), width, height)
-  // }, [canvasRef, width, height])
-
-  // useEffect(() => {
-  //   scaleCanvas(hoverCanvasRef.current, hoverCanvasRef.current.getContext("2d"), width, height)
-  // }, [hoverCanvasRef, width, height])
-
 
   // setup the zoom behavior
   const zoomBehavior = useMemo(() => {
@@ -527,11 +494,6 @@ const HilbertGenome = ({
     }
   }, [transform, state.points, state.data, state.dataLayer, CanvasRenderers, canvasRef, scales])
 
-  // rerender the canvas when the canvas renderers change
-  // useEffect(() => {
-  //   renderCanvas(prevTransformRefRender.current, prevPointsRef.current);
-  // }, [CanvasRenderers])
-
   useEffect(() => {
     renderHovers(prevTransformRefRender.current, prevPointsRef.current);
   }, [HoverRenderers])
@@ -574,10 +536,6 @@ const HilbertGenome = ({
 
   const zoomToBox = useCallback((x0, y0, x1, y1, pinnedOrder) => {
     // TODO the multipliers should be based on aspect ratio
-    // const xOffset =  (width/height)*2
-    // const yOffset = -(width/height)*2
-    // let tx = xScale(x0) - sizeScale(x1 - x0) * xOffset
-    // let ty = yScale(y0) - sizeScale(y1 - y0) * yOffset
     let tw = xScale(x1 - x0) - xScale(0) // the width of the box
     let xw = xScale(xScale.domain()[1] - xScale.domain()[0])
 
@@ -705,7 +663,6 @@ const HilbertGenome = ({
     }
     let hover = regionFromXY(ex, ey)
     if (hover) {
-      setHoverXY([ex, ey])
       if (
         prevHoverRef.current &&
         prevHoverRef.current.i === hover.i &&
@@ -714,69 +671,9 @@ const HilbertGenome = ({
       ) {
         return;  // The region is the same; do not update hover state
       }
-      setHover(hover);
       onHover(hover);
     }
-  }, [order, regionFromXY, setGlobalHover, qt, onHover])
-
-  const filteredActiveRegionsRef = useRef(filteredActiveRegions);
-  useEffect(() => {
-    filteredActiveRegionsRef.current = filteredActiveRegions;
-  }, [filteredActiveRegions])
-
-  // generating CSN and summary for hover
-  useEffect(() => {
-    setHoverNarration(null);
-    setQuery(null);
-    setHoverSummary("");
-    !shiftPressed && setShiftForRegion(false);
-
-    if (!hover) {
-      setGlobalHover(null);
-      return;
-    }
-
-    let region = hover
-    // test for overlap of region set region
-    if(filteredActiveRegionsRef.current?.length) {
-      let overlappingRegion = overlaps(hover, filteredActiveRegionsRef.current)[0] || hover
-      overlappingRegion.subregion ? overlappingRegion = overlappingRegion.subregion : null
-      region = overlappingRegion.order > hover.order ? overlappingRegion : hover
-    } 
-    setGlobalHover(region)
-    setGenesInside(getGenesInCell(region, region.order))
-    setGenesOutside(getGenesOverCell(region, region.order))
-  }, [hover]);
-
-  useEffect(() => {
-    // only set if true so shift can be toggled without requerying the csn
-    // set to false when a new region is hovered
-    setShow1DTooltip(shiftPressed);
-    if(shiftPressed) setShiftForRegion(true);
-  }, [shiftPressed])
-
-  useEffect(() => {
-    hoverContentDebounce(
-      async () => {
-        // ensures that when shiftForRegion is set to false, no extra path is collected
-        shiftForRegion ? collectPathForHover(globalHover) : null
-      },
-      () => {},
-      1000
-    )
-  }, [shiftForRegion, globalHover, setShow1DTooltip])
-
-  useEffect(() => {
-    if(!hoverNarration) return;
-    // console.log("HOVER NARRATION CHANGED", hoverNarration)
-    const hoverQuery = generateQuery(hoverNarration);
-    setQuery(hoverQuery);
-    if(!hoverQuery) {
-      setHoverSummary(null);
-      return;
-    };
-    generateSummary()
-  }, [hoverNarration])
+  }, [order, regionFromXY, qt, onHover])
 
   const handleClick = useCallback((event) => {
     if (!qt) return
@@ -909,8 +806,8 @@ const HilbertGenome = ({
           <div 
             style={{
               position: "absolute",
-              left: hoverXY[0] + "px",
-              top: hoverXY[1] + "px",
+              left: (scales.xScale(globalHover?.x) * transform.k + transform.x) + "px",
+              top: (scales.yScale(globalHover?.y) * transform.k + transform.y) + "px",
               pointerEvents: "none"
             }} 
             data-tooltip-id="hilbert-genome-tooltip"

@@ -39,6 +39,10 @@ const Hover = (set, get) => {
     hover: null,
     setHover: (hover) => set({ hover: hover }),
 
+    // shift for region
+    shiftPressed: false,
+    setShiftPressed: (shift) => set({ shiftPressed: shift }),
+
     // genes
     genesInside: [],
     setGenesInside: (genes) => set({ genesInside: genes }),
