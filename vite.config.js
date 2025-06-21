@@ -5,6 +5,8 @@ import react from "@vitejs/plugin-react-swc";
 import svgr from "vite-plugin-svgr";
 import fixReactVirtualized from "esbuild-plugin-react-virtualized";
 import viteTailwindPlugin from "vite-plugin-tailwind";
+import analyzer from 'vite-bundle-analyzer';
+
 
 // import wasm from 'vite-plugin-wasm'
 
@@ -35,6 +37,7 @@ export default defineConfig({
       // The function to generate import names of top-level await promise in each chunk module
       promiseImportName: (i) => `__tla_${i}`,
     }),
+    analyzer(),
     svgr(),
     react(),
     viteTailwindPlugin,

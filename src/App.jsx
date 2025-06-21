@@ -4,7 +4,7 @@ import RegionSets from './pages/RegionSets'
 import RegionSet from './pages/RegionSet'
 import RegionDetail from './pages/RegionDetail'
 import RegionCSN from './pages/CSNS'
-import YC240322 from './pages/YC240322'
+//import YC240322 from './pages/YC240322'
 
 import RegionsProvider from './components/Regions/RegionsProvider';
 import { ZoomProvider } from './contexts/ZoomContext';
@@ -31,6 +31,7 @@ function App() {
         <Route path="/regions/:regionset" element={<RegionSet />} />
         <Route path="/region" element={<RegionDetail />} />
         <Route path="/csns" element={<RegionCSN />} />
+        { /*
         <Route path="/umap" element={
             <RegionsProvider>
               <ZoomProvider>
@@ -38,6 +39,7 @@ function App() {
               </ZoomProvider>
             </RegionsProvider>
           } />
+        */ }
       </Routes>
       </div>
     </Router>
