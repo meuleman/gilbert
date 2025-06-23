@@ -119,7 +119,6 @@ const HeaderRegionSetModal = ({
       allFactorFilterFields.filter(d => dropdownDatasets.includes(d.layer.labelName)), // filter to only show featured datasets
       d => d.layer.labelName
     )
-    console.log(allFactorFilterFields.filter(d => dropdownDatasets.includes(d.layer.labelName)))
     let dGroupsSorted = dGroups.sort((a, b) => dropdownDatasets.indexOf(a[0]) - dropdownDatasets.indexOf(b[0]))
       .map(g => [nameConversion[g[0]] || g[0], g[1]])
     return dGroupsSorted
