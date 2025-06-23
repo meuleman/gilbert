@@ -87,7 +87,7 @@ const HeaderRegionSetModal = ({
           let regions = response.regions.map(r => {
             return { ...fromIndex(r.chromosome, r.i, r.order), score: r.score }
           })
-          saveSet(`${selected.factor.field} ${selected.factor.layer.labelName}s`, regions, { activate: true, type: "search", factor: selected.factor })
+          saveSet(`${selected.factor.field} ${selected.factor.layer.labelName}`, regions, { activate: true, type: "search", factor: selected.factor })
         })
     } 
   }, [saveSet, setSearchShowing])
@@ -111,18 +111,17 @@ const HeaderRegionSetModal = ({
   // }, [searchShowing]);
 
   const datasetGroups = useMemo(() => {
-    let dropdownDatasets = ["UKBB Variant", "DHS Domain", "Chromatin State Domain"]
+    let dropdownDatasets = ["UKBB Variants", "DHS Domains", "Chromatin State Domains"]
     let nameConversion = {
-      "UKBB Variant": "GWAS",
-      "DHS Domain": "DHS Domains",
-      "Chromatin State Domain": "Chromatin State Domains"
+      "UKBB Variants": "GWAS"
     }
     let dGroups = groups(
       allFactorFilterFields.filter(d => dropdownDatasets.includes(d.layer.labelName)), // filter to only show featured datasets
       d => d.layer.labelName
     )
+    console.log(allFactorFilterFields.filter(d => dropdownDatasets.includes(d.layer.labelName)))
     let dGroupsSorted = dGroups.sort((a, b) => dropdownDatasets.indexOf(a[0]) - dropdownDatasets.indexOf(b[0]))
-      .map(g => [nameConversion[g[0]], g[1]])
+      .map(g => [nameConversion[g[0]] || g[0], g[1]])
     return dGroupsSorted
   }, [allFactorFilterFields])
 
@@ -139,7 +138,7 @@ const HeaderRegionSetModal = ({
         }} />
         <span>{f.field}</span>
         <div style={{ fontSize: '0.8em', color: '#888' }}>
-          {f.layer.labelName}s
+          {f.layer.labelName}
         </div>
       </div>
     )

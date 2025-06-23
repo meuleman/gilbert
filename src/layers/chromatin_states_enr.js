@@ -10,7 +10,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "Chromatin States (ENR, Full)",
   datasetName: "cs_enr",
-  labelName: "Chromatin State Domain",
+  labelName: "Chromatin State Domains",
   baseURL: `${constants.baseURLPrefix}/20240327`,
   orders: [4,10],
   renderer: "CanvasScaledValue",

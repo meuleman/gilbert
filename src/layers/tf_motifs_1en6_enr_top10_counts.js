@@ -4,7 +4,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "TF Motifs (ENR, Top 10, Counts)",
   datasetName: "tf_1en6_enr_top10_counts",
-  labelName: "TF Motif Domain",
+  labelName: "TF Motif Domains",
   baseURL: `${constants.baseURLPrefix}/20240621`,
   orders: [4,12],
   renderer: "CanvasScaledValue",

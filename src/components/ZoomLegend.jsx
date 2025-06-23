@@ -387,7 +387,7 @@ const ZoomLegend = ({
                           />
                         </svg>
                         <span className="truncate">
-                          {layerOrder ? layerOrder[d.order]?.name : layer?.name}
+                        {layerOrder ? layerOrder[d.order]?.labelName : layer?.labelName}
                         </span>
                       </button>
                     </div>
@@ -405,25 +405,27 @@ const ZoomLegend = ({
                         }}
                       >
                         <div key={`${d.order}-dropdown-menu`} className="py-1 overflow-y-auto" style={{ maxHeight: "inherit" }}>
-                          {dropdownList.map((layerOption) => (
-                            <div key={`${d.order}-dropdown-element-${layerOption.name}`}>
+                          {dropdownList.map((layerOption) => { 
+                            const nameToUse = layerOption.labelName;
+                            return (
+                            <div key={`${d.order}-dropdown-element-${nameToUse}`}>
                               {layerOption?.orders[0] <= d.order && layerOption?.orders[1] >= d.order && (
                                 <button
-                                  key={layerOption.name}
+                                  key={nameToUse}
                                   onClick={() => {
                                     handleLayerChange(d.order, layerOption);
                                     setOpenDropdowns(prev => ({...prev, [d.order]: false}));
                                   }}
                                   className={cn(
                                     'block px-4 py-2 text-2xs w-full text-left hover:bg-gray-100',
-                                    layerOption.name === (layerOrder?.[d.order]?.name || layer?.name) && 'font-bold'
+                                    nameToUse === (layerOrder?.[d.order]?.labelName || layer?.labelName) && 'font-bold'
                                   )}
                                 >
-                                  {layerOption.name}
+                                  {nameToUse}
                                 </button>
                               )}
                             </div>
-                          ))}
+                          )})}
                         </div>
                       </div>,
                       document.body

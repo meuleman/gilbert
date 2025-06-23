@@ -5,6 +5,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "DHS Coregulation (2500bp)",
   datasetName: "dhs_coreg_2500",
+  labelName: "DHS Coregulation",
   baseURL: `${constants.baseURLPrefix}/20230802`,
   orders: [4,9],
   renderer: "CanvasOpacityValue",

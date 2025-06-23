@@ -6,6 +6,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "CD3+ DNase-seq",
   datasetName: "encode_CD3_D2_Stim_AG90658_output_2.5.1_max",
+  labelName: "CD3+ DNase-seq",
   baseURL: `${constants.baseURLPrefix}/20231030`,
   orders: [4,13],
   renderer: "CanvasOpacityValue",

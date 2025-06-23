@@ -4,7 +4,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "Variants (Categorical, Ranked)",
   datasetName: "variants_favor_categorical_rank",
-  labelName: "Categorical Variant",
+  labelName: "Categorical Variants",
   baseURL: `${constants.baseURLPrefix}/20240522`,
   orders: [14,14],
   renderer: "CanvasSimpleValue",

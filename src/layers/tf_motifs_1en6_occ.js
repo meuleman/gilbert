@@ -5,7 +5,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "TF Motifs (OCC)",
   datasetName: "tf_1en6_occ",
-  labelName: "TF Motif Occurrence",
+  labelName: "TF Motif Occurrences",
   baseURL: `${constants.baseURLPrefix}/20241127`,
   orders: [4,13],
   renderer: "CanvasScaledValue",

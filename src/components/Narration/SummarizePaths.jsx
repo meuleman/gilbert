@@ -176,10 +176,10 @@ const SummarizePaths = ({
             return (
               <div key={"group-" + j}>
                 <div className="text-xs font-semibold mt-2.5 mb-1">
-                  {g[0]}s
+                  {g[0]}
                 </div>
                 {g[1].slice(0, N + g[1].filter(d => d.isFilter).length).map((factor, index) => (
-                  <div>
+                  <div key={`factor-container-${j}-${index}`}>
                     <FactorBar 
                       key={index}
                       factor={factor} 

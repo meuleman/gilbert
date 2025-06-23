@@ -6,6 +6,7 @@ const decoder = new TextDecoder('ascii');
 export default {
   name: "Nucleotides",
   datasetName: "nucleotides",
+  labelName: "Nucleotides",
   baseURL: `${constants.baseURLPrefix}/20250612`,
   orders: [14,14],
   renderer: "CanvasTextValue",

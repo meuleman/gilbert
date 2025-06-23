@@ -5,6 +5,7 @@ import fields from "./variants_gwas_fields.json";
 export default {
   name: "Variants (GWAS)",
   datasetName: "variants_gwas",
+  labelName: "GWAS Variants",
   baseURL: `${constants.baseURLPrefix}/20240327`,
   orders: [14,14],
   renderer: "CanvasSimpleValue",

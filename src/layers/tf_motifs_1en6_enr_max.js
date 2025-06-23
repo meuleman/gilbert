@@ -10,7 +10,7 @@ const tfColors = ["#23171b","#362357","#433087","#433087","#493dac","#493dac","#
 export default {
   name: "TF Motifs (ENR)",
   datasetName: "tf_1en6_enr_max",
-  labelName: "TF Motif Domain",
+  labelName: "TF Motif Domains",
   baseURL: `${constants.baseURLPrefix}/20240621`,
   orders: [4,13],
   renderer: "CanvasScaledValue",

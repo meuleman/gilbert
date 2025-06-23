@@ -7,7 +7,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "Chromatin States (OCC, Ranked)",
   datasetName: "cs_rank_occ",
-  labelName: "Chromatin State Occurrence",
+  labelName: "Chromatin State Occurrences",
   baseURL: `${constants.baseURLPrefix}/20241127`,
   orders: [4,13],
   renderer: "CanvasScaledValue",

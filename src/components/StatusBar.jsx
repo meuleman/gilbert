@@ -9,6 +9,7 @@ import { useContainerSize } from '../lib/utils';
 import SelectedStatesStore from '../states/SelectedStates';
 import ComponentSizeStore from '../states/ComponentSizes';
 import { useZoom } from '../contexts/ZoomContext';
+import pluralize from 'pluralize';
 
 const StatusBar = ({
   width = 800,
@@ -115,7 +116,7 @@ const StatusBar = ({
                 <span style={{ color: currentPreferred?.field?.color, marginRight: '4px' }}>
                   ⏺
                 </span>
-                {currentPreferred?.field?.field} {currentPreferred?.layer?.labelName}
+                {currentPreferred?.field?.field} {pluralize.singular(currentPreferred?.layer?.labelName)}
               </>
             ) : null}
           </div>

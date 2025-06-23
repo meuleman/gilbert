@@ -6,6 +6,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "CD3+ Fiber-seq",
   datasetName: "fs_CD3_HAP1d2stim_mean",
+  labelName: "CD3+ Fiber-seq",
   baseURL: `${constants.baseURLPrefix}/20231101`,
   orders: [4,13],
   renderer: "CanvasOpacityValue",

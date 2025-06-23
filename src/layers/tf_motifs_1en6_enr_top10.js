@@ -7,7 +7,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "TF Motifs (ENR, Top 10)",
   datasetName: "tf_1en6_enr_top10",
-  labelName: "TF Motif Domain",
+  labelName: "TF Motif Domains",
   regionSetName: "tf_1en6_enr",
   baseURL: `${constants.baseURLPrefix}/20240621`,
   orders: [4,13],

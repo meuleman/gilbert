@@ -5,6 +5,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "GC Content",
   datasetName: "gc_content",
+  labelName: "GC Content",
   baseURL: `${constants.baseURLPrefix}/20250612`,
   orders: [4,13],
   renderer: "CanvasOpacityValue",    

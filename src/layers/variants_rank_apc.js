@@ -4,7 +4,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "Variants (aPC, Ranked)",
   datasetName: "variants_favor_apc_rank",
-  labelName: "aPC Variant",
+  labelName: "aPC Variants",
   baseURL: `${constants.baseURLPrefix}/20240521`,
   orders: [14,14],
   renderer: "CanvasSimpleValue",

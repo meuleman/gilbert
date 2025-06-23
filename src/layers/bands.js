@@ -5,6 +5,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "Bands",
   datasetName: "bands",
+  labelName: "Bands",
   baseURL: `${constants.baseURLPrefix}/20250612`,
   orders: [4,8],
   renderer: "CanvasSimpleValue",    

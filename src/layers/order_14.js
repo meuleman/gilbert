@@ -43,6 +43,7 @@ function getGWAS(d) {
 export default {
   name: "Nucleotide Badges",
   datasetName: "badges",
+  labelName: "Nucleotide Badges",
   orders: [14,14],
   renderer: "CanvasOrder14",    
   tooltip: Badge,

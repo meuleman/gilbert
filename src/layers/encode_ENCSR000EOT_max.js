@@ -6,6 +6,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "K562 DNase-seq",
   datasetName: "encode_ENCSR000EOT_max",
+  labelName: "K562 DNase-seq",
   baseURL: `${constants.baseURLPrefix}/20230727`,
   orders: [4,13],
   renderer: "CanvasOpacityValue",

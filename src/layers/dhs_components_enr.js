@@ -9,7 +9,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "DHS Components (ENR, Full)",
   datasetName: "dhs_enr",
-  labelName: "DHS Domain",
+  labelName: "DHS Domains",
   baseURL: `${constants.baseURLPrefix}/20240327`,
   orders: [4,12],
   renderer: "CanvasScaledValue",

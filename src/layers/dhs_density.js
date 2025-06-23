@@ -5,6 +5,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "DHS Density",
   datasetName: "dhs_density",
+  labelName: "DHS Density",
   baseURL: `${constants.baseURLPrefix}/20230724`,
   orders: [4,13],
   renderer: "CanvasOpacityValue",

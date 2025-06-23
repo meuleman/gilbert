@@ -528,11 +528,14 @@ function PowerModal({
     if (d?.region && !(
         currentPreferredRef.current?.chromosome === d.region.chromosome &&
         currentPreferredRef.current?.i === d.region.i &&
-        currentPreferredRef.current?.order === d.region.order
+        currentPreferredRef.current?.order === d.region.order &&
+        currentPreferredRef.current?.layer === d?.layer
       )
     ) {
-      currentPreferredRef.current = d.region;
-      setCurrentPreferredGlobal(d.region);
+      let newPreferred = d.region;
+      newPreferred.layer = d?.layer;
+      currentPreferredRef.current = newPreferred;
+      setCurrentPreferredGlobal(newPreferred);
     }
     
     const meta = d.data?.metas?.find(meta => meta.chromosome === r.chromosome) || {};

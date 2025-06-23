@@ -5,6 +5,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "CSN Path Density (90th Percentile)",
   datasetName: "precomputed_csn_path_density_above_90th_percentile",
+  labelName: "CSN Path Density",
   baseURL: `${constants.baseURLPrefix}/20240806`,
   orders: [4,13],
   renderer: "CanvasOpacityValue",

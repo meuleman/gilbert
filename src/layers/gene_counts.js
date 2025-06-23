@@ -6,6 +6,7 @@ import * as constants from "../lib/constants";
 export default {
   name: "Gene Density",
   datasetName: "gene_density",
+  labelName: "Gene Density",
   baseURL: `${constants.baseURLPrefix}/20250612`,
   orders: [4,9],
   renderer: "CanvasOpacityValue",    
