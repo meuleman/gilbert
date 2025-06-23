@@ -13,6 +13,7 @@ export default {
   labelName: "TF Motif Domains",
   baseURL: `${constants.baseURLPrefix}/20240621`,
   orders: [4,13],
+  dropdownOrders: [4,11],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()

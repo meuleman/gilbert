@@ -13,6 +13,7 @@ export default {
   labelName: "Chromatin State Domains",
   baseURL: `${constants.baseURLPrefix}/20240327`,
   orders: [4,10],
+  dropdownOrders: [4,9],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()

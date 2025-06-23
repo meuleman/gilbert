@@ -9,7 +9,7 @@ import { HilbertChromosome, hilbertPosToOrder } from '../lib/HilbertChromosome'
 import Data from '../lib/data'
 import { getKb, showKb } from '../lib/display'
 import { showKbHTML } from '../lib/display'
-import { dropdownList } from '../layers/index'
+import { dropdownList, layerMapping, findLayerMappingPath } from '../layers/index'
 import ComponentSizeStore from '../states/ComponentSizes';
 import useLayerEffects from './hooks/useLayerEffects';
 
@@ -296,23 +296,56 @@ const ZoomLegend = ({
     const layer = layerOrder ? layerOrder[order] : null;
     if (!layer) return;
 
+    // get paired layer
+    let pairedLayer;
+    const layerMappingPath = findLayerMappingPath(layer);
+    if (!!layerMappingPath) {
+      let newDataType = layerMappingPath.dataType === "ENR" ? "OCC" : layerMappingPath.dataType === "OCC" ? "ENR" : null
+      if (newDataType) {
+        const newLayerType = newDataType === "OCC" ? "default" : "max"
+        pairedLayer = layerMapping[layerMappingPath.dataset][newDataType][newLayerType];
+      }
+    }
+
     let newLayerOrder = { ...layerOrder };
     let newOrdersLocked = { ...ordersLocked }
+
+    const mainLayerOrders = layer.dropdownOrders || layer.orders;
+    const mainLayerRange = [mainLayerOrders[0], mainLayerOrders[1]];
+
+    const pairedLayerOrders = !!pairedLayer ? pairedLayer.dropdownOrders || pairedLayer.orders : null;
+    const pairedLayerRange = !!pairedLayer ? [pairedLayerOrders[0], pairedLayerOrders[1]] : null;
 
     // if the layer is not locked, we lock it
     if (ordersLocked[order]) {
       // reset relevant orders to the lens layer order
       const lensLayers = createLayerOrder(currentLens)
-      range(layer.orders[0], layer.orders[1] + 1).forEach(o => {
+      range(mainLayerRange[0], mainLayerRange[1] + 1).forEach(o => {
         newLayerOrder[o] = lensLayers[o] || layerOrder[o];
         newOrdersLocked[o] = false;
       })
+      // unlock the paired layer
+      if(!!pairedLayer) {
+        range(pairedLayerRange[0], pairedLayerRange[1] + 1).forEach(o => {
+          if(o >= mainLayerRange[0] && o <= mainLayerRange[1]) return;
+          newLayerOrder[o] = lensLayers[o] || layerOrder[o];
+          newOrdersLocked[o] = false;
+        });
+      }
     } else {
       // lock the layer for the range of orders
-      range(layer.orders[0], layer.orders[1] + 1).forEach(o => {
+      range(mainLayerRange[0], mainLayerRange[1] + 1).forEach(o => {
         newLayerOrder[o] = layer
         newOrdersLocked[o] = true;
       });
+      // lock the paired layer
+      if(!!pairedLayer) {
+        range(pairedLayerRange[0], pairedLayerRange[1] + 1).forEach(o => {
+          if(o >= mainLayerRange[0] && o <= mainLayerRange[1]) return;
+          newLayerOrder[o] = pairedLayer
+          newOrdersLocked[o] = true;
+        });
+      }
     }
 
     setLayerOrder(newLayerOrder);
@@ -407,9 +440,10 @@ const ZoomLegend = ({
                         <div key={`${d.order}-dropdown-menu`} className="py-1 overflow-y-auto" style={{ maxHeight: "inherit" }}>
                           {dropdownList.map((layerOption) => { 
                             const nameToUse = layerOption.labelName;
+                            const layerOrderRange = layerOption?.dropdownOrders || layerOption?.orders;
                             return (
                             <div key={`${d.order}-dropdown-element-${nameToUse}`}>
-                              {layerOption?.orders[0] <= d.order && layerOption?.orders[1] >= d.order && (
+                              {layerOrderRange[0] <= d.order && layerOrderRange[1] >= d.order && (
                                 <button
                                   key={nameToUse}
                                   onClick={() => {

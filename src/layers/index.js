@@ -110,115 +110,90 @@ const dropdownList = [
   CSN_path_density_90,
 ]
 
-const datasetMapping = {
+const layerMapping = {
   'DHS': {
     'ENR': {
-      'layers': {
-        'default': fullList.find(d => d.name == "DHS Components (ENR, Full)"),
-        'max': fullList.find(d => d.name == "DHS Components (ENR)"),
-        'counts': fullList.find(d => d.name == "DHS Components (ENR, Counts)"),
-      },
-      'filtering': fullList.find(d => d.name == "DHS Components (ENR, Full)"),
-      'narration': fullList.find(d => d.name == "DHS Components (ENR, Full)")
+      'default': fullList.find(d => d.name == "DHS Components (ENR, Full)"),
+      'max': fullList.find(d => d.name == "DHS Components (ENR)"),
+      'counts': fullList.find(d => d.name == "DHS Components (ENR, Counts)"),
     },
     'OCC': {
-      'layers': {
-        'default': fullList.find(d => d.name == "DHS Components (OCC)"),
-        'rank': fullList.find(d => d.name == "DHS Components (OCC, Ranked)"),
-      },
-      'filtering': fullList.find(d => d.name == "DHS Components (OCC, Ranked)"),
-      'narration': fullList.find(d => d.name == "DHS Components (OCC, Ranked)")
+      'default': fullList.find(d => d.name == "DHS Components (OCC)"),
+      'rank': fullList.find(d => d.name == "DHS Components (OCC, Ranked)"),
     }
   },
   'chromatinStates': {
     'ENR': {
-      'layers': {
-        'default': fullList.find(d => d.name == "Chromatin States (ENR, Full)"),
-        'max': fullList.find(d => d.name == "Chromatin States (ENR)"),
-        'counts': fullList.find(d => d.name == "Chromatin States (ENR, Counts)"),
-      },
-      'filtering': fullList.find(d => d.name == "Chromatin States (ENR, Full)"),
-      'narration': fullList.find(d => d.name == "Chromatin States (ENR, Full)")
+      'default': fullList.find(d => d.name == "Chromatin States (ENR, Full)"),
+      'max': fullList.find(d => d.name == "Chromatin States (ENR)"),
+      'counts': fullList.find(d => d.name == "Chromatin States (ENR, Counts)"),
     },
     'OCC': {
-      'layers': {
-        'default': fullList.find(d => d.name == "Chromatin States (OCC)"),
-        'rank': fullList.find(d => d.name == "Chromatin States (OCC, Ranked)"),
-      },
-      'filtering': fullList.find(d => d.name == "Chromatin States (OCC, Ranked)"),
-      'narration': fullList.find(d => d.name == "Chromatin States (OCC, Ranked)")
+      'default': fullList.find(d => d.name == "Chromatin States (OCC)"),
+      'rank': fullList.find(d => d.name == "Chromatin States (OCC, Ranked)"),
     },
   },
   'tfMotifs': {
     'ENR': {
-      'layers': {
-        'default': fullList.find(d => d.name == "TF Motifs (1e-6, ENR, Full)"),
-        'max': fullList.find(d => d.name == "TF Motifs (1e-6, ENR)"),
-        'counts': fullList.find(d => d.name == "TF Motifs (1e-6, ENR, Counts)"),
-        'top10': fullList.find(d => d.name == "TF Motifs (1e-6, ENR, Top 10)"),
-      },
-      'filtering': fullList.find(d => d.name == "TF Motifs (1e-6, ENR, Full)"),
-      'narration': fullList.find(d => d.name == "TF Motifs (1e-6, ENR, Top 10)")
+      'default': fullList.find(d => d.name == "TF Motifs (ENR, Top 10)"),
+      'max': fullList.find(d => d.name == "TF Motifs (ENR)"),
+      'counts': fullList.find(d => d.name == "TF Motifs (ENR, Top 10, Counts)"),
     },
     'OCC': {
-      'layers': {
-        'default': fullList.find(d => d.name == "TF Motifs (1e-6, OCC)"),
-        'rank': fullList.find(d => d.name == "TF Motifs (1e-6, OCC, Ranked)"),
-      },
-      'filtering': fullList.find(d => d.name == "TF Motifs (1e-6, OCC, Ranked)"),
-      'narration': fullList.find(d => d.name == "TF Motifs (1e-6, OCC, Ranked)")
+      'default': fullList.find(d => d.name == "TF Motifs (OCC)"),
+      'rank': fullList.find(d => d.name == "TF Motifs (OCC, Ranked)"),
     },
   },
   'repeats': {
     'ENR': {
-      'layers': {
-        'default': fullList.find(d => d.name == "Repeats (ENR, Full)"),
-        'max': fullList.find(d => d.name == "Repeats (ENR)"),
-        'counts': fullList.find(d => d.name == "Repeats (ENR, Counts)"),
-      },
-      'filtering': fullList.find(d => d.name == "Repeats (ENR, Full)"),
-      'narration': fullList.find(d => d.name == "Repeats (ENR, Full)")
+      'default': fullList.find(d => d.name == "Repeats (ENR, Full)"),
+      'max': fullList.find(d => d.name == "Repeats (ENR)"),
+      'counts': fullList.find(d => d.name == "Repeats (ENR, Counts)"),
     },
     'OCC': {
-      'layers': {
-        'default': fullList.find(d => d.name == "Repeats (OCC)"),
-        'rank': fullList.find(d => d.name == "Repeats (OCC, Ranked)"),
-      },
-      'filtering': fullList.find(d => d.name == "Repeats (OCC, Ranked)"),
-      'narration': fullList.find(d => d.name == "Repeats (OCC, Ranked)")
+      'default': fullList.find(d => d.name == "Repeats (OCC)"),
+      'rank': fullList.find(d => d.name == "Repeats (OCC, Ranked)"),
     },
   },
-  'GWAS': {
+  'UKBB': {
     'variant': {
-      'layers': {
-        'default': fullList.find(d => d.name == "Variants (GWAS)"),
-        'rank': fullList.find(d => d.name == "Variants (GWAS, Ranked)"),
-      },
-      'filtering': fullList.find(d => d.name == "Variants (GWAS, Ranked)"), // change to full dataset/not a layer
-      'narration': fullList.find(d => d.name == "Variants (GWAS, Ranked)"), // 
+      'default': fullList.find(d => d.name == "Variants (UKBB, 94 Traits)"),
     },
   },
   'categorical': {
     'variant' : {
-      'layers': {
-        'default': fullList.find(d => d.name == "Variants (Categorical)"),
-        'rank': fullList.find(d => d.name == "Variants (Categorical, Ranked)"),
-      },
-      'filtering': fullList.find(d => d.name == "Variants (Categorical, Ranked)"),
-      'narration': fullList.find(d => d.name == "Variants (Categorical, Ranked)"),
+      'default': fullList.find(d => d.name == "Variants (Categorical)"),
+      'rank': fullList.find(d => d.name == "Variants (Categorical, Ranked)"),
     },
   },
   'aPC': {
     'variant': {
-      'layers': {
-        'default': fullList.find(d => d.name == "Variants (aPC)"),
-        'rank': fullList.find(d => d.name == "Variants (aPC, Ranked)"),
-      },
-      'filtering': fullList.find(d => d.name == "Variants (aPC, Ranked)"),
-      'narration': fullList.find(d => d.name == "Variants (aPC, Ranked)"),
+      'default': fullList.find(d => d.name == "Variants (aPC)"),
+      'rank': fullList.find(d => d.name == "Variants (aPC, Ranked)"),
     }
   }
 }
+
+function findLayerMappingPath(layer) {
+    const layerName = layer?.name;
+    
+    if (!layerName) return null;
+    
+    for (const dataset in layerMapping) {
+      for (const dataType in layerMapping[dataset]) {
+        for (const layerType in layerMapping[dataset][dataType]) {
+          const layer = layerMapping[dataset][dataType][layerType];
+          
+          if (layer && layer.name === layerName) {
+            return { dataset, dataType, layerType };
+          }
+        }
+      }
+    }
+    
+    return null;
+  }
+
 
 
 const csnLayers = [
@@ -361,5 +336,7 @@ export {
   fields,
   allFactorFilterFields,
   makeField,
+  layerMapping,
+  findLayerMappingPath
 }
 

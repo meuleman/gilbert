@@ -8,6 +8,7 @@ export default {
   labelName: "TF Motif Occurrences",
   baseURL: `${constants.baseURLPrefix}/20241127`,
   orders: [4,13],
+  dropdownOrders: [12,13],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()

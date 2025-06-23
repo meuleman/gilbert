@@ -12,6 +12,7 @@ export default {
   labelName: "Repeat Domains",
   baseURL: `${constants.baseURLPrefix}/20240327`,
   orders: [4,13],
+  dropdownOrders: [4,8],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()

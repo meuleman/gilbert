@@ -10,6 +10,7 @@ export default {
   labelName: "Chromatin State Occurrences",
   baseURL: `${constants.baseURLPrefix}/20241127`,
   orders: [4,13],
+  dropdownOrders: [10,13],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()

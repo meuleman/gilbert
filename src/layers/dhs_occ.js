@@ -10,6 +10,7 @@ export default {
   labelName: "DHS Occurrences",
   baseURL: `${constants.baseURLPrefix}/20241127`,
   orders: [4,13],
+  dropdownOrders: [9,13],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()

@@ -11,6 +11,7 @@ export default {
   labelName: "Repeat Occurrences",
   baseURL: `${constants.baseURLPrefix}/20241204`,
   orders: [4,13],
+  dropdownOrders: [9,13],
   renderer: "CanvasScaledValue",
   fieldChoice: decodeValue,
   fieldColor: scaleOrdinal()
