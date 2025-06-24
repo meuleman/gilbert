@@ -1,4 +1,4 @@
-export const baseURLPrefix = "https://d2ppfzsmmsvu7l.cloudfront.net";
+export const baseURLPrefix = "https://d39ilm87hcfx1e.cloudfront.net";
 
 export const FILTER_MAX_REGIONS = 100; // 1000
 
