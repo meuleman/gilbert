@@ -6,6 +6,9 @@ export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
+      backgroundImage: {
+        'no-mobile-bg': "url('src/assets/gilbert-bg.png')"
+      },
       colors: {
         activeOrder: "hsl(var(--active-order))",
         body: colors.gray[900],

@@ -86,10 +86,10 @@ function Home() {
 
   const navigate = useNavigate();
 
-  const { 
-    order, orderZoomScale, transform, 
-    setTransform, orderOffset, setOrderOffset, 
-    zoomMin, zoomMax, orderMin, orderMax, 
+  const {
+    order, orderZoomScale, transform,
+    setTransform, orderOffset, setOrderOffset,
+    zoomMin, zoomMax, orderMin, orderMax,
     setSelectedOrder, easeZoom
   } = useZoom()
   const zoomExtent = useMemo(() => [zoomMin, zoomMax], [zoomMin, zoomMax])
@@ -98,7 +98,7 @@ function Home() {
   const containerRef = useRef()
 
   // effects for handling the layer order and setting the layer
-  const { 
+  const {
     setLayerOrder, layerOrder, layer, setLayer, handleRevertLayerOrder, layerOrderDeviated
   } = useLayerEffects()
 
@@ -117,14 +117,14 @@ function Home() {
   useEffect(() => {
     zoomRef.current = zoom
   }, [zoom])
-  
+
   const [showSankey, setShowSankey] = useState(false)
 
   // store
   const { setShowActiveRegionSet, setShowSummary } = RegionSetModalStatesStore()
-  const { 
+  const {
     selected, setSelected, region, setRegion, clearSelected,
-    selectedNarration, setSelectedNarration, clearSnapshots, 
+    selectedNarration, setSelectedNarration, clearSnapshots,
     regionSnapshots, popRegionFromSnapshots, createKey,
   } = SelectedStatesStore()
   // selected summary effects
@@ -340,24 +340,24 @@ function Home() {
         atEnd,
       }
     })
-    
+
     const regionSize = end - start
     const order = ranges.find(d => d.atStart >= regionSize && d.atEnd <= regionSize)
 
-    if(order) {
+    if (order) {
       const logAtStart = Math.log2(order.atStart)
       const logAtEnd = Math.log2(order.atEnd)
       const logRegionSize = Math.log2(regionSize)
       // TODO: This calculation is slightly off for ranges between atStart and atEnd for order, zooms in too far
       const percent = (logAtStart - logRegionSize) / (logAtStart - logAtEnd)
       return percent + order.order
-    } else if(regionSize > ranges.find(d => d.order === 4).atStart) {
+    } else if (regionSize > ranges.find(d => d.order === 4).atStart) {
       // if the region size is larger than the max range at order 4, return 4
       return ranges[0].order
-    } else if(regionSize > ranges.find(d => d.order === 14).atStart) {
+    } else if (regionSize > ranges.find(d => d.order === 14).atStart) {
       // if region size in between order 14 and 13 ranges (due to order 14 scaling factor), return 14 (zoomed out)
       return 14
-    } else if(regionSize < ranges.find(d => d.order === 14).atEnd) {
+    } else if (regionSize < ranges.find(d => d.order === 14).atEnd) {
       // if the region size is smaller than the smallest range at order 14, return 14 (zoomed in)
       return 15
     }
@@ -370,29 +370,29 @@ function Home() {
     const bufferSize = Math.floor((end - start) * buffer);
     const rawOrder = fill1DTrack(start - bufferSize, end + bufferSize);
     if (!rawOrder) return;
-    
+
     console.log(`Zooming to ${chromosome}:${start}-${end} at order ${rawOrder}`);
-    
+
     // find center region
     const intOrder = Math.floor(rawOrder);
     const region = fromPosition(chromosome, centerPosition, centerPosition, intOrder);
 
     // calculate k value from the raw order
     const targetK = orderZoomScale.invert(Math.pow(2, rawOrder - orderMin));
-    
+
     // create new transform that zooms to center point
     const mapCenterX = width / 2;
     const mapCenterY = height / 2;
     const pointX = scales.xScale(region.x);
     const pointY = scales.yScale(region.y);
-    
+
     const newTransform = {
       k: targetK,
       x: mapCenterX - pointX * targetK,
       y: mapCenterY - pointY * targetK
     };
-    easeZoom(transform, newTransform, () => {})
-    
+    easeZoom(transform, newTransform, () => { })
+
   }, [fill1DTrack, setRegion, scales, orderZoomScale, orderMin, width, height, setTransform, transform]);
 
   const handleChangeLocationViaGeneSearch = useCallback((selected) => {
@@ -412,7 +412,7 @@ function Home() {
   const [topFactorCSNS, setTopFactorCSNS] = useState([])
   const [hoveredTopCSN, setHoveredTopCSN] = useState(null)
   const [csnSort, setCSNSort] = useState("factor")
-  
+
   useEffect(() => {
     !activeSet && setShowActiveRegionSet(!!selected)  // if selected but no region set, show the minimap anyway
   }, [selected])
@@ -513,13 +513,13 @@ function Home() {
   }, [hover, activeInHovered, activeSet, activeState, mapLoading])
 
   const hoverArrowRange = useMemo(() => {
-    if(!hover) return []
-      let range = fromCountOrder(hover.chromosome, hover.start, 2, hover.order)
-      return range
+    if (!hover) return []
+    let range = fromCountOrder(hover.chromosome, hover.start, 2, hover.order)
+    return range
   }, [hover])
 
   const geneRanges = useMemo(() => {
-    if(!hover) return []
+    if (!hover) return []
     let ranges = getRangesOverCell(hover, hover.order)
     return ranges
   }, [hover])
@@ -591,7 +591,7 @@ function Home() {
     // if the filters change from a user interaction we want to clear the selected
     // if(filters.userTriggered) clearSelectedState()
     // if the active filters or active regions change we want to clear the selected
-    
+
     // below is done to prevent clearing on initialization for when initial selected region is provided in URL
     // is this the best way to solve this problem?
     const prevValues = regionSetStateRef.current;
@@ -650,11 +650,11 @@ function Home() {
       // use region subpath if it exists
       // if the selected region is smaller than the overlapping region set region, use the originally selected region
       let selected = hit
-      if(filteredActiveRegionsRef.current?.length) {
+      if (filteredActiveRegionsRef.current?.length) {
         let overlappingRegion = overlaps(hit, filteredActiveRegionsRef.current)[0] || hit
         overlappingRegion.subregion ? overlappingRegion = overlappingRegion.subregion : null
         selected = overlappingRegion.order > hit.order ? overlappingRegion : hit
-      } 
+      }
       setSelected(selected)
       // setRegion(hit)  // this sets zoom. we should set with selected segment, not implied segment
     }
@@ -665,7 +665,7 @@ function Home() {
   useEffect(() => {
     function handleKeyDown(e) {
       if (e.key === "Escape") {
-        if(!!selectedRef.current?.derivedFrom) {
+        if (!!selectedRef.current?.derivedFrom) {
           // if the selected region is derived, pop it from the snapshots
           const selectedKey = createKey(selectedRef.current)
           popRegionFromSnapshots(selectedKey)
@@ -730,65 +730,72 @@ function Home() {
   }, [selectedNarration]);
 
   return (
-    <div className="w-dvw h-dvh overflow-hidden flex flex-col">
-      <div className="grow-0">
-        <div className="flex text-xs border-separator border-b-1">
-          <div className="grow-0 border-separator border-r-1">
-            <div className="h-globalMenuBar aspect-square flex items-center justify-center cursor-pointer">
-              <GilbertG onClick={handleLogoClick}/>
-            </div>
-          </div>
-          <div className="grow-0 border-separator border-r-1">
-            <HeaderRegionSetModal />
-          </div>
-          <div className="flex-1 border-separator border-r-1 bg-gray-100">
-            <GeneSearch
-              onSelect={handleChangeLocationViaGeneSearch}
-            />
-          </div>
-          <div className="grow-0 border-separator border-r-1 px-3.5 flex items-center">
-            <label className="inline-flex gap-3.5 items-center cursor-pointer">
-              <div className="font-medium">Legend</div>
-              <input
-                className="absolute -z-50 pointer-events-none opacity-0 peer"
-                type="checkbox"
-                checked={showLayerLegend}
-                onChange={() => setShowLayerLegend(!showLayerLegend)}
-              />
-              <span className="block bg-muted-foreground border-2 border-muted-foreground h-3 w-6 rounded-full after:block after:h-full after:aspect-square after:bg-white after:rounded-full peer-checked:bg-primary peer-checked:border-primary peer-checked:after:ml-[0.725rem]"></span>
-            </label>
-          </div>
-          <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center border-separator border-r-1 ">
-            <SettingsIcon />
-          </div>
-          <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center border-separator border-r-1">
-            <DebugIcon />
-          </div>
-          <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center">
-            <button 
-              className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={!layerOrderDeviated}
-              onClick={handleRevertLayerOrder}
-            >
-              <RevertIcon className="w-5 h-5"/>
-            </button>
-          </div>
+    <>
+      <div className="absolute lg:hidden top-0 left-0 w-dvw h-dvh bg-no-mobile-bg bg-center bg-white z-[9999]">
+        <div className="relative top-12 max-w-[90%] mx-auto p-6 bg-white rounded-3xl border-2 border-primary drop-shadow-2xl grid grid-cols-1 gap-6">
+          <p>Our application is not yet optimized for screens smaller than 1,024 pixels wide.</p>
+          <p>View our project on <a href="https://github.com/meuleman/gilbert" target="_blank" rel="noopener noreferrer" className="text-primary">GitHub</a> if you'd like to contribute to this!</p>
         </div>
       </div>
-      <div className="flex-1 flex min-h-0">
+      <div className="flex flex-col w-dvw h-dvh overflow-hidden z-0">
         <div className="grow-0">
-          <LeftToolbar
-            content={{
-              activeRegionSetModal: <ActiveRegionSetModal />,
-              regionSetSummary: <SummarizePaths />
-            }}
-          >
-          </LeftToolbar>
+          <div className="flex text-xs border-separator border-b-1">
+            <div className="grow-0 border-separator border-r-1">
+              <div className="h-globalMenuBar aspect-square flex items-center justify-center cursor-pointer">
+                <GilbertG onClick={handleLogoClick} />
+              </div>
+            </div>
+            <div className="grow-0 border-separator border-r-1">
+              <HeaderRegionSetModal />
+            </div>
+            <div className="flex-1 border-separator border-r-1 bg-gray-100">
+              <GeneSearch
+                onSelect={handleChangeLocationViaGeneSearch}
+              />
+            </div>
+            <div className="grow-0 border-separator border-r-1 px-3.5 flex items-center">
+              <label className="inline-flex gap-3.5 items-center cursor-pointer">
+                <div className="font-medium">Legend</div>
+                <input
+                  className="absolute -z-50 pointer-events-none opacity-0 peer"
+                  type="checkbox"
+                  checked={showLayerLegend}
+                  onChange={() => setShowLayerLegend(!showLayerLegend)}
+                />
+                <span className="block bg-muted-foreground border-2 border-muted-foreground h-3 w-6 rounded-full after:block after:h-full after:aspect-square after:bg-white after:rounded-full peer-checked:bg-primary peer-checked:border-primary peer-checked:after:ml-[0.725rem]"></span>
+              </label>
+            </div>
+            <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center border-separator border-r-1 ">
+              <SettingsIcon />
+            </div>
+            <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center border-separator border-r-1">
+              <DebugIcon />
+            </div>
+            <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center">
+              <button
+                className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!layerOrderDeviated}
+                onClick={handleRevertLayerOrder}
+              >
+                <RevertIcon className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="flex-1 flex" >
-          <div className="flex-1 flex flex-row">
-            <div className="flex-1 flex flex-col" ref={containerRef}>
-              {/* <div className="grow-0">
+        <div className="flex-1 flex min-h-0">
+          <div className="grow-0">
+            <LeftToolbar
+              content={{
+                activeRegionSetModal: <ActiveRegionSetModal />,
+                regionSetSummary: <SummarizePaths />
+              }}
+            >
+            </LeftToolbar>
+          </div>
+          <div className="flex-1 flex" >
+            <div className="flex-1 flex flex-row">
+              <div className="flex-1 flex flex-col" ref={containerRef}>
+                {/* <div className="grow-0">
                 {activeGenesetEnrichment && (
                   <div className="relative h-28 border-t-1 border-separator">
                     <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
@@ -801,28 +808,28 @@ function Home() {
                   </div>
                 )}
               </div> */}
-              {selected ? 
-              <div className="w-full flex-1 flex flex-col">
-                <div className="relative flex-1">
-                  {/*<div className="absolute top-0 left-1/4 w-1/2 h-full overflow-hidden p-2">*/}
-                  <div className="absolute top-1 w-full h-full overflow-hidden px-2 pt-6 pb-4 cursor-default">
-                    <Power onClose={handleModalClose} showLayerLegend={showLayerLegend}/>
+                {selected ?
+                  <div className="w-full flex-1 flex flex-col">
+                    <div className="relative flex-1">
+                      {/*<div className="absolute top-0 left-1/4 w-1/2 h-full overflow-hidden p-2">*/}
+                      <div className="absolute top-1 w-full h-full overflow-hidden px-2 pt-6 pb-4 cursor-default">
+                        <Power onClose={handleModalClose} showLayerLegend={showLayerLegend} />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              : 
-              <div className="flex-1 flex flex-col">
-                <div className="relative flex-1">
-                  {/*  ref={containerRef}  */}
-                  <div className="absolute top-0 left-0 w-full h-full overflow-hidden"> 
-                    <LayerLegend
-                      data={data}
-                      hover={hover}
-                      selected={selected}
-                      show={showLayerLegend}
-                      searchByFactorInds={searchByFactorInds}
-                    />
-                    {/* <div className="grow-0">
+                  :
+                  <div className="flex-1 flex flex-col">
+                    <div className="relative flex-1">
+                      {/*  ref={containerRef}  */}
+                      <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+                        <LayerLegend
+                          data={data}
+                          hover={hover}
+                          selected={selected}
+                          show={showLayerLegend}
+                          searchByFactorInds={searchByFactorInds}
+                        />
+                        {/* <div className="grow-0">
                       {activeGenesetEnrichment && (
                         <div className="relative h-28 border-t-1 border-separator">
                           <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
@@ -835,175 +842,175 @@ function Home() {
                         </div>
                       )}
                     </div> */}
-                    <HilbertGenome
-                      orderMin={orderDomain[0]}
-                      orderMax={orderDomain[1]}
-                      zoomMin={zoomExtent[0]}
-                      zoomMax={zoomExtent[1]}
-                      width={width}
-                      height={height}
-                      zoomToRegion={region}
-                      activeLayer={layer}
-                      selected={selected}
-                      zoomDuration={duration}
-                      CanvasRenderers={canvasRenderers}
-                      SVGRenderers={[
-                        SVGChromosomeNames({}),
-                        showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5 }),
-                        showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25 }),
-                      ]}
-                      onZoom={handleZoom}
-                      onHover={handleHover}
-                      onClick={handleClick}
-                      onData={onData}
-                      onScales={setScales}
-                      onZooming={(d) => setIsZooming(d.zooming)}
-                      onLoading={setMapLoading}
-                      // onLayer={handleLayer}
-                      debug={showDebug}
-                    />
-                  </div>
-                </div>
-                <div className="grow-0">
-                  {data && (
-                    <div className="relative h-24 border-t-1 border-separator">
-                      <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-                        <LinearGenome
-                          // center={data?.center} 
-                          data={data?.data}
-                          dataOrder={data?.dataOrder}
-                          activeRegions={filteredRegionsByCurrentOrder}
-                          layer={data?.layer}
+                        <HilbertGenome
+                          orderMin={orderDomain[0]}
+                          orderMax={orderDomain[1]}
+                          zoomMin={zoomExtent[0]}
+                          zoomMax={zoomExtent[1]}
                           width={width}
-                          height={linearGenomeHeight}
-                          mapWidth={width}
-                          mapHeight={height}
-                          hover={hover}
+                          height={height}
+                          zoomToRegion={region}
+                          activeLayer={layer}
+                          selected={selected}
+                          zoomDuration={duration}
+                          CanvasRenderers={canvasRenderers}
+                          SVGRenderers={[
+                            SVGChromosomeNames({}),
+                            showHilbert && SVGHilbertPaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.5 }),
+                            showGenes && SVGGenePaths({ stroke: "black", strokeWidthMultiplier: 0.1, opacity: 0.25 }),
+                          ]}
+                          onZoom={handleZoom}
                           onHover={handleHover}
-                          onClick={(hit) => {
-                            // setRegion(hit)
-                          }}
-                          showCoordinatesInTooltip={false}
-                          showLayerNameInTooltip={false}
+                          onClick={handleClick}
+                          onData={onData}
+                          onScales={setScales}
+                          onZooming={(d) => setIsZooming(d.zooming)}
+                          onLoading={setMapLoading}
+                          // onLayer={handleLayer}
+                          debug={showDebug}
                         />
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>}
-            </div>
-            <div className="grow-0 shrink-0 col-start-2 row-start-2 row-end-3 flex">
-              {selectedNarration ? 
-                <ZoomInspector zoomHeight={height} /> : 
-                <ZoomLegend
-                  k={transform.k}
-                  height={height}
-                  effectiveOrder={order}
-                  zoomExtent={zoomExtent}
-                  orderDomain={orderDomain}
-                  layerOrder={layerOrder}
-                  setLayerOrder={setLayerOrder}
-                  layer={layer}
-                  selected={selected}
-                  hovered={hover}
-                  // crossScaleNarration={csn}
-                  onZoom={(region) => {
-                    setRegion(null);
-                    const hit = fromPosition(region.chromosome, region.start, region.end)
-                    setRegion(hit)
-                    // setSelected(hit)
-                  }}
-                />
-              }
+                    <div className="grow-0">
+                      {data && (
+                        <div className="relative h-24 border-t-1 border-separator">
+                          <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+                            <LinearGenome
+                              // center={data?.center} 
+                              data={data?.data}
+                              dataOrder={data?.dataOrder}
+                              activeRegions={filteredRegionsByCurrentOrder}
+                              layer={data?.layer}
+                              width={width}
+                              height={linearGenomeHeight}
+                              mapWidth={width}
+                              mapHeight={height}
+                              hover={hover}
+                              onHover={handleHover}
+                              onClick={(hit) => {
+                                // setRegion(hit)
+                              }}
+                              showCoordinatesInTooltip={false}
+                              showLayerNameInTooltip={false}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>}
+              </div>
+              <div className="grow-0 shrink-0 col-start-2 row-start-2 row-end-3 flex">
+                {selectedNarration ?
+                  <ZoomInspector zoomHeight={height} /> :
+                  <ZoomLegend
+                    k={transform.k}
+                    height={height}
+                    effectiveOrder={order}
+                    zoomExtent={zoomExtent}
+                    orderDomain={orderDomain}
+                    layerOrder={layerOrder}
+                    setLayerOrder={setLayerOrder}
+                    layer={layer}
+                    selected={selected}
+                    hovered={hover}
+                    // crossScaleNarration={csn}
+                    onZoom={(region) => {
+                      setRegion(null);
+                      const hit = fromPosition(region.chromosome, region.start, region.end)
+                      setRegion(hit)
+                      // setSelected(hit)
+                    }}
+                  />
+                }
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div className="grow-0">
-        <StatusBar
-          width={width + 12 + 30}
-          hover={hover} // the information about the cell the mouse is over
-          // filteredRegions={filteredRegions}
-          // regionsByOrder={rbos}
-          topCSNS={topCSNSFactorByCurrentOrder}
-          layer={layer}
-          showDebug={showDebug}
-          showSettings={showSettings}
-          orderOffset={orderOffset}
-          layers={layers}
-          onClear={handleClear}
-          onDebug={handleChangeShowDebug}
-          onSettings={handleChangeShowSettings}
-          onOrderOffset={setOrderOffset}
-        />
-      </div>
+        <div className="grow-0">
+          <StatusBar
+            width={width + 12 + 30}
+            hover={hover} // the information about the cell the mouse is over
+            // filteredRegions={filteredRegions}
+            // regionsByOrder={rbos}
+            topCSNS={topCSNSFactorByCurrentOrder}
+            layer={layer}
+            showDebug={showDebug}
+            showSettings={showSettings}
+            orderOffset={orderOffset}
+            layers={layers}
+            onClear={handleClear}
+            onDebug={handleChangeShowDebug}
+            onSettings={handleChangeShowSettings}
+            onOrderOffset={setOrderOffset}
+          />
+        </div>
 
-      {/* These are all components that seem to need to exist in order for app
+        {/* These are all components that seem to need to exist in order for app
         to render and zoom correctly
        */}
-      <div className="fixed top-0 left-full opacity-0 pointer-events-none">
-         
-        <GeneSearch
-          onSelect={handleChangeLocationViaGeneSearch}
-        />
+        <div className="fixed top-0 left-full opacity-0 pointer-events-none">
 
-        <LayerLegend
-          data={data}
-          hover={hover}
-          selected={selected}
-          show={showLayerLegend}
-          onShow={setShowLayerLegend}
-          searchByFactorInds={searchByFactorInds}
-        />
+          <GeneSearch
+            onSelect={handleChangeLocationViaGeneSearch}
+          />
 
-        <ManageRegionSetsModal
-          show={showManageRegionSets}
-        />
+          <LayerLegend
+            data={data}
+            hover={hover}
+            selected={selected}
+            show={showLayerLegend}
+            onShow={setShowLayerLegend}
+            searchByFactorInds={searchByFactorInds}
+          />
 
-        <SankeyModal
-          show={showSankey}
-          width={400}
-          height={height - 10}
-          numPaths={numPaths}
-          selectedRegion={selected}
-          hoveredRegion={hover}
-          factorCsns={topFactorCSNS}
-          fullCsns={topFullCSNS}
-          loading={activeState}
-          shrinkNone={false}
-          onSelectedCSN={handleSelectedCSNSankey}
-          onHoveredCSN={handleHoveredCSN}
-          onSort={(sort) => {
-            setCSNSort(sort)
-          }}
-          onNumPaths={(n) => {
-            setNumPaths(n)
-          }}
-          onClearRegion={clearSelectedState}
-        />
+          <ManageRegionSetsModal
+            show={showManageRegionSets}
+          />
 
-        {activeInHovered?.length ? <Tooltip id="hovered"
-          isOpen={hover && activeInHovered?.length}
-          delayShow={0}
-          delayHide={0}
-          delayUpdate={0}
-          place="right"
-          border="1px solid gray"
-          style={{
-            position: 'absolute',
-            pointerEvents: 'none',
-            backgroundColor: "white",
-            color: "black",
-            fontSize: "12px",
-            padding: "6px",
-            left: hoveredPosition.x,
-            top: hoveredPosition.y,
-          }}
-        >
-          <b>{activeInHovered?.length} {activeInHovered?.length > 1 ? "filtered regions" : "filtered region"}</b><br />
-          {/* {intersectedGenes.length ? <span>Overlapping genes: {intersectedGenes.join(", ")}<br/></span> : null} */}
-          {/* {associatedGenes.length ? <span>Nearby genes: {associatedGenes.join(", ")}<br/></span> : null} */}
-          {/* {activeInHovered.map(p => {
+          <SankeyModal
+            show={showSankey}
+            width={400}
+            height={height - 10}
+            numPaths={numPaths}
+            selectedRegion={selected}
+            hoveredRegion={hover}
+            factorCsns={topFactorCSNS}
+            fullCsns={topFullCSNS}
+            loading={activeState}
+            shrinkNone={false}
+            onSelectedCSN={handleSelectedCSNSankey}
+            onHoveredCSN={handleHoveredCSN}
+            onSort={(sort) => {
+              setCSNSort(sort)
+            }}
+            onNumPaths={(n) => {
+              setNumPaths(n)
+            }}
+            onClearRegion={clearSelectedState}
+          />
+
+          {activeInHovered?.length ? <Tooltip id="hovered"
+            isOpen={hover && activeInHovered?.length}
+            delayShow={0}
+            delayHide={0}
+            delayUpdate={0}
+            place="right"
+            border="1px solid gray"
+            style={{
+              position: 'absolute',
+              pointerEvents: 'none',
+              backgroundColor: "white",
+              color: "black",
+              fontSize: "12px",
+              padding: "6px",
+              left: hoveredPosition.x,
+              top: hoveredPosition.y,
+            }}
+          >
+            <b>{activeInHovered?.length} {activeInHovered?.length > 1 ? "filtered regions" : "filtered region"}</b><br />
+            {/* {intersectedGenes.length ? <span>Overlapping genes: {intersectedGenes.join(", ")}<br/></span> : null} */}
+            {/* {associatedGenes.length ? <span>Nearby genes: {associatedGenes.join(", ")}<br/></span> : null} */}
+            {/* {activeInHovered.map(p => {
                 return <div key={p.chromosome + ":" + p.i}>
                   {showPosition(p.region)}: {p.genes.map(g => 
                   <span key={g.name} style={{
@@ -1014,43 +1021,44 @@ function Home() {
                   </span>)}
                 </div>
                 })} */}
-        </Tooltip> : null}
+          </Tooltip> : null}
 
-        <StatusBar
-          width={width + 12 + 30}
-          hover={hover} // the information about the cell the mouse is over
-          // filteredRegions={filteredRegions}
-          // regionsByOrder={rbos}
-          topCSNS={topCSNSFactorByCurrentOrder}
-          layer={layer}
-          zoom={zoom}
-          showDebug={showDebug}
-          showSettings={showSettings}
-          orderOffset={orderOffset}
-          layers={layers}
-          onClear={handleClear}
-          onDebug={handleChangeShowDebug}
-          onSettings={handleChangeShowSettings}
-          onOrderOffset={setOrderOffset}
-        />
+          <StatusBar
+            width={width + 12 + 30}
+            hover={hover} // the information about the cell the mouse is over
+            // filteredRegions={filteredRegions}
+            // regionsByOrder={rbos}
+            topCSNS={topCSNSFactorByCurrentOrder}
+            layer={layer}
+            zoom={zoom}
+            showDebug={showDebug}
+            showSettings={showSettings}
+            orderOffset={orderOffset}
+            layers={layers}
+            onClear={handleClear}
+            onDebug={handleChangeShowDebug}
+            onSettings={handleChangeShowSettings}
+            onOrderOffset={setOrderOffset}
+          />
 
-        {showSettings ? <SettingsPanel
-          showHilbert={showHilbert}
-          showGenes={showGenes}
-          duration={duration}
-          onShowHilbertChange={handleChangeShowHilbert}
-          onShowGenesChange={handleChangeShowGenes}
-          onDurationChange={handleChangeDuration}
-          handleChangeCSNIndex={handleChangeCSNIndex}
-          maxCSNIndex={crossScaleNarration.length - 1}
-          crossScaleNarrationIndex={crossScaleNarrationIndex}
-          csnMethod={csnMethod}
-          handleCsnMethodChange={handleCsnMethodChange}
-          csnEnrThreshold={csnEnrThreshold}
-          handleCsnEnrThresholdChange={handleCsnEnrThresholdChange}
-        /> : null}
+          {showSettings ? <SettingsPanel
+            showHilbert={showHilbert}
+            showGenes={showGenes}
+            duration={duration}
+            onShowHilbertChange={handleChangeShowHilbert}
+            onShowGenesChange={handleChangeShowGenes}
+            onDurationChange={handleChangeDuration}
+            handleChangeCSNIndex={handleChangeCSNIndex}
+            maxCSNIndex={crossScaleNarration.length - 1}
+            crossScaleNarrationIndex={crossScaleNarrationIndex}
+            csnMethod={csnMethod}
+            handleCsnMethodChange={handleCsnMethodChange}
+            csnEnrThreshold={csnEnrThreshold}
+            handleCsnEnrThresholdChange={handleCsnEnrThresholdChange}
+          /> : null}
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
