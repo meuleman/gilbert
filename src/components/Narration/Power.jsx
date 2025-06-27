@@ -129,6 +129,10 @@ function PowerModal({
   const width = propWidth || containerSize.width;
   const height = propHeight || (containerSize.height - sheight);
 
+  const [isAutoZooming, setIsAutoZooming] = useState(false);
+  const autoZoomDirectionRef = useRef(false); // false = zooming out, true = zooming in
+  const animationFrameRef = useRef(null);
+
   const canvasRef = useRef(null);
   const tooltipRef = useRef(null);
   const dataRequestRef = useRef(null);
@@ -451,6 +455,71 @@ function PowerModal({
       }
     }
   }, [data, setGlobalPowerData, globalPowerData, setPreventDerivation])
+  
+  // autozoom
+  useEffect(() => {
+    if (!isAutoZooming) return;
+
+    const minOrder = 4;
+    const maxOrder = 15;
+    const zoomDuration = 10000; // 10 seconds for each direction
+    const totalSteps = 60 * 10; // 60fps for 10 seconds
+    const stepSize = (maxOrder - minOrder) / totalSteps;
+
+    let startTime;
+    let lastTimestamp;
+    let currentOrder = userOrder || maxOrder; // Start from current order or max
+
+    const animate = (timestamp) => {
+      if (!startTime) {
+        startTime = timestamp;
+        lastTimestamp = timestamp;
+      }
+
+      const elapsed = timestamp - lastTimestamp;
+      lastTimestamp = timestamp;
+      
+      // Calculate how much to change order in this frame
+      const targetFPS = 60;
+      const expectedFrameTime = 1000 / targetFPS;
+      const adjustedStepSize = stepSize * (elapsed / expectedFrameTime);
+      
+      // Update order based on current direction
+      if (autoZoomDirectionRef.current) {
+        // Zooming in (order increases)
+        currentOrder += adjustedStepSize;
+        if (currentOrder >= maxOrder) {
+          // Reached max zoom, switch direction
+          currentOrder = maxOrder;
+          autoZoomDirectionRef.current = false;
+        }
+      } else {
+        // Zooming out (order decreases)
+        currentOrder -= adjustedStepSize;
+        if (currentOrder <= minOrder) {
+          // Reached min zoom, switch direction
+          currentOrder = minOrder;
+          autoZoomDirectionRef.current = true;
+        }
+      }
+      
+      // Update the order through the parent component's handler
+      onOrder(currentOrder);
+      
+      // Request the next frame
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+
+    // Start the animation loop
+    animationFrameRef.current = requestAnimationFrame(animate);
+
+    // Cleanup on unmount or when isAutoZooming changes
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [isAutoZooming, onOrder]);
 
   const throttledWheel = useCallback(
     throttle((delta) => {
