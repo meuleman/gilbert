@@ -61,6 +61,7 @@ const renderBadge = (ctx, d, layer, x, y, w, h) => {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(d.data.nucleotide, x + w/2, y + h/2);
+  ctx.textBaseline = "alphabetic";  // Reset to default
 }
 
 const LinearGenome = ({
@@ -213,6 +214,7 @@ const LinearGenome = ({
         
 
         // Render the "axis"
+        const textY = geneHeight + trackHeight + axisHeight - 2;
         if(showCoordinates) {
           // render the center point location
           ctx.textAlign = "center";
@@ -225,28 +227,28 @@ const LinearGenome = ({
           if(cx - lx < 120) {
             ctx.textAlign = "right";
             lx -= 10
-            ctx.fillText(points[0].chromosome + ":" + points[0].start, lx, geneHeight + trackHeight + axisHeight - 2);
+            ctx.fillText(points[0].chromosome + ":" + points[0].start, lx, textY);
             ctx.textAlign = "left";
-            ctx.fillText(region.chromosome + ":" + region.start, cx, geneHeight + trackHeight + axisHeight - 2);
+            ctx.fillText(region.chromosome + ":" + region.start, cx, textY);
           } else if (rx - cx < 120) {
             ctx.textAlign = "left";
             lx += 1
             rx += 10
-            ctx.fillText(points[0].chromosome + ":" + points[0].start, lx, geneHeight + trackHeight + axisHeight - 2);
+            ctx.fillText(points[0].chromosome + ":" + points[0].start, lx, textY);
             ctx.textAlign = "right";
-            ctx.fillText(region.chromosome + ":" + region.start, cx, geneHeight + trackHeight + axisHeight - 2);
+            ctx.fillText(region.chromosome + ":" + region.start, cx, textY);
             ctx.textAlign = "left";
             rx += 1
-            ctx.fillText(points[points.length - 1].chromosome + ":" + points[points.length - 1].end, rx, geneHeight + trackHeight + axisHeight - 2);
+            ctx.fillText(points[points.length - 1].chromosome + ":" + points[points.length - 1].end, rx, textY);
           } else{ 
             ctx.textAlign = "left";
             lx += 1
-            ctx.fillText(points[0].chromosome + ":" + points[0].start, lx, geneHeight + trackHeight + axisHeight - 2);
+            ctx.fillText(points[0].chromosome + ":" + points[0].start, lx, textY);
             ctx.textAlign = "center";
-            ctx.fillText(region.chromosome + ":" + region.start, cx, geneHeight + trackHeight + axisHeight - 2);
+            ctx.fillText(region.chromosome + ":" + region.start, cx, textY);
             ctx.textAlign = "right";
             rx -= 1
-            ctx.fillText(points[points.length - 1].chromosome + ":" + points[points.length - 1].end, rx, geneHeight + trackHeight + axisHeight - 2);
+            ctx.fillText(points[points.length - 1].chromosome + ":" + points[points.length - 1].end, rx, textY);
           }
           // make sure it starts at left if far from center, or aligns right if its close to center
           // render the right most point location
@@ -404,9 +406,20 @@ const LinearGenome = ({
 
           // render the active regions
           inTop.map(d => {
+  
+            // determine radius to use for active region circles
+            const availableSpace = textY - (geneHeight + trackHeight + 4);
+            const radius = Math.min(bw/2, Math.max(1, availableSpace/2 - 2));
+
             ctx.fillStyle = "orange"
             ctx.beginPath();
-            ctx.arc(Math.round(xScale(d.start) + bw/2), geneHeight + trackHeight + 4, bw/4, 0, 2 * Math.PI);
+            ctx.arc(
+              Math.round(xScale(d.start) + bw/2),
+              geneHeight + trackHeight + 4,
+              radius,
+              0,
+              2 * Math.PI
+            );
             ctx.fill();
           })
         }
