@@ -734,7 +734,7 @@ function Home() {
       <div className="absolute lg:hidden top-0 left-0 w-dvw h-dvh bg-no-mobile-bg bg-center bg-white z-[9999]">
         <div className="relative top-12 max-w-[90%] mx-auto p-6 bg-white rounded-3xl border-2 border-primary drop-shadow-2xl grid grid-cols-1 gap-6">
           <p>Our application is not yet optimized for screens smaller than 1,024 pixels wide.</p>
-          <p>We are actively working on this!</p>
+          <p>View our project on <a href="https://github.com/meuleman/gilbert" target="_blank" rel="noopener noreferrer" className="text-primary">GitHub</a> if you'd like to contribute to this!</p>
         </div>
       </div>
       <div className="flex flex-col w-dvw h-dvh overflow-hidden z-0">
