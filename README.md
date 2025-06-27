@@ -81,7 +81,6 @@ Refer to the API repository ([gilbertAPI](#)) for detailed setup instructions.
 
 Contributions are welcome!  
 Please follow the existing code style and add tests for any new features.  
-For more details, reach out to Wouter Meuleman (meuleman@gmail.com).
 
 ## License
 
