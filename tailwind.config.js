@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       backgroundImage: {
-        'no-mobile-bg': "url('src/assets/gilbert-bg.png')"
+        'no-mobile-bg': "url('/gilbert-bg.png')"
       },
       colors: {
         activeOrder: "hsl(var(--active-order))",

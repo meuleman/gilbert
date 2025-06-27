@@ -737,7 +737,7 @@ function Home() {
           <p>View our project on <a href="https://github.com/meuleman/gilbert" target="_blank" rel="noopener noreferrer" className="text-primary">GitHub</a> if you'd like to contribute to this!</p>
         </div>
       </div>
-      <div className="flex flex-col w-dvw h-dvh overflow-hidden z-0">
+      <div className="hidden lg:flex flex-col w-dvw h-dvh overflow-hidden z-0">
         <div className="grow-0">
           <div className="flex text-xs border-separator border-b-1">
             <div className="grow-0 border-separator border-r-1">
