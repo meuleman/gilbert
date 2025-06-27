@@ -1,4 +1,5 @@
 import { showKbOrder, showKb } from '../../lib/display'
+import { fetchSummaryFromQuery, submitSummaryFeedback } from '../../lib/apiService';
 
 const SummaryGeneration = (set, get) => {
 
@@ -76,57 +77,18 @@ const SummaryGeneration = (set, get) => {
 
   // generates a summary for the selected region
   const generateSummaryFromQuery = (providedPrompt = null) => {
-    let p = providedPrompt || get().prompt
-    let query = get().query
-    if(query !== "") {
-      return fetch(`${get().url}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          query: query,
-          narration: get().selectedNarration,
-          prompt: p
-        })
-      })
-      .then(res => {
-        return res.json()
-      })
-      .then(data => {
-        // console.log("generate", data, query)
-        return data;
-      })
-      .catch(err => {
-        console.error(err)
-        return null;
-      })
-    } 
-    return null;
+    const { prompt, query, selectedNarration } = get()
+    let p = providedPrompt || prompt
+    return fetchSummaryFromQuery(query, selectedNarration, p);
   }
 
-  // Function to provide feedback to the model
-  const feedback = (feedback) => {
-    let url_feedback = get().url_feedback
-    let request_id = get().request_id
-    fetch(`${url_feedback}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        request_id: request_id,
-        feedback: feedback,
-      })
-    })
-      .then(res => res.json())
+  const feedback = (feedbackData) => {
+    const { request_id } = get()
+    submitSummaryFeedback(request_id, feedbackData)
       .then(data => {
-        console.log("feedback", data)
-      })
-      .catch(err => {
-        console.error(err)
-      })
-  }
+        console.log("feedback", data);
+      });
+  };
 
   const termsSection = `You are an expert genomics researcher, tasked with narrating genomic regions such that a single short sentence captures the most important information.
   You are given a query consisting of a term-wise description of a certain region of interest in the human genome.
@@ -227,8 +189,6 @@ const SummaryGeneration = (set, get) => {
     toggleIncludeAbstracts,
     abstractsIncluded: true,
     setAbstractsIncluded: (included) => set({ abstractsIncluded: included }),
-    url: `/api/pubmedSummary/pubmed_summary`,
-    url_feedback: `/api/pubmedSummary/feedback`
   }
 }
 

@@ -70,7 +70,7 @@ function useSelectedEffects() {
 
   // Generate summary when query changes
   useEffect(() => {
-    if (query !== "" && !regionSummary) {
+    if (!!query && !regionSummary) {
       generateSummary(selectedRef.current);
     }
   }, [query, generateSummary, regionSummary]);
