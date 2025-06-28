@@ -7,6 +7,8 @@ const RegionsContext = React.createContext({
   activeRegions: [],
   activePaths: [],
   activeGenesetEnrichment: [],
+  genesetEnrichmentLoading: false,
+  regionSetNarrationLoading: false,
   numTopRegions: 10,
   setNumTopRegions: () => {},
   saveSet: () => {},

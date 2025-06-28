@@ -32,17 +32,14 @@ function useSelectedEffects() {
 
   const { setSelectedOrderRaw } = useZoom();
 
+  const selectedRef = useRef(null);
   useEffect(() => {
+    selectedRef.current = selected;
     if(selected) {
       addCurrentStateToSnapshots();
       setSelectedOrderRaw(selected ? selected.order + 0.5 : 4.5);
     }
   }, [ selected ]);
-
-  const selectedRef = useRef(null);
-  useEffect(() => {
-    selectedRef.current = selected;
-  }, [selected]);
 
   // Create a mapping from geneset to its score for quick lookup
   const genesetScoreMapping = useMemo(() => {

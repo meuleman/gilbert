@@ -18,7 +18,7 @@ import {
 } from './utils/spectrumHooks';
 
 const Spectrum = ({
-  windowSize = 10,
+  windowSize = 30,
   width: propWidth,
   height: propHeight,
   xtickMargin = 20,

@@ -50,6 +50,7 @@ const SnapshotManagement = (set, get) => {
       query,
       request_id,
       regionSummary,
+      summaryLoading,
       abstracts,
       powerData,
       createKey,
@@ -72,6 +73,7 @@ const SnapshotManagement = (set, get) => {
       query,
       request_id,
       regionSummary,
+      summaryLoading,
       abstracts,
       powerData
     };
@@ -174,6 +176,7 @@ const SnapshotManagement = (set, get) => {
         query: snapshot.query,
         request_id: snapshot.request_id,
         regionSummary: snapshot.regionSummary,
+        summaryLoading: snapshot.summaryLoading,
         abstracts: snapshot.abstracts,
         powerData: snapshot.powerData,
         currentSnapshot: snapshot

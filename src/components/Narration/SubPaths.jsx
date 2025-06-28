@@ -82,7 +82,7 @@ export default function SubPaths({
     };
   }, []);
 
-  const { subpaths, removeNarrationPreview, handleNarrationPreview } = SelectedStatesStore()
+  const { subpaths, removeNarrationPreview, handleNarrationPreview, subpathLoading } = SelectedStatesStore()
   
   const tooltipRef = useRef(null)
   
@@ -172,12 +172,6 @@ export default function SubPaths({
     tooltipRef.current.hide()
   }, [removeNarrationPreview])
 
-  const [subpathsLoading, setSubpathsLoading] = useState(false)
-  useEffect(() => {
-    if(factors===null) setSubpathsLoading(true)
-    else setSubpathsLoading(false)
-  }, [factors, setSubpathsLoading])
-
   return (
     <div 
       ref={containerRef}
@@ -185,7 +179,7 @@ export default function SubPaths({
       style={{ width }}
     >
       {path.length && yScale && containerHeight > 0 &&
-        subpathsLoading ? 
+        subpathLoading ? 
         <div
           className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-3 items-center justify-center text-base"
           style={{

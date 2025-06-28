@@ -9,12 +9,13 @@ const CSN = (set, get) => {
 
   // This function fetches subpaths for a given region and factor exclusion list.
   const findSubpaths = (region, factorExclusion) => {
-    const { createKey, updateSnapshotAndState } = get();
+    const { createKey, updateSnapshotAndState, setSubpathLoading } = get();
     const regionKey = createKey(region);
     
     updateSnapshotAndState(regionKey, { loadingRegionCSNS: true });
 
     if (region) {
+      setSubpathLoading(true);
       fetchSingleRegionFactorOverlap({ region, factorExclusion })
         .then((response) => {
           // change TF full to TF top10 for faster power rendering
@@ -32,6 +33,7 @@ const CSN = (set, get) => {
           createSubregionPaths(topSubregionFactors, region)
             .then((subpathResponse) => {
               updateSnapshotAndState(regionKey, { subpaths: subpathResponse });
+              setSubpathLoading(false);
             });
         });
     }
@@ -39,7 +41,7 @@ const CSN = (set, get) => {
 
   // This function collects paths for a selected region and updates the state.
   const collectPathsForSelected = (region, genesetScoreMapping, determineFactorExclusion, activeSet, activeFilters) => {
-    const { createKey, updateSnapshotAndState } = get();
+    const { createKey, updateSnapshotAndState, findSubpaths } = get();
     const regionKey = createKey(region);
 
     if(region) {
@@ -78,7 +80,7 @@ const CSN = (set, get) => {
         })
         return null
       }).then((response) => {
-        const { findSubpaths, subpaths } = get()
+        const { subpaths } = get()
         if(!subpaths) {
           // subpath query
           let factorExclusion = determineFactorExclusion(response[0] ? response[0] : null, activeSet, activeFilters)
@@ -89,7 +91,7 @@ const CSN = (set, get) => {
     } else {
       // selected is cleared
       updateSnapshotAndState(regionKey, { selectedGenesetMembership: [] })
-      get().findSubpaths(null, [])
+      findSubpaths(null, [])
     }
   };
 
@@ -254,6 +256,8 @@ const CSN = (set, get) => {
     setLoadingRegionCSNS: (loading) => set({ loadingRegionCSNS: loading }),
     subpaths: null,
     setSubpaths: (subpaths) => set({ subpaths: subpaths }),
+    subpathLoading: false,
+    setSubpathLoading: (loading) => set({ subpathLoading: loading }),
     loadingSelectedCSN: false,
     setLoadingSelectedCSN: (loading) => set({ loadingSelectedCSN: loading }),
     selectedNarration: null,

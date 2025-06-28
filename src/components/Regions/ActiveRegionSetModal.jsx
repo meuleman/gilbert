@@ -40,13 +40,15 @@ const ActiveRegionSetModal = () => {
     activeGenesetEnrichment,
     prompt: regionSetPrompt,
     generateRegionSetNarration,
+    genesetEnrichmentLoading,
+    regionSetNarrationLoading,
   } = useContext(RegionsContext)
   
   const { showActiveRegionSet } = RegionSetModalStatesStore()
   const { 
     selected, setSelected, setRegion, regionSummary,
     generateSummary: generateSelectedSummary, feedback: selectedFeedback, 
-    abstracts: selectedAbstracts, prompt: selectedPrompt
+    abstracts: selectedAbstracts, prompt: selectedPrompt, summaryLoading: selectedSummaryLoading
   } = SelectedStatesStore()
   const { setActiveRegionSetModalSize } = ComponentSizeStore()
 
@@ -122,8 +124,6 @@ const ActiveRegionSetModal = () => {
       return next
     })
   }, [])
-
-  const [activeTab, setActiveTab] = useState('table')
 
   if (!showActiveRegionSet) {
     return null
@@ -279,7 +279,7 @@ const ActiveRegionSetModal = () => {
                   </div>
                 </div>
               </div>
-              {(summaryToShow === "regionSet" ? regionSetSummary === "" : regionSummary === "") ? // if regionSummary = null, no narration available
+              {(summaryToShow === "regionSet" ? regionSetNarrationLoading : selectedSummaryLoading) ?
                 <div className="flex-1 flex flex-col justify-center items-center text-base gap-3">
                   <div>Generating Narration...</div>
                   <Loading />
@@ -369,20 +369,16 @@ const ActiveRegionSetModal = () => {
               {/* <h3 className="text-sm text-gray-500">
                 Spectrum:
               </h3> */}
-              {activeGenesetEnrichment ?
-                <div className="flex-1 relative">
-                  <div className="absolute inset-0">
-                    <Spectrum
-                      show
-                      windowSize={30}
-                    />
-                  </div>
-                </div>
-                : 
+              {genesetEnrichmentLoading ?
                 <div className="flex flex-col justify-center items-center h-full gap-3 text-base">
                   <div>Generating Functional Spectrum...</div>
                   <Loading />
-                </div>
+                </div> : 
+                activeGenesetEnrichment ? <div className="flex-1 relative">
+                  <div className="absolute inset-0">
+                    <Spectrum />
+                  </div>
+                </div> : null
               }
             </div>
           )}
@@ -442,7 +438,7 @@ const ActiveRegionSetModal = () => {
                 onClick={() => handleRegionSetView('list')}
                 disabled={!activeSet}
               >
-                Listview
+                Region List
               </button>
             </div>
           </div>
