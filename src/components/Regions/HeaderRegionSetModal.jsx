@@ -3,6 +3,7 @@ import { groups } from 'd3-array'
 
 import FactorSearch from '../FactorSearch'
 import RegionsContext from './RegionsContext'
+import ComponentSizeStore from '../../states/ComponentSizes'
 import { allFactorFilterFields } from '../../layers'
 import { fetchRegionSetFromFactor } from '../../lib/apiService'
 import { download, parseBED } from '../../lib/regionsets'
@@ -17,6 +18,7 @@ import { X } from "lucide-react";
 const HeaderRegionSetModal = ({
 } = {}) => {
   const { sets, activeSet, activeRegions, setActiveSet, setNumTopRegions, clearActive, saveSet, deleteSet } = useContext(RegionsContext)
+  const { lefthandPanelWidth } = ComponentSizeStore()
   // const { setFilters } = useContext(FiltersContext)
   const [searchShowing, setSearchShowing] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState({});
@@ -144,19 +146,19 @@ const HeaderRegionSetModal = ({
   }
 
   return (
-    <div className="relative">
+    <div className={`relative w-[${lefthandPanelWidth}]`}>
       <div className="relative h-globalMenuBar flex items-center min-w-80">
         <div
           ref={toggleRef} 
-          className="px-3.5 flex-1 flex items-center" 
+          className="px-3.5 flex-1 flex items-center min-w-0" 
           role="button" 
           onClick={() => setSearchShowing(!searchShowing)}
         >
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="text-bodyMuted">Active region set</div>
-            <div>{activeSet?.name ?? "None selected"}</div>
+            <div className="truncate">{activeSet?.name ?? "None selected"}</div>
           </div>
-          <div className="ml-9 group">
+          <div className="ml-9 group flex-shrink-0">
             <UpDownChevronIcon />
           </div>
         </div>

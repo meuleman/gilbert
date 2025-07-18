@@ -50,7 +50,7 @@ const ActiveRegionSetModal = () => {
     generateSummary: generateSelectedSummary, feedback: selectedFeedback, 
     abstracts: selectedAbstracts, prompt: selectedPrompt, summaryLoading: selectedSummaryLoading
   } = SelectedStatesStore()
-  const { setActiveRegionSetModalSize } = ComponentSizeStore()
+  const { setActiveRegionSetModalSize, lefthandPanelWidth } = ComponentSizeStore()
 
   const containerRef = useRef(null)
   const selectedRef = useRef(null);
@@ -241,7 +241,7 @@ const ActiveRegionSetModal = () => {
 
   return (
     // TODO: remove hardcoded width
-    <div className="flex-1 pl-1 min-h-0 max-h-full w-[24rem] text-xs overflow-hidden flex flex-col" ref={containerRef}>
+    <div className={`flex-1 pl-1 min-h-0 max-h-full w-[${lefthandPanelWidth}] text-xs overflow-hidden flex flex-col`} ref={containerRef}>
       <div className="h-1/2 w-full">
         <div className="h-3/4 flex flex-col">
           {summaryToShow ? (

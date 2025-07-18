@@ -13,6 +13,7 @@ const ComponentSizeStore = create((set) => {
     setPowerSize: (size) => set(() => ({ powerSize: size})),
     csnSize: { width: 0, height: 0 },
     setCsnSize: (size) => set(() => ({ csnSize: size})),
+    lefthandPanelWidth: "24rem",
     activeRegionSetModalSize: { width: 0, height: 0 },
     setActiveRegionSetModalSize: (size) => set(() => ({ activeRegionSetModalSize: size})),
     statusBarSize: { width: 0, height: 0 },
