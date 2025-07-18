@@ -21,6 +21,8 @@ const HeaderRegionSetModal = ({
   const { lefthandPanelWidth } = ComponentSizeStore()
   // const { setFilters } = useContext(FiltersContext)
   const [searchShowing, setSearchShowing] = useState(true)
+  const [showAdvanced, setShowAdvanced] = useState(false); 
+  const [exampleGWASTraits, setExampleGWASTraits] = useState(["Diastolic blood pressure", "Eosinophil count", "Total cholesterol"]);
   const [expandedGroups, setExpandedGroups] = useState({});
   const toggleRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -145,6 +147,13 @@ const HeaderRegionSetModal = ({
     )
   }
 
+  const exampleGWASFactors = useMemo(() => {
+    return allFactorFilterFields.filter(
+      d => ((d.layer.labelName === "UKBB Variants") && 
+      (exampleGWASTraits.includes(d.field)))
+    );
+  }, [allFactorFilterFields, exampleGWASTraits]);
+
   return (
     <div className={`relative w-[${lefthandPanelWidth}]`}>
       <div className="relative h-globalMenuBar flex items-center min-w-80">
@@ -189,10 +198,6 @@ const HeaderRegionSetModal = ({
                 Download {activeRegions?.length} regions to a BED file
               </Tooltip>
             </div>
-            {/* <div className="h-2/5 w-px bg-separator" />
-            <div className="h-globalMenuBar aspect-square flex items-center justify-center">
-              <UploadIcon />
-            </div> */}
           </>
         )}
       </div>
@@ -206,105 +211,139 @@ const HeaderRegionSetModal = ({
               ref={dropdownRef}
             >
               <div className="flex flex-col space-y-4">
+                
+                {/* File Upload - Always visible */}
                 <div>
                   <h3 className="font-medium mb-2">Upload BED file</h3>
                   <div className="px-4 py-3 bg-gray-50 rounded-md">
                     <input type="file" onChange={handleFileChange} />
                   </div>
                 </div>
+  
+                {/* GWAS Section - Always visible */}
                 <div>
-                  <h3 className="font-medium mb-2">Search</h3>
-                  <FactorSearch onSelect={handleSelectFactor} />
-                </div>
-
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <h3 className="font-medium">Browse by category</h3>
-                    <button 
-                      className="text-sm text-blue-600 hover:underline"
-                      onClick={() => setExpandedGroups({})}
-                    >
-                      Collapse all
-                    </button>
-                  </div>
-                  
-                  {datasetGroups.map(([groupName, factors]) => (
-                    <div key={groupName} className="mb-2 border border-gray-200 rounded-md overflow-hidden">
+                  <h3 className="font-medium mb-2">Example GWAS Traits</h3>
+                  <div className="p-2 max-h-45 overflow-y-auto border border-gray-200 rounded-md">
+                    {exampleGWASFactors.map((factor, idx) => (
                       <div 
-                        className="bg-gray-50 px-4 py-2 font-medium cursor-pointer flex justify-between items-center"
-                        onClick={() => setExpandedGroups(prev => ({
-                          ...prev,
-                          [groupName]: !prev[groupName]
-                        }))}
+                        key={idx}
+                        className="cursor-pointer px-3 py-2 hover:bg-gray-50 text-sm"
+                        onClick={() => handleSelectFactor({factor})}
                       >
-                        <span>{groupName}</span>
-                        <span className="text-gray-500">
-                          {expandedGroups[groupName] ? '▼' : '►'}
-                        </span>
+                        {factorLabel(factor)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+  
+                {/* Advanced Search Toggle */}
+                <div className="border-t pt-4">
+                  <button 
+                    className="hover:underline hover:text-red-500 text-sm flex items-center gap-1"
+                    onClick={() => setShowAdvanced(!showAdvanced)}
+                  >
+                    {showAdvanced ? '▼' : '►'} Advanced Search Options
+                  </button>
+                </div>
+  
+                {/* Advanced Content - Conditionally visible */}
+                {showAdvanced && (
+                  <>
+                    <div>
+                      <h3 className="font-medium mb-2">Search</h3>
+                      <FactorSearch onSelect={handleSelectFactor} />
+                    </div>
+  
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <h3 className="font-medium">Browse by category</h3>
+                        <button 
+                          className="text-sm hover:text-red-500 hover:underline"
+                          onClick={() => setExpandedGroups({})}
+                        >
+                          Collapse all
+                        </button>
                       </div>
                       
-                      {expandedGroups[groupName] && (
-                        <div className="p-2 max-h-40 overflow-y-auto">
-                          {factors.map((factor, idx) => (
-                            <div 
-                              key={idx}
-                              className="cursor-pointer px-3 py-2 hover:bg-blue-50 text-sm"
-                              onClick={() => handleSelectFactor({factor})}
-                            >
-                              {factorLabel(factor)}
+                      {datasetGroups.map(([groupName, factors]) => (
+                        <div key={groupName} className="mb-2 border border-gray-200 rounded-md overflow-hidden">
+                          <div 
+                            className="bg-gray-50 px-4 py-2 font-medium cursor-pointer flex justify-between items-center"
+                            onClick={() => setExpandedGroups(prev => ({
+                              ...prev,
+                              [groupName]: !prev[groupName]
+                            }))}
+                          >
+                            <span>{groupName}</span>
+                            <span className="text-gray-500">
+                              {expandedGroups[groupName] ? '▼' : '►'}
+                            </span>
+                          </div>
+                          
+                          {expandedGroups[groupName] && (
+                            <div className="p-2 max-h-40 overflow-y-auto">
+                              {factors.map((factor, idx) => (
+                                <div 
+                                  key={idx}
+                                  className="cursor-pointer px-3 py-2 hover:bg-gray-50 text-sm"
+                                  onClick={() => handleSelectFactor({factor})}
+                                >
+                                  {factorLabel(factor)}
+                                </div>
+                              ))}
                             </div>
-                          ))}
+                          )}
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                <div>
-                  <h3 className="font-medium mb-2">Saved Region Sets</h3>
-                  <table>
-                    <tbody>
-                      {sets.map((set, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="py-1 px-2 group align-middle text-center">
-                          {activeSet?.name == set.name 
-                          ?
-                          <X 
-                            role="button" 
-                            onClick={() => handleSelect(null)}
-                            width="18"
-                            className="inline-block [&_path]:origin-center group-hover:[&_path]:stroke-red-500"
-                          />
-                          : <button 
-                              className="text-black hover:text-red-500" 
-                              onClick={() => handleSelect(set)}
-                            >Select</button>
-                          }
-                          </td>
-                        <td className="py-1 px-2">{set.name}</td>
-                        <td className="py-1 px-2">{set.regions?.length} regions</td> 
-                        <td className="py-1 px-2 group">
-                          <DownloadIcon 
-                            data-tooltip-id={`download-regions-${index}`}
-                            role="button" 
-                            onClick={() => handleDownload(set)} 
-                            className="group-hover:[&_path]:fill-red-500"
-                          />
-                          <Tooltip id={`download-regions-${index}`}>
-                            Download {set.name} ({set.regions?.length} regions) to a BED file
-                          </Tooltip>
-                        </td>
-                        <td className="py-1 px-2">
-                          <button onClick={() => {
-                            setActiveSet(null)
-                            deleteSet(set.name)
-                          }} disabled={set.example}>🗑️</button> 
-                        </td>
-                      </tr>
                       ))}
-                    </tbody>
-                  </table>
-                </div> 
+                    </div>
+  
+                    <div>
+                      <h3 className="font-medium mb-2">Saved Region Sets</h3>
+                      <table>
+                        <tbody>
+                          {sets.map((set, index) => (
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="py-1 px-2 group align-middle text-center">
+                              {activeSet?.name == set.name 
+                              ?
+                              <X 
+                                role="button" 
+                                onClick={() => handleSelect(null)}
+                                width="18"
+                                className="inline-block [&_path]:origin-center group-hover:[&_path]:stroke-red-500"
+                              />
+                              : <button 
+                                  className="text-black hover:text-red-500" 
+                                  onClick={() => handleSelect(set)}
+                                >Select</button>
+                              }
+                              </td>
+                            <td className="py-1 px-2">{set.name}</td>
+                            <td className="py-1 px-2">{set.regions?.length} regions</td> 
+                            <td className="py-1 px-2 group">
+                              <DownloadIcon 
+                                data-tooltip-id={`download-regions-${index}`}
+                                role="button" 
+                                onClick={() => handleDownload(set)} 
+                                className="group-hover:[&_path]:fill-red-500"
+                              />
+                              <Tooltip id={`download-regions-${index}`}>
+                                Download {set.name} ({set.regions?.length} regions) to a BED file
+                              </Tooltip>
+                            </td>
+                            <td className="py-1 px-2">
+                              <button onClick={() => {
+                                setActiveSet(null)
+                                deleteSet(set.name)
+                              }} disabled={set.example}>🗑️</button> 
+                            </td>
+                          </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div> 
+                  </>
+                )}
               </div>
             </div>
           </div>
