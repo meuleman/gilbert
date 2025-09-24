@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import { useZoom } from '../contexts/ZoomContext';
 
-import { urlify, jsonify, fromPosition, fromCountOrder, overlaps } from '../lib/regions'
+import { urlify, jsonify, fromPosition, fromCountOrder, overlaps, fromIndex } from '../lib/regions'
 import { hilbertPosToOrder } from '../lib/HilbertChromosome'
 import { getRangesOverCell } from "../lib/Genes"
 
@@ -59,6 +59,8 @@ import { getSet } from '../components/Regions/localstorage'
 
 import { linearGenomeHeight } from '../components/Constants/Constants'
 
+// initial regions for random zoom on load
+import initialRegions from '../data/initialRegions.json'
 
 /**
 BT ADDED IMPORTS
@@ -142,15 +144,25 @@ function Home() {
     setHeight(containerSize.height)
   }, [containerSize, setMainMapSize, setWidth, setHeight])
 
-  // only on initial mount
+  // Only on initial mount, either setSelected from URL or zoom to random initial region
   useEffect(() => {
-    // selected powers the sidebar modal and the 1D track
-    setSelected(jsonify(initialSelectedRegion))
-    // // changing the region changes the zoom and will also highlight on the map
-    // setRegion(jsonify(initialSelectedRegion))
-  }, [])
+    // Priority 1: collect region from URL
+    if (initialSelectedRegion) {
+      setSelected(jsonify(initialSelectedRegion))
+      return;
+    }
 
-  const initialUpdateRef = useRef(true);
+    // Priority 2: fallback to random regions src/data/initialRegions.json
+    if (Array.isArray(initialRegions) && initialRegions.length > 0) {
+      let idx = Math.floor(Math.random() * (initialRegions.length))
+      const seed = initialRegions[idx]
+      if (seed?.chromosome && typeof seed?.i === 'number' && typeof seed?.order === 'number') {
+        const regionFromSeed = fromIndex(seed.chromosome, seed.i, seed.order)
+        setRegion(regionFromSeed)
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const {
     activeSet,
@@ -241,8 +253,6 @@ function Home() {
     setHoveredPosition({ x: hoveredX, y: hoveredY, sw, stepSize: scales.sizeScale(step) });
   }, [hover, transform, order, scales])
 
-
-  const [crossScaleNarration, setCrossScaleNarration] = useState(new Array(1).fill({ 'path': [] }))
   const [crossScaleNarrationIndex, setCrossScaleNarrationIndex] = useState(0)
   const [csnMethod, setCsnMethod] = useState("sum")
   const [csnEnrThreshold, setCsnEnrThreshold] = useState(0)
@@ -251,15 +261,6 @@ function Home() {
   useEffect(() => {
     selectedRef.current = selected;
   }, [selected]);
-
-  useEffect(() => {
-    if (!initialSelectedRegion) {
-      // TODO: need a reliable way to clear state when deselecting a region
-      setSelected(null)
-      setCrossScaleNarration([])
-    }
-  }, [initialSelectedRegion])
-
 
   const [data, setData] = useState(null)
   const dataRef = useRef(data)
@@ -270,23 +271,24 @@ function Home() {
   const [searchByFactorInds, setSearchByFactorInds] = useState([])
 
   const updateUrlParams = useCallback((newRegionSet, newSelected, newFilters) => {
-    const params = new URLSearchParams();
-    if (newRegionSet) params.set('regionset', newRegionSet);
-    if (newSelected) params.set('region', urlify(newSelected));
+    const params = new URLSearchParams(location.search);
+    if (newRegionSet) params.set('regionset', newRegionSet); else params.delete('regionset')
+    if (newSelected) params.set('region', urlify(newSelected)); else params.delete('region')
     // if (newFilters) params.set('filters', urlifyFilters(newFilters));
-    navigate({ search: params.toString() }, { replace: true });
-  }, [navigate]);
+    const next = params.toString();
+    if (next !== location.search.replace(/^\?/,'').toString()) {
+      navigate({ search: next }, { replace: true });
+    }
+  }, [navigate, location.search]);
 
   useEffect(() => {
-    if (!initialUpdateRef.current) {  // Only update URL params if not the initial render
+    // Keep URL in sync with selection
+    const currentEncoded = new URLSearchParams(location.search).get('region');
+    const nextEncoded = selected ? urlify(selected) : null;
+    if ((currentEncoded || '') !== (nextEncoded || '')) {
       updateUrlParams(initialRegionset, selected)
     }
-  }, [initialRegionset, selected, updateUrlParams])
-
-  useEffect(() => {
-    // After the initial render, set to false so URL updates can occur
-    initialUpdateRef.current = false;
-  }, []);
+  }, [initialRegionset, selected, updateUrlParams, location.search])
 
   // cross scale narration
   const handleChangeCSNIndex = (e) => setCrossScaleNarrationIndex(e.target.value)
@@ -913,7 +915,6 @@ function Home() {
                     layer={layer}
                     selected={selected}
                     hovered={hover}
-                    // crossScaleNarration={csn}
                     onZoom={(region) => {
                       setRegion(null);
                       const hit = fromPosition(region.chromosome, region.start, region.end)
@@ -1049,7 +1050,7 @@ function Home() {
             onShowGenesChange={handleChangeShowGenes}
             onDurationChange={handleChangeDuration}
             handleChangeCSNIndex={handleChangeCSNIndex}
-            maxCSNIndex={crossScaleNarration.length - 1}
+            maxCSNIndex={14}
             crossScaleNarrationIndex={crossScaleNarrationIndex}
             csnMethod={csnMethod}
             handleCsnMethodChange={handleCsnMethodChange}
