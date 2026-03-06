@@ -158,7 +158,8 @@ const HeaderRegionSetModal = ({
     <div className={`relative w-[${lefthandPanelWidth}]`}>
       <div className="relative h-globalMenuBar flex items-center min-w-80">
         <div
-          ref={toggleRef} 
+          ref={toggleRef}
+          data-tour="active-region-set" 
           className="px-3.5 flex-1 flex items-center min-w-0" 
           role="button" 
           onClick={() => setSearchShowing(!searchShowing)}

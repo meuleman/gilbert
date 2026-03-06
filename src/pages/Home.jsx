@@ -10,6 +10,7 @@ import { getRangesOverCell } from "../lib/Genes"
 import { useContainerSize } from '../lib/utils';
 import { range, group } from 'd3-array'
 import { Tooltip } from 'react-tooltip'
+import { Tour } from 'antd'
 
 import './Home.css'
 // base component
@@ -61,6 +62,8 @@ import { linearGenomeHeight } from '../components/Constants/Constants'
 
 // initial regions for random zoom on load
 import initialRegions from '../data/initialRegions.json'
+
+const TOUR_STORAGE_KEY = 'gilbert-tour-seen'
 
 /**
 BT ADDED IMPORTS
@@ -121,6 +124,7 @@ function Home() {
   }, [zoom])
 
   const [showSankey, setShowSankey] = useState(false)
+  const [tourOpen, setTourOpen] = useState(false)
 
   // store
   const { setShowActiveRegionSet, setShowSummary } = RegionSetModalStatesStore()
@@ -143,6 +147,18 @@ function Home() {
     setWidth(containerSize.width)
     setHeight(containerSize.height)
   }, [containerSize, setMainMapSize, setWidth, setHeight])
+
+  // Show tour for first-time visitors, only after zooming has stopped
+  useEffect(() => {
+    if (localStorage.getItem(TOUR_STORAGE_KEY)) return;
+
+    if (!isZooming) {
+      const t = setTimeout(() => {
+        setTourOpen(true)
+      }, 500)
+      return () => clearTimeout(t)
+    }
+  }, [isZooming])
 
   // Only on initial mount, either setSelected from URL or zoom to random initial region
   useEffect(() => {
@@ -1059,6 +1075,26 @@ function Home() {
           /> : null}
         </div>
       </div>
+
+      <Tour
+        open={tourOpen}
+        onClose={() => {
+          setTourOpen(false)
+          localStorage.setItem(TOUR_STORAGE_KEY, 'true')
+        }}
+        steps={[
+          {
+            title: 'Click to explore',
+            description: 'Click on a region to explore it across datasets and scales and to receieve an AI overview.',
+            target: () => document.querySelector('[data-tour="hilbert-center-cell"]'),
+          },
+          {
+            title: 'Active region set',
+            description: 'Click here to view and manage your active region set details.',
+            target: () => document.querySelector('[data-tour="active-region-set"]'),
+          },
+        ]}
+      />
     </>
   )
 }

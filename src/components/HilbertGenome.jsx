@@ -17,6 +17,7 @@ import Loading from './Loading';
 import ZoomInspector from '../components/ZoomInspector'
 import { showPosition } from '../lib/display';
 import HoverStatesStore from '../states/HoverStates'
+import SelectedStatesStore from '../states/SelectedStates'
 
 import { useZoom } from '../contexts/ZoomContext';
 
@@ -178,6 +179,8 @@ const HilbertGenome = ({
     setBbox = zoomContext.setBbox,
     setScales = zoomContext.setScales,
   } = zoomMethods || {};
+
+  const { region } = SelectedStatesStore()
 
   const { 
     hover: globalHover, hoverNarration,
@@ -758,6 +761,22 @@ const HilbertGenome = ({
           {/* This is what gets transformed and where most annotations will be rendered */}
           <g className="hg-scene" ref={sceneRef}>
             {SVGRenderers.filter(d => d).map((Renderer, index) => <Renderer key={index} state={state} scales={scales} />)}
+            {/* Tour target: rect at center of region */}
+            {transform && region && (() => {
+              const step = Math.pow(0.5, order)
+              const rw = sizeScale(step)
+              return (
+                <rect
+                  data-tour="hilbert-center-cell"
+                  x={xScale(region.x) - rw / 2}
+                  y={yScale(region.y) - rw / 2}
+                  width={rw}
+                  height={rw}
+                  fill="none"
+                  pointerEvents="none"
+                />
+              )
+            })()}
           </g>
 
           <line
