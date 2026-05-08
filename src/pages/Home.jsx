@@ -68,6 +68,7 @@ const TOUR_STORAGE_KEY = 'gilbert-tour-seen'
 /**
 BT ADDED IMPORTS
 */
+import CompassIcon from "@/assets/compass.svg?react"
 import DebugIcon from "@/assets/debug.svg?react"
 import RevertIcon from "@/assets/revert.svg?react"
 import GilbertG from "@/assets/gilbert-logo-g.svg?react"
@@ -738,6 +739,10 @@ function Home() {
     }, 10);
   };
 
+  const handleCompassClick = () => {
+    setTourOpen(true)
+  }
+
   // When narration data updates, recalc the zoom order.
   // (The narration region's order is increased by 0.5; but it is at least 4.)
   useEffect(() => {
@@ -783,11 +788,18 @@ function Home() {
                 <span className="block bg-muted-foreground border-2 border-muted-foreground h-3 w-6 rounded-full after:block after:h-full after:aspect-square after:bg-white after:rounded-full peer-checked:bg-primary peer-checked:border-primary peer-checked:after:ml-[0.725rem]"></span>
               </label>
             </div>
-            <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center border-separator border-r-1 ">
+            {/* <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center border-separator border-r-1 ">
               <SettingsIcon />
-            </div>
+            </div> */}
             <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center border-separator border-r-1">
-              <DebugIcon />
+              <button
+                type="button"
+                className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center"
+                onClick={handleCompassClick}
+                aria-label="Show tour"
+              >
+                <CompassIcon />
+              </button>
             </div>
             <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center">
               <button
