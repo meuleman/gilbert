@@ -1102,6 +1102,11 @@ function Home() {
             target: () => document.querySelector('[data-tour="hilbert-center-cell"]'),
           },
           {
+            title: 'Shift + hover for AI summary',
+            description: 'Hold Shift and hover over a region to preview its AI summary.',
+            target: () => document.querySelector('[data-tour="hilbert-center-cell"]'),
+          },
+          {
             title: 'Active region set',
             description: 'Click here to view and manage your active region set details.',
             target: () => document.querySelector('[data-tour="active-region-set"]'),
