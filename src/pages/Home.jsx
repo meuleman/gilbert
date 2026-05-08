@@ -794,8 +794,9 @@ function Home() {
             <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center border-separator border-r-1">
               <button
                 type="button"
-                className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center"
+                className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleCompassClick}
+                disabled={Boolean(selected)}
                 aria-label="Show tour"
               >
                 <CompassIcon />
