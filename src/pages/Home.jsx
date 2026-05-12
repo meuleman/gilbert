@@ -64,6 +64,7 @@ import { linearGenomeHeight } from '../components/Constants/Constants'
 import initialRegions from '../data/initialRegions.json'
 
 const TOUR_STORAGE_KEY = 'gilbert-tour-seen'
+const TOUR_PENDING_AFTER_RELOAD_KEY = 'gilbert-tour-pending-after-reload'
 
 /**
 BT ADDED IMPORTS
@@ -149,13 +150,19 @@ function Home() {
     setHeight(containerSize.height)
   }, [containerSize, setMainMapSize, setWidth, setHeight])
 
-  // Show tour for first-time visitors, only after zooming has stopped
+  // Show tour for first-time visitors, or after a full reload from the help button,
+  // only once programmatic zoom has stopped (same timing as first visit).
   useEffect(() => {
-    if (localStorage.getItem(TOUR_STORAGE_KEY)) return;
+    const hasSeenTour = localStorage.getItem(TOUR_STORAGE_KEY)
+    const pendingAfterReload = sessionStorage.getItem(TOUR_PENDING_AFTER_RELOAD_KEY)
+    if (hasSeenTour && !pendingAfterReload) return
 
     if (!isZooming) {
       const t = setTimeout(() => {
         setTourOpen(true)
+        if (pendingAfterReload) {
+          sessionStorage.removeItem(TOUR_PENDING_AFTER_RELOAD_KEY)
+        }
       }, 500)
       return () => clearTimeout(t)
     }
@@ -740,7 +747,8 @@ function Home() {
   };
 
   const handleTourButtonClick = () => {
-    setTourOpen(true)
+    sessionStorage.setItem(TOUR_PENDING_AFTER_RELOAD_KEY, '1')
+    window.location.reload()
   }
 
   // When narration data updates, recalc the zoom order.
