@@ -1098,7 +1098,7 @@ function Home() {
         steps={[
           {
             title: 'Click to explore',
-            description: 'Click on a region to explore it across datasets and scales and to receieve an AI overview.',
+            description: 'Click on a region to explore it across datasets and scales and to receive an AI overview.',
             target: () => document.querySelector('[data-tour="hilbert-center-cell"]'),
           },
           {
