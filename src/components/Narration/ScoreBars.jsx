@@ -4,6 +4,7 @@ import { range } from 'd3-array';
 import { showFloat, showInt, showPosition, showKb } from '../../lib/display';
 import { variantChooser } from '../../lib/csn';
 import './Line.css';
+import InfoIcon from "@/assets/info.svg?react"
 
 import Tooltip from '../Tooltips/Tooltip';
 import { tooltipContent } from './FactorTooltip'
@@ -234,15 +235,15 @@ export default function ScoreBars({
                     }}
                   />
                   {allowViewingSecondaryFactors ? <div
-                    className={`absolute font-mono cursor-pointer right-0 top-0 -translate-x-1.5 translate-y-1.5 text-[${fontSize}px]`}
+                    className="absolute cursor-pointer right-0 top-0 -translate-x-1.5 translate-y-1.5 text-gray-700"
                   >
                     <span
-                      className="pointer-events-auto"
+                      className="pointer-events-auto inline-flex items-center justify-center"
                       onMouseMove={(e) => handleMoreInfoHover(e, o)}
                       onMouseLeave={handleLeave}
                       onClick={() => handleClick(o)}
                     >
-                      ?
+                      <InfoIcon width={fontSize} height={fontSize} className="shrink-0" aria-hidden />
                     </span>
                   </div> : null}
                 </div>

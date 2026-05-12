@@ -68,7 +68,7 @@ const TOUR_STORAGE_KEY = 'gilbert-tour-seen'
 /**
 BT ADDED IMPORTS
 */
-import CompassIcon from "@/assets/compass.svg?react"
+import HelpIcon from "@/assets/help-circle.svg?react"
 import DebugIcon from "@/assets/debug.svg?react"
 import RevertIcon from "@/assets/revert.svg?react"
 import GilbertG from "@/assets/gilbert-logo-g.svg?react"
@@ -739,7 +739,7 @@ function Home() {
     }, 10);
   };
 
-  const handleCompassClick = () => {
+  const handleTourButtonClick = () => {
     setTourOpen(true)
   }
 
@@ -795,11 +795,11 @@ function Home() {
               <button
                 type="button"
                 className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={handleCompassClick}
+                onClick={handleTourButtonClick}
                 disabled={Boolean(selected)}
                 aria-label="Show tour"
               >
-                <CompassIcon />
+                <HelpIcon />
               </button>
             </div>
             <div className="grow-0 h-globalMenuBar aspect-square flex items-center justify-center">
