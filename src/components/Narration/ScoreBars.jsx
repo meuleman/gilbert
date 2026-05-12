@@ -135,7 +135,7 @@ export default function ScoreBars({
   
   const rw = useMemo(() => yScale(5) - yScale(4) - 2, [yScale]);
 
-  const infoIconSizePx = fontSize * 2;
+  const infoIconSizePx = fontSize * 1.8;
   const infoIconStyle = { width: infoIconSizePx, height: infoIconSizePx };
 
   // const handleClick = useCallback((e, o) => {
