@@ -1106,17 +1106,17 @@ function Home() {
         steps={[
           {
             title: 'Click to explore',
-            description: 'Click on a region to explore it across datasets and scales and to receive an AI overview.',
+            description: 'Each genomic region is annotated across thousands of datasets from 1Mbp to 1bp.',
             target: () => document.querySelector('[data-tour="hilbert-center-cell"]'),
           },
           {
             title: 'Shift + hover for AI summary',
-            description: 'Hold Shift and hover over a region to preview its AI summary.',
+            description: 'Click on this region to receive a cross scale narration and an AI overview of its genomic annotations.',
             target: () => document.querySelector('[data-tour="hilbert-center-cell"]'),
           },
           {
             title: 'Active region set',
-            description: 'Click here to view and manage your active region set details.',
+            description: 'You can also upload and select sets of regions to receive collective AI summaries and annotations.',
             target: () => document.querySelector('[data-tour="active-region-set"]'),
           },
         ]}
