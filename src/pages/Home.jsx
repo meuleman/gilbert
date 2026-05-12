@@ -1105,12 +1105,12 @@ function Home() {
         }}
         steps={[
           {
-            title: 'Click to explore',
+            title: '2D Genomic view',
             description: 'Each genomic region is annotated across thousands of datasets from 1Mbp to 1bp.',
             target: () => document.querySelector('[data-tour="hilbert-center-cell"]'),
           },
           {
-            title: 'Shift + hover for AI summary',
+            title: 'Click to explore',
             description: 'Click on this region to receive a cross scale narration and an AI overview of its genomic annotations.',
             target: () => document.querySelector('[data-tour="hilbert-center-cell"]'),
           },
