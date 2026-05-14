@@ -883,7 +883,7 @@ function Home() {
                   </div>
                   :
                   <div className="flex-1 flex flex-col">
-                    <div className="relative flex-1">
+                    <div className="relative flex-1" data-tour="tour-hilbert-2d-view">
                       {/*  ref={containerRef}  */}
                       <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
                         <LayerLegend
@@ -935,12 +935,15 @@ function Home() {
                         />
                       </div>
                     </div>
-                    <div className="grow-0">
-                      {data && (
-                        <div className="relative h-24 border-t-1 border-separator">
+                    <div
+                      className="grow-0 border-t-1 border-separator"
+                      data-tour="tour-linear-1d-track"
+                    >
+                      <div className="relative h-24">
+                        {data ? (
                           <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
                             <LinearGenome
-                              // center={data?.center} 
+                              // center={data?.center}
                               data={data?.data}
                               dataOrder={data?.dataOrder}
                               activeRegions={filteredRegionsByCurrentOrder}
@@ -958,12 +961,15 @@ function Home() {
                               showLayerNameInTooltip={false}
                             />
                           </div>
-                        </div>
-                      )}
+                        ) : null}
+                      </div>
                     </div>
                   </div>}
               </div>
-              <div className="grow-0 shrink-0 col-start-2 row-start-2 row-end-3 flex">
+              <div
+                className="grow-0 shrink-0 col-start-2 row-start-2 row-end-3 flex"
+                data-tour="tour-zoom-scale-bar"
+              >
                 {selectedNarration ?
                   <ZoomInspector zoomHeight={height} /> :
                   <ZoomLegend
@@ -1131,12 +1137,23 @@ function Home() {
         steps={[
           {
             title: '2D Genomic view',
-            description: 'Each genomic region is annotated across thousands of datasets from 1Mbp to 1bp.',
-            target: () => document.querySelector('[data-tour="hilbert-center-cell"]'),
+            description: 'This map shows a portion of the human genome folded into a 2D space.',
+            target: () => document.querySelector('[data-tour="tour-hilbert-2d-view"]'),
+          },
+          {
+            title: 'Traditional 1D view',
+            description: 'These same genomic regions are also displayed on a more traditional 1D track below.',
+            target: () => document.querySelector('[data-tour="tour-linear-1d-track"]'),
+          },
+          {
+            title: 'Scale bar',
+            description: 'Zooming in and out allows for exploration at different genomic scales. Here, the data layer shown at each scale can be customized.',
+            placement: 'left',
+            target: () => document.querySelector('[data-tour="tour-zoom-scale-bar"]'),
           },
           {
             title: 'Click to explore',
-            description: 'Click on this region to receive a cross scale narration and an AI overview of its genomic annotations.',
+            description: 'Each genomic region is annotated across thousands of datasets from 1Mbp to 1bp. Click on this region to receive a cross scale narration and an AI overview of its genomic annotations.',
             target: () => document.querySelector('[data-tour="hilbert-center-cell"]'),
           },
           {
