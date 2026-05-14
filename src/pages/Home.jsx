@@ -1142,7 +1142,7 @@ function Home() {
           },
           {
             title: 'Traditional 1D view',
-            description: 'These same genomic regions are also displayed on a more traditional 1D track below.',
+            description: 'These same genomic regions are also displayed in a more traditional 1D track below.',
             target: () => document.querySelector('[data-tour="tour-linear-1d-track"]'),
           },
           {
