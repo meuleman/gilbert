@@ -1158,7 +1158,7 @@ function Home() {
           },
           {
             title: 'Active region set',
-            description: 'You can also upload and select sets of regions to receive collective AI summaries and annotations.',
+            description: 'Sets of regions can also be uploaded and selected for collective AI summarization and annotation.',
             target: () => document.querySelector('[data-tour="active-region-set"]'),
           },
         ]}
