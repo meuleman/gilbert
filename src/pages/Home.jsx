@@ -64,7 +64,6 @@ import { linearGenomeHeight } from '../components/Constants/Constants'
 import initialRegions from '../data/initialRegions.json'
 
 const TOUR_STORAGE_KEY = 'gilbert-tour-seen'
-const TOUR_PENDING_AFTER_RELOAD_KEY = 'gilbert-tour-pending-after-reload'
 
 /**
 BT ADDED IMPORTS
@@ -74,6 +73,17 @@ import DebugIcon from "@/assets/debug.svg?react"
 import RevertIcon from "@/assets/revert.svg?react"
 import GilbertG from "@/assets/gilbert-logo-g.svg?react"
 import SettingsIcon from "@/assets/settings.svg?react"
+
+/** Random Hilbert cell from `initialRegions.json` for initial / tour programmatic zoom. */
+function randomRegionFromInitialSeeds() {
+  if (!Array.isArray(initialRegions) || initialRegions.length === 0) return null
+  const idx = Math.floor(Math.random() * initialRegions.length)
+  const seed = initialRegions[idx]
+  if (seed?.chromosome && typeof seed?.i === 'number' && typeof seed?.order === 'number') {
+    return fromIndex(seed.chromosome, seed.i, seed.order)
+  }
+  return null
+}
 
 function Home() {
   const location = useLocation();
@@ -127,6 +137,7 @@ function Home() {
 
   const [showSankey, setShowSankey] = useState(false)
   const [tourOpen, setTourOpen] = useState(false)
+  const [manualTourPending, setManualTourPending] = useState(false)
 
   // store
   const { setShowActiveRegionSet, setShowSummary } = RegionSetModalStatesStore()
@@ -150,23 +161,20 @@ function Home() {
     setHeight(containerSize.height)
   }, [containerSize, setMainMapSize, setWidth, setHeight])
 
-  // Show tour for first-time visitors, or after a full reload from the help button,
+  // Show tour for first-time visitors, or when the help button requests it,
   // only once programmatic zoom has stopped (same timing as first visit).
   useEffect(() => {
     const hasSeenTour = localStorage.getItem(TOUR_STORAGE_KEY)
-    const pendingAfterReload = sessionStorage.getItem(TOUR_PENDING_AFTER_RELOAD_KEY)
-    if (hasSeenTour && !pendingAfterReload) return
+    if (hasSeenTour && !manualTourPending) return
 
     if (!isZooming) {
       const t = setTimeout(() => {
         setTourOpen(true)
-        if (pendingAfterReload) {
-          sessionStorage.removeItem(TOUR_PENDING_AFTER_RELOAD_KEY)
-        }
+        setManualTourPending(false)
       }, 500)
       return () => clearTimeout(t)
     }
-  }, [isZooming])
+  }, [isZooming, manualTourPending])
 
   // Only on initial mount, either setSelected from URL or zoom to random initial region
   useEffect(() => {
@@ -177,14 +185,8 @@ function Home() {
     }
 
     // Priority 2: fallback to random regions src/data/initialRegions.json
-    if (Array.isArray(initialRegions) && initialRegions.length > 0) {
-      let idx = Math.floor(Math.random() * (initialRegions.length))
-      const seed = initialRegions[idx]
-      if (seed?.chromosome && typeof seed?.i === 'number' && typeof seed?.order === 'number') {
-        const regionFromSeed = fromIndex(seed.chromosome, seed.i, seed.order)
-        setRegion(regionFromSeed)
-      }
-    }
+    const regionFromSeed = randomRegionFromInitialSeeds()
+    if (regionFromSeed) setRegion(regionFromSeed)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -746,10 +748,33 @@ function Home() {
     }, 10);
   };
 
-  const handleTourButtonClick = () => {
-    sessionStorage.setItem(TOUR_PENDING_AFTER_RELOAD_KEY, '1')
-    window.location.reload()
-  }
+  const handleTourButtonClick = useCallback(() => {
+    setTourOpen(false)
+
+    const params = new URLSearchParams(location.search)
+    params.delete('region')
+    params.delete('position')
+    const nextSearch = params.toString()
+    const nextFull = nextSearch ? `?${nextSearch}` : ''
+    if (nextFull !== location.search) {
+      navigate({ pathname: location.pathname, search: nextFull }, { replace: true })
+    }
+
+    clearSnapshots()
+    clearSelected()
+
+    const regionFromSeed = randomRegionFromInitialSeeds()
+    if (regionFromSeed) setRegion(regionFromSeed)
+
+    setManualTourPending(true)
+  }, [
+    navigate,
+    location.pathname,
+    location.search,
+    clearSnapshots,
+    clearSelected,
+    setRegion,
+  ])
 
   // When narration data updates, recalc the zoom order.
   // (The narration region's order is increased by 0.5; but it is at least 4.)
