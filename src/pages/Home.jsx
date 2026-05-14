@@ -1137,28 +1137,28 @@ function Home() {
         steps={[
           {
             title: '2D Genomic view',
-            description: 'This map shows a portion of the human genome folded into a 2D space.',
+            description: 'This map shows a portion of the human genome folded into a 2D space by way of Hilbert curves.',
             target: () => document.querySelector('[data-tour="tour-hilbert-2d-view"]'),
           },
           {
             title: 'Traditional 1D view',
-            description: 'These same genomic regions are also displayed in a more traditional 1D track below.',
+            description: 'The same genomic region is also displayed in a more traditional 1D track below, including gene annotations.',
             target: () => document.querySelector('[data-tour="tour-linear-1d-track"]'),
           },
           {
-            title: 'Scale bar',
-            description: 'Zooming in and out allows for exploration at different genomic scales. Here, the data layer shown at each scale can be customized.',
+            title: 'View across genomic scales',
+            description: 'Zooming in and out allows for exploration at different genomic scales, from 1bp to 1Mbp. The data layer shown at each scale can be customized.',
             placement: 'left',
             target: () => document.querySelector('[data-tour="tour-zoom-scale-bar"]'),
           },
           {
             title: 'Click to explore',
-            description: 'Each genomic region is annotated across thousands of datasets from 1Mbp to 1bp. Click on this region to receive a cross scale narration and an AI overview of its genomic annotations.',
+            description: 'Each genomic region is thus annotated across thousands of datasets at each genomic scale. Click on a region to generate a more detailed view, including cross-scale annotations and AI-generated narrative summaries.',
             target: () => document.querySelector('[data-tour="hilbert-center-cell"]'),
           },
           {
-            title: 'Active region set',
-            description: 'Sets of regions can also be uploaded and selected for collective AI summarization and annotation.',
+            title: 'Beyond single regions',
+            description: 'Sets of regions of interest can be uploaded or pre-selected for collective annotation and narration, e.g. all variants for a particular GWAS.',
             target: () => document.querySelector('[data-tour="active-region-set"]'),
           },
         ]}
